@@ -16,20 +16,25 @@
     <link rel="icon" type="image/x-icon" href="{{ $base }}/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-favicon-e4fb5d15.ico">
     
     <style>
-        /* Banno Base Variables */
         :root {
-            --account-card-primary-background-color: rgb(0, 84, 155);
-            --body-text-primary-color: rgb(7, 21, 35);
-            --body-text-secondary-color: rgb(98, 110, 122);
-            --body-text-theme-color: rgb(0, 84, 155);
-            --button-corner-radius: 8px;
-            --card-corner-radius: 10px;
-            --card-shadow: 0 3px 12px 0 rgba(0,0,0,0.15);
-            --dashboard-page-background-color: rgb(227, 231, 237);
-            --navigation-bar-color: rgb(0, 73, 133);
-            --primary-button-color: rgb(217, 43, 28);
-            --primary-content-background-color: rgb(255, 255, 255);
-            --divider-default-color: rgb(230, 230, 230);
+            /* Pinellas Brand Colors */
+            --account-card-primary-background-color: #00549b; /* Dark Blue */
+            --body-text-primary-color: #071523;
+            --body-text-secondary-color: #626e7a;
+            --body-text-theme-color: #00549b;
+            --button-corner-radius: 4px;
+            --card-corner-radius: 8px;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Softer shadow */
+            --dashboard-page-background-color: #f2f4f8; /* Light gray background */
+            --navigation-bar-color: #ffffff; /* White sidebar */
+            --primary-button-color: #00549b;
+            --primary-content-background-color: #ffffff;
+            --divider-default-color: #e6e6e6;
+            
+            /* Pinellas Specifics */
+            --hero-gradient-start: #00549b;
+            --hero-gradient-end: #003366;
+            --accent-color: #00bfff; /* Light blue accent for icons/highlights */
         }
 
         body {

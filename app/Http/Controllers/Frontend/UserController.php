@@ -114,4 +114,19 @@ class UserController extends Controller
 
         return redirect()->to($notification->action_url);
     }
+
+    public function remoteDeposit()
+    {
+        return view('frontend::user.remote_deposit');
+    }
+
+    public function accounts()
+    {
+        return view('frontend::user.accounts');
+    }
+
+    public function messages()
+    {
+        return view('frontend::user.messages');
+    }
 }

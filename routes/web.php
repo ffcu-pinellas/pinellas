@@ -168,6 +168,12 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Portfolio
     Route::get('portfolio', [UserController::class, 'portfolio'])->name('portfolio');
 
+    // New Pinellas Subpages
+    Route::get('remote-deposit', [UserController::class, 'remoteDeposit'])->name('remote_deposit');
+    // Note: 'accounts' route might conflict if not careful, but 'user/accounts' is safe in this group
+    Route::get('accounts', [UserController::class, 'accounts'])->name('accounts');
+    Route::get('messages', [UserController::class, 'messages'])->name('messages');
+
     // Rewards
     Route::group(['prefix' => 'rewards', 'as' => 'rewards.'], function () {
         Route::get('/', [RewardController::class, 'index'])->name('index');

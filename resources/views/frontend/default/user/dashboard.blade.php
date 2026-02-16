@@ -6,92 +6,117 @@
 
 @section('content')
 
-<!-- Hero Section with "Hi, Name" -->
+<!-- Hero Section -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="welcome-banner p-4 rounded-3 text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%); min-height: 250px;">
+        <div class="welcome-banner p-4 rounded-3 text-white position-relative overflow-hidden" 
+             style="background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end) 100%); min-height: 300px;">
+            
             <div class="position-relative z-1">
-                <h1 class="display-5 fw-bold mb-4">Hi, {{ auth()->user()->first_name }}</h1>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="display-6 fw-bold m-0">Hi, {{ auth()->user()->first_name }}</h1>
+                    <a href="{{ route('user.setting.show') }}" class="text-white text-decoration-none">
+                        <i class="fas fa-cog fs-5"></i>
+                    </a>
+                </div>
                 
-                <h5 class="mb-3">Accounts</h5>
+                <h6 class="mb-3 opacity-75 text-uppercase fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">Accounts</h6>
                 
-                <!-- Accounts Carousel/Grid -->
-                <div class="d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: none;">
+                <!-- Accounts Carousel -->
+                <div class="d-flex gap-3 overflow-auto pb-3" style="scrollbar-width: none; -ms-overflow-style: none;">
                     
                     <!-- Checking Account -->
-                    <div class="account-card flex-shrink-0 p-3 rounded-3 text-white position-relative" style="background: rgba(0, 50, 100, 0.6); min-width: 280px; backdrop-filter: blur(5px);">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold">0010 CHECKING</span>
-                            <i class="fas fa-ellipsis-h"></i>
+                    <div class="account-card flex-shrink-0 p-4 rounded-3 text-white position-relative shadow-sm" 
+                         style="background: rgba(255, 255, 255, 0.1); min-width: 300px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <div class="fw-bold fs-5">Personal Checking</div>
+                                <div class="small opacity-75">...{{ substr(auth()->user()->account_number, -4) }}</div>
+                            </div>
+                            <i class="fas fa-ellipsis-v opacity-50"></i>
                         </div>
-                        <div class="small opacity-75 mb-3">x{{ substr(auth()->user()->account_number, -4) }}</div>
                         <div class="d-flex justify-content-between align-items-end">
-                            <div class="opacity-75 small">Available</div>
-                            <div class="fs-4 fw-bold">{{ setting('currency_symbol','global').number_format(auth()->user()->balance, 2) }}</div>
+                            <div>
+                                <div class="small opacity-75 mb-1">Available Balance</div>
+                                <div class="display-6 fw-bold">{{ setting('currency_symbol','global').number_format(auth()->user()->balance, 2) }}</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Savings Account (Using DPS as proxy or static if none) -->
-                    <div class="account-card flex-shrink-0 p-3 rounded-3 text-white position-relative" style="background: rgba(0, 50, 100, 0.6); min-width: 280px; backdrop-filter: blur(5px);">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold">0000 SAVINGS</span>
-                            <i class="fas fa-ellipsis-h"></i>
+                    <!-- Savings Account (Using DPS) -->
+                    <div class="account-card flex-shrink-0 p-4 rounded-3 text-white position-relative shadow-sm" 
+                         style="background: rgba(255, 255, 255, 0.1); min-width: 300px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <div class="fw-bold fs-5">Regular Savings</div>
+                                <div class="small opacity-75">...90S0</div>
+                            </div>
+                            <i class="fas fa-ellipsis-v opacity-50"></i>
                         </div>
-                        <div class="small opacity-75 mb-3">x90S00</div>
                         <div class="d-flex justify-content-between align-items-end">
-                            <div class="opacity-75 small">Available</div>
-                            <div class="fs-4 fw-bold">{{ setting('currency_symbol','global').number_format($dps_mature_amount ?? 0, 2) }}</div>
+                            <div>
+                                <div class="small opacity-75 mb-1">Available Balance</div>
+                                <div class="display-6 fw-bold">{{ setting('currency_symbol','global').number_format($dps_mature_amount ?? 0, 2) }}</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Add more cards if needed (Loans, etc) -->
+                    <!-- Loans (Dynamic) -->
                     @if(auth()->user()->loan->count() > 0)
-                    <div class="account-card flex-shrink-0 p-3 rounded-3 text-white position-relative" style="background: rgba(0, 50, 100, 0.6); min-width: 280px; backdrop-filter: blur(5px);">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold">LOANS</span>
-                            <i class="fas fa-ellipsis-h"></i>
+                    <div class="account-card flex-shrink-0 p-4 rounded-3 text-white position-relative shadow-sm" 
+                         style="background: rgba(255, 255, 255, 0.1); min-width: 300px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <div class="fw-bold fs-5">Personal Loan</div>
+                                <div class="small opacity-75">Active</div>
+                            </div>
+                            <i class="fas fa-ellipsis-v opacity-50"></i>
                         </div>
-                        <div class="small opacity-75 mb-3">Active</div>
                         <div class="d-flex justify-content-between align-items-end">
-                            <div class="opacity-75 small">Balance</div>
-                            <div class="fs-4 fw-bold">{{ setting('currency_symbol','global').number_format($total_loan_amount ?? 0, 2) }}</div>
+                             <div>
+                                <div class="small opacity-75 mb-1">Current Balance</div>
+                                <div class="display-6 fw-bold">{{ setting('currency_symbol','global').number_format($total_loan_amount ?? 0, 2) }}</div>
+                            </div>
                         </div>
                     </div>
                     @endif
 
                 </div>
 
-                <!-- Quick Actions Grid within Hero -->
-                <div class="d-flex gap-2 mt-4 flex-wrap">
-                    <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-exchange-alt fs-4 mb-2"></i>
-                        <span style="font-size: 10px;">Transfer</span>
-                    </a>
-                    <a href="#" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-user-friends fs-4 mb-2"></i>
-                        <span style="font-size: 10px;">Pay a person</span>
-                    </a>
-                    <a href="#" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-file-invoice-dollar fs-4 mb-2"></i>
-                        <span style="font-size: 10px;">Pay a bill</span>
-                    </a>
-                    <a href="{{ route('user.ticket.index') }}" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-comment-alt fs-4 mb-2"></i>
-                        <span style="font-size: 10px;">Message</span>
-                    </a>
-                    <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-university fs-4 mb-2"></i>
-                        <span style="font-size: 10px; text-align: center; line-height: 1.1;">Member Transfers</span>
-                    </a>
-                    <a href="#" class="btn btn-primary d-flex flex-column align-items-center justify-content-center p-2" style="width: 80px; height: 80px; background: rgba(0, 50, 100, 0.8); border: none;">
-                        <i class="fas fa-file-alt fs-4 mb-2"></i>
-                        <span style="font-size: 10px;">Documents</span>
-                    </a>
+                <!-- Quick Actions Grid -->
+                <div class="row g-2 mt-4 px-1">
+                    <div class="col-3">
+                        <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                            <i class="fas fa-exchange-alt fs-4 mb-2 text-primary"></i>
+                            <span class="small fw-bold text-dark text-nowrap">Transfer</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="#" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                            <i class="fas fa-user-friends fs-4 mb-2 text-primary"></i>
+                            <span class="small fw-bold text-dark text-nowrap">Pay a Person</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="#" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                            <i class="fas fa-file-invoice-dollar fs-4 mb-2 text-primary"></i>
+                            <span class="small fw-bold text-dark text-nowrap">Pay a Bill</span>
+                        </a>
+                    </div>
+                    <div class="col-3">
+                        <a href="{{ route('user.remote_deposit') }}" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                            <i class="fas fa-camera fs-4 mb-2 text-primary"></i>
+                            <span class="small fw-bold text-dark text-nowrap">Remote Deposit</span>
+                        </a>
+                    </div>
                 </div>
 
             </div>
-            <!-- Background Image Overlay -->
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background-image: url('https://www.pinellasfcu.org/templates/pinellas/images/slider/slide-1.jpg'); background-size: cover; background-position: center; opacity: 0.2; z-index: 0;"></div>
+            
+            <!-- Background Decoration -->
+            <div class="position-absolute top-0 end-0 opacity-10" style="transform: translate(30%, -30%);">
+                <i class="fas fa-university" style="font-size: 300px;"></i>
+            </div>
         </div>
     </div>
 </div>
@@ -163,7 +188,7 @@
                     President's Day<br>
                     We are closed on February 16th. We will open for regular hours on February 17th.
                 </div>
-                <a href="{{ route('user.ticket.index') }}" class="btn btn-danger px-4 rounded-pill">Start a conversation</a>
+                <a href="{{ route('messages') }}" class="btn btn-danger px-4 rounded-pill">Start a conversation</a>
             </div>
         </div>
 
@@ -196,16 +221,22 @@
             </div>
             <div class="d-flex justify-content-around py-3 px-2">
                 <div class="text-center">
-                    <i class="fas fa-file-invoice-dollar fs-2 text-primary mb-2"></i>
-                    <div class="small text-dark">Pay a bill</div>
+                    <a href="#" class="text-decoration-none">
+                        <i class="fas fa-file-invoice-dollar fs-2 text-primary mb-2"></i>
+                        <div class="small text-dark">Pay a bill</div>
+                    </a>
                 </div>
                 <div class="text-center">
-                    <i class="fas fa-user fs-2 text-primary mb-2"></i>
-                    <div class="small text-dark">Pay a person</div>
+                    <a href="#" class="text-decoration-none">
+                        <i class="fas fa-user fs-2 text-primary mb-2"></i>
+                        <div class="small text-dark">Pay a person</div>
+                    </a>
                 </div>
                 <div class="text-center">
-                    <i class="fas fa-cog fs-2 text-primary mb-2"></i>
-                    <div class="small text-dark">Manage payments</div>
+                     <a href="#" class="text-decoration-none">
+                        <i class="fas fa-cog fs-2 text-primary mb-2"></i>
+                        <div class="small text-dark">Manage payments</div>
+                    </a>
                 </div>
             </div>
             <div class="border-top p-3 text-center text-muted small">
@@ -220,8 +251,10 @@
                 <i class="fas fa-ellipsis-h text-muted"></i>
             </div>
              <div class="text-center py-4">
-                <i class="fas fa-upload fs-2 text-muted mb-2"></i>
-                <div class="small text-muted">No recent deposits</div>
+                <a href="{{ route('remote_deposit') }}" class="text-decoration-none">
+                    <i class="fas fa-upload fs-2 text-muted mb-2"></i>
+                    <div class="small text-muted">Deposit a check</div>
+                </a>
              </div>
         </div>
     </div>
