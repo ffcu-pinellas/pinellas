@@ -31,7 +31,6 @@ class DashboardController extends Controller
             'total_withdraw' => $user->totalWithdraw(),
             'total_transfer' => $user->totalTransfer(),
             'total_dps' => $user->dps->count(),
-            'total_bill' => $user->bill->count(),
             'total_fdr' => $user->fdr->count(),
             'total_running_dps' => $user->dps->whereIn('status', [DpsStatus::Running, DpsStatus::Due])->count(),
             'total_running_loan' => $user->loan->whereIn('status', [LoanStatus::Running, LoanStatus::Due])->count(),
