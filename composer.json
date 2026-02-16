@@ -80,7 +80,7 @@
             "type": "path",
             "url": "./modules/installer",
             "options": {
-                "symlink": true
+                "symlink": false
             }
         }
     ],
