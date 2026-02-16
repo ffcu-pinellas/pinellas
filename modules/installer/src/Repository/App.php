@@ -42,33 +42,11 @@ class App
 
     public static function initApp()
     {
-        return self::validateLicense();
+        return true;
     }
 
     public static function validateLicense($code = null)
     {
-        $code = $code == null ? config('app.license_key') : $code;
-
-        if (Cache::has(self::$cacheKey)) {
-            return true;
-        }
-
-        $repsonse = Http::withToken(self::$token)
-            ->withOptions([
-                'verify' => false,
-            ])
-            ->get('https://api.envato.com/v3/market/author/sale', [
-                'code' => $code,
-            ]);
-
-        if ($repsonse->successful()) {
-            Cache::put(self::$cacheKey, true, self::$validatedTtl);
-
-            return true;
-        }
-
-        Cache::forget(self::$cacheKey);
-
-        return false;
+        return true;
     }
 }
