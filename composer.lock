@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1fdef6cc9a087a5c7bd0788cba682ab",
+    "content-hash": "436eecc3f76023bed38a24dc508fc57f",
     "packages": [
         {
             "name": "antimech/coinbase",
@@ -5436,7 +5436,7 @@
             "dist": {
                 "type": "path",
                 "url": "./modules/installer",
-                "reference": "76fec82f152054af5ab748efb048f59f18521181"
+                "reference": "805a58f6e7b98d115fca52144b39d7da7e70f092"
             },
             "type": "library",
             "extra": {
@@ -5458,7 +5458,7 @@
             ],
             "description": "Official Script Installer Of tDevs",
             "transport-options": {
-                "symlink": true,
+                "symlink": false,
                 "relative": true
             }
         },
@@ -8427,12 +8427,12 @@
             "version": "v3.15.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/barryvdh/laravel-debugbar.git",
+                "url": "https://github.com/fruitcake/laravel-debugbar.git",
                 "reference": "0bc1e1361e7fffc2be156f46ad1fba6927c01729"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/barryvdh/laravel-debugbar/zipball/0bc1e1361e7fffc2be156f46ad1fba6927c01729",
+                "url": "https://api.github.com/repos/fruitcake/laravel-debugbar/zipball/0bc1e1361e7fffc2be156f46ad1fba6927c01729",
                 "reference": "0bc1e1361e7fffc2be156f46ad1fba6927c01729",
                 "shasum": ""
             },
@@ -12123,5 +12123,5 @@
         "ext-zip": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
