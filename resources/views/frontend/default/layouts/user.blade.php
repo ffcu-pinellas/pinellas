@@ -202,7 +202,7 @@
                 <a href="{{ route('user.deposit.amount') }}" class="{{ Request::routeIs('user.deposit.amount') ? 'active' : '' }}">
                     <i class="fas fa-mobile-alt"></i> Deposit
                 </a>
-                <a href="{{ route('user.setting.profile') }}" class="{{ Request::routeIs('user.setting.profile') ? 'active' : '' }}">
+                <a href="{{ route('user.setting.show') }}" class="{{ Request::routeIs('user.setting.show') ? 'active' : '' }}">
                     <i class="fas fa-cog"></i> Settings
                 </a>
                 <!-- Desktop Logout -->

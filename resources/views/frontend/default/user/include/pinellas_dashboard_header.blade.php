@@ -19,7 +19,7 @@
                 <i class="fas fa-user-circle fa-lg"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-3" style="border-radius: 12px;">
-                <li><a class="dropdown-item py-2" href="{{ route('user.setting.profile') }}"><i class="fas fa-id-card me-2"></i> Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fas fa-id-card me-2"></i> Profile</a></li>
                 <li><a class="dropdown-item py-2 text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
             </ul>
         </div>
