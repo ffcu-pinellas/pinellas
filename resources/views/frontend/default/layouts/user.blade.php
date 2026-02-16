@@ -128,8 +128,42 @@
             color: var(--body-text-primary-color);
         }
 
+        .sidebar-logo {
+            padding: 20px 24px;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 991px) {
-            .sidebar { display: none; }
+            .sidebar { 
+                display: none; 
+                position: fixed;
+                top: 64px;
+                left: 0;
+                height: calc(100vh - 64px);
+                z-index: 999;
+                width: 250px;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            }
+            .sidebar.show {
+                display: flex;
+            }
+            .sidebar-logo { display: none; } /* Hide sidebar logo on mobile as it's in header */
+            
+            /* Overlay */
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 64px;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 998;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+
             .main-content-area { padding: 16px; }
         }
     </style>
@@ -144,10 +178,17 @@
 @include('global._notify')
 
 <div class="dashboard-wrapper">
-    @include('frontend::user.include.pinellas_dashboard_header')
+    <div class="d-lg-none">
+        @include('frontend::user.include.pinellas_dashboard_header')
+    </div>
     
     <div class="dashboard-body">
         <aside class="sidebar">
+            <div class="sidebar-logo">
+                 <a href="{{ route('home') }}">
+                    <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
+                </a>
+            </div>
             <nav>
                 <a href="{{ route('user.dashboard') }}" class="{{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
                     <i class="fas fa-home"></i> Accounts
@@ -164,6 +205,10 @@
                 <a href="{{ route('user.setting.profile') }}" class="{{ Request::routeIs('user.setting.profile') ? 'active' : '' }}">
                     <i class="fas fa-cog"></i> Settings
                 </a>
+                <!-- Desktop Logout -->
+                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-danger mt-auto border-top">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </nav>
         </aside>
 
@@ -177,6 +222,29 @@
 </div>
 
 @include('frontend::include.__script')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+
+        const toggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        if(toggle) {
+            toggle.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                overlay.classList.toggle('show');
+            });
+        }
+        
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    });
+</script>
 @stack('js')
 @yield('script')
 </body>

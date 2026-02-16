@@ -20,7 +20,6 @@ use App\Models\UserKyc;
 use App\Models\UserWallet;
 use App\Traits\ImageUpload;
 use App\Traits\NotifyTrait;
-use App\Traits\VirtualCard;
 use Exception;
 use Hash;
 use Illuminate\Contracts\Foundation\Application;
@@ -35,7 +34,7 @@ use Txn;
 
 class UserController extends Controller
 {
-    use ImageUpload, NotifyTrait, VirtualCard;
+    use ImageUpload, NotifyTrait;
 
     /**
      * Display a listing of the resource.

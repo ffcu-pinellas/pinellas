@@ -5,6 +5,7 @@ namespace App\Enums;
 enum TxnType: string
 {
 
+    case Deposit = 'deposit';
     case Subtract = 'subtract';
     case ManualDeposit = 'manual_deposit';
     case SendMoney = 'send_money';

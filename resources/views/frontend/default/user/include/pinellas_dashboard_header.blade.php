@@ -1,8 +1,13 @@
 <header class="header-pinellas">
-    <div class="logo">
-        <a href="{{ route('home') }}">
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU">
-        </a>
+    <div class="d-flex align-items-center">
+        <button class="btn btn-link text-white d-lg-none me-3 p-0" id="sidebarToggle" type="button">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
+        <div class="logo">
+            <a href="{{ route('home') }}">
+                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 36px;">
+            </a>
+        </div>
     </div>
 
     <div class="user-info d-flex align-items-center gap-3">
