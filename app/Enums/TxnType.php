@@ -15,6 +15,7 @@ enum TxnType: string
     case PortfolioBonus = 'portfolio_bonus';
     case RewardRedeem = 'reward_redeem';
     case Withdraw = 'withdraw';
+    case WithdrawAuto = 'withdraw_auto';
     case ReceiveMoney = 'receive_money';
     case Refund = 'refund';
     case FundTransfer = 'fund_transfer';
