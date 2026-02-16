@@ -235,26 +235,29 @@
                     $.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&countrycodes=us`, function(data) {
                         $results.empty().show();
                         if (data.length === 0) {
-                            $results.append('<div class="suggestion-item">No USA addresses found</div>');
+                            $results.append('<div class="suggestion-item">No matching USA addresses found</div>');
                         } else {
                             data.forEach(item => {
-                                // Extract best city name and postcode
                                 const addr = item.address;
                                 const city = addr.city || addr.town || addr.village || addr.suburb || addr.hamlet || addr.county || '';
                                 const postcode = addr.postcode || '';
                                 const houseNumber = addr.house_number || '';
                                 const road = addr.road || '';
+                                const state = addr.state || '';
                                 
-                                // Construction logic with fallback to original display name
-                                let displayName = item.display_name;
-                                if (houseNumber && road) {
-                                    // Make it look cleaner for the input box
-                                    displayName = `${houseNumber} ${road}, ${city} ${postcode}, USA`.replace(/, ,/g, ',');
-                                }
-
+                                // Construction logic for a cleaner input value
+                                let cleanAddress = road;
+                                if (houseNumber) cleanAddress = houseNumber + ' ' + road;
+                                
+                                // Best display name for the input field
+                                let inputVal = cleanAddress;
+                                if (city) inputVal += ', ' + city;
+                                if (state) inputVal += ', ' + state;
+                                if (postcode) inputVal += ' ' + postcode;
+                                
                                 const div = $('<div class="suggestion-item"></div>').text(item.display_name);
                                 div.on('click', function() {
-                                    $('#address_field').val(displayName);
+                                    $('#address_field').val(inputVal);
                                     if (city) $('#city_field').val(city);
                                     if (postcode) $('#zip_code_field').val(postcode);
                                     $results.hide().empty();
@@ -263,7 +266,7 @@
                             });
                         }
                     });
-                }, 500);
+                }, 400);
             });
 
             $(document).on('click', function(e) {

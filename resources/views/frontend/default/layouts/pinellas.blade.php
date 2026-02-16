@@ -24,7 +24,7 @@
 	<link rel="stylesheet" href="https://www.pinellasfcu.org/admin/css/universal_template.css">
 	
     <!-- Locator Module Header Code Start -->
-    <script>window.initMap = function() { console.log("Google Maps initialized"); };</script>
+    <script>window.initMap = function() { console.log("Google Maps (Suppressed)"); };</script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDNnLqqlvFVicPs-6hZiiohT0pN4XGVUbw&callback=initMap" type="text/javascript"></script>
     <!-- Locator Module Header Code End -->
     
@@ -50,7 +50,7 @@
     <!-- Generic CMS Styles End -->
 
     <!-- font awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://www.pinellasfcu.org/templates/COMMON_JS/fontawesome-pro-5.15.1-web/css/all.min.css" rel="stylesheet">
     
     <!-- generic frontend scripting -->
     <script type="text/javascript" src="https://www.pinellasfcu.org/admin/js/frontend.js"></script>
@@ -59,7 +59,10 @@
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 	
 	<!-- STYLESHEETS -->
+	<link rel="stylesheet" href="https://use.typekit.net/kdd4cmy.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/pinellas/css/style.css">
+	<link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/pinellas/css/responsive.css">
 
 	@include('frontend::home.include.pinellas_inline_styles')
 
