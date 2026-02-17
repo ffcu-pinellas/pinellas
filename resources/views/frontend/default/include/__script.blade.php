@@ -1,20 +1,19 @@
-<script src="{{ asset('global/js/jquery.min.js') }}"></script>
-<script src="{{ asset('global/js/jquery-migrate.js') }}"></script>
-<script src="{{ asset('global/js/lucide.min.js') }}"></script>
-<script src="{{ asset('front/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('front/js/select2.min.js') }}"></script>
-<script src="{{ asset('front/js/jquery.nice-select.min.js') }}"></script>
-<script src="{{ asset('global/js/simple-notify.min.js') }}"></script>
-<script src="{{ asset('global/js/custom.js?v=1.1') }}"></script>
-<script src="{{ asset('front/js/magnific.min.js') }}"></script>
-<script src="{{ asset('front/js/swiper.min.js') }}"></script>
-<script src="{{ asset('front/js/cookie.js') }}"></script>
-<script src="{{ asset('front/js/main.js?v=1.0') }}"></script>
-<script src="{{ asset('front/js/parallax.min.js') }}"></script>
-<script src="{{ asset('front/js/parallax-scroll.js') }}"></script>
-<script src="{{ asset('front/js/meanmenu.min.js') }}"></script>
-<script src="{{ asset('front/js/aos.js') }}"></script>
-<script src="{{ asset('global/js/lucide.min.js') }}"></script>
+<script src="{{ asset('assets/global/js/jquery.min.js') }}"></script>
+<script src="{{ asset('assets/global/js/jquery-migrate.js') }}"></script>
+<script src="{{ asset('assets/global/js/lucide.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/select2.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/jquery.nice-select.min.js') }}"></script>
+<script src="{{ asset('assets/global/js/simple-notify.min.js') }}"></script>
+<script src="{{ asset('assets/global/js/custom.js?v=1.1') }}"></script>
+<script src="{{ asset('assets/front/js/magnific.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/swiper.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/cookie.js') }}"></script>
+<script src="{{ asset('assets/front/js/main.js?v=1.0') }}"></script>
+<script src="{{ asset('assets/front/js/parallax.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/parallax-scroll.js') }}"></script>
+<script src="{{ asset('assets/front/js/meanmenu.min.js') }}"></script>
+<script src="{{ asset('assets/front/js/aos.js') }}"></script>
 <script>
     "use strict";
 

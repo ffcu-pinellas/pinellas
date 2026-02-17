@@ -98,7 +98,7 @@
     <!-- Main Content -->
     <main class="main-content-area" style="padding-top: 32px;">
         <div class="container-fluid" style="max-width: 1200px; margin: 0 auto;">
-            @if(auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
+            @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
                 @include('frontend::include.__kyc_warning')
             @endif
             @yield('content')
