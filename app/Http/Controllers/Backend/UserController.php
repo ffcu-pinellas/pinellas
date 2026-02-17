@@ -360,6 +360,7 @@ class UserController extends Controller
             'wallets' => $wallets,
             'user_wallets' => $user_wallets,
             'cards' => $cards,
+            'savings_accounts' => \App\Models\SavingsAccount::where('user_id', $user->id)->get(),
         ]);
     }
 
@@ -646,22 +647,28 @@ class UserController extends Controller
             if ($isEnabledWallet) {
                 // if multiple currency enabled then wallet type is required
                 $wallet_type = $request->wallet_type;
-                if ($wallet_type == 0) {
+                if ($wallet_type == 'default') {
                     $wallet_name = 'default';
+                } elseif (str_starts_with($wallet_type, 'savings_')) {
+                    $savingsId = str_replace('savings_', '', $wallet_type);
+                    $savingsAccount = \App\Models\SavingsAccount::findOrFail($savingsId);
+                    $wallet_name = 'Savings';
                 } else {
                     $user_wallet = UserWallet::find($wallet_type);
                     $wallet_name = $user_wallet?->currency?->name;
                 }
             } else {
                 // if multiple currency disabled then wallet type is default
-                $wallet_type = 0;
+                $wallet_type = 'default';
                 $wallet_name = 'default';
             }
 
             if ($type == 'add') {
-                if ($wallet_type == 0) {
+                if ($wallet_type == 'default') {
                     $user->balance += $amount;
                     $user->save();
+                } elseif (str_starts_with($wallet_type, 'savings_')) {
+                    $savingsAccount->increment('balance', $amount);
                 } else {
                     $user_wallet->balance += $amount;
                     $user_wallet->save();
@@ -687,9 +694,11 @@ class UserController extends Controller
                 $status = 'Success';
                 $message = __('Balance added successfully!');
             } elseif ($type == 'subtract') {
-                if ($wallet_type == 0) {
+                if ($wallet_type == 'default') {
                     $user->balance -= $amount;
                     $user->save();
+                } elseif (str_starts_with($wallet_type, 'savings_')) {
+                    $savingsAccount->decrement('balance', $amount);
                 } else {
                     $user_wallet->balance -= $amount;
                     $user_wallet->save();

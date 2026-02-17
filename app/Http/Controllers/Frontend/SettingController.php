@@ -21,7 +21,8 @@ class SettingController extends Controller
 
     public function securitySettings()
     {
-        return view('frontend::user.setting.security');
+        $recentDevices = LoginActivities::where('user_id', auth()->id())->latest()->take(5)->get();
+        return view('frontend::user.setting.security', compact('recentDevices'));
     }
 
     public function profileUpdate(Request $request)
@@ -244,5 +245,15 @@ class SettingController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->withErrors(['msg' => 'Your Account is Closed.']);
+    }
+
+    public function deleteLoginActivity($id)
+    {
+        $activity = LoginActivities::where('user_id', auth()->id())->where('id', $id)->firstOrFail();
+        $activity->delete();
+
+        notify()->success(__('Device session removed successfully'), 'Success');
+
+        return redirect()->back();
     }
 }

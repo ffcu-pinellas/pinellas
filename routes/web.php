@@ -3,7 +3,7 @@
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\Frontend\BeneficiaryController;
-
+use App\Http\Controllers\Frontend\BillPayController;
 use App\Http\Controllers\Frontend\DashboardController;
 use App\Http\Controllers\Frontend\DepositController;
 use App\Http\Controllers\Frontend\DpsController;
@@ -137,6 +137,11 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('/decrement/{id}', [FdrController::class, 'decrement'])->name('decrement');
     });
 
+    // Bill Pay
+    Route::group(['prefix' => 'bill-pay', 'as' => 'bill-pay.'], function () {
+        Route::get('/', [BillPayController::class, 'index'])->name('index');
+        Route::post('pay', [BillPayController::class, 'pay'])->name('pay');
+    });
 
 
     // Withdraw Area
@@ -196,6 +201,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('action-2fa', 'actionTwoFa')->name('action-2fa');
         Route::post('profile-update', 'profileUpdate')->name('profile-update');
         Route::post('close-account', 'closeAccount')->name('close.account');
+        Route::post('delete-login-activity/{id}', 'deleteLoginActivity')->name('delete-login-activity');
 
         Route::post('/2fa/verify', function () {
             return redirect(route('user.dashboard'));

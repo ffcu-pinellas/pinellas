@@ -245,6 +245,12 @@ class FundTransferController extends Controller
             // Default wallet
             if ($transaction->wallet_type == 'default') {
                 $transaction->user?->increment('balance', $amount);
+            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
+                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
+                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
+                if ($savingsAccount) {
+                    $savingsAccount->increment('balance', $amount);
+                }
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 

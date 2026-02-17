@@ -128,6 +128,11 @@ class UserController extends Controller
             'back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        if (!\Schema::hasTable('remote_deposits')) {
+            notify()->error('Remote deposit feature is currently unavailable. Please contact support.', 'Error');
+            return redirect()->back();
+        }
+
         $frontImage = $request->file('front_image')->store('remote_deposits', 'public');
         $backImage = $request->file('back_image')->store('remote_deposits', 'public');
 
@@ -144,7 +149,7 @@ class UserController extends Controller
     public function accounts()
     {
         $checkingBalance = auth()->user()->balance;
-        $savingsAccounts = auth()->user()->savingsAccounts;
+        $savingsAccounts = \Schema::hasTable('savings_accounts') ? auth()->user()->savingsAccounts : collect([]);
         return view('frontend::user.accounts', compact('checkingBalance', 'savingsAccounts'));
     }
 

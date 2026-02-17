@@ -47,26 +47,32 @@
                                     </div>
                                 </div>
 
-                                @if (setting('multiple_currency', 'permission'))
                                     <div class="col-xl-4 col-lg-4 col-md-4">
                                         <div class="inputs">
-                                            <label for="" class="input-label">{{ __('Wallet') }}<span
+                                            <label for="" class="input-label">{{ __('From Account') }}<span
                                                     class="required">*</span></label>
                                             <select name="wallet_type" class="box-input" id="walletSelect">
                                                 <option value="default" data-currency="{{ setting('site_currency') }}"
                                                     selected>
-                                                    {{ __('Default Wallet') }}</option>
-                                                @foreach ($wallets as $wallet)
-                                                    <option value="{{ $wallet->currency?->code }}"
-                                                        @selected($code == $wallet->currency?->code)
-                                                        data-currency="{{ $wallet->currency?->code }}">
-                                                        {{ $wallet?->currency?->name }} ({{ $wallet?->currency?->code }})
+                                                    {{ __('Checking account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ auth()->user()->balance }}
+                                                </option>
+                                                @foreach ($savingsAccounts as $savings)
+                                                    <option value="savings_{{ $savings->id }}" data-currency="{{ setting('site_currency') }}">
+                                                        {{ __('Savings account (...') . substr($savings->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ $savings->balance }}
                                                     </option>
                                                 @endforeach
+                                                @if (setting('multiple_currency', 'permission'))
+                                                    @foreach ($wallets as $wallet)
+                                                        <option value="{{ $wallet->currency?->code }}"
+                                                            @selected($code == $wallet->currency?->code)
+                                                            data-currency="{{ $wallet->currency?->code }}">
+                                                            {{ $wallet?->currency?->name }} ({{ $wallet?->currency?->code }}) - {{ $wallet->balance }}
+                                                        </option>
+                                                    @endforeach
+                                                @endif
                                             </select>
                                         </div>
                                     </div>
-                                @endif
 
                                 <div class="col-xl-4 col-lg-6 col-md-6 custom-fields">
                                     <div class="inputs">

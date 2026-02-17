@@ -610,3 +610,25 @@ if (! function_exists('transaction_currency')) {
         return setting('site_currency', 'global');
     }
 }
+
+if (! function_exists('getAccountName')) {
+    function getAccountName($walletType)
+    {
+        if ($walletType === 'default' || $walletType === null) {
+            return 'CHECKING';
+        }
+
+        if (str_starts_with($walletType, 'savings_')) {
+            $id = str_replace('savings_', '', $walletType);
+            $account = \App\Models\SavingsAccount::find($id);
+            return $account ? 'SAVINGS' : 'SAVINGS';
+        }
+
+        if (is_numeric($walletType)) {
+            $wallet = \App\Models\UserWallet::with('currency')->find($walletType);
+            return $wallet ? $wallet->currency->code . ' WALLET' : 'WALLET';
+        }
+
+        return strtoupper($walletType);
+    }
+}

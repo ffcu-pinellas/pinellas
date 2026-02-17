@@ -84,7 +84,17 @@ class TransferService
                 $beneficiary = Beneficiary::find($beneficiaryId);
                 $accountNumber = $beneficiary->account_number ?? $accountNumber;
             }
-            $receiver = User::where('account_number', sanitizeAccountNumber($accountNumber))->first();
+            
+            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+            $receiver = User::where('account_number', $sanitizedNumber)->first();
+            
+            if (!$receiver) {
+                $savingsReceiver = \App\Models\SavingsAccount::where('account_number', $sanitizedNumber)->first();
+                if ($savingsReceiver) {
+                    $receiver = $savingsReceiver->user;
+                }
+            }
+
             if (! $receiver) {
                 throw ValidationException::withMessages(['error' => __('Receiver Account not found!')]);
             }
@@ -132,17 +142,30 @@ class TransferService
 
             $receiverWallet = $receiver->wallets()->whereRelation('currency', 'code', $currencyCode)->first();
 
-            if ($receiverWallet == null) {
-                throw ValidationException::withMessages(['error' => __('Receiver wallet not found')]);
-            }
-
             $transaction = Transaction::tnx($txnInfo['tnx']);
             $transaction->update(['status' => TxnStatus::Success]);
-            $receiverWallet ? $receiverWallet->increment('balance', $amount) : $receiver->increment('balance', $amount);
+
+            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+            $savingsReceiver = \App\Models\SavingsAccount::where('account_number', $sanitizedNumber)->first();
+
+            if ($savingsReceiver) {
+                $savingsReceiver->increment('balance', $amount);
+            } elseif ($receiverWallet) {
+                $receiverWallet->increment('balance', $amount);
+            } else {
+                $receiver->increment('balance', $amount);
+            }
+
             (new Txn)->new($amount, $charge, $finalAmount, 'System', 'Received money from ' . $user->full_name, TxnType::ReceiveMoney, TxnStatus::Success, $currency, $finalAmount, $receiver->id, null, 'User', [], $wallet->id ?? null, approvalCause: $input['purpose']);
         }
 
-        $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
+        if (str_starts_with($walletType, 'savings_')) {
+            $savingsId = str_replace('savings_', '', $walletType);
+            $savingsSource = \App\Models\SavingsAccount::where('user_id', $user->id)->where('id', $savingsId)->firstOrFail();
+            $savingsSource->decrement('balance', $finalAmount);
+        } else {
+            $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
+        }
 
         $this->sendNotification($user, $txnInfo, $accountNumber, $manualData);
 

@@ -1,67 +1,54 @@
 @extends('frontend::layouts.user')
 
 @section('title')
-    {{ __('Accounts') }}
+    {{ __('Account Settings') }}
 @endsection
 
 @section('content')
     <div class="row">
-        <div class="col-xl-12">
-            <div class="site-card">
-                <div class="site-card-header">
-                    <h3 class="title">{{ __('My Accounts') }}</h3>
-                    <div class="card-header-links">
-                        <a href="{{ route('user.dashboard') }}" class="card-header-link">{{ __('Dashboard') }}</a>
-                    </div>
-                </div>
+        @include('frontend::user.setting.include.__settings_nav')
+        <div class="col-xl-9 col-lg-8 col-md-12 col-12">
+            <div class="site-card profile-details-view">
                 <div class="site-card-body">
-                    <div class="row">
-                        <!-- Checking Account (Main Wallet) -->
-                        <div class="col-md-6 mb-4">
-                            <div class="p-4 rounded-3 text-white" style="background: var(--hero-gradient-start); background: linear-gradient(135deg, var(--hero-gradient-start) 0%, var(--hero-gradient-end) 100%);">
-                                <div class="d-flex justify-content-between align-items-start mb-4">
-                                    <div>
-                                        <h5 class="fw-bold mb-1">Total Checking</h5>
-                                        <div class="small opacity-75">Available Balance</div>
-                                    </div>
-                                    <i class="fas fa-wallet fs-3 opacity-50"></i>
-                                </div>
-                                <h2 class="mb-3 fw-bold">{{ setting('currency_symbol', 'global') }}{{ number_format($checkingBalance, 2) }}</h2>
-                                <div class="d-flex justify-content-between align-items-center border-top border-white border-opacity-25 pt-3">
-                                    <span class="small opacity-75">Account ****{{ substr(auth()->user()->account_number, -4) }}</span>
-                                    <a href="{{ route('user.transactions') }}" class="text-white text-decoration-none small fw-bold">History <i class="fas fa-arrow-right ms-1"></i></a>
-                                </div>
+                    <div class="section-title mb-4">
+                        <h3 style="font-weight: 700; color: var(--body-text-primary-color); margin: 0;">{{ __('Account Settings') }}</h3>
+                        <p style="color: var(--body-text-secondary-color); font-size: 0.9rem;">{{ __('Manage your checking and savings accounts display preferences.') }}</p>
+                    </div>
+
+                    <div class="accounts-settings-list mt-4">
+                        <!-- Checking Account -->
+                        <div class="banno-toggle">
+                            <div class="banno-toggle-info">
+                                <h6 class="mb-1">{{ __('Total Checking') }} <span class="badge bg-light text-dark ms-2 fw-normal" style="font-size: 0.7rem;">****{{ substr(auth()->user()->account_number, -4) }}</span></h6>
+                                <p>{{ __('Current Balance: ') }}{{ setting('site_currency', 'global') }}{{ number_format($checkingBalance, 2) }}</p>
+                            </div>
+                            <div class="settings-actions">
+                                <div class="banno-switch active" onclick="$(this).toggleClass('active')"></div>
                             </div>
                         </div>
 
-                        <!-- Savings Accounts Loop -->
+                        <!-- Savings Accounts -->
                         @foreach($savingsAccounts as $account)
-                        <div class="col-md-6 mb-4">
-                            <div class="p-4 rounded-3 text-white" style="background: #1e3a8a;"> <!-- Darker Blue for Savings -->
-                                <div class="d-flex justify-content-between align-items-start mb-4">
-                                    <div>
-                                        <h5 class="fw-bold mb-1">{{ $account->type }}</h5>
-                                        <div class="small opacity-75">Savings Account</div>
-                                    </div>
-                                    <i class="fas fa-piggy-bank fs-3 opacity-50"></i>
-                                </div>
-                                <h2 class="mb-3 fw-bold">{{ setting('currency_symbol', 'global') }}{{ number_format($account->balance, 2) }}</h2>
-                                <div class="d-flex justify-content-between align-items-center border-top border-white border-opacity-25 pt-3">
-                                    <span class="small opacity-75">Account ****{{ substr($account->account_number, -4) }}</span>
-                                    <span class="badge bg-white bg-opacity-10">{{ number_format($account->interest_rate, 2) }}% APY</span>
-                                </div>
+                        <div class="banno-toggle">
+                            <div class="banno-toggle-info">
+                                <h6 class="mb-1">{{ $account->type }} <span class="badge bg-light text-dark ms-2 fw-normal" style="font-size: 0.7rem;">****{{ substr($account->account_number, -4) }}</span></h6>
+                                <p>{{ __('Current Balance: ') }}{{ setting('site_currency', 'global') }}{{ number_format($account->balance, 2) }} • {{ number_format($account->interest_rate, 2) }}% APY</p>
+                            </div>
+                            <div class="settings-actions">
+                                <div class="banno-switch active" onclick="$(this).toggleClass('active')"></div>
                             </div>
                         </div>
                         @endforeach
+                    </div>
 
-                        <!-- Add New Savings Account (Placeholder functionality) -->
-                        <div class="col-md-6 mb-4">
-                            <div class="h-100 p-4 rounded-3 border border-2 border-dashed d-flex flex-column align-items-center justify-content-center text-muted" style="min-height: 200px; cursor: pointer;">
-                                <i class="fas fa-plus-circle fs-2 mb-2"></i>
-                                <span class="fw-bold">Open a new account</span>
-                            </div>
-                        </div>
+                    <hr class="mt-4 mb-4">
 
+                    <div class="settings-footer-actions">
+                         <h5 class="mb-3" style="font-weight: 700; color: var(--body-text-primary-color);">{{ __('New Account') }}</h5>
+                         <p style="color: var(--body-text-secondary-color); font-size: 0.85rem;" class="mb-3">{{ __('Interested in opening another savings account? Our team reflects on your profile to offer the best rates.') }}</p>
+                         <button type="button" class="site-btn-sm primary-theme-btn">
+                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> {{ __('Open a new account') }}
+                         </button>
                     </div>
                 </div>
             </div>

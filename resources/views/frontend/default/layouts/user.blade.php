@@ -205,8 +205,17 @@
                 <a href="{{ route('user.fund_transfer.index') }}" class="{{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
                     <i class="fas fa-paper-plane"></i> Move Money
                 </a>
-                <a href="{{ route('user.deposit.amount') }}" class="{{ Request::routeIs('user.deposit.amount') ? 'active' : '' }}">
+                <a href="{{ route('user.bill-pay.index') }}" class="{{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
+                    <i class="fas fa-file-invoice-dollar"></i> Bill Pay
+                </a>
+                <a href="{{ route('user.remote_deposit') }}" class="{{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
                     <i class="fas fa-mobile-alt"></i> Deposit
+                </a>
+                <a href="{{ route('user.messages') }}" class="{{ Request::routeIs('user.messages') ? 'active' : '' }}">
+                    <i class="fas fa-envelope"></i> Messages
+                </a>
+                <a href="{{ route('user.rewards.index') }}" class="{{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
+                    <i class="fas fa-star"></i> Rewards
                 </a>
                 <a href="{{ route('user.setting.show') }}" class="{{ Request::routeIs('user.setting.show') ? 'active' : '' }}">
                     <i class="fas fa-cog"></i> Settings

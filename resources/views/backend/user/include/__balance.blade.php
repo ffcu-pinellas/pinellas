@@ -47,9 +47,17 @@
                                         <option selected disabled value="">
                                             {{ __('Select Wallet') }}
                                         </option>
+                                        <option data-curr-name="Default Wallet" value="default">
+                                            {{ __('Default Wallet') }}
+                                        </option>
                                         @foreach ($wallets as $wallet)
                                             <option data-curr-name="{{ $wallet['name'] }}" value="{{ $wallet['id'] }}">
                                                 {{ $wallet['name'] }} ({{ $wallet['code'] }})
+                                            </option>
+                                        @endforeach
+                                        @foreach($savings_accounts as $savings)
+                                            <option data-curr-name="Savings" value="savings_{{ $savings->id }}">
+                                                Savings - {{ $savings->account_number }}
                                             </option>
                                         @endforeach
                                     </select>

@@ -147,3 +147,72 @@
     --toolbar-color: rgb(0, 73, 133);
     --toolbar-title-color: rgb(255, 255, 255);
 }
+
+/* Mobile Responsiveness Refinements */
+@media (max-width: 768px) {
+    .main-content-area {
+        padding: 12px !important;
+    }
+
+    .site-card,
+    .jha-card {
+        padding: 16px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .display-6 {
+        font-size: 1.75rem !important;
+    }
+
+    .fs-5 {
+        font-size: 1rem !important;
+    }
+
+    .btn-light {
+        padding: 12px 8px !important;
+    }
+
+    .account-card {
+        min-width: 260px !important;
+    }
+}
+
+/* Fix for long names/emails in profile */
+.profile-details-mobile {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+}
+
+/* High Fidelity Banking Polish */
+.site-card {
+    transition: box-shadow 0.3s ease;
+}
+
+.site-card:hover {
+    box-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.primary-btn,
+.site-btn.primary-btn {
+    background-color: var(--primary-button-color) !important;
+    border-color: var(--primary-button-color) !important;
+    border-radius: 50px !important;
+    padding: 10px 24px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-outline-primary {
+    border-radius: 50px !important;
+    padding: 10px 24px !important;
+    font-weight: 600 !important;
+    border: 2px solid var(--primary-button-color) !important;
+    color: var(--primary-button-color) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-button-color) !important;
+    color: white !important;
+}

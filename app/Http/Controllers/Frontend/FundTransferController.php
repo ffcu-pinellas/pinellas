@@ -47,8 +47,9 @@ class FundTransferController extends Controller
 
         $banks = OthersBank::active()->get();
         $wallets = auth()->user()->wallets->load('currency');
+        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
 
-        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets'));
+        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets', 'savingsAccounts'));
     }
 
     public function getBeneficiary(Request $request, $bankId)

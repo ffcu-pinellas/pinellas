@@ -33,4 +33,5 @@ enum TxnType: string
     case FdrInstallment = 'fdr_installment';
     case FdrMaturityFee = 'fdr_maturity_fee';
     case FdrCancelled = 'fdr_cancelled';
+    case PayBill = 'pay_bill';
 }

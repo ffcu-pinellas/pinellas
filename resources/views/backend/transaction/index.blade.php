@@ -46,6 +46,10 @@
                                         'field' => 'method',
                                     ])
                                     @include('backend.filter.th', [
+                                        'label' => 'Account',
+                                        'field' => 'wallet_type',
+                                    ])
+                                    @include('backend.filter.th', [
                                         'label' => 'Status',
                                         'field' => 'status',
                                     ])
@@ -79,6 +83,11 @@
                                         </td>
                                         <td>
                                             {{ safe($transaction->method) }}
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ str_starts_with($transaction->wallet_type, 'savings_') ? 'bg-info' : ($transaction->wallet_type == 'default' ? 'bg-primary' : 'bg-secondary') }}">
+                                                {{ getAccountName($transaction->wallet_type) }}
+                                            </span>
                                         </td>
                                         <td>
                                             @include('backend.transaction.include.__txn_status', [

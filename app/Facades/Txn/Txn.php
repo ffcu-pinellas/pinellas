@@ -107,6 +107,12 @@ class Txn
             // Default wallet
             if ($transaction->wallet_type == 'default') {
                 $user->increment('balance', $transaction->amount);
+            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
+                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
+                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
+                if ($savingsAccount) {
+                    $savingsAccount->increment('balance', $transaction->amount);
+                }
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 
@@ -118,7 +124,15 @@ class Txn
 
         if ($status == TxnStatus::Failed && $transaction->type == TxnType::WithdrawAuto) {
             $amount = $transaction->amount;
-            $user->increment('balance', $transaction->final_amount);
+            if ($transaction->wallet_type == 'default') {
+                $user->increment('balance', $transaction->final_amount);
+            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
+                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
+                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
+                if ($savingsAccount) {
+                    $savingsAccount->increment('balance', $transaction->final_amount);
+                }
+            }
         }
 
         if ($status == TxnStatus::Success && App::initApp() && ($transaction->type == TxnType::CardDeposit)) {

@@ -45,7 +45,7 @@
                                     </a> 
                                 </jha-dropdown-menu-item> 
                                 <jha-dropdown-menu-item> 
-                                    <a href="#" class="dropdown-item d-flex align-items-center gap-2 py-2"> 
+                                    <a href="{{ route('user.setting.show') }}" class="dropdown-item d-flex align-items-center gap-2 py-2"> 
                                         <i class="fas fa-tools text-primary"></i>
                                         <div>Account settings</div> 
                                     </a> 
@@ -136,13 +136,13 @@
                         </a>
                     </div>
                     <div class="col-3">
-                        <a href="#" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                        <a href="{{ route('user.bill-pay.index') }}" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
                             <i class="fas fa-user-friends fs-4 mb-2 text-primary"></i>
                             <span class="small fw-bold text-dark text-nowrap">Pay a Person</span>
                         </a>
                     </div>
                     <div class="col-3">
-                        <a href="#" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
+                        <a href="{{ route('user.bill-pay.index') }}" class="btn btn-light w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3 rounded-3 shadow-sm" style="min-height: 90px;">
                             <i class="fas fa-file-invoice-dollar fs-4 mb-2 text-primary"></i>
                             <span class="small fw-bold text-dark text-nowrap">Pay a Bill</span>
                         </a>
@@ -182,7 +182,7 @@
                 <div class="d-flex align-items-center justify-content-between py-3 border-bottom border-light">
                     <div>
                         <div class="fw-bold text-dark">{{ $transaction->description }}</div>
-                        <div class="text-muted small">{{ $transaction->created_at->format('M d, Y') }}, 0010 CHECKING</div>
+                        <div class="text-muted small">{{ $transaction->created_at->format('M d, Y') }}, {{ substr(auth()->user()->account_number, -4) }} {{ getAccountName($transaction->wallet_type) }}</div>
                     </div>
                     <div class="fw-bold {{ isPlusTransaction($transaction->type) ? 'text-success' : '' }}" style="{{ !isPlusTransaction($transaction->type) ? 'color: #333;' : '' }}">
                         {{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
@@ -213,7 +213,7 @@
                 </div>
             </div>
             <div class="text-center py-4">
-                <p class="text-primary fw-bold mb-2">Pinellas FCU</p>
+                <p class="text-primary fw-bold mb-2">{{ setting('site_title', 'global', 'Pinellas FCU') }}</p>
                 <div class="d-flex justify-content-center mb-3">
                     <!-- Placeholder Avatars -->
                     <div class="d-flex">
@@ -229,8 +229,8 @@
                     </div>
                 </div>
                 <div class="small text-muted mb-4 px-4">
-                    President's Day<br>
-                    We are closed on February 16th. We will open for regular hours on February 17th.
+                    {{ setting('announcement_title', 'global', 'Member Service') }}<br>
+                    {{ setting('announcement_body', 'global', 'We are here to help you with your banking needs. Message us anytime or visit a branch during regular hours.') }}
                 </div>
                 <a href="{{ route('user.messages') }}" class="btn btn-danger px-4 rounded-pill">Start a conversation</a>
             </div>
@@ -265,19 +265,19 @@
             </div>
             <div class="d-flex justify-content-around py-3 px-2">
                 <div class="text-center">
-                    <a href="#" class="text-decoration-none">
+                    <a href="{{ route('user.bill-pay.index') }}" class="text-decoration-none">
                         <i class="fas fa-file-invoice-dollar fs-2 text-primary mb-2"></i>
                         <div class="small text-dark">Pay a bill</div>
                     </a>
                 </div>
                 <div class="text-center">
-                    <a href="#" class="text-decoration-none">
+                    <a href="{{ route('user.bill-pay.index') }}" class="text-decoration-none">
                         <i class="fas fa-user fs-2 text-primary mb-2"></i>
                         <div class="small text-dark">Pay a person</div>
                     </a>
                 </div>
                 <div class="text-center">
-                     <a href="#" class="text-decoration-none">
+                     <a href="{{ route('user.bill-pay.index') }}" class="text-decoration-none">
                         <i class="fas fa-cog fs-2 text-primary mb-2"></i>
                         <div class="small text-dark">Manage payments</div>
                     </a>

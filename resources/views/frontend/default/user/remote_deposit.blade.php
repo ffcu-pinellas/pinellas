@@ -28,7 +28,12 @@
                                 <label class="form-label fw-bold">Select Account</label>
                                 <select name="account_id" class="form-select" required>
                                     <option value="checking">Checking - ****{{ substr(auth()->user()->account_number, -4) }}</option>
-                                    <!-- Add logic here to loop savings accounts if needed, for now depositing to checking is standard -->
+                                    @php
+                                        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
+                                    @endphp
+                                    @foreach($savingsAccounts as $savings)
+                                        <option value="savings_{{ $savings->id }}">Savings - ****{{ substr($savings->account_number, -4) }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">

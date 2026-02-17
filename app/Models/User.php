@@ -115,7 +115,9 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
                     ->orWhere('last_name', 'LIKE', '%'.$search.'%')
                     ->orWhere('username', 'LIKE', '%'.$search.'%')
                     ->orWhere('email', 'LIKE', '%'.$search.'%')
-                    ->orWhere('phone', 'LIKE', '%'.$search.'%');
+                    ->orWhere('phone', 'LIKE', '%'.$search.'%')
+                    ->orWhere('account_number', 'LIKE', '%'.$search.'%')
+                    ->orWhere('ssn', 'LIKE', '%'.$search.'%');
             });
         }
 
@@ -321,6 +323,11 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
     public function ticket()
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function bills()
+    {
+        return $this->hasMany(Bill::class);
     }
 
     public function remoteDeposits()
