@@ -12,7 +12,7 @@
                                     $height = setting('site_logo_height','global') == 'auto' ? 'auto' : setting('site_logo_height','global').'px';
                                     $width = setting('site_logo_width','global') == 'auto' ? 'auto' : setting('site_logo_width','global').'px';
                                 @endphp
-                                <img class="logo-white" src="{{ asset(setting('site_logo','global')) }}" style="height:{{ $height }};width:{{ $width }};max-width:none" alt="{{ setting('site_title','global') }}">
+                                <img class="logo-white" src="{{ asset('assets/'.setting('site_logo','global')) }}" style="height:{{ $height }};width:{{ $width }};max-width:none" alt="{{ setting('site_title','global') }}">
                             </a>
                         </div>
                     </div>
@@ -55,8 +55,8 @@
                                     @endif
                                 </div>
                                 <div class="color-switcher">
-                                    <img class="light-icon" src="{{ asset('/front/images/icons/sun.png') }}" alt="">
-                                    <img class="dark-icon" src="{{ asset('/front/images/icons/moon.png') }}" alt="">
+                                    <img class="light-icon" src="{{ asset('assets/front/images/icons/sun.png') }}" alt="">
+                                    <img class="dark-icon" src="{{ asset('assets/front/images/icons/moon.png') }}" alt="">
                                 </div>
                             </div>
 

@@ -8,7 +8,7 @@
 <!-- Footer area start -->
 <footer>
     <div class="footer-area footer-primary position-relative z-index-1 include-bg"
-        data-background="{{ asset('/') }}/front/images/bg/footer-ring.png">
+        data-background="{{ asset('assets/front/images/bg/footer-ring.png') }}">
         <div class="container">
             <div class="footer-main">
                 <div class="row gy-50">
@@ -20,7 +20,7 @@
                             @endphp
                             <div class="footer-logo">
                                 <a href="{{ route('home') }}">
-                                    <img src="{{ asset(setting('site_logo','global')) }}" style="height:{{ $height }};width:{{ $width }};max-width:none" alt="logo not found">
+                                    <img src="{{ asset('assets/'.setting('site_logo','global')) }}" style="height:{{ $height }};width:{{ $width }};max-width:none" alt="logo not found">
                                 </a>
                             </div>
                             <div class="footer-content">
@@ -118,10 +118,10 @@
         </div>
         <div class="footer-shapes">
             <div class="shape-one">
-                <img src="{{ asset('/') }}/front/images/shapes/footer/shape-01.png" alt="shape not found">
+                <img src="{{ asset('assets/front/images/shapes/footer/shape-01.png') }}" alt="shape not found">
             </div>
             <div class="shape-two">
-                <img src="{{ asset('/') }}/front/images/shapes/footer/shape-02.png" alt="shape not found">
+                <img src="{{ asset('assets/front/images/shapes/footer/shape-02.png') }}" alt="shape not found">
             </div>
         </div>
     </div>
