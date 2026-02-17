@@ -58,7 +58,7 @@
         <div class="banno-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 fw-bold mb-0">Recent Transactions</h3>
-                <a href="{{ route('user.fund_transfer.log') }}" class="text-decoration-none" style="font-size: 13px; font-weight: 600;">View All</a>
+                <a href="{{ route('user.fund_transfer.transfer.log') }}" class="text-decoration-none" style="font-size: 13px; font-weight: 600;">View All</a>
             </div>
             <ul class="txn-list">
                 @forelse($recentTransactions as $transaction)
