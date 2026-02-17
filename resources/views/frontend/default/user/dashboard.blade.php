@@ -188,7 +188,7 @@
                     President's Day<br>
                     We are closed on February 16th. We will open for regular hours on February 17th.
                 </div>
-                <a href="{{ route('messages') }}" class="btn btn-danger px-4 rounded-pill">Start a conversation</a>
+                <a href="{{ route('user.messages') }}" class="btn btn-danger px-4 rounded-pill">Start a conversation</a>
             </div>
         </div>
 
@@ -251,7 +251,7 @@
                 <i class="fas fa-ellipsis-h text-muted"></i>
             </div>
              <div class="text-center py-4">
-                <a href="{{ route('remote_deposit') }}" class="text-decoration-none">
+                <a href="{{ route('user.remote_deposit') }}" class="text-decoration-none">
                     <i class="fas fa-upload fs-2 text-muted mb-2"></i>
                     <div class="small text-muted">Deposit a check</div>
                 </a>
