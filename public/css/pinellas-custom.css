@@ -1,77 +1,44 @@
 :root {
-    /* Banno Design System Variables - Pinellas FCU */
-    --account-card-primary-accent-color: rgb(255, 255, 255);
-    --account-card-primary-background-color: rgb(0, 84, 155);
-    --account-card-primary-text-color: rgb(255, 255, 255);
-    --account-card-secondary-accent-color: rgb(255, 255, 255);
-    --account-card-secondary-background-color: rgb(72, 80, 89);
-    --account-card-secondary-text-color: rgb(255, 255, 255);
-    --action-card-accent-color: rgb(255, 255, 255);
-    --action-card-background-color: rgb(0, 84, 155);
-    --action-card-text-color: rgb(255, 255, 255);
     --body-text-primary-color: rgb(7, 21, 35);
     --body-text-secondary-color: rgb(98, 110, 122);
     --body-text-theme-color: rgb(0, 84, 155);
-    --button-corner-radius: 8px;
-    --card-corner-radius: 10px;
-    --card-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
-    --dashboard-page-background-color: rgb(227, 231, 237);
-    --divider-default-color: rgb(230, 230, 230);
-    --footer-background-color: rgb(255, 255, 255);
-    --menu-background-color: rgb(255, 255, 255);
-    --navigation-bar-color: rgb(0, 73, 133);
     --primary-button-color: rgb(217, 43, 28);
+    --primary-button-text-color: rgb(255, 255, 255);
     --primary-content-background-color: rgb(255, 255, 255);
-    --secondary-content-background-color: rgb(238, 241, 245);
     --secondary-page-background-color: rgb(227, 231, 237);
-    --toolbar-color: rgb(0, 73, 133);
-    --primary-theme-background-color: rgb(0, 84, 155);
-
-    /* Animation & Transitions */
-    --transition-speed: 0.25s;
+    --card-corner-radius: 10px;
+    --card-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.15);
+    --button-corner-radius: 8px;
+    --jha-text-theme: rgb(0, 84, 155);
+    --jha-card-article-margin-bottom: 18px;
+    --navigation-bar-color: #00549b;
+    /* Banno Blue */
 }
 
-/* Global Styles */
 body {
-    background-color: var(--dashboard-page-background-color) !important;
-    font-family: 'Open Sans', Roboto, sans-serif !important;
+    font-family: 'Open Sans', 'Roboto', sans-serif;
     color: var(--body-text-primary-color);
+    background-color: var(--secondary-page-background-color);
 }
 
-.site-card,
-.jha-card {
-    background: var(--primary-content-background-color) !important;
-    border-radius: var(--card-corner-radius) !important;
-    box-shadow: var(--card-shadow) !important;
-    border: none !important;
-    margin-bottom: 24px !important;
-    overflow: hidden;
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-}
-
-.site-card:hover {
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Banno Sidebar Navigation */
+/* Sidebar Styles matching Banno */
 .sidebar {
-    width: 260px;
-    background: var(--primary-content-background-color);
-    border-right: 1px solid var(--divider-default-color);
-    display: flex;
-    flex-direction: column;
+    width: 280px;
+    background: #fff;
     height: 100vh;
     position: fixed;
-    left: 0;
     top: 0;
+    left: 0;
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e9ecef;
 }
 
 .sidebar-nav {
     flex: 1;
-    padding: 16px 0;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px 0;
 }
 
 .sidebar-nav-item {
@@ -80,60 +47,128 @@ body {
     padding: 12px 24px;
     color: var(--body-text-primary-color);
     text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background var(--transition-speed) ease;
+    font-weight: 600;
+    font-size: 15px;
     border-left: 4px solid transparent;
 }
 
-.sidebar-nav-item:hover {
-    background: var(--secondary-content-background-color);
-    color: var(--body-text-theme-color);
-}
-
+.sidebar-nav-item:hover,
 .sidebar-nav-item.active {
-    background: rgba(0, 84, 155, 0.08);
-    color: var(--body-text-theme-color);
-    border-left-color: var(--body-text-theme-color);
+    background-color: #f8f9fa;
+    color: var(--jha-text-theme);
+    border-left-color: var(--jha-text-theme);
 }
 
 .sidebar-nav-item i {
     width: 24px;
-    font-size: 18px;
-    margin-right: 16px;
+    margin-right: 12px;
     text-align: center;
 }
 
 .sidebar-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--divider-default-color);
-    background: var(--secondary-content-background-color);
+    padding: 16px;
+    border-top: 1px solid #e9ecef;
 }
 
-.user-profile-sm {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-avatar-sm {
-    width: 36px;
-    height: 36px;
-    background: var(--primary-theme-background-color);
+/* Dashboard Header */
+.dashboard-header {
+    background-color: var(--navigation-bar-color);
     color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
+    padding: 40px 0 80px;
+    /* Extra padding bottom for overlap */
+    margin-bottom: -40px;
+    /* Negative margin to pull content up */
 }
 
-/* Responsive Overrides */
+.welcome-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.date-text {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Cards */
+.banno-card {
+    background: white;
+    border-radius: var(--card-corner-radius);
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+    border: none;
+}
+
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.account-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--body-text-primary-color);
+}
+
+.account-balance {
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--body-text-primary-color);
+}
+
+.account-balance.negative {
+    color: var(--primary-button-color);
+}
+
+.account-details {
+    font-size: 12px;
+    color: var(--body-text-secondary-color);
+}
+
+/* Transaction List */
+.txn-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.txn-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.txn-item:last-child {
+    border-bottom: none;
+}
+
+.txn-date {
+    font-size: 12px;
+    color: var(--body-text-secondary-color);
+    width: 60px;
+}
+
+.txn-desc {
+    flex: 1;
+    font-weight: 600;
+    padding: 0 15px;
+}
+
+.txn-amount {
+    font-weight: 700;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 991px) {
     .sidebar {
         transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease-in-out;
     }
 
     .sidebar.show {
@@ -141,83 +176,19 @@ body {
     }
 
     .main-content-area {
-        margin-left: 0 !important;
-        padding: 16px !important;
+        margin-left: 0;
+        padding-top: 64px;
+        /* Header height */
     }
 }
 
-.main-content-area {
-    margin-left: 260px;
-    padding: 32px;
-    min-height: 100vh;
-}
-
-
-/* Mobile Responsiveness Refinements */
-@media (max-width: 768px) {
+@media (min-width: 992px) {
     .main-content-area {
-        padding: 12px !important;
+        margin-left: 280px;
+        /* Sidebar width */
     }
 
-    .site-card,
-    .jha-card {
-        padding: 16px !important;
-        margin-bottom: 16px !important;
+    #sidebarToggle {
+        display: none;
     }
-
-    .display-6 {
-        font-size: 1.75rem !important;
-    }
-
-    .fs-5 {
-        font-size: 1rem !important;
-    }
-
-    .btn-light {
-        padding: 12px 8px !important;
-    }
-
-    .account-card {
-        min-width: 260px !important;
-    }
-}
-
-/* Fix for long names/emails in profile */
-.profile-details-mobile {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-}
-
-/* High Fidelity Banking Polish */
-.site-card {
-    transition: box-shadow 0.3s ease;
-}
-
-.site-card:hover {
-    box-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.1) !important;
-}
-
-.primary-btn,
-.site-btn.primary-btn {
-    background-color: var(--primary-button-color) !important;
-    border-color: var(--primary-button-color) !important;
-    border-radius: 50px !important;
-    padding: 10px 24px !important;
-    font-weight: 600 !important;
-    border: none !important;
-    color: white !important;
-}
-
-.btn-outline-primary {
-    border-radius: 50px !important;
-    padding: 10px 24px !important;
-    font-weight: 600 !important;
-    border: 2px solid var(--primary-button-color) !important;
-    color: var(--primary-button-color) !important;
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--primary-button-color) !important;
-    color: white !important;
 }

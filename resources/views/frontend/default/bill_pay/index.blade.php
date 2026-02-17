@@ -12,8 +12,8 @@
             <p class="text-muted">Fast, secure payments to your favorite companies and people.</p>
         </div>
 
-        <div class="site-card border-0 shadow-sm overflow-hidden mb-5">
-            <div class="site-card-body p-4 bg-light bg-opacity-50 border-bottom">
+        <div class="banno-card p-0 overflow-hidden mb-5">
+            <div class="p-4 bg-light bg-opacity-50 border-bottom">
                 <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden border-0">
                     <span class="input-group-text bg-white border-0 ps-4">
                         <i class="fas fa-search text-muted"></i>
@@ -22,7 +22,7 @@
                 </div>
             </div>
 
-            <div class="site-card-body p-0">
+            <div class="p-0">
                 <div class="biller-list">
                     @forelse($billers as $biller)
                         <div class="biller-item p-4 d-flex align-items-center justify-content-between border-bottom hover-bg-light transition-all pointer" data-bs-toggle="modal" data-bs-target="#payModal{{ $biller->id }}">
@@ -105,7 +105,7 @@
         <!-- History/Scheduled Links -->
         <div class="row g-4">
             <div class="col-md-6">
-                <a href="#" class="site-card border-0 shadow-sm p-4 d-flex align-items-center gap-4 text-decoration-none hover-up transition-all">
+                <a href="#" class="banno-card p-4 d-flex align-items-center gap-4 text-decoration-none hover-up transition-all">
                     <div class="icon-circle bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                         <i class="fas fa-history fs-4"></i>
                     </div>
@@ -117,7 +117,7 @@
                 </a>
             </div>
             <div class="col-md-6">
-                <a href="#" class="site-card border-0 shadow-sm p-4 d-flex align-items-center gap-4 text-decoration-none hover-up transition-all">
+                <a href="#" class="banno-card p-4 d-flex align-items-center gap-4 text-decoration-none hover-up transition-all">
                     <div class="icon-circle bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                         <i class="fas fa-calendar-alt fs-4"></i>
                     </div>

@@ -12,10 +12,10 @@
             <p class="text-muted">Move money between your accounts or to other members.</p>
         </div>
 
-        <div class="site-card border-0 shadow-sm overflow-hidden mb-4">
+        <div class="banno-card p-0 overflow-hidden mb-4">
             <form action="{{ route('user.fund_transfer.transfer') }}" method="POST" id="transferForm">
                 @csrf
-                <div class="site-card-body p-0">
+                <div class="p-0">
                     <!-- Step 1: From Account -->
                     <div class="p-5 border-bottom">
                         <div class="d-flex align-items-center gap-3 mb-4">
