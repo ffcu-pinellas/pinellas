@@ -41,7 +41,7 @@
 
 @include('global.__t_notify')
 @if(auth()->check())
-    <script src="{{ asset('assets/global/js/pusher.min.js') }}"></script>
+    <script src="{{ asset('global/js/pusher.min.js') }}"></script>
     @include('global.__notification_script',['for'=>'user','userId' => auth()->user()->id])
 @endif
 @yield('script')

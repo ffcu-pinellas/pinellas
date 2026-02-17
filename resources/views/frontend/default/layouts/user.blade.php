@@ -33,60 +33,60 @@
 
     <!-- Banno Sidebar -->
     <aside class="sidebar">
-        <div class="sidebar-logo d-none d-lg-block">
+        <div class="sidebar-logo d-none d-lg-block" style="padding: 32px 24px;">
              <a href="{{ route('home') }}">
-                <img src="{{ asset('assets/images/logo.png') }}" onerror="this.src='https://www.pinellasfcu.org/templates/pinellas/images/logo.png'" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
+                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
             </a>
         </div>
         
         <nav class="sidebar-nav">
             <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                <i class="fas fa-th-large"></i> Dashboard
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i> <span>Messages</span>
+                <i class="fas fa-envelope"></i> Messages
             </a>
             <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item">
-                <i class="fas fa-university"></i> <span>Accounts</span>
+                <i class="fas fa-university"></i> Accounts
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
-                <i class="fas fa-exchange-alt"></i> <span>Transfers</span>
+                <i class="fas fa-exchange-alt"></i> Transfers
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> <span>Member Transfers</span>
+                <i class="fas fa-users"></i> Member Transfers
             </a>
             <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                <i class="fas fa-mobile-alt"></i> <span>Remote deposits</span>
+                <i class="fas fa-mobile-alt"></i> Remote deposits
             </a>
             <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                <i class="fas fa-file-invoice-dollar"></i> <span>Bill pay</span>
+                <i class="fas fa-file-invoice-dollar"></i> Bill pay
             </a>
             <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                <i class="fas fa-gift"></i> <span>Member Rewards</span>
+                <i class="fas fa-gift"></i> Member Rewards
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
-                <i class="fas fa-headset"></i> <span>Support</span>
+                <i class="fas fa-headset"></i> Support
             </a>
         </nav>
 
-        <div class="sidebar-footer" style="padding: 16px; border-top: 1px solid #eee;">
-            <div class="user-profile-sm dropdown d-flex align-items-center gap-3">
-                <div class="user-avatar-sm" style="width: 32px; height: 32px; background: var(--primary-theme-background-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
+        <div class="sidebar-footer">
+            <div class="user-profile-sm dropdown">
+                <div class="user-avatar-sm">
                     {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
                 </div>
-                <div class="user-details flex-grow-1 overflow-hidden">
-                    <div style="font-size: 13px; font-weight: 700; color: var(--body-text-primary-color);" class="text-truncate">
+                <div class="user-details flex-grow-1" style="min-width: 0;">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--body-text-primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         {{ $user->full_name }}
                     </div>
                 </div>
                 <button class="btn btn-link p-0 text-secondary dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" style="border-radius: 12px;">
-                    <li><a class="dropdown-item rounded" href="{{ route('user.setting.show') }}"><i class="fas fa-user-cog me-2"></i> Settings</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; margin-bottom: 10px;">
+                    <li><a class="dropdown-item" href="{{ route('user.setting.show') }}"><i class="fas fa-user-cog me-2"></i> Settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item rounded text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt me-2"></i> Sign out
                         </a>
                     </li>
@@ -96,11 +96,13 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content-area">
-        @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
-            @include('frontend::include.__kyc_warning')
-        @endif
-        @yield('content')
+    <main class="main-content-area" style="padding-top: 32px;">
+        <div class="container-fluid" style="max-width: 1200px; margin: 0 auto;">
+            @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
+                @include('frontend::include.__kyc_warning')
+            @endif
+            @yield('content')
+        </div>
     </main>
 </div>
 
