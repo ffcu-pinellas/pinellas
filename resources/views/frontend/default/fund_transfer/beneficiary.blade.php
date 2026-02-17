@@ -1,130 +1,106 @@
 @extends('frontend::layouts.user')
+
 @section('title')
-    {{ __('Beneficiary List') }}
+    {{ __('Manage Recipients') }}
 @endsection
+
 @section('content')
-    <div class="row">
-        @include('frontend::fund_transfer.include.__header')
-        <div class="col-xl-12 col-lg-12 col-md-12 col-12">
-            <div class="site-card">
-                <div class="site-card-header">
-                    <div class="title-small">{{ __('Beneficiary List') }}</div>
-                    <div class="card-header-links">
-                        <a href="" class="card-header-link" data-bs-toggle="modal" data-bs-target="#addBox"><i
-                                data-lucide="plus-circle"></i>{{ __('Add Beneficiary') }}</a>
-                    </div>
-                </div>
-                <div class="site-card-body p-0 overflow-x-auto">
-                    <div class="site-custom-table">
-                        <div class="contents">
-                            <div class="site-table-list site-table-head">
-                                <div class="site-table-col">{{ __('Bank Name') }}</div>
-                                <div class="site-table-col">{{ __('Account Number') }}</div>
-                                <div class="site-table-col">{{ __('Name on Account') }}</div>
-                                @if (setting('multi_branch', 'permission'))
-                                    <div class="site-table-col">{{ __('Branch Name') }}</div>
-                                @endif
-                                <div class="site-table-col">{{ __('Nick name') }}</div>
-                                <div class="site-table-col">{{ __('Action') }}</div>
-                            </div>
-                            @foreach ($beneficiary as $item)
-                                <div class="site-table-list">
-                                    <div class="site-table-col">
-                                        <div class="trx fw-bold">
-                                            {{ $item->bank_id == null ? 'Own Bank' : $item->bank->name }}</div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="trx fw-bold">{{ $item->account_number }}</div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="trx fw-bold">{{ $item->account_name }}</div>
-                                    </div>
-                                    @if (setting('multi_branch', 'permission'))
-                                        <div class="site-table-col">
-                                            <div class="fw-bold">{{ $item->branch_name ?? '-' }}</div>
-                                        </div>
-                                    @endif
-                                    <div class="site-table-col">
-                                        <div class="fw-bold">{{ $item->nick_name }}</div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="action">
-                                            <a href="" class="icon-btn me-2 sendMoneyBtn"
-                                                data-id="{{ $item->id }}"
-                                                data-charge-type="{{ $item->bank_id !== null ? $item->bank->charge_type : setting('fund_transfer_charge_type', 'fee') }}"
-                                                data-charge="{{ $item->bank_id !== null ? $item->bank->charge : setting('fund_transfer_charge', 'fee') }}"
-                                                data-bs-toggle="modal" data-bs-target="#sendBox"><i
-                                                    data-lucide="send"></i>{{ __('Send Money') }}</a>
-                                            <span data-bs-toggle="modal" data-bs-target="#detailsBox">
-                                                <button class="circle-btn grad-btn viewBtn" data-id="{{ $item->id }}"
-                                                    data-charge-type="{{ $item->bank_id !== null ? $item->bank->charge_type : setting('fund_transfer_charge_type', 'fee') }}"
-                                                    data-charge="{{ $item->bank_id !== null ? $item->bank->charge : setting('fund_transfer_charge', 'fee') }}"
-                                                    data-daily-limit="{{ $item->bank_id !== null ? $item->bank->daily_limit_maximum_amount : 0 }}"
-                                                    data-monthly-limit="{{ $item->bank_id !== null ? $item->bank->monthly_limit_maximum_amount : 0 }}"
-                                                    data-name="{{ $item->bank_id == null ? 'Own Bank' : $item->bank->name }}"
-                                                    data-bank-id="{{ $item->bank_id == null ? 0 : $item->bank_id }}"
-                                                    data-number="{{ $item->account_number }}"
-                                                    data-account="{{ $item->account_name }}"
-                                                    data-branch="{{ $item->branch_name }}"
-                                                    data-nickname="{{ $item->nick_name }}"
-                                                    data-bs-custom-class="custom-tooltip" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top" data-bs-title="View Details">
-                                                    <i data-lucide="eye"></i>
-                                                </button>
-                                            </span>
-                                            <span type="button" data-bs-toggle="modal" data-bs-target="#editBox">
-                                                <button class="circle-btn blue-btn editBtn" data-id="{{ $item->id }}"
-                                                    data-bank-id="{{ $item->bank_id ?? 'null' }}"
-                                                    data-name="{{ $item->bank_id }}"
-                                                    data-number="{{ $item->account_number }}"
-                                                    data-account="{{ $item->account_name }}"
-                                                    data-branch="{{ $item->branch_name }}"
-                                                    data-nickname="{{ $item->nick_name }}"
-                                                    data-bs-custom-class="custom-tooltip" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top" data-bs-title="Edit">
-                                                    <i data-lucide="edit-3"></i>
-                                                </button>
-                                            </span>
-                                            <span type="button" data-bs-toggle="modal" data-bs-target="#deleteBox">
-                                                <button class="circle-btn red-btn dltBtn" data-id="{{ $item->id }}"
-                                                    data-bs-custom-class="custom-tooltip" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top" data-bs-title="Delete">
-                                                    <i data-lucide="trash-2"></i>
-                                                </button>
-                                            </span>
-                                        </div>
+<div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10 col-12">
+        <div class="d-flex align-items-center justify-content-between mb-5">
+            <div>
+                <h1 class="h3 fw-bold mb-1">Recipients</h1>
+                <p class="text-muted mb-0">Manage the people and accounts you send money to.</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addBox">
+                <i class="fas fa-user-plus me-2"></i> Add Recipient
+            </button>
+        </div>
+
+        <div class="site-card border-0 shadow-sm overflow-hidden">
+            <div class="site-card-body p-0">
+                <div class="recipient-list">
+                    @forelse ($beneficiary as $item)
+                        <div class="recipient-item p-4 d-flex align-items-center justify-content-between border-bottom hover-bg-light transition-all">
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="recipient-avatar bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 52px; height: 52px;">
+                                    {{ substr($item->account_name, 0, 1) }}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">{{ $item->account_name }}</h6>
+                                    <div class="text-muted small fw-600">
+                                        {{ $item->bank_id == null ? 'Own Bank' : $item->bank->name }} • Account ...{{ substr($item->account_number, -4) }}
+                                        @if($item->nick_name) <span class="ms-1 text-primary">({{ $item->nick_name }})</span> @endif
                                     </div>
                                 </div>
-                            @endforeach
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 editBtn" 
+                                    data-id="{{ $item->id }}"
+                                    data-bank-id="{{ $item->bank_id ?? '0' }}"
+                                    data-number="{{ $item->account_number }}"
+                                    data-account="{{ $item->account_name }}"
+                                    data-branch="{{ $item->branch_name }}"
+                                    data-nickname="{{ $item->nick_name }}"
+                                    data-bs-toggle="modal" data-bs-target="#editBox">Edit</button>
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3 dltBtn" data-id="{{ $item->id }}" data-bs-toggle="modal" data-bs-target="#deleteBox">Delete</button>
+                            </div>
                         </div>
-                        @if (count($beneficiary) == 0)
-                            <div class="no-data-found">{{ __('No Data Found') }}</div>
-                        @endif
-                    </div>
-                    <!-- Modal for Delete Box -->
-                    @include('frontend::fund_transfer.include.__delete_beneficiary')
-                    <!-- Modal for Delete Box End-->
-
-                    <!-- Modal for Edit beneficiary-->
-                    @include('frontend::fund_transfer.include.__edit_beneficiary')
-                    <!-- Modal for Edit beneficiary end-->
-
-                    <!-- Modal for Send Money beneficiary-->
-                    @include('frontend::fund_transfer.include.__send_money')
-                    <!-- Modal for Send Money beneficiary end-->
-
-                    <!-- Modal for Details beneficiary-->
-                    @include('frontend::fund_transfer.include.__details_beneficiary')
-                    <!-- Modal for Detials beneficiary end-->
-
-                    <!-- Modal for Add beneficiary-->
-                    @include('frontend::fund_transfer.include.__add_beneficiary')
-                    <!-- Modal for Add beneficiary end-->
+                    @empty
+                        <div class="text-center p-5">
+                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="fas fa-users text-muted fs-2"></i>
+                            </div>
+                            <h5 class="fw-bold">No recipients yet</h5>
+                            <p class="text-muted">Start by adding someone you'd like to send money to.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+@include('frontend::fund_transfer.include.__delete_beneficiary')
+@include('frontend::fund_transfer.include.__edit_beneficiary')
+@include('frontend::fund_transfer.include.__add_beneficiary')
+
 @endsection
+
+@section('script')
+<script>
+    $(document).ready(function() {
+        "use strict";
+        
+        // Delete Btn Click
+        $(document).on('click', '.dltBtn', function() {
+            $("#dltId").val($(this).data('id'));
+        });
+
+        // Edit Btn Click
+        $(document).on('click', '.editBtn', function() {
+            let id = $(this).data('id');
+            let bank_id = $(this).data('bank-id');
+            let number = $(this).data('number');
+            let account = $(this).data('account');
+            let branch = $(this).data('branch');
+            let nickname = $(this).data('nickname');
+
+            $("#edit_id").val(id);
+            $("#edit_bank_name").val(bank_id).change();
+            $("#edit_account_number").val(number);
+            $("#edit_account_name").val(account);
+            $("#edit_branch_name").val(branch);
+            $("#edit_nick_name").val(nickname);
+        });
+    });
+</script>
+<style>
+    .hover-bg-light:hover { background-color: rgba(0,0,0,0.02); }
+    .transition-all { transition: all 0.2s ease; }
+</style>
+@endsection
+
 
 @section('script')
     <script>
@@ -210,7 +186,7 @@
                 let bank_id = $(this).data('bank-id');
 
                 $("#edit_id").val(id);
-                $("#edit_bank_name").val(bank_id ?? 'null').niceSelect('update');;
+                $("#edit_bank_name").val(bank_id ?? '0').niceSelect('update');;
                 $("#edit_account_number").val(number);
                 $("#edit_account_name").val(account);
                 $("#edit_branch_name").val(branch);

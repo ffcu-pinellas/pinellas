@@ -30,6 +30,8 @@ class BillPayController extends Controller
             'data' => 'required|array',
         ]);
 
+        $user = auth()->user();
+        $biller = BillService::findOrFail($request->biller_id);
         $walletType = $request->get('account_type', 'default');
         
         if (str_starts_with($walletType, 'savings_')) {

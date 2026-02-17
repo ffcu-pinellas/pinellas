@@ -5,95 +5,127 @@
 @endsection
 
 @section('content')
-<div class="row">
-    <div class="col-lg-8 col-md-10 mx-auto">
-        <div class="site-card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center py-3">
-                <h5 class="fw-bold mb-0">Remote Check Deposit</h5>
-                <i class="fas fa-camera text-primary fs-4"></i>
-            </div>
-            <div class="card-body p-4">
-                <div class="alert alert-info border-0 d-flex align-items-center mb-4" role="alert">
-                    <i class="fas fa-info-circle fs-4 me-3"></i>
-                    <div>
-                        <strong>Tip:</strong> Endorse the back of your check with "For Mobile Deposit Only to Pinellas FCU".
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-7">
+        <!-- Banno Header -->
+        <div class="text-center mb-5">
+            <h1 class="h2 fw-bold mb-3">Deposit a check</h1>
+            <p class="text-muted">Quickly deposit checks from anywhere using your device's camera.</p>
+        </div>
+
+        <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
+            @csrf
+            
+            <!-- Step 1: Info -->
+            <div class="site-card mb-4 p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                         <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to</label>
+                         <select name="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fs-5 fw-600" style="padding-bottom: 10px;" required>
+                            <option value="checking">Personal Checking (...{{ substr(auth()->user()->account_number, -4) }})</option>
+                            @php
+                                $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
+                            @endphp
+                            @foreach($savingsAccounts as $savings)
+                                <option value="savings_{{ $savings->id }}">{{ $savings->type }} (...{{ substr($savings->account_number, -4) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 mt-4">
+                        <label class="small text-muted mb-1 fw-bold text-uppercase">Amount</label>
+                        <div class="input-group border-bottom">
+                            <span class="input-group-text bg-transparent border-0 ps-0 fs-4 fw-600">$</span>
+                            <input type="number" name="amount" class="form-control border-0 shadow-none fs-4 fw-600 px-1" step="0.01" min="0.01" placeholder="0.00" required>
+                        </div>
                     </div>
                 </div>
-                <div class="site-card-body">
-                    <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        
-                        <div class="row">
-                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Select Account</label>
-                                <select name="account_id" class="form-select" required>
-                                    <option value="checking">Checking - ****{{ substr(auth()->user()->account_number, -4) }}</option>
-                                    @php
-                                        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
-                                    @endphp
-                                    @foreach($savingsAccounts as $savings)
-                                        <option value="savings_{{ $savings->id }}">Savings - ****{{ substr($savings->account_number, -4) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Deposit Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" name="amount" class="form-control" step="0.01" min="0.01" required>
+            </div>
+
+            <!-- Step 2: Photos -->
+            <div class="site-card mb-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-0">Check Photos</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6 text-center">
+                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
+                                <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
+                                    <input type="file" name="front_image" class="d-none" accept="image/*" capture="environment" required>
+                                </label>
+                                <div class="capture-icon mb-2">
+                                    <i class="fas fa-camera fa-2x text-primary"></i>
                                 </div>
+                                <div class="fw-bold mb-1">Front of check</div>
+                                <div class="small text-muted status-text">Tap to capture</div>
                             </div>
                         </div>
-
-                        <div class="row mt-4">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold d-block mb-2">Front of Check</label>
-                                <div class="border rounded p-3 text-center bg-light" style="border-style: dashed !important; border-width: 2px;">
-                                    <label class="w-100 h-100 d-block cursor-pointer">
-                                        <i class="fas fa-camera fs-1 text-muted mb-3"></i>
-                                        <span class="d-block fw-bold text-primary">Capture Front</span>
-                                        <input type="file" name="front_image" class="d-none" accept="image/*" capture="environment" required>
-                                    </label>
+                        <div class="col-md-6 text-center">
+                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
+                                <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
+                                    <input type="file" name="back_image" class="d-none" accept="image/*" capture="environment" required>
+                                </label>
+                                <div class="capture-icon mb-2">
+                                    <i class="fas fa-signature fa-2x text-primary"></i>
                                 </div>
-                            </div>
-                             <div class="col-md-6 mb-4">
-                                <label class="form-label fw-bold d-block mb-2">Back of Check</label>
-                                <div class="border rounded p-3 text-center bg-light" style="border-style: dashed !important; border-width: 2px;">
-                                    <label class="w-100 h-100 d-block cursor-pointer">
-                                        <i class="fas fa-signature fs-1 text-muted mb-3"></i>
-                                        <span class="d-block fw-bold text-primary">Capture Back</span>
-                                        <input type="file" name="back_image" class="d-none" accept="image/*" capture="environment" required>
-                                    </label>
-                                </div>
+                                <div class="fw-bold mb-1">Back of check</div>
+                                <div class="small text-muted status-text">Tap to capture</div>
                             </div>
                         </div>
-
-                        <script>
-                            document.querySelectorAll('input[type="file"]').forEach(input => {
-                                input.addEventListener('change', function() {
-                                    if (this.files && this.files[0]) {
-                                        let label = this.closest('label').querySelector('span');
-                                        label.textContent = 'Selected: ' + this.files[0].name;
-                                        label.classList.remove('text-primary');
-                                        label.classList.add('text-success');
-                                        this.closest('label').querySelector('i').classList.replace('text-muted', 'text-success');
-                                    }
-                                });
-                            });
-                        </script>
-
-                        <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info small">
-                            <i class="fas fa-info-circle me-1"></i> Funds are normally available within 1-2 business days. Please retain the check until funds post to your account.
-                        </div>
-
-                        <div class="mt-4 text-end">
-                            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold">Submit Deposit</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Guidance -->
+            <div class="alert alert-secondary border-0 small d-flex gap-3 p-4 mb-4" style="background: rgba(0,0,0,0.03); border-radius: 12px;">
+                <i class="fas fa-lightbulb text-warning fa-lg"></i>
+                <div>
+                    <div class="fw-bold text-dark mb-1">Endorsement guidance</div>
+                    <div class="text-muted">
+                        Be sure to endorse the back of your check with your signature and "For Mobile Deposit Only to Pinellas FCU".
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow">
+                Submit deposit
+            </button>
+        </form>
     </div>
 </div>
 @endsection
+
+@section('style')
+<style>
+    .fw-600 { font-weight: 600; }
+    .deposit-capture-box:hover {
+        border-color: var(--body-text-theme-color) !important;
+        background-color: var(--secondary-content-background-color) !important;
+    }
+    .deposit-capture-box.captured {
+        border-color: #28a745 !important;
+        background-color: #f8fff9 !important;
+    }
+    .deposit-capture-box.captured .capture-icon i { color: #28a745 !important; }
+</style>
+@endsection
+
+@push('js')
+<script>
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const box = this.closest('.deposit-capture-box');
+                const status = box.querySelector('.status-text');
+                box.classList.add('captured');
+                status.textContent = 'Check photo captured';
+                status.classList.replace('text-muted', 'text-success');
+                status.classList.add('fw-bold');
+            }
+        });
+    });
+</script>
+@endpush
+
 ```

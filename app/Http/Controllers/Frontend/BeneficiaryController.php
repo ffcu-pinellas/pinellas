@@ -26,25 +26,30 @@ class BeneficiaryController extends Controller
 
     public function store(Request $request)
     {
+        $bank_id = $request->bank_id === 'null' ? null : $request->bank_id;
+        
         $validator = Validator::make($request->all(), [
-            'bank_id' => 'required_if:bank_id,null',
+            'bank_id' => 'nullable',
             'account_name' => 'required',
             'account_number' => 'required',
         ]);
 
         if ($validator->fails()) {
             notify()->error($validator->errors()->first(), 'Error');
-
             return redirect()->back();
         }
 
-        if (! $request->has('bank_id') && ! User::where('account_number', sanitizeAccountNumber($request->account_number))->first()) {
-            notify()->error(__('Receiver account not found!'), 'Error');
-
-            return redirect()->back();
+        // If Own Bank (bank_id is null or 0)
+        if (empty($bank_id)) {
+            $sanitizedNumber = sanitizeAccountNumber($request->account_number);
+            if (!User::where('account_number', $sanitizedNumber)->first()) {
+                notify()->error(__('Receiver account not found!'), 'Error');
+                return redirect()->back();
+            }
         }
 
         $input = $request->all();
+        $input['bank_id'] = $bank_id == 0 ? null : $bank_id; 
         $input['user_id'] = auth()->id();
 
         $this->beneficiaryService->store($input);
@@ -56,25 +61,30 @@ class BeneficiaryController extends Controller
 
     public function update(Request $request)
     {
+        $bank_id = $request->bank_id === 'null' ? null : $request->bank_id;
+
         $validator = Validator::make($request->all(), [
-            'bank_id' => 'required_if:bank_id,null',
+            'bank_id' => 'nullable',
             'account_name' => 'required',
             'account_number' => 'required',
         ]);
 
         if ($validator->fails()) {
             notify()->error($validator->errors()->first(), 'Error');
-
             return redirect()->back();
         }
 
-        if (! $request->has('bank_id') && ! User::where('account_number', $request->account_number)->first()) {
-            notify()->error(__('Receiver account not found!'), 'Error');
-
-            return redirect()->back();
+        // If Own Bank
+        if (empty($bank_id)) {
+            $sanitizedNumber = sanitizeAccountNumber($request->account_number);
+            if (!User::where('account_number', $sanitizedNumber)->first()) {
+                notify()->error(__('Receiver account not found!'), 'Error');
+                return redirect()->back();
+            }
         }
 
         $input = $request->all();
+        $input['bank_id'] = $bank_id == 0 ? null : $bank_id;
 
         $this->beneficiaryService->update($input['id'], $input);
 

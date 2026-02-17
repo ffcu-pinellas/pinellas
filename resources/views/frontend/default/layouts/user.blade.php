@@ -1,6 +1,7 @@
 <!doctype html>
 @php
     $isRtl = isRtl(app()->getLocale());
+    $user = auth()->user();
 @endphp
 <html lang="{{ app()->getLocale() }}" @if($isRtl) dir="rtl" @endif>
 <head>
@@ -9,170 +10,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     @include('frontend::include.__head')
     
-    @php
-        $base = 'https://www.pinellasfcu.org'; 
-    @endphp
-
-    <link rel="icon" type="image/x-icon" href="{{ $base }}/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-favicon-e4fb5d15.ico">
     <link rel="stylesheet" href="{{ asset('css/pinellas-custom.css') }}">
     
-    <style>
-        :root {
-            /* Pinellas Brand Colors */
-            --account-card-primary-background-color: #00549b; /* Dark Blue */
-            --body-text-primary-color: #071523;
-            --body-text-secondary-color: #626e7a;
-            --body-text-theme-color: #00549b;
-            --button-corner-radius: 4px;
-            --card-corner-radius: 8px;
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Softer shadow */
-            --dashboard-page-background-color: #f2f4f8; /* Light gray background */
-            --navigation-bar-color: #ffffff; /* White sidebar */
-            --primary-button-color: #00549b;
-            --primary-content-background-color: #ffffff;
-            --divider-default-color: #e6e6e6;
-            
-            /* Pinellas Specifics */
-            --hero-gradient-start: #00549b;
-            --hero-gradient-end: #003366;
-            --accent-color: #00bfff; /* Light blue accent for icons/highlights */
-        }
-
-        body {
-            background-color: var(--dashboard-page-background-color) !important;
-            font-family: roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif !important;
-            margin: 0;
-            color: var(--body-text-primary-color);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .dashboard-wrapper {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .dashboard-body {
-            display: flex;
-            flex: 1;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: var(--primary-content-background-color);
-            border-right: 1px solid var(--divider-default-color);
-            display: flex;
-            flex-direction: column;
-            padding-top: 20px;
-            height: calc(100vh - 64px);
-            position: sticky;
-            top: 64px;
-        }
-
-        .main-content-area {
-            flex: 1;
-            padding: 32px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* Nav Items */
-        .sidebar nav a {
-            padding: 14px 24px;
-            text-decoration: none;
-            color: var(--body-text-primary-color);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 15px;
-            font-weight: 500;
-            border-left: 4px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .sidebar nav a:hover {
-            background: rgba(0, 84, 155, 0.05);
-            color: var(--body-text-theme-color);
-        }
-
-        .sidebar nav a.active {
-            background: rgba(0, 84, 155, 0.08);
-            color: var(--body-text-theme-color);
-            border-left-color: var(--body-text-theme-color);
-        }
-
-        /* Header Overrides */
-        .header-pinellas {
-            background: var(--navigation-bar-color);
-            color: white;
-            padding: 0 24px;
-            height: 64px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        /* Card Styles */
-        .site-card, .jha-card {
-            background: var(--primary-content-background-color) !important;
-            border-radius: var(--card-corner-radius) !important;
-            box-shadow: var(--card-shadow) !important;
-            padding: 24px !important;
-            border: none !important;
-            margin-bottom: 24px !important;
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            color: var(--body-text-primary-color);
-        }
-
-        .sidebar-logo {
-            padding: 20px 24px;
-            margin-bottom: 10px;
-        }
-
-        @media (max-width: 991px) {
-            .sidebar { 
-                display: none; 
-                position: fixed;
-                top: 64px;
-                left: 0;
-                height: calc(100vh - 64px);
-                z-index: 999;
-                width: 250px;
-                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            }
-            .sidebar.show {
-                display: flex;
-            }
-            .sidebar-logo { display: none; } /* Hide sidebar logo on mobile as it's in header */
-            
-            /* Overlay */
-            .sidebar-overlay {
-                display: none;
-                position: fixed;
-                top: 64px;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 998;
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-
-            .main-content-area { padding: 16px; }
-        }
-    </style>
     @stack('style')
     @yield('style')
 </head>
@@ -184,79 +23,110 @@
 @include('global._notify')
 
 <div class="dashboard-wrapper">
-    <div class="d-lg-none">
-        @include('frontend::user.include.pinellas_dashboard_header')
-    </div>
-    
-    <div class="dashboard-body">
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                 <a href="{{ route('home') }}">
-                    <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
-                </a>
-            </div>
-            <nav>
-                <a href="{{ route('user.dashboard') }}" class="{{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-home"></i> Accounts
-                </a>
-                <a href="{{ route('user.transactions') }}" class="{{ Request::routeIs('user.transactions') ? 'active' : '' }}">
-                    <i class="fas fa-exchange-alt"></i> Activity
-                </a>
-                <a href="{{ route('user.fund_transfer.index') }}" class="{{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
-                    <i class="fas fa-paper-plane"></i> Move Money
-                </a>
-                <a href="{{ route('user.bill-pay.index') }}" class="{{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                    <i class="fas fa-file-invoice-dollar"></i> Bill Pay
-                </a>
-                <a href="{{ route('user.remote_deposit') }}" class="{{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                    <i class="fas fa-mobile-alt"></i> Deposit
-                </a>
-                <a href="{{ route('user.messages') }}" class="{{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                    <i class="fas fa-envelope"></i> Messages
-                </a>
-                <a href="{{ route('user.rewards.index') }}" class="{{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                    <i class="fas fa-star"></i> Rewards
-                </a>
-                <a href="{{ route('user.setting.show') }}" class="{{ Request::routeIs('user.setting.show') ? 'active' : '' }}">
-                    <i class="fas fa-cog"></i> Settings
-                </a>
-                <!-- Desktop Logout -->
-                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-danger mt-auto border-top">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </nav>
-        </aside>
+    <!-- Mobile Header -->
+    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 64px; display: flex; align-items: center; padding: 0 16px;">
+        <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
+        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 32px;">
+    </header>
 
-        <main class="main-content-area">
+    <!-- Banno Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo d-none d-lg-block" style="padding: 32px 24px;">
+             <a href="{{ route('home') }}">
+                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
+            </a>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
+                <i class="fas fa-envelope"></i> Messages
+            </a>
+            <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item">
+                <i class="fas fa-university"></i> Accounts
+            </a>
+            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
+                <i class="fas fa-exchange-alt"></i> Transfers
+            </a>
+            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> Member Transfers
+            </a>
+            <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
+                <i class="fas fa-mobile-alt"></i> Remote deposits
+            </a>
+            <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
+                <i class="fas fa-file-invoice-dollar"></i> Bill pay
+            </a>
+            <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
+                <i class="fas fa-gift"></i> Member Rewards
+            </a>
+            <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
+                <i class="fas fa-headset"></i> Support
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile-sm dropdown">
+                <div class="user-avatar-sm">
+                    {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                </div>
+                <div class="user-details flex-grow-1" style="min-width: 0;">
+                    <div style="font-size: 14px; font-weight: 600; color: var(--body-text-primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ $user->full_name }}
+                    </div>
+                </div>
+                <button class="btn btn-link p-0 text-secondary dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; margin-bottom: 10px;">
+                    <li><a class="dropdown-item" href="{{ route('user.setting.show') }}"><i class="fas fa-user-cog me-2"></i> Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt me-2"></i> Sign out
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content-area" style="padding-top: 32px;">
+        <div class="container-fluid" style="max-width: 1200px; margin: 0 auto;">
             @if(auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
                 @include('frontend::include.__kyc_warning')
             @endif
             @yield('content')
-        </main>
-    </div>
+        </div>
+    </main>
 </div>
+
+<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+    @csrf
+</form>
 
 @include('frontend::include.__script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Create overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        document.body.appendChild(overlay);
-
-        const toggle = document.getElementById('sidebarToggle');
         const sidebar = document.querySelector('.sidebar');
-
+        const toggle = document.getElementById('sidebarToggle');
+        
         if(toggle) {
-            toggle.addEventListener('click', function() {
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
                 sidebar.classList.toggle('show');
-                overlay.classList.toggle('show');
             });
         }
-        
-        overlay.addEventListener('click', function() {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
+
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth < 992 && !sidebar.contains(e.target) && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
         });
     });
 </script>
@@ -264,5 +134,6 @@
 @yield('script')
 </body>
 </html>
+
 
 

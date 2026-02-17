@@ -1,57 +1,119 @@
 @extends('frontend::layouts.user')
 
 @section('title')
-    {{ __('Account Settings') }}
+    {{ __('Accounts') }}
 @endsection
 
 @section('content')
-    <div class="row">
-        @include('frontend::user.setting.include.__settings_nav')
-        <div class="col-xl-9 col-lg-8 col-md-12 col-12">
-            <div class="site-card profile-details-view">
-                <div class="site-card-body">
-                    <div class="section-title mb-4">
-                        <h3 style="font-weight: 700; color: var(--body-text-primary-color); margin: 0;">{{ __('Account Settings') }}</h3>
-                        <p style="color: var(--body-text-secondary-color); font-size: 0.9rem;">{{ __('Manage your checking and savings accounts display preferences.') }}</p>
-                    </div>
+<!-- Banno Accounts Header (Blue Water Theme) -->
+<div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
+    <div class="position-relative z-1">
+        <h1 class="text-white display-5 fw-bold mb-2">Accounts</h1>
+        <div class="text-white opacity-75 small fw-600">PINELLAS FEDERAL CREDIT UNION</div>
+    </div>
+    <!-- Water ripple decoration -->
+    <div class="position-absolute bottom-0 start-0 w-100" style="height: 50px; background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);"></div>
+</div>
 
-                    <div class="accounts-settings-list mt-4">
-                        <!-- Checking Account -->
-                        <div class="banno-toggle">
-                            <div class="banno-toggle-info">
-                                <h6 class="mb-1">{{ __('Total Checking') }} <span class="badge bg-light text-dark ms-2 fw-normal" style="font-size: 0.7rem;">****{{ substr(auth()->user()->account_number, -4) }}</span></h6>
-                                <p>{{ __('Current Balance: ') }}{{ setting('site_currency', 'global') }}{{ number_format($checkingBalance, 2) }}</p>
+<div class="row" style="margin-top: -80px;">
+    <!-- Account Cards Grid -->
+    <div class="col-12">
+        <div class="row g-4">
+            
+            <!-- Checking Account Card -->
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Personal Checking</h5>
+                                <div class="text-muted small">...{{ substr(auth()->user()->account_number, -4) }}</div>
                             </div>
-                            <div class="settings-actions">
-                                <div class="banno-switch active" onclick="$(this).toggleClass('active')"></div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
+                                </ul>
                             </div>
                         </div>
-
-                        <!-- Savings Accounts -->
-                        @foreach($savingsAccounts as $account)
-                        <div class="banno-toggle">
-                            <div class="banno-toggle-info">
-                                <h6 class="mb-1">{{ $account->type }} <span class="badge bg-light text-dark ms-2 fw-normal" style="font-size: 0.7rem;">****{{ substr($account->account_number, -4) }}</span></h6>
-                                <p>{{ __('Current Balance: ') }}{{ setting('site_currency', 'global') }}{{ number_format($account->balance, 2) }} • {{ number_format($account->interest_rate, 2) }}% APY</p>
-                            </div>
-                            <div class="settings-actions">
-                                <div class="banno-switch active" onclick="$(this).toggleClass('active')"></div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Available balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','global').number_format($checkingBalance, 2) }}
                             </div>
                         </div>
-                        @endforeach
                     </div>
-
-                    <hr class="mt-4 mb-4">
-
-                    <div class="settings-footer-actions">
-                         <h5 class="mb-3" style="font-weight: 700; color: var(--body-text-primary-color);">{{ __('New Account') }}</h5>
-                         <p style="color: var(--body-text-secondary-color); font-size: 0.85rem;" class="mb-3">{{ __('Interested in opening another savings account? Our team reflects on your profile to offer the best rates.') }}</p>
-                         <button type="button" class="site-btn-sm primary-theme-btn">
-                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> {{ __('Open a new account') }}
-                         </button>
+                    <div class="p-3 bg-light border-top text-center">
+                        <a href="{{ route('user.transactions') }}" class="text-decoration-none small fw-bold text-primary">View activity</a>
                     </div>
                 </div>
             </div>
+
+            <!-- Savings Accounts -->
+            @foreach($savingsAccounts as $account)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">{{ $account->type }}</h5>
+                                <div class="text-muted small">...{{ substr($account->account_number, -4) }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="#">View activity</a></li>
+                                    <li><a class="dropdown-item" href="#">Transfer funds</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Available balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','global').number_format($account->balance, 2) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-light border-top text-center">
+                         <span class="text-muted small fw-600">{{ number_format($account->interest_rate ?? 0, 2) }}% APY</span>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+
+            <!-- Add New Account (Banno style placeholder) -->
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 border-0" style="border-radius: 12px; border: 2px dashed #ddd !important; background: transparent !important; box-shadow: none !important;">
+                    <div class="p-4 h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                        <div class="rounded-circle bg-white shadow-sm p-3 mb-3">
+                            <i class="fas fa-plus text-primary fa-lg"></i>
+                        </div>
+                        <h6 class="fw-bold">Open a new account</h6>
+                        <p class="text-muted small px-3">Start earning more with our high-yield savings options.</p>
+                        <button class="btn btn-primary rounded-pill px-4 mt-2">Get started</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
+
 @endsection
+
+@section('style')
+<style>
+    .accounts-header-banno h1 {
+        letter-spacing: -1px;
+    }
+    .fw-600 { font-weight: 600; }
+    .site-card:hover {
+        transform: translateY(-8px);
+    }
+    .balance-section {
+        margin-top: 30px;
+    }
+</style>
+@endsection
+

@@ -1,324 +1,227 @@
 @php use App\Enums\TxnStatus; @endphp
 @extends('frontend::layouts.user')
+
 @section('title')
-    {{ __('Transactions') }}
+    {{ __('Activity') }}
 @endsection
+
 @push('style')
     <link rel="stylesheet" href="{{ asset('front/css/daterangepicker.css') }}">
+    <style>
+        .filter-chip {
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            background: white;
+            border: 1px solid var(--divider-default-color);
+            color: var(--body-text-secondary-color);
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .filter-chip.active {
+            background: var(--body-text-theme-color);
+            color: white;
+            border-color: var(--body-text-theme-color);
+        }
+        .activity-row {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+        .activity-row:hover {
+            background-color: var(--secondary-content-background-color);
+        }
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-content-background-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--body-text-theme-color);
+        }
+    </style>
 @endpush
+
 @section('content')
-    <div class="row">
-        <div class="col-xl-12 col-lg-12 col-md-12 col-12">
-            <div class="site-card">
-                <div class="site-card-header">
-                    <div class="title-small">{{ __('All Transactions') }}</div>
-                    <div class="card-header-links">
-                        <a href="{{ route('user.transactions.export.csv', $queries) }}" class="card-header-link"><i
-                                data-lucide="file-down"></i>{{ __('Export As CSV') }}</a>
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 fw-bold mb-0">Activity</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ route('user.transactions.export.csv', $queries) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fas fa-file-export me-1"></i> Export
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="site-card mb-4 p-4">
+            <form id="filterForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label class="small text-muted mb-1 fw-bold">SEARCH</label>
+                        <div class="input-group border-bottom">
+                            <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" name="trx" class="form-control border-0 shadow-none" placeholder="Search by description or ID" value="{{ request('trx') }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="small text-muted mb-1 fw-bold">DATE RANGE</label>
+                        <div class="input-group border-bottom">
+                            <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                            <input type="text" name="daterange" class="form-control border-0 shadow-none" value="{{ request('daterange') }}" placeholder="All time">
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                         <label class="small text-muted mb-1 fw-bold">TYPE</label>
+                         <select name="type" class="form-select border-0 border-bottom shadow-none rounded-0">
+                             <option value="all" @selected(request('type') == 'all')>All types</option>
+                             <option value="deposit" @selected(request('type') == 'deposit')>Deposits</option>
+                             <option value="fund_transfer" @selected(request('type') == 'fund_transfer')>Transfers</option>
+                             <option value="withdraw" @selected(request('type') == 'withdraw')>Withdrawals</option>
+                             <option value="pay_bill" @selected(request('type') == 'pay_bill')>Bill Payments</option>
+                         </select>
+                    </div>
+                    <div class="col-lg-2">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Filter</button>
                     </div>
                 </div>
-                <div class="site-card-body p-0 overflow-x-auto">
-                    <form>
-                        <div class="table-filter">
-                            <div class="filter">
-                                <div class="single-f-box">
-                                    <label for="">{{ __('Transaction ID') }}</label>
-                                    <input class="search" type="text" name="trx" value="{{ request('trx') }}"
-                                        autocomplete="off" />
-                                </div>
-                                <div class="single-f-box">
-                                    <label for="">{{ __('Type') }}</label>
-                                    <select name="type" class="nice-select page-count w-100 ">
-                                        <option value="all" @selected(request('type') == 'all')>{{ __('All Type') }}</option>
-                                        <option value="deposit" @selected(request('type') == 'deposit')>{{ __('Deposit') }}</option>
-                                        <option value="fund_transfer" @selected(request('type') == 'fund_transfer')>
-                                            {{ __('Fund Transfer') }}
-                                        </option>
-                                        <option value="dps" @selected(request('type') == 'dps')>{{ __('DPS') }}</option>
-                                        <option value="fdr" @selected(request('type') == 'fdr')>{{ __('FDR') }}</option>
-                                        <option value="loan" @selected(request('type') == 'loan')>{{ __('Loan') }}</option>
-                                        <option value="pay_bill" @selected(request('type') == 'pay_bill')>{{ __('Pay Bill') }}</option>
-                                        <option value="withdraw" @selected(request('type') == 'withdraw')>{{ __('Withdraw') }}</option>
-                                        <option value="referral" @selected(request('type') == 'referral')>{{ __('Referral') }}</option>
-                                        <option value="portfolio" @selected(request('type') == 'portfolio')>{{ __('Portfolio') }}
-                                        </option>
-                                        <option value="rewards" @selected(request('type') == 'rewards')>{{ __('Rewards') }}</option>
-                                    </select>
-                                </div>
-                                <div class="single-f-box">
-                                    <label for="">{{ __('Date') }}</label>
-                                    <input type="text" name="daterange" value="{{ request('daterange') }}"
-                                        autocomplete="off" />
-                                </div>
-                                <button class="apply-btn me-2" name="filter">
-                                    <i data-lucide="filter"></i>{{ __('Filter') }}
-                                </button>
-                                @if (request()->has('filter'))
-                                    <button type="button" class="apply-btn bg-danger reset-filter">
-                                        <i data-lucide="x"></i>{{ __('Reset Filter') }}
-                                    </button>
-                                @endif
-                            </div>
-                            <div class="filter">
-                                <div class="single-f-box w-auto ms-4 me-0">
-                                    <label for="">{{ __('Entries') }}</label>
-                                    <select name="limit" class="nice-select page-count" id="limit-select">
-                                        <option value="15" @selected(request('limit', 15) == '15')>15</option>
-                                        <option value="30" @selected(request('limit') == '30')>30</option>
-                                        <option value="50" @selected(request('limit') == '50')>50</option>
-                                        <option value="100" @selected(request('limit') == '100')>100</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                    <div class="site-custom-table">
-                        <div class="contents">
-                            <div class="site-table-list site-table-head">
-                                <div class="site-table-col">{{ __('Description') }}</div>
-                                <div class="site-table-col">{{ __('Transactions ID') }}</div>
-                                <div class="site-table-col">{{ __('Type') }}</div>
-                                <div class="site-table-col">{{ __('Amount') }}</div>
-                                <div class="site-table-col">{{ __('Charge') }}</div>
-                                <div class="site-table-col">{{ __('Status') }}</div>
-                                <div class="site-table-col">{{ __('Method') }}</div>
-                                <div class="site-table-col">{{ __('View') }}</div>
-                            </div>
-                            @foreach ($transactions as $transaction)
-                                <div class="site-table-list">
-                                    <div class="site-table-col">
-                                        <div class="description">
-                                            <div class="event-icon">
-                                                @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
-                                                    <i data-lucide="chevrons-down"></i>
-                                                @elseif(Str::startsWith($transaction->type->value, 'dps'))
-                                                    <i data-lucide="archive"></i>
-                                                @elseif(Str::startsWith($transaction->type->value, 'fdr'))
-                                                    <i data-lucide="book"></i>
-                                                @elseif(Str::startsWith($transaction->type->value, 'loan'))
-                                                    <i data-lucide="alert-triangle"></i>
-                                                @elseif($transaction->type->value == 'subtract')
-                                                    <i data-lucide="minus-circle"></i>
-                                                @elseif($transaction->type->value == 'receive_money')
-                                                    <i data-lucide="arrow-down-left"></i>
-                                                @elseif($transaction->type->value == 'reward_redeem')
-                                                    <i data-lucide="gift"></i>
-                                                @else
-                                                    <i data-lucide="send"></i>
-                                                @endif
-                                            </div>
-                                            <div class="content">
-                                                <div class="title">
-                                                    {{ $transaction->description }}
-                                                    @if (!in_array($transaction->approval_cause, ['none', '']))
-                                                        <span class="msg" data-bs-toggle="tooltip"
-                                                            data-bs-custom-class="custom-tooltip" data-bs-placement="top"
-                                                            data-bs-title="{{ $transaction->approval_cause }}"><i
-                                                                data-lucide="message-square"></i>
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <div class="date">{{ $transaction->created_at }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="trx fw-bold">{{ $transaction->tnx }}</div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="type site-badge badge-primary">
-                                            {{ ucfirst(str_replace('_', ' ', $transaction->type->value)) }}</div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div @class([
-                                            'fw-bold',
-                                            'green-color' => isPlusTransaction($transaction->type) == true,
-                                            'red-color' => isPlusTransaction($transaction->type) == false,
-                                        ])>
-                                            {{ isPlusTransaction($transaction->type) == true ? '+' : '-' }}{{ $transaction->amount . ' ' . $transaction->currency }}
-                                        </div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="fw-bold red-color">
-                                            -{{ $transaction->charge . ' ' . $transaction->currency }}
-                                        </div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        @if ($transaction->status->value == 'failed')
-                                            <div class="type site-badge badge-failed">{{ $transaction->status->value }}
-                                            </div>
-                                        @elseif($transaction->status->value == 'success')
-                                            <div class="type site-badge badge-success">{{ $transaction->status->value }}
-                                            </div>
-                                        @elseif($transaction->status->value == 'pending')
-                                            <div class="type site-badge badge-pending">{{ $transaction->status->value }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="fw-bold">
-                                            {{ $transaction->method !== '' ? ucfirst(str_replace('-', ' ', $transaction->method)) : __('System') }}
-                                        </div>
-                                    </div>
-                                    <div class="site-table-col">
-                                        <div class="action">
-                                            <a href="javascript:void(0)" class="icon-btn details-btn"
-                                                data-bs-toggle="modal" data-bs-target="#trxViewDetailsBox"
-                                                data-title="{{ $transaction->description }}"
-                                                data-type="{{ $transaction->type->value }}"
-                                                data-time="{{ $transaction->created_at }}"
-                                                data-transaction-id="{{ $transaction->tnx }}"
-                                                data-transaction="{{ $transaction->manual_field_data }}"
-                                                data-message="{{ $transaction->action_message }}"
-                                                data-amount="{{ isPlusTransaction($transaction->type) == true ? '+' : '-' }}{{ $transaction->amount . ' ' . $currency }}"
-                                                data-charge="{{ $transaction->charge . ' ' . $currency }}"
-                                                data-status="{{ $transaction->status->value }}"
-                                                data-method="{{ $transaction->method !== '' ? ucfirst(str_replace('-', ' ', $transaction->method)) : __('System') }}">
-                                                <i data-lucide="eye"></i>{{ __('Details') }}
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        @if (count($transactions) == 0)
-                            <div class="no-data-found">{{ __('No Data Found') }}</div>
-                        @endif
-                    </div>
+            </form>
+        </div>
 
-                    <!-- Modal for Transaction View Details -->
-                    <div class="modal fade" id="trxViewDetailsBox" tabindex="-1"
-                        aria-labelledby="trxViewDetailsBoxModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-md modal-dialog-centered">
-                            <div class="modal-content site-table-modal">
-                                <div class="modal-body popup-body">
-                                    <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"><i data-lucide="x"></i></button>
-                                    <div class="popup-body-text">
-                                        <div class="title title-value"></div>
-                                        <div class="modal-beneficiary-details">
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Time') }}</div>
-                                                <div class="value time-value"></div>
-                                            </div>
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Transaction ID') }}</div>
-                                                <div class="value trx-value"></div>
-                                            </div>
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Amount') }}</div>
-                                                <div class="value green-color amount-value"></div>
-                                            </div>
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Charge') }}</div>
-                                                <div class="value red-color charge-value"></div>
-                                            </div>
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Status') }}</div>
-                                                <div class="value status-value"></div>
-                                            </div>
-                                            <div class="profile-text-data">
-                                                <div class="attribute">{{ __('Method') }}</div>
-                                                <div class="value method-value"></div>
-                                            </div>
-                                            <div class="custom-fields"></div>
-
-                                            <div class="profile-text-data">
-                                                <div class="attribute message-value"></div>
-                                            </div>
-                                        </div>
-                                        <div class="action-btns mt-3">
-                                            <a href="" class="site-btn-sm polis-btn" data-bs-dismiss="modal"
-                                                aria-label="Close">
-                                                <i data-lucide="check"></i>
-                                                {{ __('Close it') }}
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+        <!-- Activity List -->
+        <div class="site-card overflow-hidden">
+            <div class="transaction-list">
+                @forelse ($transactions as $transaction)
+                <div class="activity-row d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-light" 
+                     onclick="window.location.href='{{ route('user.transactions') }}?details={{ $transaction->tnx }}'"
+                     data-bs-toggle="modal" data-bs-target="#trxViewDetailsBox"
+                     data-title="{{ $transaction->description }}"
+                     data-trx="{{ $transaction->tnx }}"
+                     data-amount="{{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}"
+                     data-date="{{ $transaction->created_at->format('M d, Y h:i A') }}"
+                     data-status="{{ $transaction->status->value }}"
+                     data-method="{{ $transaction->method ?: 'System' }}">
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="activity-icon">
+                            @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
+                                <i class="fas fa-arrow-down"></i>
+                            @elseif(Str::contains($transaction->type->value, 'transfer'))
+                                <i class="fas fa-exchange-alt"></i>
+                            @elseif(Str::contains($transaction->type->value, 'loan'))
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            @else
+                                <i class="fas fa-shopping-cart"></i>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">{{ $transaction->description }}</div>
+                            <div class="text-muted small">
+                                {{ $transaction->created_at->format('M d') }} • {{ $transaction->tnx }}
                             </div>
                         </div>
                     </div>
-                    <!-- Modal for Transaction View Details end-->
-
-                    {{ $transactions->links() }}
+                    <div class="text-end">
+                        <div class="fw-bold {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}">
+                            {{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
+                        </div>
+                        <div class="small">
+                            @if($transaction->status->value == 'success')
+                                <span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>
+                            @elseif($transaction->status->value == 'pending')
+                                <span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>
+                            @else
+                                <span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
+                @empty
+                <div class="text-center py-5">
+                    <i class="fas fa-info-circle fa-3x text-light mb-3"></i>
+                    <p class="text-muted">No activity match your filters.</p>
+                </div>
+                @endforelse
+            </div>
+            
+            <div class="p-4 bg-light d-flex justify-content-center">
+                {{ $transactions->links() }}
             </div>
         </div>
     </div>
-    @push('js')
-        <script src="{{ asset('front/js/moment.min.js') }}"></script>
-        <script src="{{ asset('front/js/daterangepicker.min.js') }}"></script>
-        <script>
-            // Initialize datepicker
+</div>
+
+<!-- High Fidelity Detail Modal -->
+<div class="modal fade" id="trxViewDetailsBox" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="activity-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 24px;">
+                     <i class="fas fa-receipt"></i>
+                </div>
+                <h4 class="fw-bold mb-1 modal-title-val">Description</h4>
+                <div class="text-muted small mb-4 modal-date-val">Date</div>
+                
+                <div class="display-5 fw-bold mb-4 modal-amount-val">$0.00</div>
+                
+                <div class="site-card p-3 text-start mb-0" style="background: var(--secondary-content-background-color) !important;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Status</span>
+                        <span class="fw-bold small modal-status-val">Completed</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Transaction ID</span>
+                        <span class="fw-bold small modal-trx-val">TRX12345</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Method</span>
+                        <span class="fw-bold small modal-method-val">System</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('js')
+    <script src="{{ asset('front/js/moment.min.js') }}"></script>
+    <script src="{{ asset('front/js/daterangepicker.min.js') }}"></script>
+    <script>
+        $(function() {
             $('input[name="daterange"]').daterangepicker({
-                opens: 'left'
+                opens: 'left',
+                autoUpdateInput: false,
+                locale: { cancelLabel: 'Clear' }
             });
 
-            @if (request('daterange') == null)
-                // Set default is empty for date range
-                $('input[name=daterange]').val('');
-            @endif
-
-            function capitalizeFirstLetter(string) {
-                return string.charAt(0).toUpperCase() + string.slice(1);
-            }
-
-            // Set data for modal
-            $(document).on('click', '.details-btn', function(e) {
-
-                e.preventDefault();
-
-                var id = $(this).data('id');
-                var title = $(this).data('title');
-                var type = $(this).data('type');
-                var time = $(this).data('time');
-                var trx = $(this).data('transaction-id');
-                var amount = $(this).data('amount');
-                var charge = $(this).data('charge');
-                var method = $(this).data('method');
-                var status = $(this).data('status');
-                var transaction = $(this).data('transaction');
-
-                var statusElement = '';
-                var additionalData = '';
-
-                $.each(transaction, function(key, value) {
-                    additionalData += '<div class="profile-text-data"><div class="attribute">' +
-                        capitalizeFirstLetter(key.replaceAll('_', ' ')) + '</div><div class="value">' + value +
-                        '</div></div>';
-                });
-
-                if (status == 'failed') {
-                    statusElement += `<div class="type site-badge badge-failed">{{ __('Failed') }}</div>`
-                } else if (status == 'success') {
-                    statusElement += `<div class="type site-badge badge-success">{{ __('Success') }}</div>`
-                } else {
-                    statusElement += `<div class="type site-badge badge-pending">{{ __('Pending') }}</div>`
-                }
-
-                $('.title-value').text(title);
-                $('.trx-value').text(trx);
-                $('.time-value').text(time);
-                $('.amount-value').text(amount);
-                $('.charge-value').text(charge);
-                $('.method-value').text(method);
-                $('.status-value').html(statusElement);
-
-                $('.custom-fields').html(additionalData);
-
+            $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
             });
 
-            // Reset filter
-            $('.reset-filter').on('click', function() {
-                window.location.href = "{{ route('user.transactions') }}";
+            // Modal detail population
+            $('#trxViewDetailsBox').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var modal = $(this);
+                modal.find('.modal-title-val').text(button.data('title'));
+                modal.find('.modal-amount-val').text(button.data('amount'));
+                modal.find('.modal-date-val').text(button.data('date'));
+                modal.find('.modal-trx-val').text(button.data('trx'));
+                modal.find('.modal-status-val').text(button.data('status'));
+                modal.find('.modal-method-val').text(button.data('method'));
             });
-
-            $('#limit-select').on('change', function() {
-                const url = new URL(window.location.href);
-                url.searchParams.set('limit', $(this).val());
-                window.location.href = url.toString();
-            });
-        </script>
-    @endpush
+        });
+    </script>
+@endpush
 @endsection
+

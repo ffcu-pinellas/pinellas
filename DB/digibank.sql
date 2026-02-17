@@ -2439,12 +2439,13 @@ CREATE TABLE `savings_accounts` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
 --
 -- Dumping data for table `savings_accounts`
 --
 
-INSERT INTO `savings_accounts` (`id`, `user_id`, `account_number`, `type`, `balance`, `status`, `created_at`, `updated_at`) VALUES
-(1, 1, '123456789012', 'High Yield Savings', 5000.00, 1, '2026-02-15 12:00:00', '2026-02-15 12:00:00');
+-- --------------------------------------------------------
+
 
 -- --------------------------------------------------------
 

@@ -1,40 +1,34 @@
-<div class="modal fade" id="deleteBox" tabindex="-1" aria-labelledby="deleteBoxModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content site-table-modal">
-            <div class="modal-body popup-body">
-                <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                        aria-label="Close"><i data-lucide="x"></i></button>
-                <div class="popup-body-text centered">
-                    <div class="info-icon">
-                        <i data-lucide="alert-triangle"></i>
+<div class="modal fade" id="deleteBox" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0">{{ __('Delete Recipient') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle mb-3" style="width: 64px; height: 64px;">
+                        <i class="fas fa-exclamation-triangle fs-3"></i>
                     </div>
-                    <div class="title">
-                        <h4>Are you sure?</h4>
-                    </div>
-                    <p>
-                        You want to delete this beneficiary?
-                    </p>
-                    <div class="action-btns">
-                        <form action="{{ route('user.fund_transfer.beneficiary.delete') }}" method="POST" id="dltForm">
-                            @csrf
-                            <input type="hidden" name="id" id="dltId" value="">
-                        </form>
-                        <a
-                            href="#"
-                            onclick="event.preventDefault(); localStorage.clear();  $('#dltForm').submit();"
-                            class="site-btn-sm primary-btn me-2">
-                            <i data-lucide="check"></i>
-                            Confirm
-                        </a>
-                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal"
-                           aria-label="Close">
-                            <i data-lucide="x"></i>
-                            Cancel
-                        </a>
-                    </div>
+                    <h5 class="fw-bold text-dark">Are you absolutely sure?</h5>
+                    <p class="text-muted">You are about to remove this recipient. This action cannot be undone and they will be removed from your list.</p>
                 </div>
+
+                <form action="{{ route('user.fund_transfer.beneficiary.delete') }}" method="POST" id="dltForm">
+                    @csrf
+                    <input type="hidden" name="id" id="dltId" value="">
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger rounded-pill py-3 fw-bold shadow-sm">
+                            Yes, delete recipient
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill py-3 fw-bold" data-bs-dismiss="modal">
+                            No, keep them
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+

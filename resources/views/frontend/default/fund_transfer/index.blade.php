@@ -1,415 +1,263 @@
 @extends('frontend::layouts.user')
-@section('title')
-    {{ __('M2M Transfers') }}
-@endsection
-@section('content')
-    <div class="row">
-        @include('frontend::fund_transfer.include.__header')
 
-        <div class="col-xl-12 col-lg-12 col-md-12 col-12">
-            <div class="site-card">
-                <div class="site-card-header">
-                    <div class="title">{{ __('M2M Transfers') }}</div>
-                    <div class="card-header-links">
-                        <a href="#" class="card-header-link" data-bs-toggle="modal" data-bs-target="#addBox"><i
-                                data-lucide="plus-circle"></i>{{ __('Add Beneficiary') }}</a>
+@section('title')
+    {{ __('Transfers') }}
+@endsection
+
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-xl-9 col-lg-10 col-12">
+        <div class="text-center mb-5">
+            <h1 class="h2 fw-bold mb-3">Transfer funds</h1>
+            <p class="text-muted">Move money between your accounts or to other members.</p>
+        </div>
+
+        <div class="site-card border-0 shadow-sm overflow-hidden mb-4">
+            <form action="{{ route('user.fund_transfer.transfer') }}" method="POST" id="transferForm">
+                @csrf
+                <div class="site-card-body p-0">
+                    <!-- Step 1: From Account -->
+                    <div class="p-5 border-bottom">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">1</div>
+                            <h5 class="fw-bold mb-0">From</h5>
+                        </div>
+                        <div class="inputs">
+                            <select name="wallet_type" class="form-select form-select-lg rounded-3 fw-bold border-2" id="walletSelect" style="padding: 15px;">
+                                <option value="default" data-currency="{{ setting('site_currency') }}" selected>
+                                    {{ __('Checking account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ auth()->user()->balance }}
+                                </option>
+                                @foreach ($savingsAccounts as $savings)
+                                    <option value="savings_{{ $savings->id }}" data-currency="{{ setting('site_currency') }}">
+                                        {{ __('Savings account (...') . substr($savings->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ $savings->balance }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: To Account -->
+                    <div class="p-5 border-bottom bg-light bg-opacity-10">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">2</div>
+                                <h5 class="fw-bold mb-0">To</h5>
+                            </div>
+                            <a href="#" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" data-bs-toggle="modal" data-bs-target="#addBox">
+                                <i class="fas fa-plus-circle me-1"></i> Add recipient
+                            </a>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Bank</label>
+                                <select name="bank_id" class="form-select rounded-3 border-2" id="bankId" style="padding: 12px;">
+                                    <option value="" disabled selected>--{{ __('Select Bank') }}--</option>
+                                    <option value="0">{{ __('Own Bank (Internal)') }}</option>
+                                    @foreach ($banks as $bank)
+                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Beneficiary</label>
+                                <select name="beneficiary_id" class="form-select rounded-3 border-2" id="beneficiaryId" style="padding: 12px;">
+                                    <option value="" selected>--{{ __('Choose Recipient') }}--</option>
+                                </select>
+                            </div>
+
+                            <!-- Manual Entry (if no beneficiary selected) -->
+                            <div class="col-12 mt-4 custom-fields">
+                                <div class="p-4 border rounded-3 bg-white shadow-sm">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-uppercase">Account Number</label>
+                                            <input type="text" class="form-control" id="account_number" name="manual_data[account_number]" placeholder="0000000000">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-uppercase">Account Name</label>
+                                            <input type="text" class="form-control" id="account_name" name="manual_data[account_name]" placeholder="Recipient Name">
+                                        </div>
+                                        <div id="branch_name_field" class="col-12">
+                                            <label class="form-label small fw-bold text-uppercase">Branch Name</label>
+                                            <input type="text" class="form-control" id="branch_name" name="manual_data[branch_name]" placeholder="Optional">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Amount & Memo -->
+                    <div class="p-5">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">3</div>
+                            <h5 class="fw-bold mb-0">Details</h5>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-uppercase">Amount</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-2 border-end-0 fw-bold" id="amountCurrencySymbol">{{ $currency }}</span>
+                                    <input type="number" step="0.01" class="form-control border-2 border-start-0 fw-bold" id="amount" name="amount" placeholder="0.00" style="font-size: 1.5rem;">
+                                </div>
+                                <div class="small text-muted mt-2 min-max"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-uppercase">Memo (Optional)</label>
+                                <textarea class="form-control border-2" rows="2" name="purpose" placeholder="What's this for?" style="height: 62px;"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Review Table -->
+                        <div class="mt-5 p-4 rounded-3 border bg-light bg-opacity-25 shadow-sm">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Transfer Amount</span>
+                                <span class="fw-bold amount">0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Service Fee</span>
+                                <span class="text-danger fw-bold charge2">0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <span class="h6 fw-bold mb-0">Total Withdrawal</span>
+                                <span class="h6 fw-bold mb-0 total">0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 text-center">
+                            <button @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status')) type="button" data-bs-toggle="modal" data-bs-target="#passcode" @else type="submit" @endif class="btn btn-primary rounded-pill px-5 py-3 fw-bold fs-5 shadow-sm w-100 w-md-auto">
+                                <i class="fas fa-paper-plane me-2"></i> {{ __('Send Transfer Now') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <form action="{{ route('user.fund_transfer.transfer') }}" method="POST">
-                    @csrf
-                    <div class="site-card-body">
-                        <div class="step-details-form mb-4">
-                            <div class="row">
 
-                                <div class="col-xl-4 col-lg-6 col-md-6">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Select Bank') }}<span
-                                                class="required">*</span></label>
-                                        <select name="bank_id" class="box-input select2-basic-active" id="bankId">
-                                            <option value="" disabled selected>--{{ __('Select Bank') }}--</option>
-                                            <option value="0">{{ __('Own Bank') }}</option>
-                                            @foreach ($banks as $bank)
-                                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        <div class="input-info-text charge"></div>
+                @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status'))
+                    <div class="modal fade" id="passcode" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                                <div class="modal-body p-5 text-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                        <i class="fas fa-lock text-primary fs-2"></i>
                                     </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Select Beneficiary') }} </label>
-                                        <select name="beneficiary_id" class="box-input select2-basic-active"
-                                            id="beneficiaryId">
-                                            <option value="" selected>--{{ __('Beneficiary') }}--</option>
-                                        </select>
-                                        <div class="input-info-text transfer"></div>
+                                    <h4 class="fw-bold mb-3">Security Passcode</h4>
+                                    <p class="text-muted mb-4">Please enter your 6-digit security passcode to authorize this transfer.</p>
+                                    <div class="mb-4">
+                                        <input type="password" class="form-control form-control-lg text-center fw-bold border-2" name="passcode" required placeholder="••••••" style="letter-spacing: 0.5rem; font-size: 2rem;">
                                     </div>
-                                </div>
-
-                                    <div class="col-xl-4 col-lg-4 col-md-4">
-                                        <div class="inputs">
-                                            <label for="" class="input-label">{{ __('From Account') }}<span
-                                                    class="required">*</span></label>
-                                            <select name="wallet_type" class="box-input" id="walletSelect">
-                                                <option value="default" data-currency="{{ setting('site_currency') }}"
-                                                    selected>
-                                                    {{ __('Checking account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ auth()->user()->balance }}
-                                                </option>
-                                                @foreach ($savingsAccounts as $savings)
-                                                    <option value="savings_{{ $savings->id }}" data-currency="{{ setting('site_currency') }}">
-                                                        {{ __('Savings account (...') . substr($savings->account_number, -4) . ')' }} - {{ setting('site_currency') }} {{ $savings->balance }}
-                                                    </option>
-                                                @endforeach
-                                                @if (setting('multiple_currency', 'permission'))
-                                                    @foreach ($wallets as $wallet)
-                                                        <option value="{{ $wallet->currency?->code }}"
-                                                            @selected($code == $wallet->currency?->code)
-                                                            data-currency="{{ $wallet->currency?->code }}">
-                                                            {{ $wallet?->currency?->name }} ({{ $wallet?->currency?->code }}) - {{ $wallet->balance }}
-                                                        </option>
-                                                    @endforeach
-                                                @endif
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 custom-fields">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Account Number') }}</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="account_number"
-                                                name="manual_data[account_number]">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Enter Amount') }}<span
-                                                class="required">*</span></label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="amount" name="amount">
-                                            <span class="input-group-text" id="amountCurrency">
-                                                {{ $currency }}
-                                            </span>
-                                        </div>
-                                        <div class="input-info-text min-max"></div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 custom-fields">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Name on account') }}</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="account_name"
-                                                name="manual_data[account_name]">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 custom-fields" id="branch_name_field">
-                                    <div class="inputs">
-                                        <label for="" class="input-label">{{ __('Branch Name') }}</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="branch_name"
-                                                name="manual_data[branch_name]">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-12 col-lg-12 col-md-12">
-                                    <div class="inputs">
-                                        <label for="">{{ __('Purpose of transfer(Optional)') }}</label>
-                                        <textarea class="box-textarea" rows="3" name="purpose"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="site-card">
-                            <div class="site-card-header">
-                                <div class="title-small">{{ __('Transfer Review Details:') }}</div>
-                            </div>
-                            <div class="site-card-body p-0 overflow-x-auto">
-                                <div class="site-custom-table site-custom-table-sm">
-                                    <div class="contents">
-                                        <div class="site-table-list">
-                                            <div class="site-table-col">
-                                                <div class="trx fw-bold">{{ __('Amount:') }}</div>
-                                            </div>
-                                            <div class="site-table-col">
-                                                <div class="fw-bold amount"><span class="currency"></span></div>
-                                            </div>
-                                        </div>
-                                        <div class="site-table-list">
-                                            <div class="site-table-col">
-                                                <div class="trx fw-bold">{{ __('Charge:') }}</div>
-                                            </div>
-                                            <div class="site-table-col">
-                                                <div class="red-color fw-bold charge2"></div>
-                                            </div>
-                                        </div>
-                                        <div class="site-table-list">
-                                            <div class="site-table-col">
-                                                <div class="trx fw-bold">{{ __('Bank Name:') }}</div>
-                                            </div>
-                                            <div class="site-table-col">
-                                                <div class="fw-bold"><span
-                                                        class="type site-badge badge-primary bank_name"></span></div>
-                                            </div>
-                                        </div>
-                                        <div class="site-table-list">
-                                            <div class="site-table-col">
-                                                <div class="trx fw-bold">{{ __('Total:') }}</div>
-                                            </div>
-                                            <div class="site-table-col">
-                                                <div class="fw-bold total"></div>
-                                            </div>
-                                        </div>
-                                        <div class="site-table-list">
-                                            <div class="site-table-col">
-                                                <div class="trx fw-bold">{{ __('Transferable Amount:') }}</div>
-                                            </div>
-                                            <div class="site-table-col">
-                                                <div class="fw-bold pay-amount"></div>
-                                            </div>
-                                        </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold">Authorize Transfer</button>
+                                        <button type="button" class="btn btn-link text-muted text-decoration-none fw-bold" data-bs-dismiss="modal">Cancel</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <button
-                            @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status')) type="button"
-                        data-bs-toggle="modal"
-                        data-bs-target="#passcode"
-                        @else
-                        type="submit" @endif
-                            class="site-btn polis-btn">
-                            <i data-lucide="send"></i> {{ __('Transfer the fund') }}
-                        </button>
                     </div>
-                    @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status'))
-                        <div class="modal fade" id="passcode" tabindex="-1" aria-labelledby="passcodeModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-md modal-dialog-centered">
-                                <div class="modal-content site-table-modal">
-                                    <div class="modal-body popup-body">
-                                        <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                        </button>
-                                        <div class="popup-body-text">
-                                            <div class="title">{{ __('Confirm Your Passcode') }}</div>
-                                            <div class="step-details-form">
-                                                <div class="row">
-                                                    <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs">
-                                                            <label for=""
-                                                                class="input-label">{{ __('Passcode') }}<span
-                                                                    class="required">*</span></label>
-                                                            <input type="password" class="box-input" name="passcode"
-                                                                required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="action-btns">
-                                                <button type="submit" class="site-btn-sm primary-btn me-2">
-                                                    <i data-lucide="check"></i>
-                                                    {{ __('Confirm') }}
-                                                </button>
-                                                <button type="button" class="site-btn-sm red-btn"
-                                                    data-bs-dismiss="modal" aria-label="Close">
-                                                    <i data-lucide="x"></i>
-                                                    {{ __('Close') }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </form>
-            </div>
+                @endif
+            </form>
         </div>
-        <!-- Modal for Add beneficiary-->
-        @include('frontend::fund_transfer.include.__add_beneficiary')
-        <!-- Modal for Add beneficiary end-->
     </div>
+</div>
+
+@include('frontend::fund_transfer.include.__add_beneficiary')
+
 @endsection
+
 @section('script')
-    <script>
-        $(document).ready(function() {
-            "use strict"
+<script>
+    $(document).ready(function() {
+        "use strict";
 
-            // Hide branch input if own bank selected
-            var isPhysicalBank = '{{ setting('multi_branch', 'permission') }}';
+        // Logic for own bank vs other bank branch field
+        var isPhysicalBank = '{{ setting('multi_branch', 'permission') }}';
+        if (!isPhysicalBank) {
+            $('#bankId').on('change', function() {
+                if ($(this).val() == 0) {
+                    $('#branch_name_field').hide();
+                } else {
+                    $('#branch_name_field').show();
+                }
+            });
+        }
 
-            if (!isPhysicalBank) {
-                $('#bankId').on('change', function() {
-                    if ($(this).val() == 0) {
-                        $('#branch_name_field').addClass('d-none');
-                    } else {
-                        $('#branch_name_field').removeClass('d-none');
-                    }
-                });
-            }
+        var currency = "{{ setting('site_currency') }}";
+        var globalData = { charge_type: 'fixed', charge: 0, minimum_transfer: 0, maximum_transfer: 0 };
 
-            var currency = "{{ setting('site_currency') }}";
+        const onWalletChange = function() {
+            currency = $('#walletSelect').find(':selected').data('currency');
+            $('#amountCurrencySymbol').text(currency);
+        };
 
-            const onWalletChange = function() {
-                currency = $('#walletSelect').find(':selected').data('currency');
-                $('#amountCurrency').text(currency);
-            };
+        $('#walletSelect').on('change', function() {
+            onWalletChange();
+            onAmountChange();
+            onChangeBank();
+        });
+        onWalletChange();
 
-            @if (setting('multiple_currency', 'permission'))
-                $('#walletSelect').on('change', function() {
-                    onWalletChange();
-                    onAmountChange();
-                    onChangeBank();
-                });
-                onWalletChange();
-            @endif
-
-            $('#account_number').on('input', function() {
+        // Search by account number logic (same as original)
+        $('#account_number').on('input', function() {
+            if($(this).val().length > 4) {
                 $.ajax({
                     type: 'GET',
                     url: '/user/search-by-account-number/' + $(this).val(),
                     success: function(data) {
                         $('#account_name').val(data.name);
                         $('#branch_name').val(data.branch_name);
-                    },
-                    error: function(error) {
-                        $('#account_name').val('');
-                        $('#branch_name').val('');
                     }
                 });
-            });
-
-            // Select 2 activation
-            $('#bank_id').select2({
-                dropdownParent: $('#addBox')
-            });
-
-            $('#walletSelect').select2();
-
-            $('.select2-basic-active').select2({
-                minimumResultsForSearch: Infinity,
-            });
-
-            // show/hide custom fields
-            $('#beneficiaryId').on('change', function() {
-                customFieldsVisibility();
-                onAmountChange();
-            });
-
-            function customFieldsVisibility() {
-                let fields = $('.custom-fields');
-                if ($('#beneficiaryId').val() != '') {
-                    fields.hide();
-                } else {
-                    fields.show();
-                }
             }
+        });
 
-            // nice select
-            $('.add-beneficiary').niceSelect();
-            $('.edit-beneficiary').niceSelect();
+        $('#beneficiaryId').on('change', function() {
+            if ($(this).val() != '') {
+                $('.custom-fields').hide();
+            } else {
+                $('.custom-fields').show();
+            }
+            onAmountChange();
+        });
 
-            // own bank select event
-            $("#bank_name").on('change', function(e) {
+        const onChangeBank = function() {
+            var bankId = $('#bankId').val();
+            if(!bankId) return;
 
-                if ($(this).val() == null) {
-                    $('#branch_name_sec').hide();
-                } else {
-                    $('#branch_name_sec').show();
+            $.ajax({
+                type: 'GET',
+                url: '/user/fund-transfer/beneficiary-details/' + bankId,
+                data: { currency_code: currency },
+                success: function(data) {
+                    $('#beneficiaryId').empty().append('<option value="" selected>--{{ __('Choose Recipient') }}--</option>');
+                    globalData = data.banksData;
+                    
+                    $.each(data.beneficiaries, function(key, beneficiary) {
+                        $('#beneficiaryId').append('<option value="' + beneficiary.id + '">' + beneficiary.account_name + ' (...' + beneficiary.account_number.slice(-4) + ')</option>');
+                    });
+                    
+                    $('.charge2').text((globalData.charge_type === 'percentage' ? globalData.charge + '%' : globalData.charge + ' ' + currency));
+                    $('.min-max').text('Min: ' + globalData.minimum_transfer + ' ' + currency + ' • Max: ' + globalData.maximum_transfer + ' ' + currency);
+                    
+                    onAmountChange();
                 }
-                onAmountChange();
             });
+        };
 
-            var globalData;
+        $('#bankId').change(onChangeBank);
 
-            //select bank
-            $('#bankId').change(function() {
-                onChangeBank();
-                onAmountChange();
-            });
+        const onAmountChange = function() {
+            var amount = Number($('#amount').val()) || 0;
+            $('.amount').text(amount.toFixed(2) + ' ' + currency);
+            
+            var charge = globalData.charge_type === 'percentage' ? (amount * globalData.charge / 100) : Number(globalData.charge);
+            $('.charge2').text(charge.toFixed(2) + ' ' + currency);
+            
+            var total = amount + charge;
+            $('.total').text(total.toFixed(2) + ' ' + currency);
+        };
 
-            const onChangeBank = function() {
-                var bankId = $('#bankId').val();
-                $.ajax({
-                    type: 'GET',
-                    url: '/user/fund-transfer/beneficiary-details/' + bankId,
-                    data: {
-                        currency_code: currency
-                    },
-                    success: function(data) {
-                        // Clear existing options
-                        $('#beneficiaryId').empty();
-                        // Add new options based on the retrieved data
-                        globalData = data.banksData;
-                        $('#beneficiaryId').append(
-                            '<option value="" selected>--{{ __('Beneficiary') }}--</option>'
-                        );
-                        $.each(data.beneficiaries, function(key, beneficiary) {
-                            let accountNumber = beneficiary.account_number;
-                            $('#beneficiaryId').append('<option value="' + beneficiary
-                                .id + '">' + beneficiary.account_name + ' **** ' +
-                                accountNumber.slice(-4) + '</option>');
-                        });
-                        if (bankId != 0) {
-                            $('.bank_name').text(data.banksData.name);
-                            var img = '<img class="table-icon" src="../assets/' + data.banksData
-                                .logo + '">'
-                            $('#logo').html(img);
-                            $('.charge').text('Charge ' + data.banksData.charge + ' ' + (data
-                                .banksData.charge_type === 'percentage' ? ' % ' :
-                                currency))
-                            $('.min-max').text('Minimum ' + data.banksData.minimum_transfer +
-                                ' ' + currency + ' and ' + 'Maximum ' + data.banksData
-                                .maximum_transfer + ' ' + currency)
-                            $('.transfer').text('Transfer in: ' + data.banksData
-                                .processing_time + ' ' + data.banksData.processing_type)
-                        } else {
-                            $('.charge').text('Charge ' + data.banksData.charge + ' ' + (data
-                                .banksData.charge_type === 'percentage' ? ' % ' :
-                                currency));
-                            $('.min-max').text('Minimum ' + data.banksData.minimum_transfer +
-                                ' ' + currency + ' and ' + 'Maximum ' + data.banksData
-                                .maximum_transfer + ' ' + currency)
-                            $('.transfer').text('Instant Transfer');
-                            $('.bank_name').text('Own Bank');
-                            $("#logo_sec").hide();
-                        }
-                        customFieldsVisibility();
-                    },
-                    error: function(error) {
-                        console.error('Error fetching beneficiaries:', error);
-                        customFieldsVisibility();
-                    }
-                });
-            };
-
-            const onAmountChange = function() {
-                var amount = $('#amount').val();
-                $('.amount').text((Number(amount) + ' ' + currency))
-                $('.currency').text(currency)
-                var charge = globalData.charge_type === 'percentage' ? calPercentage(amount, globalData
-                    .charge) : globalData.charge
-                $('.charge2').text(charge + ' ' + currency)
-                var total = (Number(amount) + Number(charge));
-                $('.total').text(total + ' ' + currency)
-                var payTotal = Number(amount);
-                $('.pay-amount').text(payTotal + ' ' + currency);
-            };
-
-
-            //amount on key up
-            $('#amount').on('keyup', function(e) {
-                onAmountChange();
-            });
-        })
-    </script>
+        $('#amount').on('keyup input', onAmountChange);
+    });
+</script>
 @endsection
+
