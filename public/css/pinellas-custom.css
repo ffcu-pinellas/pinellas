@@ -1,5 +1,5 @@
 :root {
-    /* Banno Design System Variables - Pinellas FCU */
+    /* Banno Design System Variables - Pinellas FCU Premium */
     --account-card-primary-accent-color: rgb(255, 255, 255);
     --account-card-primary-background-color: rgb(0, 84, 155);
     --account-card-primary-text-color: rgb(255, 255, 255);
@@ -12,13 +12,14 @@
     --body-text-primary-color: rgb(7, 21, 35);
     --body-text-secondary-color: rgb(98, 110, 122);
     --body-text-theme-color: rgb(0, 84, 155);
+    --body-text-deposit-color: #3b8712;
     --button-corner-radius: 8px;
     --card-corner-radius: 10px;
     --card-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.12);
     --dashboard-page-background-color: rgb(227, 231, 237);
     --divider-default-color: rgb(230, 230, 230);
     --footer-background-color: rgb(255, 255, 255);
-    --menu-background-color: rgb(255, 255, 255);
+    --menu-background-color: white;
     --navigation-bar-color: rgb(0, 73, 133);
     --primary-button-color: rgb(217, 43, 28);
     --primary-content-background-color: rgb(255, 255, 255);
@@ -26,6 +27,7 @@
     --secondary-page-background-color: rgb(227, 231, 237);
     --toolbar-color: rgb(0, 73, 133);
     --primary-theme-background-color: rgb(0, 84, 155);
+    --jha-blue-water: rgb(0, 168, 227);
 
     /* Animation & Transitions */
     --transition-speed: 0.25s;
@@ -36,6 +38,8 @@ body {
     background-color: var(--dashboard-page-background-color) !important;
     font-family: 'Open Sans', Roboto, sans-serif !important;
     color: var(--body-text-primary-color);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
 .site-card,
@@ -49,14 +53,121 @@ body {
     transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
 
-.site-card:hover {
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15) !important;
+/* High Fidelity Banno Header (Blue Water) */
+.banno-header-block {
+    background-color: var(--jha-blue-water);
+    background-image: url('https://my.pinellasfcu.org/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-background-landscape-2c77924b.png');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    padding: 60px 0 100px 0;
+    margin: -32px -32px 100px -32px;
 }
 
-/* Banno Sidebar Navigation */
+.banno-header-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+}
+
+.banno-greeting {
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+
+/* Floating Account Cards */
+.account-cards-overlay {
+    position: absolute;
+    bottom: -80px;
+    left: 0;
+    right: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 32px;
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.account-cards-overlay::-webkit-scrollbar {
+    display: none;
+}
+
+.banno-account-card {
+    background: var(--account-card-primary-background-color);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 250px;
+    flex: 0 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.banno-account-card .acc-name {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.banno-account-card .acc-num {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.banno-account-card .acc-balance {
+    font-size: 24px;
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+/* Action Icons Grid */
+.banno-action-grid {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.banno-action-item {
+    background: var(--primary-theme-background-color);
+    width: 68px;
+    height: 68px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.banno-action-item:hover {
+    transform: translateY(-2px);
+    color: white;
+}
+
+.banno-action-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.banno-action-label {
+    font-size: 10px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Sidebar Styling */
 .sidebar {
     width: 260px;
-    background: var(--primary-content-background-color);
+    background: white;
     border-right: 1px solid var(--divider-default-color);
     display: flex;
     flex-direction: column;
@@ -67,83 +178,31 @@ body {
     z-index: 1000;
 }
 
-.sidebar-nav {
-    flex: 1;
-    padding: 16px 0;
-    display: flex;
-    flex-direction: column;
+.sidebar-logo {
+    padding: 24px;
+    border-bottom: 1px solid #f0f0f0;
 }
 
 .sidebar-nav-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 24px;
-    color: var(--body-text-primary-color);
-    text-decoration: none;
+    padding: 14px 24px;
     font-size: 14px;
     font-weight: 500;
-    transition: background var(--transition-speed) ease;
+    color: var(--body-text-primary-color);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
     border-left: 4px solid transparent;
 }
 
-.sidebar-nav-item:hover {
-    background: var(--secondary-content-background-color);
-    color: var(--body-text-theme-color);
-}
-
 .sidebar-nav-item.active {
-    background: rgba(0, 84, 155, 0.08);
+    background: #f8f9fa;
     color: var(--body-text-theme-color);
     border-left-color: var(--body-text-theme-color);
 }
 
 .sidebar-nav-item i {
-    width: 24px;
     font-size: 18px;
-    margin-right: 16px;
-    text-align: center;
-}
-
-.sidebar-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--divider-default-color);
-    background: var(--secondary-content-background-color);
-}
-
-.user-profile-sm {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.user-avatar-sm {
-    width: 36px;
-    height: 36px;
-    background: var(--primary-theme-background-color);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-/* Responsive Overrides */
-@media (max-width: 991px) {
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    .sidebar.show {
-        transform: translateX(0);
-    }
-
-    .main-content-area {
-        margin-left: 0 !important;
-        padding: 16px !important;
-    }
 }
 
 .main-content-area {
@@ -152,72 +211,22 @@ body {
     min-height: 100vh;
 }
 
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: 0.3s;
+    }
 
-/* Mobile Responsiveness Refinements */
-@media (max-width: 768px) {
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
     .main-content-area {
-        padding: 12px !important;
+        margin-left: 0;
+        padding: 16px;
     }
 
-    .site-card,
-    .jha-card {
-        padding: 16px !important;
-        margin-bottom: 16px !important;
+    .banno-header-block {
+        margin: -16px -16px 100px -16px;
     }
-
-    .display-6 {
-        font-size: 1.75rem !important;
-    }
-
-    .fs-5 {
-        font-size: 1rem !important;
-    }
-
-    .btn-light {
-        padding: 12px 8px !important;
-    }
-
-    .account-card {
-        min-width: 260px !important;
-    }
-}
-
-/* Fix for long names/emails in profile */
-.profile-details-mobile {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    hyphens: auto;
-}
-
-/* High Fidelity Banking Polish */
-.site-card {
-    transition: box-shadow 0.3s ease;
-}
-
-.site-card:hover {
-    box-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.1) !important;
-}
-
-.primary-btn,
-.site-btn.primary-btn {
-    background-color: var(--primary-button-color) !important;
-    border-color: var(--primary-button-color) !important;
-    border-radius: 50px !important;
-    padding: 10px 24px !important;
-    font-weight: 600 !important;
-    border: none !important;
-    color: white !important;
-}
-
-.btn-outline-primary {
-    border-radius: 50px !important;
-    padding: 10px 24px !important;
-    font-weight: 600 !important;
-    border: 2px solid var(--primary-button-color) !important;
-    color: var(--primary-button-color) !important;
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--primary-button-color) !important;
-    color: white !important;
 }
