@@ -128,10 +128,6 @@ class Transaction extends Model
         ];
     }
 
-    public function getCreatedAtAttribute(): string
-    {
-        return Carbon::parse($this->attributes['created_at'])->format('d M Y h:i A');
-    }
 
     public function getDayAttribute(): string
     {
