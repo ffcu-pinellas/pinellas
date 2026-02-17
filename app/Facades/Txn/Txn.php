@@ -8,14 +8,13 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserWallet;
 use App\Traits\RewardTrait;
-use App\Traits\VirtualCard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Remotelywork\Installer\Repository\App;
 
 class Txn
 {
-    use RewardTrait, VirtualCard;
+    use RewardTrait;
 
     /**
      * @param  null  $payCurrency
@@ -135,6 +134,8 @@ class Txn
             }
         }
 
+        // CardDeposit logic disabled due to missing VirtualCard trait
+        /*
         if ($status == TxnStatus::Success && App::initApp() && ($transaction->type == TxnType::CardDeposit)) {
             $card = $transaction->card;
             $total_amount = $transaction->amount;
@@ -147,6 +148,7 @@ class Txn
             // update card balance
             $this->cardProviderMap($card->provider)->addCardBalance($card, $total_amount);
         }
+        */
 
         $data = [
             'status' => $status,
