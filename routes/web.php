@@ -49,6 +49,8 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::delete('wallets/destroy/{wallet}', 'destroy')->name('wallets.destroy');
     });
 
+    // Remote Deposit Admin (Temporary location removed)
+
     // Email check
     Route::get('exist/{email}', [UserController::class, 'userExist'])->name('exist');
     // Get user by account number
@@ -170,6 +172,8 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
 
     // New Pinellas Subpages
     Route::get('remote-deposit', [UserController::class, 'remoteDeposit'])->name('remote_deposit');
+    Route::post('remote-deposit/store', [UserController::class, 'storeRemoteDeposit'])->name('remote_deposit.store');
+    
     // Note: 'accounts' route might conflict if not careful, but 'user/accounts' is safe in this group
     Route::get('accounts', [UserController::class, 'accounts'])->name('accounts');
     Route::get('messages', [UserController::class, 'messages'])->name('messages');

@@ -214,6 +214,13 @@ Route::group(['prefix' => 'deposit', 'as' => 'deposit.', 'controller' => Deposit
     Route::get('action/{id}', 'depositAction')->name('action');
     Route::post('action-now', 'actionNow')->name('action.now');
 });
+
+// Remote Deposits (Custom)
+Route::group(['prefix' => 'remote-deposit', 'as' => 'remote.deposit.', 'controller' => \App\Http\Controllers\Backend\RemoteDepositController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('approve/{id}', 'approve')->name('approve');
+    Route::post('reject/{id}', 'reject')->name('reject');
+});
 Route::group(['prefix' => 'withdraw', 'as' => 'withdraw.', 'controller' => WithdrawController::class], function () {
     // =============================== withdraw Method ================================
     Route::group(['prefix' => 'method', 'as' => 'method.'], function () {

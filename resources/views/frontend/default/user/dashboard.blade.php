@@ -15,9 +15,51 @@
             <div class="position-relative z-1">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="display-6 fw-bold m-0">Hi, {{ auth()->user()->first_name }}</h1>
-                    <a href="{{ route('user.setting.show') }}" class="text-white text-decoration-none">
-                        <i class="fas fa-cog fs-5"></i>
-                    </a>
+                    
+                    <!-- Banno-style User Menu -->
+                    <div class="d-flex align-items-center">
+                        <jha-dropdown class="sidebar-user-menu position-relative"> 
+                            <jha-dropdown-toggle slot="toggle" tabindex="0" aria-expanded="false" aria-haspopup="true" role="button"> 
+                                <button type="button" class="btn btn-link text-white p-0 text-decoration-none sidebar-user-menu-toggle toggle-button" aria-label="user menu" data-bs-toggle="dropdown"> 
+                                    <div class="d-flex align-items-center gap-2"> 
+                                        <div class="avatar avatar-sm bg-white text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">
+                                            {{ substr(auth()->user()->first_name, 0, 1) }}{{ substr(auth()->user()->last_name, 0, 1) }}
+                                        </div>
+                                        <div class="username d-none d-md-block">{{ strtoupper(auth()->user()->full_name) }}</div> 
+                                        <i class="fas fa-chevron-down small"></i>
+                                    </div> 
+                                </button> 
+                            </jha-dropdown-toggle> 
+                            <jha-dropdown-menu class="dropdown-menu dropdown-menu-end shadow p-2" style="min-width: 250px;">  
+                                <jha-dropdown-menu-item> 
+                                    <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-2"> 
+                                        <i class="fas fa-plus-circle text-primary"></i>
+                                        <div>Add an account</div> 
+                                    </button> 
+                                </jha-dropdown-menu-item> 
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <jha-dropdown-menu-item> 
+                                    <a href="{{ route('user.setting.show') }}" class="dropdown-item d-flex align-items-center gap-2 py-2"> 
+                                        <i class="fas fa-user-circle text-primary"></i>
+                                        <div>Personal settings</div> 
+                                    </a> 
+                                </jha-dropdown-menu-item> 
+                                <jha-dropdown-menu-item> 
+                                    <a href="#" class="dropdown-item d-flex align-items-center gap-2 py-2"> 
+                                        <i class="fas fa-tools text-primary"></i>
+                                        <div>Account settings</div> 
+                                    </a> 
+                                </jha-dropdown-menu-item> 
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <jha-dropdown-menu-item> 
+                                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"> 
+                                        <i class="fas fa-sign-out-alt"></i> 
+                                        <div>Sign out</div> 
+                                    </a> 
+                                </jha-dropdown-menu-item> 
+                            </jha-dropdown-menu> 
+                        </jha-dropdown>
+                    </div>
                 </div>
                 
                 <h6 class="mb-3 opacity-75 text-uppercase fw-bold" style="font-size: 0.8rem; letter-spacing: 1px;">Accounts</h6>
@@ -43,23 +85,25 @@
                         </div>
                     </div>
 
-                    <!-- Savings Account (Using DPS) -->
+                    <!-- Savings Accounts (Dynamic) -->
+                    @foreach($savings_accounts as $account)
                     <div class="account-card flex-shrink-0 p-4 rounded-3 text-white position-relative shadow-sm" 
                          style="background: rgba(255, 255, 255, 0.1); min-width: 300px; border: 1px solid rgba(255,255,255,0.1);">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <div class="fw-bold fs-5">Regular Savings</div>
-                                <div class="small opacity-75">...90S0</div>
+                                <div class="fw-bold fs-5">{{ $account->type }}</div>
+                                <div class="small opacity-75">...{{ substr($account->account_number, -4) }}</div>
                             </div>
                             <i class="fas fa-ellipsis-v opacity-50"></i>
                         </div>
                         <div class="d-flex justify-content-between align-items-end">
                             <div>
                                 <div class="small opacity-75 mb-1">Available Balance</div>
-                                <div class="display-6 fw-bold">{{ setting('currency_symbol','global').number_format($dps_mature_amount ?? 0, 2) }}</div>
+                                <div class="display-6 fw-bold">{{ setting('currency_symbol','global').number_format($account->balance, 2) }}</div>
                             </div>
                         </div>
                     </div>
+                    @endforeach
 
                     <!-- Loans (Dynamic) -->
                     @if(auth()->user()->loan->count() > 0)

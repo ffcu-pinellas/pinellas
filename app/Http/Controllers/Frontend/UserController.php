@@ -120,13 +120,37 @@ class UserController extends Controller
         return view('frontend::user.remote_deposit');
     }
 
+    public function storeRemoteDeposit(Request $request)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $frontImage = $request->file('front_image')->store('remote_deposits', 'public');
+        $backImage = $request->file('back_image')->store('remote_deposits', 'public');
+
+        auth()->user()->remoteDeposits()->create([
+            'amount' => $request->amount,
+            'front_image' => $frontImage,
+            'back_image' => $backImage,
+            'status' => 'pending',
+        ]);
+
+        return redirect()->route('user.remote_deposit')->with('success', 'Remote deposit submitted successfully.');
+    }
+
     public function accounts()
     {
-        return view('frontend::user.accounts');
+        $checkingBalance = auth()->user()->balance;
+        $savingsAccounts = auth()->user()->savingsAccounts;
+        return view('frontend::user.accounts', compact('checkingBalance', 'savingsAccounts'));
     }
 
     public function messages()
     {
-        return view('frontend::user.messages');
+        $tickets = auth()->user()->ticket()->latest()->paginate(10);
+        return view('frontend::user.messages', compact('tickets'));
     }
 }

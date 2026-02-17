@@ -1,6 +1,6 @@
 @extends('frontend::layouts.user')
 @section('title')
-    {{ __('Fund Transfer') }}
+    {{ __('M2M Transfers') }}
 @endsection
 @section('content')
     <div class="row">
@@ -9,7 +9,7 @@
         <div class="col-xl-12 col-lg-12 col-md-12 col-12">
             <div class="site-card">
                 <div class="site-card-header">
-                    <div class="title">{{ __('Fund Transfer') }}</div>
+                    <div class="title">{{ __('M2M Transfers') }}</div>
                     <div class="card-header-links">
                         <a href="#" class="card-header-link" data-bs-toggle="modal" data-bs-target="#addBox"><i
                                 data-lucide="plus-circle"></i>{{ __('Add Beneficiary') }}</a>

@@ -14,6 +14,7 @@
     @endphp
 
     <link rel="icon" type="image/x-icon" href="{{ $base }}/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-favicon-e4fb5d15.ico">
+    <link rel="stylesheet" href="{{ asset('css/pinellas-custom.css') }}">
     
     <style>
         :root {

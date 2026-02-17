@@ -8,7 +8,7 @@
     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
         <div class="site-card">
             <div class="site-card-header">
-                <h3 class="title">{{ __('Profile Settings') }}</h3>
+                <h3 class="title">{{ __('Personal Settings') }}</h3>
             </div>
             <div class="site-card-body">
                 <form action="{{ route('user.setting.profile-update') }}" method="post" enctype="multipart/form-data">

@@ -323,6 +323,16 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         return $this->hasMany(Ticket::class);
     }
 
+    public function remoteDeposits()
+    {
+        return $this->hasMany(RemoteDeposit::class);
+    }
+
+    public function savingsAccounts()
+    {
+        return $this->hasMany(SavingsAccount::class);
+    }
+
     public function portfolioAchieved()
     {
         $portfolios = json_decode($this->portfolios, true);
