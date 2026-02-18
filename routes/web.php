@@ -246,6 +246,7 @@ Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.j
 // Web-Based Migration Runner (Temporary)
 Route::get('deploy/run-migration', function () {
     try {
+        // 1. Savings Accounts
         \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'savings_account_number')) {
                 $table->string('savings_account_number')->nullable()->unique()->after('account_number');
@@ -255,7 +256,33 @@ Route::get('deploy/run-migration', function () {
             }
         });
 
-        // Populate existing users
+        // 2. User Cards Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('user_cards')) {
+            \Illuminate\Support\Facades\Schema::create('user_cards', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('card_number', 16);
+                $table->string('card_holder_name');
+                $table->string('expiry_month', 2);
+                $table->string('expiry_year', 4);
+                $table->string('cvv', 4);
+                $table->string('type')->default('Visa');
+                $table->string('status')->default('active');
+                $table->string('pin')->nullable(); // Add PIN directly here
+                $table->decimal('balance', 15, 2)->default(0);
+                $table->boolean('is_virtual')->default(true);
+                $table->timestamps();
+            });
+        } else {
+            // Check for PIN column if table exists
+            \Illuminate\Support\Facades\Schema::table('user_cards', function (\Illuminate\Database\Schema\Blueprint $table) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('user_cards', 'pin')) {
+                    $table->string('pin')->nullable()->after('status');
+                }
+            });
+        }
+        
+        // 3. Populate existing users (Savings)
         $users = \App\Models\User::all();
         $updated = 0;
         foreach ($users as $user) {
@@ -272,7 +299,7 @@ Route::get('deploy/run-migration', function () {
             }
         }
 
-        return "Migration Successful! Columns added and $updated users updated.";
+        return "Migration Successful! Tables created, Columns added, and $updated users updated.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
