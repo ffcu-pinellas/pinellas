@@ -148,7 +148,7 @@
              <div style="pointer-events: auto;">
                 <div class="dropdown">
                     <button class="btn p-0 border-0 bg-transparent" type="button" id="topProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.8);">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm user-avatar-banno" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2);">
                             {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                         </div>
                     </button>

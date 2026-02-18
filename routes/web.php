@@ -188,6 +188,11 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::get('accounts', [UserController::class, 'accounts'])->name('accounts');
     Route::get('messages', [UserController::class, 'messages'])->name('messages');
 
+    // Cards
+    Route::get('cards', [UserController::class, 'cards'])->name('cards');
+    Route::post('cards/status-toggle', [UserController::class, 'cardStatusToggle'])->name('cards.status.toggle');
+    Route::post('cards/report-lost', [UserController::class, 'cardReportLost'])->name('cards.report.lost');
+
     // Rewards
     Route::group(['prefix' => 'rewards', 'as' => 'rewards.'], function () {
         Route::get('/', [RewardController::class, 'index'])->name('index');

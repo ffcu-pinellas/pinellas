@@ -29,6 +29,8 @@ class TransferRequest extends FormRequest
             'amount' => ['required', 'regex:/^[0-9]+(\.[0-9][0-9]?)?$/'],
             'wallet_type' => 'nullable',
             'purpose' => 'nullable',
+            'frequency' => 'nullable|in:once,daily,weekly,monthly',
+            'scheduled_at' => 'nullable|date|after_or_equal:today',
         ];
     }
 
