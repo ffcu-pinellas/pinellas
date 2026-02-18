@@ -274,3 +274,11 @@ Route::get('deploy/run-migration', function () {
         return "Error: " . $e->getMessage();
     }
 });
+
+// Clear Cache Route
+Route::get('/clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    return "Cache, View, and Config cleared successfully";
+});
