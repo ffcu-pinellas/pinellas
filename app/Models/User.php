@@ -25,6 +25,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
+        'preferred_first_name',
         'portfolio_id',
         'branch_id',
         'portfolios',

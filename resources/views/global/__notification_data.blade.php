@@ -25,9 +25,9 @@
     @if($totalCount != 0)
     <div class="noti-footer mt-3">
         @if($totalUnread > 0)
-        <a class="noti-btn-1 me-1 w-100" href="{{ route($notifications->first()->for.'.read-notification', 0) }}">Mark All as Read</a>
+        <a class="noti-btn-1 me-1 w-100" href="{{ $readAllRoute ?? route($notifications->first()->for.'.read-notification', 0) }}">Mark All as Read</a>
         @endif
-        <a class="noti-btn-2 ms-1 w-100" href="{{ route($notifications->first()->for.'.notification.all') }}">See all notifications</a>
+        <a class="noti-btn-2 ms-1 w-100" href="{{ $viewAllRoute ?? route($notifications->first()->for.'.notification.all') }}">See all notifications</a>
     </div>
     @endif
 </div>

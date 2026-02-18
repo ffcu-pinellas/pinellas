@@ -19,6 +19,34 @@ body {
     font-family: 'Open Sans', 'Roboto', sans-serif;
     color: var(--body-text-primary-color);
     background-color: var(--secondary-page-background-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sticky Header */
+.dashboard-header,
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    width: 100%;
+}
+
+/* Footer Bottom */
+footer,
+.footer-section {
+    margin-top: auto;
+}
+
+/* Switch Input Handling */
+.banno-switch input:checked+.slider,
+.banno-switch:has(input:checked) {
+    background-color: #28a745;
+}
+
+.banno-switch:has(input:checked)::after {
+    transform: translateX(24px);
 }
 
 /* Sidebar Styles matching Banno */

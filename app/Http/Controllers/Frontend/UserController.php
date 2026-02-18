@@ -87,8 +87,10 @@ class UserController extends Controller
         $totalUnread = Notification::where('for', 'user')->where('user_id', auth()->user()->id)->where('read', 0)->count();
         $totalCount = Notification::where('for', 'user')->where('user_id', auth()->user()->id)->count();
         $lucideCall = true;
+        $viewAllRoute = route('user.notification.all');
+        $readAllRoute = route('user.read-notification', 0);
 
-        return view('global.__notification_data', compact('notifications', 'totalUnread', 'totalCount', 'lucideCall'))->render();
+        return view('global.__notification_data', compact('notifications', 'totalUnread', 'totalCount', 'lucideCall', 'viewAllRoute', 'readAllRoute'))->render();
     }
 
     public function allNotification()

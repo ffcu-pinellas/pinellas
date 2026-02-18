@@ -154,7 +154,7 @@
                 <h5 class="fw-bold text-dark pt-3 px-3">Update Password</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.new-password') }}" method="POST">
+            <form action="{{ route('user.new.password') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">

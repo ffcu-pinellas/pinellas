@@ -82,12 +82,46 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">PREFERRED FIRST NAME</label>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fs-6 text-dark fw-500">{{ $user->preferred_first_name ?: $user->first_name }}</div>
+                            <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit</a>
+                        </div>
+                    </div>
+                
+                    <div class="mb-4">
                         <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">ADDRESS</label>
                          <div class="mb-2">
                              <div class="fs-6 text-dark fw-500 text-uppercase">{{ $user->address }}</div>
                              <div class="fs-6 text-dark fw-500 text-uppercase">{{ $user->city }}, {{ $user->zip_code }}</div>
                          </div>
                          <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit address</a>
+                    </div>
+
+                    <!-- Alerts Section -->
+                    <div class="mt-5 pt-4 border-top">
+                        <h6 class="fw-bold text-uppercase small text-muted mb-4 ls-1" style="font-size: 11px;">ALERTS</h6>
+                        <form action="{{ route('user.setting.newsletter.action') }}" method="POST">
+                            @csrf
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <div class="fs-6 text-dark fw-500">Push Notifications</div>
+                                    <div class="small text-muted">Receive alerts on your mobile device</div>
+                                </div>
+                                <label class="banno-switch">
+                                    <input type="checkbox" name="all_push_notifications" {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'checked' : '' }} onchange="this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                </label>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <div class="fs-6 text-dark fw-500">Email Notifications</div>
+                                    <div class="small text-muted">Receive updates and alerts via email</div>
+                                </div>
+                                <label class="banno-switch">
+                                    <input type="checkbox" name="email_notifications" {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'checked' : '' }} onchange="this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                </label>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 
@@ -100,6 +134,10 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">First Name</label>
                                 <input type="text" class="form-control" name="first_name" value="{{ $user->first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Preferred First Name</label>
+                                <input type="text" class="form-control" name="preferred_first_name" value="{{ $user->preferred_first_name }}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">Last Name</label>
