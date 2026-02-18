@@ -27,7 +27,7 @@
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Personal Checking</h5>
-                                <div class="text-muted small">...{{ substr(auth()->user()->account_number, -4) }}</div>
+                                <div class="text-muted small">{{ auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
@@ -54,7 +54,7 @@
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Primary Savings</h5>
-                                <div class="text-muted small">...{{ substr($savingsAccountNumber, -4) }}</div>
+                                <div class="text-muted small">{{ $savingsAccountNumber }}</div>
                             </div>
                             <div class="dropdown">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
@@ -82,7 +82,7 @@
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">{{ $account->type }}</h5>
-                                <div class="text-muted small">...{{ substr($account->account_number, -4) }}</div>
+                                <div class="text-muted small">{{ $account->account_number }}</div>
                             </div>
                             <div class="dropdown">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>

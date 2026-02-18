@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('disable:inactive_users')->daily();
+        $schedule->command('transfer:process-scheduled')->everyMinute();
     }
 
     /**

@@ -102,11 +102,37 @@ class FundTransferController extends Controller
 
     public function transfer(TransferRequest $request)
     {
-
         $data = $request->validated();
+        
+        // Add frequency to data from request if not in validated rules yet (assumed handled or merged)
+        $data['frequency'] = $request->input('frequency', 'once');
+        $data['scheduled_at'] = $request->input('scheduled_at');
 
         try {
             $user = auth()->user();
+
+            if ($data['frequency'] !== 'once') {
+                // Handle Scheduling
+                $scheduled = new \App\Models\ScheduledTransfer();
+                $scheduled->user_id = $user->id;
+                $scheduled->type = $request->bank_id == 0 ? 'member' : 'other';
+                $scheduled->wallet_type = $request->wallet_type;
+                $scheduled->amount = $data['amount'];
+                $scheduled->currency = setting('site_currency', 'global'); // or from wallet
+                $scheduled->status = 'active';
+                $scheduled->frequency = $data['frequency'];
+                $scheduled->scheduled_at = $data['scheduled_at'] ?? now();
+                $scheduled->meta_data = [
+                    'bank_id' => $request->bank_id,
+                    'beneficiary_id' => $request->beneficiary_id,
+                    'manual_data' => $request->manual_data,
+                    'purpose' => $request->purpose,
+                ];
+                $scheduled->save();
+                
+                notify()->success(__('Transfer scheduled successfully!'));
+                return redirect()->route('user.fund_transfer.log');
+            }
 
             $this->transferService->validate($user, $data, $request->get('wallet_type', 'default'));
 

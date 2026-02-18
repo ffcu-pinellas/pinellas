@@ -148,7 +148,7 @@
              <div style="pointer-events: auto;">
                 <div class="dropdown">
                     <button class="btn p-0 border-0 bg-transparent" type="button" id="topProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.8);">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white;">
                             {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                         </div>
                     </button>
@@ -199,7 +199,7 @@
 @include('frontend::include.__script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fix for Desktop Profile Dropdown (Dropup) in Sidebar
+        // Fix for Sidebar Profile Dropdown (Dropup)
         const profileToggle = document.querySelector('.user-profile-banno.toggle-button');
         const profileMenu = document.querySelector('.sidebar-user-menu-dropup');
         
@@ -207,7 +207,12 @@
             profileToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                profileMenu.classList.toggle('show');
+                // Toggle 'show' class manually for custom behavior
+                if (profileMenu.classList.contains('show')) {
+                    profileMenu.classList.remove('show');
+                } else {
+                    profileMenu.classList.add('show');
+                }
             });
             
             // Close when clicking outside
