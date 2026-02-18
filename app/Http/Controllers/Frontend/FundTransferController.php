@@ -104,60 +104,17 @@ class FundTransferController extends Controller
     {
 
         $data = $request->validated();
-        $user = auth()->user();
-
-        // Check for Scheduling
-        $isScheduled = false;
-        if (($request->frequency && $request->frequency != 'once') || ($request->scheduled_at && Carbon::parse($request->scheduled_at)->isFuture())) {
-            $isScheduled = true;
-        }
 
         try {
-            // Validate Balance & Limits Preview (Optional: for scheduled, we might skip balance check or do a soft check)
-            // For now, we validate limits but maybe not strict balance if it's far in future? 
-            // Better to validate everything now to prevent immediate errors.
+            $user = auth()->user();
+
             $this->transferService->validate($user, $data, $request->get('wallet_type', 'default'));
 
-            if ($isScheduled) {
-                // Create Scheduled Transfer Record
-                $scheduled = new \App\Models\ScheduledTransfer();
-                $scheduled->user_id = $user->id;
-                $scheduled->type = $request->transfer_type ?? 'other'; // fallback
-                $scheduled->wallet_type = $request->get('wallet_type', 'default');
-                $scheduled->amount = $data['amount'];
-                $scheduled->currency = setting('site_currency', 'global');
-                $scheduled->frequency = $request->frequency ?? 'once';
-                $scheduled->scheduled_at = $request->scheduled_at ? Carbon::parse($request->scheduled_at) : now();
-                $scheduled->next_run_at = $request->scheduled_at ? Carbon::parse($request->scheduled_at) : now();
-                $scheduled->status = 'active';
-                
-                // Store metadata properly
-                $meta = [
-                    'bank_id' => $data['bank_id'],
-                    'beneficiary_id' => $data['beneficiary_id'] ?? null,
-                    'manual_data' => $data['manual_data'] ?? [],
-                    'purpose' => $data['purpose'] ?? null,
-                ];
-                $scheduled->meta_data = $meta;
-                $scheduled->save();
+            $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
 
-                $message = __('Transfer successfully scheduled for :date', ['date' => $scheduled->scheduled_at->format('M d, Y')]);
-                // Mock response data for success view
-                $responseData = [
-                    'amount' => $scheduled->amount,
-                    'currency' => $scheduled->currency,
-                    'account' => 'Scheduled Transfer',
-                    'tnx' => 'SCH-' . $scheduled->id,
-                ];
-                return view('frontend::fund_transfer.success', compact('message', 'responseData'));
+            $message = __('Fund Transfer Successfully!');
 
-            } else {
-                // Immediate Processing
-                $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
-                $message = __('Fund Transfer Successfully!');
-                return view('frontend::fund_transfer.success', compact('message', 'responseData'));
-            }
-
+            return view('frontend::fund_transfer.success', compact('message', 'responseData'));
         } catch (\Exception $e) {
 
             notify()->error($e->getMessage());

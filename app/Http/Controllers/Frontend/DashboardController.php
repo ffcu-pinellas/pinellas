@@ -52,7 +52,7 @@ class DashboardController extends Controller
         ];
 
         // Available widgets for sorting
-        $user_widgets = ['transactions', 'messages', 'promo', 'bill_pay', 'cards'];
+        $user_widgets = ['messages', 'promo', 'bill_pay', 'cards'];
         
         $widgetOrder = $user->dashboard_order ?? $user_widgets;
         

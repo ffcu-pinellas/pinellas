@@ -87,7 +87,11 @@
                 </div>
             </div>
             <!-- RL Initials Avatar in Header -->
-
+            <div class="position-absolute top-0 end-0 m-4">
+                <div class="user-avatar-banno" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white;">
+                    {{ substr(auth()->user()->first_name, 0, 1) }}{{ substr(auth()->user()->last_name, 0, 1) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>

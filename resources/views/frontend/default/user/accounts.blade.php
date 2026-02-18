@@ -27,7 +27,7 @@
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Personal Checking</h5>
-                                <div class="text-muted small">{{ auth()->user()->account_number }}</div>
+                                <div class="text-muted small">...{{ substr(auth()->user()->account_number, -4) }}</div>
                             </div>
                             <div class="dropdown">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
@@ -54,7 +54,7 @@
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Primary Savings</h5>
-                                <div class="text-muted small">{{ $savingsAccountNumber }}</div>
+                                <div class="text-muted small">...{{ substr($savingsAccountNumber, -4) }}</div>
                             </div>
                             <div class="dropdown">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
@@ -74,7 +74,34 @@
                 </div>
             </div>
 
-            <!-- Additional Accounts can be added here if needed in future -->
+            <!-- Savings Accounts Loop -->
+            @foreach($savingsAccounts as $account)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">{{ $account->type }}</h5>
+                                <div class="text-muted small">...{{ substr($account->account_number, -4) }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="#">View activity</a></li>
+                                    <li><a class="dropdown-item" href="#">Transfer funds</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Available balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','$').number_format($account->balance, 2) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
 
             <!-- Add New Account -->
             <div class="col-lg-4 col-md-6">

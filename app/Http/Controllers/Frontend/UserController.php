@@ -153,9 +153,9 @@ class UserController extends Controller
         $checkingBalance = auth()->user()->balance;
         $savingsBalance = auth()->user()->savings_balance;
         $savingsAccountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number;
-        // User stated savings_accounts table is obsolete. Only showing primary savings from users table.
+        $savingsAccounts = \Schema::hasTable('savings_accounts') ? auth()->user()->savingsAccounts : collect([]);
         
-        return view('frontend::user.accounts', compact('checkingBalance', 'savingsBalance', 'savingsAccountNumber'));
+        return view('frontend::user.accounts', compact('checkingBalance', 'savingsBalance', 'savingsAccountNumber', 'savingsAccounts'));
     }
 
     public function messages()
@@ -168,38 +168,5 @@ class UserController extends Controller
     {
         $cards = auth()->user()->cards;
         return view('frontend::user.cards', compact('cards'));
-    }
-
-    public function cardStatusToggle(Request $request)
-    {
-        $request->validate([
-            'id' => 'required|exists:cards,id,user_id,'.auth()->id(),
-        ]);
-
-        $card = \App\Models\Card::find($request->id);
-        
-        // Toggle status
-        $card->status = ($card->status == 'active') ? 'inactive' : 'active';
-        $card->save();
-
-        $msg = $card->status == 'active' ? 'Card Unlocked Successfully' : 'Card Locked Successfully';
-        notify()->success($msg);
-
-        return back();
-    }
-
-    public function cardReportLost(Request $request)
-    {
-        $request->validate([
-            'id' => 'required|exists:cards,id,user_id,'.auth()->id(),
-        ]);
-
-        $card = \App\Models\Card::find($request->id);
-        $card->status = 'blocked'; // Or 'lost' depending on enum, assuming 'blocked' stops transactions
-        $card->save();
-
-        notify()->success('Card Reported Lost & Blocked Successfully');
-
-        return back();
     }
 }
