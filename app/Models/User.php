@@ -69,7 +69,9 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'notifications_permission',
         'close_reason',
         'savings_account_number',
+        'savings_account_number',
         'savings_balance',
+        'dashboard_order',
     ];
 
     protected $appends = [
@@ -103,7 +105,9 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'email_verified_at' => 'datetime',
         'two_fa' => 'boolean',
         'phone_verified' => 'boolean',
+        'phone_verified' => 'boolean',
         'notifications_permission' => 'array',
+        'dashboard_order' => 'array',
     ];
 
     /*

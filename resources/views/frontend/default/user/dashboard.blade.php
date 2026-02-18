@@ -24,11 +24,11 @@
                 <!-- Dynamic Accounts Carousel -->
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
-                    <div class="flex-shrink-0" style="width: 280px;">
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
-                                <span>{{ $currency }}{{ number_format(auth()->user()->balance, 2) }}</span>
+                                <span>${{ number_format(auth()->user()->balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->account_number, -4) }}S10</span>
@@ -38,11 +38,11 @@
                     </div>
 
                     <!-- Primary Savings Account -->
-                    <div class="flex-shrink-0" style="width: 280px;">
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>
-                                <span>{{ $currency }}{{ number_format(auth()->user()->savings_balance, 2) }}</span>
+                                <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S00</span>
@@ -103,7 +103,7 @@
         <!-- Recent Transactions -->
         <div class="banno-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h6 fw-bold mb-0">Recent Transactions</h3>
+                <h3 class="h6 fw-bold mb-0">Transactions</h3>
                 <div class="d-flex gap-3 align-items-center">
                     <i class="fas fa-search text-muted small"></i>
                     <i class="fas fa-ellipsis-h text-muted"></i>
@@ -121,7 +121,7 @@
                             <div class="small text-muted">{{ $transaction->type == 'credit' ? 'Deposit' : 'Withdrawal' }}</div>
                         </div>
                         <div class="txn-amount {{ $transaction->type == 'debit' ? 'text-danger' : 'text-success' }}">
-                            {{ $transaction->type == 'debit' ? '-' : '+' }}{{ $currency }}{{ number_format($transaction->amount, 2) }}
+                            {{ $transaction->type == 'debit' ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
                         </div>
                     </li>
                 @empty
@@ -136,89 +136,101 @@
 
     <!-- Right Column: Sidebar Widgets -->
     <div class="col-lg-4">
-        <!-- Messages Widget -->
-        <div class="banno-card mb-4 text-center">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h6 fw-bold mb-0">Messages</h3>
-                <div class="d-flex gap-3">
-                    <i class="fas fa-comment-medical text-muted"></i>
-                    <i class="fas fa-ellipsis-h text-muted"></i>
-                </div>
-            </div>
-            
-            <div class="mb-4">
-                <div class="small fw-bold text-muted mb-3">Pinellas FCU</div>
-                <div class="d-flex justify-content-center gap-2 mb-3">
-                    <div class="rounded-circle bg-light border" style="width: 50px; height: 50px; overflow: hidden;">
-                        <img src="https://ui-avatars.com/api/?name=Lisa&background=random" alt="Lisa" class="w-100">
+        <div id="dashboard-widgets" class="d-flex flex-column gap-4 h-100">
+            @foreach($widgetOrder as $widget)
+                @if($widget == 'messages')
+                    <!-- Messages Widget -->
+                    <div class="banno-card text-center" data-id="messages">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="h6 fw-bold mb-0">Messages</h3>
+                            <div class="d-flex gap-3">
+                                <i class="fas fa-comment-medical text-muted"></i>
+                                <i class="fas fa-ellipsis-h text-muted" style="cursor: grab;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="small fw-bold text-muted mb-3">Pinellas FCU</div>
+                            <div class="d-flex justify-content-center gap-2 mb-3">
+                                <div class="rounded-circle bg-light border" style="width: 50px; height: 50px; overflow: hidden;">
+                                    <img src="https://ui-avatars.com/api/?name=Lisa&background=random" alt="Lisa" class="w-100">
+                                </div>
+                                <div class="rounded-circle bg-light border" style="width: 60px; height: 60px; overflow: hidden; margin-top: -5px;">
+                                    <img src="https://ui-avatars.com/api/?name=Kim&background=random" alt="Kim" class="w-100">
+                                </div>
+                                <div class="rounded-circle bg-light border" style="width: 50px; height: 50px; overflow: hidden;">
+                                    <img src="https://ui-avatars.com/api/?name=Amy&background=random" alt="Amy" class="w-100">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-center gap-4 small text-muted mb-3">
+                                <span>Lisa</span>
+                                <span>Kim</span>
+                                <span>Amy</span>
+                            </div>
+                            <p class="small fw-bold mb-1">We typically reply within one business day</p>
+                            <p class="small text-muted px-4">We typically respond within one business day. Please call (727) 586-4422 us if you have an urgent issue.</p>
+                        </div>
+                        
+                        <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color: #d73d09; border: none;">Start a conversation</a>
                     </div>
-                    <div class="rounded-circle bg-light border" style="width: 60px; height: 60px; overflow: hidden; margin-top: -5px;">
-                        <img src="https://ui-avatars.com/api/?name=Kim&background=random" alt="Kim" class="w-100">
+                @elseif($widget == 'promo')
+                    <!-- Keep us in the loop Promo Card -->
+                    <div class="banno-card p-0 overflow-hidden" data-id="promo">
+                        <img src="https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg" alt="Promo" class="w-100" style="height: 150px; object-fit: cover;">
+                        <div class="p-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-check-circle text-primary opacity-75"></i>
+                                <span class="small fw-bold text-primary">Update profile</span>
+                            </div>
+                            <h4 class="h6 fw-bold mb-2">Keep us in the loop</h4>
+                            <p class="small text-muted mb-3">As life changes, let us know the best way we can reach you.</p>
+                            <a href="{{ route('user.setting.show') }}" class="btn btn-light w-100 rounded-pill py-2 small fw-bold">Get started</a>
+                        </div>
                     </div>
-                    <div class="rounded-circle bg-light border" style="width: 50px; height: 50px; overflow: hidden;">
-                        <img src="https://ui-avatars.com/api/?name=Amy&background=random" alt="Amy" class="w-100">
+                @elseif($widget == 'bill_pay')
+                    <!-- Bill Pay Widget -->
+                    <div class="banno-card" data-id="bill_pay">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-light rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-file-invoice-dollar text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 fw-bold mb-0">Bill Pay</h4>
+                                <p class="small text-muted mb-0">Manage your payments</p>
+                            </div>
+                            <div class="ms-auto">
+                                <i class="fas fa-ellipsis-h text-muted" style="cursor: grab;"></i>
+                            </div>
+                        </div>
+                        <a href="{{ route('user.bill-pay.index') }}" class="btn btn-outline-primary w-100 rounded-pill">Pay a bill</a>
                     </div>
-                </div>
-                <div class="d-flex justify-content-center gap-4 small text-muted mb-3">
-                    <span>Lisa</span>
-                    <span>Kim</span>
-                    <span>Amy</span>
-                </div>
-                <p class="small fw-bold mb-1">We typically reply within one business day</p>
-                <p class="small text-muted px-4">We typically respond within one business day. Please call (727) 586-4422 us if you have an urgent issue.</p>
-            </div>
-            
-            <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color: #d73d09; border: none;">Start a conversation</a>
-        </div>
-
-        <!-- Keep us in the loop Promo Card -->
-        <div class="banno-card mb-4 p-0 overflow-hidden">
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg" alt="Promo" class="w-100" style="height: 150px; object-fit: cover;">
-            <div class="p-3">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <i class="fas fa-check-circle text-primary opacity-75"></i>
-                    <span class="small fw-bold text-primary">Update profile</span>
-                </div>
-                <h4 class="h6 fw-bold mb-2">Keep us in the loop</h4>
-                <p class="small text-muted mb-3">As life changes, let us know the best way we can reach you.</p>
-                <a href="{{ route('user.setting.show') }}" class="btn btn-light w-100 rounded-pill py-2 small fw-bold">Get started</a>
-            </div>
-        </div>
-
-        <!-- Bill Pay Widget -->
-        <div class="banno-card mb-4">
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-light rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-file-invoice-dollar text-primary"></i>
-                </div>
-                <div>
-                    <h4 class="h6 fw-bold mb-0">Bill Pay</h4>
-                    <p class="small text-muted mb-0">Manage your payments</p>
-                </div>
-            </div>
-            <a href="{{ route('user.bill-pay.index') }}" class="btn btn-outline-primary w-100 rounded-pill">Pay a bill</a>
-        </div>
-
-        <!-- Card Management Widget -->
-        <div class="banno-card">
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-light rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-credit-card text-primary"></i>
-                </div>
-                <div>
-                    <h4 class="h6 fw-bold mb-0">Card Management</h4>
-                    <p class="small text-muted mb-0">Control your cards</p>
-                </div>
-            </div>
-            <button class="btn btn-outline-primary w-100 rounded-pill">Manage Cards</button>
+                @elseif($widget == 'cards')
+                    <!-- Card Management Widget -->
+                    <div class="banno-card" data-id="cards">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-light rounded-circle p-2 me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-credit-card text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="h6 fw-bold mb-0">Card Management</h4>
+                                <p class="small text-muted mb-0">Control your cards</p>
+                            </div>
+                             <div class="ms-auto">
+                                <i class="fas fa-ellipsis-h text-muted" style="cursor: grab;"></i>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary w-100 rounded-pill">Manage Cards</button>
+                    </div>
+                @endif
+            @endforeach
         </div>
     </div>
 </div>
 <div class="row mt-5 mb-5 pb-5">
     <div class="col-12 d-flex justify-content-center">
-        <button class="btn btn-dark rounded-3 px-4 py-2 opacity-75 d-flex align-items-center gap-2" style="background-color: #3d454d; border: none; font-size: 14px; font-weight: 500;">
-            <i class="fas fa-layer-group"></i>
-            Organize dashboard
+        <button id="save-dashboard-layout" class="btn btn-dark rounded-3 px-4 py-2 opacity-75 d-flex align-items-center gap-2" style="background-color: #3d454d; border: none; font-size: 14px; font-weight: 500;">
+            <i class="fas fa-save"></i>
+            Save Layout
         </button>
     </div>
 </div>
@@ -227,7 +239,36 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
-    // Initialize tooltips or other JS interactions here if needed
+    document.addEventListener('DOMContentLoaded', function() {
+        const el = document.getElementById('dashboard-widgets');
+        const sortable = Sortable.create(el, {
+            animation: 150,
+            handle: '.fa-ellipsis-h', // Use the menu icon as handle
+            ghostClass: 'bg-light'
+        });
+
+        // Save Layout
+        document.getElementById('save-dashboard-layout').addEventListener('click', function() {
+            const order = sortable.toArray();
+            
+            fetch("{{ route('user.dashboard.save-order') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ order: order })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Dashboard configuration saved!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
 </script>
 @endpush

@@ -39,6 +39,7 @@ Route::post('mail-send', [PageController::class, 'mailSend'])->name('mail-send')
 Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verification', 'permission') ? 'otp' : 'web', setting('email_verification', 'permission') ? 'verified' : 'web'], 'prefix' => 'user', 'as' => 'user.'], function () {
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::post('dashboard/save-order', [DashboardController::class, 'saveOrder'])->name('dashboard.save-order');
 
 
 
