@@ -31,63 +31,91 @@
         <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 32px;">
     </header>
 
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
     <!-- Banno Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-logo d-none d-lg-block" style="padding: 32px 24px;">
-             <a href="{{ route('home') }}">
-                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="max-width: 100%; height: auto;">
+    <aside class="sidebar" id="content">
+        <div class="fi-logo" style="padding: 24px;">
+             <a href="{{ route('home') }}" aria-label="Dashboard">
+                <img role="presentation" height="60" alt="Pinellas FCU" src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" style="max-width: 100%; height: auto;">
             </a>
         </div>
         
         <nav class="sidebar-nav">
             <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-th-large"></i> Dashboard
+                <bannoweb-shared-icons><i class="fas fa-th-large"></i></bannoweb-shared-icons> 
+                <div class="ms-2">Dashboard</div>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i> Messages
+                <bannoweb-shared-icons><i class="fas fa-envelope"></i></bannoweb-shared-icons>
+                <div class="ms-2">Messages</div>
             </a>
             <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
-                <i class="fas fa-university"></i> Accounts
+                <bannoweb-shared-icons><i class="fas fa-university"></i></bannoweb-shared-icons>
+                <div class="ms-2">Accounts</div>
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
-                <i class="fas fa-exchange-alt"></i> Transfers
+                <bannoweb-shared-icons><i class="fas fa-exchange-alt"></i></bannoweb-shared-icons>
+                <div class="ms-2">Transfers</div>
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> Member Transfers
+                <bannoweb-shared-icons><i class="fas fa-users"></i></bannoweb-shared-icons>
+                <div class="ms-2">Member Transfers</div>
             </a>
             <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                <i class="fas fa-mobile-alt"></i> Remote deposits
+                <bannoweb-shared-icons><i class="fas fa-mobile-alt"></i></bannoweb-shared-icons>
+                <div class="ms-2">Remote deposits</div>
             </a>
             <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                <i class="fas fa-file-invoice-dollar"></i> Bill pay
+                <bannoweb-shared-icons><i class="fas fa-file-invoice-dollar"></i></bannoweb-shared-icons>
+                <div class="ms-2">Bill pay</div>
             </a>
             <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                <i class="fas fa-gift"></i> Member Rewards
+                <bannoweb-shared-icons><i class="fas fa-gift"></i></bannoweb-shared-icons>
+                <div class="ms-2">Member Rewards</div>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
-                <i class="fas fa-headset"></i> Support
+                <bannoweb-shared-icons><i class="fas fa-headset"></i></bannoweb-shared-icons>
+                <div class="ms-2">Support</div>
             </a>
         </nav>
 
         <div class="sidebar-footer p-0">
-            <div class="dropup w-100">
-                <div class="user-profile-banno" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 16px 24px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
+            <div class="dropup w-100 sidebar-user-menu">
+                <div class="user-profile-banno toggle-button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 16px 24px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
                     <div class="user-avatar-banno">
-                        {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                         <i class="fas fa-user"></i>
                     </div>
                     <div class="user-info-banno flex-grow-1">
-                        <div class="user-name-banno">{{ $user->full_name }}</div>
+                        <div class="username">{{ strtoupper($user->full_name) }}</div>
                     </div>
-                    <i class="fas fa-chevron-down small text-muted"></i>
+                    <i class="fas fa-chevron-up small text-muted"></i>
                 </div>
-                <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2" style="border-radius: 12px; margin-bottom: 8px;">
-                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-plus-circle me-3 text-primary"></i> Add an account</a></li>
-                    <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fas fa-user-circle me-3 text-primary"></i> Personal settings</a></li>
-                    <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fas fa-tools me-3 text-primary"></i> Account settings</a></li>
+                <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
+                    <li>
+                        <button type="button" class="dropdown-item py-2 d-flex align-items-center">
+                            <i class="fas fa-plus-circle me-3 text-primary icon"></i> 
+                            <div>Add an account</div>
+                        </button>
+                    </li>
+                    <li>
+                        <a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center">
+                            <i class="fas fa-user-circle me-3 text-primary icon"></i> 
+                            <div>Personal settings</div>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center">
+                            <i class="fas fa-tools me-3 text-primary icon"></i> 
+                            <div>Account settings</div>
+                        </a>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item py-2 text-dark" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="fas fa-sign-out-alt me-3 text-muted"></i> Sign out
+                        <a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt me-3 text-muted icon"></i> 
+                            <div>Sign out</div>
                         </a>
                     </li>
                 </ul>
@@ -96,8 +124,8 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content-area" style="padding-top: 64px;">
-        <div class="container-fluid" style="max-width: 1200px; margin: 0 auto;">
+    <main class="main-content-area">
+        <div class="container-fluid" style="height: 100%; display: flex; flex-direction: column; padding-bottom: 20px;">
             @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
                 @include('frontend::include.__kyc_warning')
             @endif
@@ -113,21 +141,55 @@
 @include('frontend::include.__script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Sidebar Toggle Logic
         const sidebar = document.querySelector('.sidebar');
-        const toggle = document.getElementById('sidebarToggle');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
         
-        if(toggle) {
-            toggle.addEventListener('click', function(e) {
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+            document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+        }
+
+        if(toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                sidebar.classList.toggle('show');
+                toggleSidebar();
             });
         }
 
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth < 992 && !sidebar.contains(e.target) && sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
-            }
+        if(overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Close sidebar on link click (mobile)
+        document.querySelectorAll('.sidebar-nav-item').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    toggleSidebar();
+                }
+            });
         });
+        
+        // Smart Header Logic
+        let lastScrollTop = 0;
+        const header = document.querySelector('.header-pinellas');
+        
+        if(header) {
+            window.addEventListener('scroll', function() {
+                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 64) {
+                    // Scrolling Down
+                    header.classList.add('header-hidden');
+                } else {
+                    // Scrolling Up
+                    header.classList.remove('header-hidden');
+                }
+                lastScrollTop = scrollTop;
+            });
+        }
     });
 </script>
 @stack('js')
