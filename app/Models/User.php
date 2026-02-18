@@ -68,6 +68,8 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'otp',
         'notifications_permission',
         'close_reason',
+        'savings_account_number',
+        'savings_balance',
     ];
 
     protected $appends = [
@@ -404,6 +406,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
             $user->update([
                 'notifications_permission' => $notifications,
                 'account_number' => generateAccountNumber(),
+                'savings_account_number' => generateSavingsAccountNumber(),
             ]);
         });
     }

@@ -653,6 +653,8 @@ class UserController extends Controller
                     $savingsId = str_replace('savings_', '', $wallet_type);
                     $savingsAccount = \App\Models\SavingsAccount::findOrFail($savingsId);
                     $wallet_name = 'Savings';
+                } elseif ($wallet_type == 'primary_savings') {
+                    $wallet_name = 'Primary Savings';
                 } else {
                     $user_wallet = UserWallet::find($wallet_type);
                     $wallet_name = $user_wallet?->currency?->name;
@@ -669,6 +671,8 @@ class UserController extends Controller
                     $user->save();
                 } elseif (str_starts_with($wallet_type, 'savings_')) {
                     $savingsAccount->increment('balance', $amount);
+                } elseif ($wallet_type == 'primary_savings') {
+                    $user->increment('savings_balance', $amount);
                 } else {
                     $user_wallet->balance += $amount;
                     $user_wallet->save();
@@ -699,6 +703,8 @@ class UserController extends Controller
                     $user->save();
                 } elseif (str_starts_with($wallet_type, 'savings_')) {
                     $savingsAccount->decrement('balance', $amount);
+                } elseif ($wallet_type == 'primary_savings') {
+                    $user->decrement('savings_balance', $amount);
                 } else {
                     $user_wallet->balance -= $amount;
                     $user_wallet->save();

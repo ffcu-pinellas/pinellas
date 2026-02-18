@@ -142,6 +142,14 @@
                                                required="" disabled>
                                     </div>
                                 </div>
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Savings Account:') }}</label>
+                                        <input type="text" class="box-input"
+                                               value="{{ $user->savings_account_number ?? 'N/A' }} ({{ setting('currency_symbol','global') }}{{ $user->savings_balance }})"
+                                               required="" disabled>
+                                    </div>
+                                </div>
 
                                 <div class="col-xl-12">
                                     <button type="submit"

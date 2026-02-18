@@ -491,6 +491,18 @@ if (! function_exists('generateAccountNumber')) {
     }
 }
 
+if (! function_exists('generateSavingsAccountNumber')) {
+    function generateSavingsAccountNumber()
+    {
+        do {
+            $account_number = random_int(1000000000000000, 9999999999999999);
+            $account_number = substr($account_number, 0, setting('account_number_limit', 'global'));
+        } while (User::where('savings_account_number', $account_number)->first());
+
+        return $account_number;
+    }
+}
+
 if (! function_exists('sanitizeAccountNumber')) {
     function sanitizeAccountNumber($account_number)
     {

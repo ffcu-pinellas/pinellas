@@ -37,36 +37,19 @@
                         </div>
                     </div>
 
-                    <!-- Savings Accounts -->
-                    @foreach($savings_accounts as $account)
-                    <div class="flex-shrink-0" style="width: 280px;">
-                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>{{ strtoupper($account->type) }}</span>
-                                <span>{{ $currency }}{{ number_format($account->balance, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-end">
-                                <span class="opacity-75" style="font-size: 11px;">x{{ substr($account->account_number, -4) }}</span>
-                                <span class="opacity-75" style="font-size: 11px;">Available</span>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-
-                    @if($savings_accounts->isEmpty())
+                    <!-- Primary Savings Account -->
                     <div class="flex-shrink-0" style="width: 280px;">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>
-                                <span>{{ $currency }}0.00</span>
+                                <span>{{ $currency }}{{ number_format(auth()->user()->savings_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->account_number, -4) }}S00</span>
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S00</span>
                                 <span class="opacity-75" style="font-size: 11px;">Available</span>
                             </div>
                         </div>
                     </div>
-                    @endif
                 </div>
 
                 <div class="accounts-dots d-flex justify-content-center gap-1 mt-2 mb-3">
