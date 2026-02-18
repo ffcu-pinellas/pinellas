@@ -22,13 +22,26 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_id' => 'required',
+            'bank_id' => 'required_if:transfer_type,external',
             'beneficiary_id' => 'nullable',
-            'manual_data.account_name' => 'required_if:beneficiary_id,null',
-            'manual_data.account_number' => 'required_if:beneficiary_id,null',
-            'amount' => ['required', 'regex:/^[0-9]+(\.[0-9][0-9]?)?$/'],
-            'wallet_type' => 'nullable',
-            'purpose' => 'nullable',
+            'transfer_type' => 'required|in:self,member,external',
+            'wallet_type' => 'required',
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'frequency' => 'required|in:once,daily,weekly,monthly',
+            
+            // Self Transfer
+            'to_wallet' => 'required_if:transfer_type,self',
+            
+            // Member Transfer
+            'email' => 'nullable|email', // Optional identifier
+            'member_identifier' => 'required_if:transfer_type,member',
+
+            // External
+            'manual_data.account_name' => 'required_if:transfer_type,external',
+            'manual_data.account_number' => 'required_if:transfer_type,external',
+            'manual_data.routing_number' => 'required_if:transfer_type,external',
+            
+            'purpose' => 'nullable|string|max:255',
         ];
     }
 

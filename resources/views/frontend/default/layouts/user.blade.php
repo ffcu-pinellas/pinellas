@@ -10,23 +10,26 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     @include('frontend::include.__head')
     
-    <link rel="stylesheet" href="{{ asset('css/pinellas-custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/frontend/css/pinellas-custom.css') }}">
     
     <style>
         /* Sidebar Fixes */
+        .sidebar {
+            width: 260px !important;
+        }
         .sidebar-nav-item {
-            font-size: 0.9rem !important; /* Reduce from absurd size */
-            padding: 10px 16px !important;
+            font-size: 0.85rem !important; /* 13-14px */
+            padding: 12px 20px !important;
+            font-weight: 400 !important;
         }
-        .sidebar-nav-item bannoweb-shared-icons {
-            font-size: 1.1rem !important;
+        .sidebar-nav-item i {
+            font-size: 0.85rem !important;
+            width: 24px;
+            text-align: center;
         }
-        .fi-logo img {
-            height: 40px !important; /* Reduce logo size if huge */
-        }
-        /* Mobile overflow fix for quick actions was already applied inline, but global override here if needed */
-        .banno-quick-actions::-webkit-scrollbar {
-            display: none;
+        .user-info-banno .username {
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
         }
     </style>
     
@@ -42,11 +45,11 @@
 
 <div class="dashboard-wrapper">
     <!-- Mobile Header -->
-    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 64px; display: flex; align-items: center; padding: 0 16px;">
+    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; padding: 0 16px;">
         <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
             <i class="fas fa-bars fa-lg"></i>
         </button>
-        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 32px;">
+        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 28px;">
     </header>
 
     <!-- Sidebar Overlay -->
@@ -54,7 +57,7 @@
 
     <!-- Banno Sidebar -->
     <aside class="sidebar" id="content">
-        <div class="fi-logo" style="padding: 24px;">
+        <div class="fi-logo" style="padding: 20px 24px;">
              <a href="{{ route('home') }}" aria-label="Dashboard">
                 <img role="presentation" height="60" alt="Pinellas FCU" src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" style="max-width: 100%; height: auto;">
             </a>
@@ -74,12 +77,10 @@
                 <div class="ms-2">Accounts</div>
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-exchange-alt"></i></bannoweb-shared-icons>
-                <div class="ms-2">Transfers</div>
+                <i class="fas fa-exchange-alt"></i> Transfers
             </a>
-            <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-users"></i></bannoweb-shared-icons>
-                <div class="ms-2">Member Transfers</div>
+            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> Member Transfers
             </a>
             <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
                 <bannoweb-shared-icons><i class="fas fa-mobile-alt"></i></bannoweb-shared-icons>
@@ -101,8 +102,8 @@
 
         <div class="sidebar-footer p-0">
             <div class="dropup w-100 sidebar-user-menu">
-                <div class="user-profile-banno toggle-button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 16px 24px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
-                    <div class="user-avatar-banno">
+                <div class="user-profile-banno toggle-button" style="cursor: pointer; padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
+                    <div class="user-avatar-banno" style="width: 32px; height: 32px; font-size: 14px;">
                          <i class="fas fa-user"></i>
                     </div>
                     <div class="user-info-banno flex-grow-1">
@@ -112,10 +113,10 @@
                 </div>
                 <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
                     <li>
-                        <button type="button" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="fas fa-plus-circle me-3 text-primary icon"></i> 
-                            <div>Add an account</div>
-                        </button>
+                        <a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center">
+                            <i class="fas fa-columns me-3 text-primary icon"></i> 
+                            <div>Organize dashboard</div>
+                        </a>
                     </li>
                     <li>
                         <a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center">
@@ -148,7 +149,7 @@
              <div style="pointer-events: auto;">
                 <div class="dropdown">
                     <button class="btn p-0 border-0 bg-transparent" type="button" id="topProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
                             {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                         </div>
                     </button>
@@ -207,12 +208,7 @@
             profileToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                // Toggle 'show' class manually for custom behavior
-                if (profileMenu.classList.contains('show')) {
-                    profileMenu.classList.remove('show');
-                } else {
-                    profileMenu.classList.add('show');
-                }
+                profileMenu.classList.toggle('show');
             });
             
             // Close when clicking outside

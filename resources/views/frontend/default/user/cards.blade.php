@@ -9,44 +9,67 @@
     <div class="col-xl-6 col-lg-8 col-md-10 col-12">
         <div class="d-flex align-items-center mb-4">
             <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light rounded-circle me-3"><i class="fas fa-arrow-left"></i></a>
-            <h2 class="fw-bold mb-0">Manage your cards</h2>
+            <h2 class="mb-0">Manage your cards</h2>
         </div>
 
         @forelse($cards as $card)
         <div class="card-container mb-5">
-            <!-- Realistic Card Design -->
-            <div class="credit-card-wrap mb-4">
-                <div class="credit-card-front shadow-lg">
-                    <div class="card-bg"></div>
-                    <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 30px; filter: brightness(0) invert(1);">
-                            <span class="text-white opacity-75 small fw-bold">{{ $card->card_type ?? 'Debit' }}</span>
-                        </div>
-                        <div class="d-flex align-items-center my-3">
-                            <img src="{{ asset('assets/global/images/chip.png') }}" alt="Chip" style="height: 35px; margin-right: 15px;">
-                            <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
-                        </div>
-                        <div class="card-number-display mb-2">
-                            <span class="text-white fs-4 fw-bolder tracking-widest card-num-masked">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
-                            <span class="text-white fs-4 fw-bolder tracking-widest card-num-full d-none">{{ chunk_split($card->card_number, 4, ' ') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-end">
-                            <div>
-                                <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Card Holder</div>
-                                <div class="text-white fw-bold text-uppercase">{{ $card->name_on_card }}</div>
+            <!-- Realistic Card Design with Flip -->
+            <div class="credit-card-wrap mb-4" onclick="this.classList.toggle('flipped')">
+                <div class="credit-card-inner">
+                    <!-- Front -->
+                    <div class="credit-card-front shadow-lg">
+                        <div class="card-bg"></div>
+                        <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 30px; filter: brightness(0) invert(1);">
+                                <span class="text-white opacity-75 small">{{ $card->card_type ?? 'Debit' }}</span>
                             </div>
-                            <div class="text-end">
-                                <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Expires</div>
-                                <div class="text-white fw-bold">{{ $card->expiry_date }}</div>
+                            <div class="d-flex align-items-center my-3">
+                                <img src="{{ asset('assets/global/images/chip.png') }}" alt="Chip" style="height: 35px; margin-right: 15px;">
+                                <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
                             </div>
-                            <!-- Visa/Mastercard Logo -->
-                            <div class="card-brand">
-                                <i class="fab fa-cc-visa text-white fs-1 opacity-75"></i>
+                            <div class="card-number-display mb-2">
+                                <span class="text-white fs-4 tracking-widest card-num-masked">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
+                                <span class="text-white fs-4 tracking-widest card-num-full d-none">{{ chunk_split($card->card_number, 4, ' ') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Card Holder</div>
+                                    <div class="text-white text-uppercase small">{{ $card->name_on_card }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Expires</div>
+                                    <div class="text-white small">{{ $card->expiry_date }}</div>
+                                </div>
+                                <!-- Visa/Mastercard Logo -->
+                                <div class="card-brand">
+                                    <i class="fab fa-cc-visa text-white fs-1 opacity-75"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back -->
+                    <div class="credit-card-back shadow-lg">
+                        <div class="card-bg"></div>
+                        <div class="black-strip"></div>
+                        <div class="cvv-strip">
+                            <span class="cvv-number">{{ $card->cvv ?? rand(100,999) }}</span>
+                        </div>
+                        <div class="card-content p-4 position-relative z-1 mt-4">
+                            <p class="text-white small opacity-75">Authorized Signature - Not Valid Unless Signed</p>
+                            <div class="bg-white" style="height: 30px; opacity: 0.8;"></div>
+                            <div class="mt-3 text-white small opacity-75">
+                                For customer service, call 1-800-PINELLAS.
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <div class="text-center text-muted small mb-4">
+                <i class="fas fa-sync-alt me-1"></i> Tap card to flip
             </div>
 
             <!-- Controls -->
@@ -54,42 +77,74 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="d-flex align-items-center">
                         <div class="status-indicator {{ $card->status == 1 ? 'bg-success' : 'bg-danger' }} rounded-circle me-2" style="width: 10px; height: 10px;"></div>
-                        <span class="fw-bold">{{ $card->status == 1 ? 'Active' : 'Locked' }}</span>
+                        <span class="small" id="cardStatusText">{{ $card->status == 1 ? 'Active' : 'Locked' }}</span>
                     </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="showDetailsToggle">
-                        <label class="form-check-label small fw-bold" for="showDetailsToggle">Show details</label>
+                        <label class="form-check-label small" for="showDetailsToggle">Show details</label>
                     </div>
                 </div>
 
                 <div class="row g-3">
                     <div class="col-6">
-                        <button class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2">
-                            <i class="fas fa-lock fa-lg"></i>
-                            <span class="fw-bold small">{{ $card->status == 1 ? 'Lock Card' : 'Unlock Card' }}</span>
+                        <button onclick="toggleCardStatus({{ $card->id }}, {{ $card->status }})" class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                            <i class="fas {{ $card->status == 1 ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
+                            <span class="small">{{ $card->status == 1 ? 'Lock Card' : 'Unlock Card' }}</span>
                         </button>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-outline-secondary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2">
+                        <button onclick="reportLost({{ $card->id }})" class="btn btn-outline-secondary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas fa-exclamation-triangle fa-lg"></i>
-                            <span class="fw-bold small">Report Lost</span>
+                            <span class="small">Report Lost</span>
                         </button>
                     </div>
                     <div class="col-6">
-                         <button class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2">
+                         <button data-bs-toggle="modal" data-bs-target="#resetPinModal" class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas fa-key fa-lg"></i>
-                            <span class="fw-bold small">Reset PIN</span>
+                            <span class="small">Reset PIN</span>
                         </button>
                     </div>
                     <div class="col-6">
-                         <button class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2">
+                         <a href="{{ route('user.transactions') }}?search=card" class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas fa-history fa-lg"></i>
-                            <span class="fw-bold small">History</span>
-                        </button>
+                            <span class="small">History</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Reset PIN Modal -->
+        <div class="modal fade" id="resetPinModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Reset PIN</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="resetPinForm">
+                            @csrf
+                            <input type="hidden" name="card_id" value="{{ $card->id }}">
+                            <div class="mb-3">
+                                <label class="form-label small">New 4-Digit PIN</label>
+                                <input type="password" name="new_pin" class="form-control" maxlength="4" pattern="\d{4}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">Confirm PIN</label>
+                                <input type="password" name="confirm_pin" class="form-control" maxlength="4" pattern="\d{4}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small">Account Password</label>
+                                <input type="password" name="password" class="form-control" required placeholder="Verify it's you">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Update PIN</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         @empty
         <div class="text-center py-5">
             <div class="mb-4">
@@ -97,7 +152,7 @@
                     <i class="far fa-credit-card fa-3x text-muted"></i>
                 </div>
             </div>
-            <h4 class="fw-bold">No cards found</h4>
+            <h4 class="mb-3">No cards found</h4>
             <p class="text-muted mb-4">You don't have any active cards associated with your account.</p>
             <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4">Return to Dashboard</a>
         </div>
@@ -110,17 +165,37 @@
 <style>
     .credit-card-wrap {
         perspective: 1000px;
+        height: 240px;
+        cursor: pointer;
     }
-    .credit-card-front {
+    .credit-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .credit-card-wrap.flipped .credit-card-inner {
+        transform: rotateY(180deg);
+    }
+    .credit-card-front, .credit-card-back {
+        position: absolute;
         width: 100%;
         max-width: 400px;
-        height: 240px;
-        margin: 0 auto;
+        height: 240px; /* Explicit height */
+        left: 0;
+        right: 0;
+        margin: auto;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
         border-radius: 20px;
-        background: linear-gradient(135deg, #00549b 0%, #00305b 100%);
-        position: relative;
         overflow: hidden;
+        background: linear-gradient(135deg, #00549b 0%, #00305b 100%);
         color: white;
+    }
+    .credit-card-back {
+        transform: rotateY(180deg);
     }
     .card-bg {
         position: absolute;
@@ -133,6 +208,28 @@
         opacity: 0.3;
         mix-blend-mode: overlay;
     }
+    .black-strip {
+        height: 50px;
+        background: #000;
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    .cvv-strip {
+        background: white;
+        height: 30px;
+        width: 80%;
+        margin: 10px auto;
+        position: relative;
+        z-index: 2;
+        text-align: right;
+        padding-right: 10px;
+        color: black;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-family: monospace;
+    }
     .tracking-widest {
         letter-spacing: 0.15em;
     }
@@ -143,11 +240,18 @@
         align-items: center;
         justify-content: center;
     }
+    .btn-action {
+        transition: all 0.2s;
+    }
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
 </style>
 @endsection
 
 @section('script')
 <script>
+    // Toggle Details
     document.getElementById('showDetailsToggle')?.addEventListener('change', function() {
         const isChecked = this.checked;
         if(isChecked) {
@@ -157,6 +261,71 @@
             document.querySelectorAll('.card-num-masked').forEach(el => el.classList.remove('d-none'));
             document.querySelectorAll('.card-num-full').forEach(el => el.classList.add('d-none'));
         }
+    });
+
+    // Toggle Status
+    function toggleCardStatus(id, currentStatus) {
+        const newStatus = currentStatus == 1 ? 0 : 1;
+        const action = currentStatus == 1 ? 'Lock' : 'Unlock';
+        
+        // Confirmation could be added here
+        
+        fetch('{{ route("cards.toggle-status") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ card_id: id, status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Reload to reflect changes
+            window.location.reload();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Report Lost
+    function reportLost(id) {
+        if(!confirm('Are you sure you want to report this card as lost? It will be permanently locked.')) return;
+
+        fetch('{{ route("cards.report-lost") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ card_id: id })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            window.location.reload();
+        });
+    }
+
+    // Reset PIN
+    document.getElementById('resetPinForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('{{ route("cards.reset-pin") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            // Hide modal manually or reload
+            window.location.reload();
+        })
+        .catch(error => {
+            alert('Failed to reset PIN. Check password and try again.');
+        });
     });
 </script>
 @endsection

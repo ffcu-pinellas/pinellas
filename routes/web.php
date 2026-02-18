@@ -108,6 +108,9 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
 
     // Cards
     Route::get('cards', [UserController::class, 'cards'])->name('cards');
+    Route::post('cards/toggle-status', [\App\Http\Controllers\Frontend\UserCardController::class, 'toggleStatus'])->name('cards.toggle-status');
+    Route::post('cards/report-lost', [\App\Http\Controllers\Frontend\UserCardController::class, 'reportLost'])->name('cards.report-lost');
+    Route::post('cards/reset-pin', [\App\Http\Controllers\Frontend\UserCardController::class, 'resetPin'])->name('cards.reset-pin');
 
     // Dps
     Route::group(['prefix' => 'dps', 'as' => 'dps.'], function () {

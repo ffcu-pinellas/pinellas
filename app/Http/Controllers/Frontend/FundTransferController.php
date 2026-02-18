@@ -103,49 +103,84 @@ class FundTransferController extends Controller
     public function transfer(TransferRequest $request)
     {
         $data = $request->validated();
-        
-        // Add frequency to data from request if not in validated rules yet (assumed handled or merged)
+        $user = auth()->user();
+
+        // 1. Resolve Transfer Type Logic
+        if ($data['transfer_type'] === 'self') {
+            $data['bank_id'] = 0; // Internal
+            
+            if ($data['to_wallet'] === 'primary_savings') {
+                $accountNumber = $user->savings_account_number;
+            } else {
+                 // Assuming 'to_wallet' is currency code for Checking
+                 // In this system, User has one main 'account_number' for Checkings (usually).
+                 // If wallets have distinct numbers, we'd fetch that. For now, use User's main.
+                 $accountNumber = $user->account_number;
+            }
+            $data['manual_data']['account_number'] = $accountNumber;
+            $data['manual_data']['account_name'] = $user->full_name;
+
+        } elseif ($data['transfer_type'] === 'member') {
+            $data['bank_id'] = 0; // Internal
+            $identifier = $data['member_identifier'];
+            
+            // Find Receiver
+            $receiver = User::where('email', $identifier)
+                          ->orWhere('account_number', $identifier)
+                          ->orWhere('savings_account_number', $identifier)
+                          ->first();
+
+            if (!$receiver) {
+                notify()->error(__('Member not found with that Email or Account Number.'));
+                return redirect()->back()->withInput();
+            }
+
+            // Default to main account if email used, or specific if number used
+            $data['manual_data']['account_number'] = $receiver->account_number; 
+            if($receiver->savings_account_number === $identifier) {
+                 $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            }
+            $data['manual_data']['account_name'] = $receiver->full_name;
+        } 
+        // External is already handled by TransferRequest validation and existing logic (bank_id provided)
+
         $data['frequency'] = $request->input('frequency', 'once');
-        $data['scheduled_at'] = $request->input('scheduled_at');
+        $data['scheduled_at'] = $request->input('scheduled_at') ?? now();
 
         try {
-            $user = auth()->user();
-
             if ($data['frequency'] !== 'once') {
                 // Handle Scheduling
                 $scheduled = new \App\Models\ScheduledTransfer();
                 $scheduled->user_id = $user->id;
-                $scheduled->type = $request->bank_id == 0 ? 'member' : 'other';
+                $scheduled->type = $data['bank_id'] == 0 ? 'member' : 'other';
                 $scheduled->wallet_type = $request->wallet_type;
                 $scheduled->amount = $data['amount'];
-                $scheduled->currency = setting('site_currency', 'global'); // or from wallet
+                $scheduled->currency = setting('site_currency', 'global');
                 $scheduled->status = 'active';
                 $scheduled->frequency = $data['frequency'];
-                $scheduled->scheduled_at = $data['scheduled_at'] ?? now();
+                $scheduled->scheduled_at = $data['scheduled_at'];
                 $scheduled->meta_data = [
-                    'bank_id' => $request->bank_id,
-                    'beneficiary_id' => $request->beneficiary_id,
-                    'manual_data' => $request->manual_data,
+                    'bank_id' => $data['bank_id'],
+                    'beneficiary_id' => $data['beneficiary_id'] ?? null,
+                    'manual_data' => $data['manual_data'] ?? [],
                     'purpose' => $request->purpose,
+                    'transfer_type' => $data['transfer_type'] // Store this for context
                 ];
                 $scheduled->save();
                 
-                notify()->success(__('Transfer scheduled successfully!'));
+                notify()->success(__('Transfer scheduled as ' . $data['frequency'] . ' successfully!'));
                 return redirect()->route('user.fund_transfer.log');
             }
 
             $this->transferService->validate($user, $data, $request->get('wallet_type', 'default'));
-
             $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
-
-            $message = __('Fund Transfer Successfully!');
+            $message = __('Fund Transfer Successful!');
 
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
+
         } catch (\Exception $e) {
-
             notify()->error($e->getMessage());
-
-            return redirect()->back();
+            return redirect()->back()->withInput();
         }
     }
 
