@@ -46,7 +46,7 @@
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
                 <i class="fas fa-envelope"></i> Messages
             </a>
-            <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item">
+            <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
                 <i class="fas fa-university"></i> Accounts
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
@@ -69,25 +69,25 @@
             </a>
         </nav>
 
-        <div class="sidebar-footer">
-            <div class="user-profile-sm dropdown">
-                <div class="user-avatar-sm">
-                    {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
-                </div>
-                <div class="user-details flex-grow-1" style="min-width: 0;">
-                    <div style="font-size: 14px; font-weight: 600; color: var(--body-text-primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ $user->full_name }}
+        <div class="sidebar-footer p-0">
+            <div class="dropup w-100">
+                <div class="user-profile-banno" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; padding: 16px 24px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
+                    <div class="user-avatar-banno">
+                        {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
                     </div>
+                    <div class="user-info-banno flex-grow-1">
+                        <div class="user-name-banno">{{ $user->full_name }}</div>
+                    </div>
+                    <i class="fas fa-chevron-down small text-muted"></i>
                 </div>
-                <button class="btn btn-link p-0 text-secondary dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 12px; margin-bottom: 10px;">
-                    <li><a class="dropdown-item" href="{{ route('user.setting.show') }}"><i class="fas fa-user-cog me-2"></i> Settings</a></li>
+                <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2" style="border-radius: 12px; margin-bottom: 8px;">
+                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-plus-circle me-3 text-primary"></i> Add an account</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fas fa-user-circle me-3 text-primary"></i> Personal settings</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fas fa-tools me-3 text-primary"></i> Account settings</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="fas fa-sign-out-alt me-2"></i> Sign out
+                        <a class="dropdown-item py-2 text-dark" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt me-3 text-muted"></i> Sign out
                         </a>
                     </li>
                 </ul>

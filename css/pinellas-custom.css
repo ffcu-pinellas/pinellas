@@ -165,30 +165,148 @@ body {
 }
 
 /* Mobile Responsiveness */
-@media (max-width: 991px) {
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-    }
-
-    .sidebar.show {
-        transform: translateX(0);
-    }
-
-    .main-content-area {
-        margin-left: 0;
-        padding-top: 64px;
-        /* Header height */
-    }
+/* Banno Profile Dropdown at bottom of sidebar */
+.user-profile-banno:hover {
+    background-color: #f8f9fa;
 }
 
-@media (min-width: 992px) {
-    .main-content-area {
-        margin-left: 280px;
-        /* Sidebar width */
-    }
+.user-avatar-banno {
+    width: 32px;
+    height: 32px;
+    background-color: #e3e7ed;
+    color: var(--body-text-secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+}
 
-    #sidebarToggle {
-        display: none;
-    }
+.user-name-banno {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--body-text-primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.banno-profile-dropdown {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.banno-profile-dropdown .dropdown-item {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.banno-profile-dropdown i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Quick Action Buttons on Dashboard */
+.banno-quick-actions {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.banno-quick-actions::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+.banno-action-btn {
+    flex: 0 0 auto;
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.banno-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.banno-action-btn i {
+    font-size: 20px;
+    margin-bottom: 6px;
+}
+
+.banno-action-btn span {
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+/* Dashboard Refinements */
+.welcome-section {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px !important;
+}
+
+/* Transactions List Polish */
+.txn-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.txn-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Floating Action Button (Help) */
+.fab-help {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--body-text-theme-color);
+    z-index: 1000;
+    text-decoration: none;
+}
+
+/* Accounts Carousel navigation dots */
+.accounts-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.accounts-dot {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+}
+
+.accounts-dot.active {
+    background: white;
 }
