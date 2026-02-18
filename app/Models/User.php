@@ -221,7 +221,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     public function totalFdr()
     {
-        $this->fdr()->sum('amount');
+        return $this->fdr()->sum('amount');
     }
 
     public function rejectedKycs()

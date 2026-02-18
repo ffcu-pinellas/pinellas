@@ -333,7 +333,7 @@ class UserController extends Controller
             'total_dps' => $user->dps->sum('total_dps_amount'),
             'total_fdr' => $user->fdr->sum('amount'),
             'total_loan' => $user->loan->sum('amount'),
-            'total_bill' => $user->bill->sum('amount'),
+            'total_bill' => $user->bills->sum('amount'),
             'total_withdraw' => $user->totalWithdraw(),
             'total_tickets' => $user->tickets->count(),
             'points' => $user->points,

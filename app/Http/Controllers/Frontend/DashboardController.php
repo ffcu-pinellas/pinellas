@@ -51,6 +51,9 @@ class DashboardController extends Controller
             'currency' => setting('currency_symbol', '$'),
         ];
 
+        $widgetOrder = $user->dashboard_order ?? ['messages', 'promo', 'bill_pay', 'cards'];
+        $dataCount['widgetOrder'] = $widgetOrder;
+
         return view('frontend::user.dashboard', $dataCount);
     }
 }
