@@ -106,9 +106,6 @@
 @include('frontend::fund_transfer.include.__limitition')
 
 <style>
-    .border-dashed { border-style: dashed !important; }
-    .extra-small { font-size: 0.75rem; }
-    .letter-spacing-5 { letter-spacing: 1rem; }
     .hover-bg-light:hover { background-color: rgba(0,0,0,0.02); }
     .transition-all { transition: all 0.2s ease; }
     .pointer { cursor: pointer; }

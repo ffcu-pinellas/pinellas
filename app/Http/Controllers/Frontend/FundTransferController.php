@@ -47,9 +47,9 @@ class FundTransferController extends Controller
 
         $banks = OthersBank::active()->get();
         $wallets = auth()->user()->wallets->load('currency');
-        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
+        $wallets = auth()->user()->wallets->load('currency');
 
-        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets', 'savingsAccounts'));
+        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets'));
     }
 
     public function memberTransfer()
@@ -62,19 +62,12 @@ class FundTransferController extends Controller
             return to_route('user.dashboard');
         }
 
-        $banks = OthersBank::active()->where('id', 0)->get(); // Only Own Bank
-        // If '0' isn't in DB as a bank, we might need to fake it or standard logic uses id=0 for own bank
-        // The view logic `value="0"` implies Own Bank is hardcoded option. 
-        // So we can just pass empty banks or handle it in view.
-        // Actually, the view has: <option value="0">{{ __('Own Bank (Internal)') }}</option>
-        // So we can just pass empty banks if we want ONLY own bank.
-        $banks = collect([]); 
+        $banks = collect([]); // No banks needed for member transfer logic
         
         $wallets = auth()->user()->wallets->load('currency');
-        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
         $code = 'member';
 
-        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets', 'savingsAccounts'));
+        return view('frontend::fund_transfer.member', compact('banks', 'code', 'wallets'));
     }
 
     public function getBeneficiary(Request $request, $bankId)
@@ -89,6 +82,8 @@ class FundTransferController extends Controller
             $banksData->maximum_transfer = $maximumTransfer;
             $charge = $banksData->charge_type === 'percentage' ? $banksData->charge : CurrencyService::convert($banksData->charge, setting('site_currency', 'global'), $currencyCode);
             $banksData->charge = $charge;
+            // Ensure field_options is available as array/json
+            // existing model has casts? No. But we can assume it's JSON string in DB.
         } else {
             $beneficiaries = Beneficiary::own()->whereNull('bank_id')->get();
             $banksData = [

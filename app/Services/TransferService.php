@@ -89,10 +89,7 @@ class TransferService
             $receiver = User::where('account_number', $sanitizedNumber)->first();
             
             if (!$receiver) {
-                $savingsReceiver = \App\Models\SavingsAccount::where('account_number', $sanitizedNumber)->first();
-                if ($savingsReceiver) {
-                    $receiver = $savingsReceiver->user;
-                }
+                $receiver = User::where('savings_account_number', $sanitizedNumber)->first();
             }
 
             if (! $receiver) {
@@ -119,7 +116,10 @@ class TransferService
         $finalAmount = $amount + $charge;
         $walletType = $walletType;
 
-        if ($walletType !== 'default') {
+        if ($walletType == 'primary_savings') {
+             $wallet = null;
+             $balance = $user->savings_balance;
+        } elseif ($walletType !== 'default') {
             $wallet = $user->wallets()->whereRelation('currency', 'code', $walletType)->first();
             $walletType = $wallet?->id;
             $wallet = $wallet;
@@ -146,10 +146,10 @@ class TransferService
             $transaction->update(['status' => TxnStatus::Success]);
 
             $sanitizedNumber = sanitizeAccountNumber($accountNumber);
-            $savingsReceiver = \App\Models\SavingsAccount::where('account_number', $sanitizedNumber)->first();
-
-            if ($savingsReceiver) {
-                $savingsReceiver->increment('balance', $amount);
+            
+            // Check if reception to savings account
+            if ($receiver->savings_account_number == $sanitizedNumber) {
+                $receiver->increment('savings_balance', $amount);
             } elseif ($receiverWallet) {
                 $receiverWallet->increment('balance', $amount);
             } else {
@@ -159,10 +159,8 @@ class TransferService
             (new Txn)->new($amount, $charge, $finalAmount, 'System', 'Received money from ' . $user->full_name, TxnType::ReceiveMoney, TxnStatus::Success, $currency, $finalAmount, $receiver->id, null, 'User', [], $wallet->id ?? null, approvalCause: $input['purpose']);
         }
 
-        if (str_starts_with($walletType, 'savings_')) {
-            $savingsId = str_replace('savings_', '', $walletType);
-            $savingsSource = \App\Models\SavingsAccount::where('user_id', $user->id)->where('id', $savingsId)->firstOrFail();
-            $savingsSource->decrement('balance', $finalAmount);
+        if ($walletType == 'primary_savings') {
+            $user->decrement('savings_balance', $finalAmount);
         } else {
             $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
         }

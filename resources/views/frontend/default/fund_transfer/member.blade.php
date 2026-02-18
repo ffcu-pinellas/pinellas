@@ -38,56 +38,28 @@
 
                     <!-- Step 2: Recipient Details -->
                     <div class="p-5 border-bottom bg-light bg-opacity-10">
-                        <!-- External Transfer View -->
-                        <div class="d-flex align-items-center justify-content-between mb-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">2</div>
-                                <h5 class="fw-bold mb-0">To</h5>
-                            </div>
-                            <a href="#" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" data-bs-toggle="modal" data-bs-target="#addBox">
-                                <i class="fas fa-plus-circle me-1"></i> Add recipient
-                            </a>
+                        <!-- Internal / Member Transfer View -->
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">2</div>
+                            <h5 class="fw-bold mb-0">To Member</h5>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Bank</label>
-                                <select name="bank_id" class="form-select rounded-3 border-2" id="bankId" style="padding: 12px;">
-                                    <option value="" disabled selected>--{{ __('Select Bank') }}--</option>
-                                    @foreach ($banks as $bank)
-                                        <option value="{{ $bank->id }}" data-fields="{{ $bank->field_options }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Beneficiary</label>
-                                <select name="beneficiary_id" class="form-select rounded-3 border-2" id="beneficiaryId" style="padding: 12px;">
-                                    <option value="" selected>--{{ __('Choose Recipient') }}--</option>
-                                </select>
-                            </div>
 
-                            <!-- Dynamic Fields Container -->
-                            <div id="dynamic-fields" class="row g-3"></div>
+                        <!-- Simplified Manual Entry -->
+                        <div class="inputs">
+                            <div class="row g-4">
+                                <input type="hidden" name="bank_id" value="0" id="bankId"> <!-- Force Internal/Own Bank -->
+                                <input type="hidden" name="beneficiary_id" value=""> 
 
-                            <!-- Manual Entry (Fallback/Custom) -->
-                            <div class="col-12 mt-4 custom-fields">
-                                <div class="p-4 border rounded-3 bg-white shadow-sm">
-                                    <h6 class="fw-bold mb-3 text-muted text-uppercase small">Recipient Details</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-uppercase">Account Number</label>
-                                            <input type="text" class="form-control" id="account_number" name="manual_data[account_number]" placeholder="0000000000">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-uppercase">Account Name</label>
-                                            <input type="text" class="form-control" id="account_name" name="manual_data[account_name]" placeholder="Recipient Name">
-                                        </div>
-                                        <div id="branch_name_field" class="col-12">
-                                            <label class="form-label small fw-bold text-uppercase">Branch Name</label>
-                                            <input type="text" class="form-control" id="branch_name" name="manual_data[branch_name]" placeholder="Optional">
-                                        </div>
-                                    </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Account Number</label>
+                                    <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="manual_data[account_number]" placeholder="Enter Member Account #" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Account Name</label>
+                                    <input type="text" class="form-control form-control-lg fw-bold border-2 bg-white" id="account_name" name="manual_data[account_name]" placeholder="Account Owner's Name" readonly>
                                 </div>
                             </div>
+                            <div class="form-text mt-2"><i class="fas fa-info-circle me-1"></i> Enter the account number to verify the member's name.</div>
                         </div>
                     </div>
                     </div>
@@ -218,31 +190,15 @@
         $('#beneficiaryId').on('change', function() {
             if ($(this).val() != '') {
                 $('.custom-fields').hide();
-                $('#dynamic-fields').hide(); // Hide dynamic fields if a beneficiary is selected
             } else {
-                // If no beneficiary is selected, show manual fields and potentially dynamic fields
                 $('.custom-fields').show();
-                // Dynamic fields visibility will be handled by onChangeBank based on bank selection
-                onChangeBank();
             }
             onAmountChange();
         });
 
-        $('#bankId').change(function() {
-            // When bank changes, re-evaluate dynamic fields and manual fields visibility
-            onChangeBank();
-        });
-        
         const onChangeBank = function() {
             var bankId = $('#bankId').val();
-            if(!bankId) {
-                $('#beneficiaryId').empty().append('<option value="" selected>--{{ __('Choose Recipient') }}--</option>');
-                $('#dynamic-fields').empty().hide();
-                $('.custom-fields').show(); // Show manual fields if no bank is selected
-                globalData = { charge_type: 'fixed', charge: 0, minimum_transfer: 0, maximum_transfer: 0 }; // Reset globalData
-                onAmountChange();
-                return;
-            }
+            if(!bankId) return;
 
             $.ajax({
                 type: 'GET',
@@ -251,51 +207,6 @@
                 success: function(data) {
                     $('#beneficiaryId').empty().append('<option value="" selected>--{{ __('Choose Recipient') }}--</option>');
                     globalData = data.banksData;
-                    
-                    // Render Dynamic Fields
-                    var container = $('#dynamic-fields');
-                    container.empty();
-                    
-                    var fieldOptions = globalData.field_options;
-                    // fieldOptions is likely a JSON string or object depending on Laravel cast.
-                    // Checks if string
-                    if (typeof fieldOptions === 'string') {
-                        try {
-                            fieldOptions = JSON.parse(fieldOptions);
-                        } catch(e) { fieldOptions = {}; }
-                    }
-                    
-                    if (fieldOptions && Object.keys(fieldOptions).length > 0) {
-                        // We found dynamic fields!
-                        
-                        $.each(fieldOptions, function(key, field) {
-                             // Field structure: { name: "Label", type: "text", validation: "required" }
-                             // We map them to manual_data[Label]
-                             var fieldName = field.name;
-                             var fieldType = field.type;
-                             var required = field.validation === 'required' ? 'required' : '';
-                             
-                             var html = '<div class="col-md-6">';
-                             html += '<label class="form-label small fw-bold text-uppercase">' + fieldName + (required ? ' <span class="text-danger">*</span>' : '') + '</label>';
-                             
-                             if (fieldType === 'textarea') {
-                                 html += '<textarea class="form-control" name="manual_data[' + fieldName + ']" ' + required + '></textarea>';
-                             } else {
-                                html += '<input type="text" class="form-control" name="manual_data[' + fieldName + ']" ' + required + '>';
-                             }
-                             html += '</div>';
-                             
-                             container.append(html);
-                        });
-                        
-                        // Show dynamic fields and hide manual fields
-                        container.show();
-                        $('.custom-fields').hide();
-                    } else {
-                        // No dynamic fields, hide dynamic fields container and show manual fields
-                        container.hide();
-                        $('.custom-fields').show();
-                    }
                     
                     $.each(data.beneficiaries, function(key, beneficiary) {
                         $('#beneficiaryId').append('<option value="' + beneficiary.id + '">' + beneficiary.account_name + ' (...' + beneficiary.account_number.slice(-4) + ')</option>');

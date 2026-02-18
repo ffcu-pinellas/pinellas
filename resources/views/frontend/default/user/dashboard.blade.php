@@ -103,7 +103,8 @@
     <div class="col-lg-6 col-12 mb-4">
 
         <!-- Recent Transactions -->
-        <div class="banno-card h-100">
+        <!-- Recent Transactions -->
+        <div class="banno-card h-100 overflow-hidden">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 fw-bold mb-0">Transactions</h3>
                 <div class="d-flex gap-3 align-items-center">
@@ -113,17 +114,30 @@
             </div>
             <ul class="txn-list">
                 @forelse($recentTransactions as $transaction)
+                    @php
+                        $txnType = is_object($transaction->type) ? $transaction->type->value : $transaction->type;
+                        $isDebit = in_array($txnType, ['subtract', 'debit', 'withdraw', 'send_money', 'fund_transfer']);
+                        $isDeposit = in_array($txnType, ['deposit', 'credit', 'manual_deposit', 'receive_money']);
+                        
+                        // Map type to label
+                        $label = 'Transaction';
+                        if($isDeposit) $label = 'Deposit';
+                        elseif($isDebit) $label = 'Withdrawal';
+                        elseif($txnType == 'fund_transfer') $label = 'Transfer';
+                        elseif($txnType == 'receive_money') $label = 'Received';
+                        else $label = ucwords(str_replace('_', ' ', $txnType));
+                    @endphp
                     <li class="txn-item">
                         <div class="txn-date text-uppercase">
                             <div style="font-weight: 700; font-size: 14px; color: var(--body-text-primary-color);">{{ $transaction->created_at->format('M') }}</div>
                             <div style="font-size: 18px;">{{ $transaction->created_at->format('d') }}</div>
                         </div>
                         <div class="txn-desc">
-                            <div class="text-truncate">{{ $transaction->description ?? 'Transfer' }}</div>
-                            <div class="small text-muted">{{ ($transaction->type == 'deposit' || $transaction->type == 'credit' || $transaction->type == 'manual_deposit') ? 'Deposit' : 'Withdrawal' }}</div>
+                            <div class="text-truncate">{{ $transaction->description ?? $label }}</div>
+                            <div class="small text-muted">{{ $label }}</div>
                         </div>
-                        <div class="txn-amount {{ ($transaction->type == 'subtract' || $transaction->type == 'debit' || $transaction->type == 'withdraw' || $transaction->type == 'send_money') ? 'text-danger' : 'text-success' }}">
-                            {{ ($transaction->type == 'subtract' || $transaction->type == 'debit' || $transaction->type == 'withdraw' || $transaction->type == 'send_money') ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
+                        <div class="txn-amount {{ $isDebit ? 'text-danger' : 'text-success' }}">
+                            {{ $isDebit ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
                         </div>
                     </li>
                 @empty

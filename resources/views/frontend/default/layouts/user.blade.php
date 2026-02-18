@@ -12,6 +12,24 @@
     
     <link rel="stylesheet" href="{{ asset('css/pinellas-custom.css') }}">
     
+    <style>
+        /* Sidebar Fixes */
+        .sidebar-nav-item {
+            font-size: 0.9rem !important; /* Reduce from absurd size */
+            padding: 10px 16px !important;
+        }
+        .sidebar-nav-item bannoweb-shared-icons {
+            font-size: 1.1rem !important;
+        }
+        .fi-logo img {
+            height: 40px !important; /* Reduce logo size if huge */
+        }
+        /* Mobile overflow fix for quick actions was already applied inline, but global override here if needed */
+        .banno-quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+    
     @stack('style')
     @yield('style')
 </head>
