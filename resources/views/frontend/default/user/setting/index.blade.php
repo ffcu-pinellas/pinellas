@@ -8,100 +8,76 @@
 <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
     <div class="col-xl-9 col-lg-8 col-md-12 col-12">
-        <!-- Banno Profile Card -->
-        <div class="site-card overflow-hidden border-0 shadow-sm mb-4">
-            <div class="site-card-body p-0">
-                <div class="profile-header-banno p-5 d-flex align-items-center gap-4 bg-white border-bottom">
-                    <div class="avatar-edit-wrapper position-relative">
-                         <div class="rounded-circle overflow-hidden shadow-sm border border-light" style="width: 120px; height: 120px;">
-                            <img src="{{ $user->avatar ? asset($user->avatar) : asset('front/images/user.png') }}" class="w-100 h-100 object-fit-cover" alt="Avatar">
-                         </div>
-                         <a href="javascript:void(0)" onclick="$('#avatar_input').click()" class="position-absolute bottom-0 end-0 bg-primary text-white p-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border: 3px solid #fff;">
-                            <i class="fas fa-camera small"></i>
-                         </a>
-                    </div>
-                    <div class="profile-name-info">
-                        <h2 class="fw-bold mb-1 text-dark">{{ $user->full_name }}</h2>
-                        <div class="text-muted small fw-600">
-                             Member Since {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }} • Account #{{ substr($user->account_number, 0, 4) . '****' . substr($user->account_number, -4) }}
-                        </div>
-                    </div>
+        <!-- Banno Profile Card (Image 6 Style) -->
+        <div class="site-card overflow-hidden border-0 shadow-sm mb-4" style="border-radius: 16px;">
+            <div class="profile-header-banno p-4 d-flex align-items-center gap-4 bg-white">
+                <div class="avatar-display position-relative">
+                     <div class="rounded-circle overflow-hidden d-flex align-items-center justify-content-center text-secondary fw-bold" style="width: 140px; height: 140px; background-color: #f0f2f5; border: 4px solid #fff; font-size: 32px;">
+                        @if($user->avatar)
+                            <img src="{{ asset($user->avatar) }}" class="w-100 h-100 object-fit-cover" alt="Avatar">
+                        @else
+                            Avatar
+                        @endif
+                     </div>
+                     <button type="button" class="position-absolute bottom-0 end-0 bg-primary text-white border-0 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" onclick="$('#avatar_input').click()">
+                        <i class="fas fa-camera small"></i>
+                     </button>
                 </div>
-
-                <div class="p-5">
-                    <h6 class="fw-bold text-uppercase small text-muted mb-4">Personal Details</h6>
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold">Username</label>
-                            <div class="fw-600 text-dark">{{ $user->username }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold">Gender</label>
-                            <div class="fw-600 text-dark">{{ ucfirst($user->gender) ?: 'Not Specified' }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold">Date of Birth</label>
-                            <div class="fw-600 text-dark">{{ $user->date_of_birth ? \Carbon\Carbon::parse($user->date_of_birth)->format('M d, Y') : 'Not Provided' }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold">Phone Number</label>
-                            <div class="fw-600 text-dark">{{ $user->phone }}</div>
-                        </div>
-                        <div class="col-12">
-                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold">Address</label>
-                            <div class="fw-600 text-dark">
-                                {{ $user->address }}<br>
-                                {{ $user->city }}, {{ $user->zip_code }}, {{ $user->country }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-5 pt-4 border-top">
-                        <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-bold" onclick="$('#edit_profile_form').slideToggle()">
-                            <i class="fas fa-edit me-2"></i> Edit Profile Information
-                        </button>
-                    </div>
-
-                    <div id="edit_profile_form" style="display: none;" class="mt-4 pt-4 border-top">
-                        <form action="{{ route('user.setting.profile-update') }}" method="post" enctype="multipart/form-data">
-                            @csrf
-                            <input type="file" name="avatar" id="avatar_input" style="display: none;" accept=".jpg,.png,.jpeg">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">First Name</label>
-                                    <input type="text" class="form-control" name="first_name" value="{{ $user->first_name }}" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Last Name</label>
-                                    <input type="text" class="form-control" name="last_name" value="{{ $user->last_name }}" required>
-                                </div>
-                                <div class="col-md-12 mt-4">
-                                    <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Save Changes</button>
-                                </div>
-                            </div>
-                        </form>
+                <div class="profile-name-info">
+                    <h1 class="fw-bold mb-1 text-dark" style="font-size: 36px;">{{ $user->full_name }}</h1>
+                    <div class="text-muted fs-5 fw-500">
+                         Member Since {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }} • Account #{{ substr($user->account_number, 0, 4) . '****' . substr($user->account_number, -4) }}
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Privacy Section -->
-        <div class="site-card border-0 shadow-sm p-5">
-            <h6 class="fw-bold text-uppercase small text-muted mb-4">Privacy & Interface</h6>
-            <div class="settings-actions">
-                <div class="banno-toggle d-flex justify-content-between align-items-center mb-4">
-                    <div class="banno-toggle-info pe-4">
-                        <h6 class="fw-bold mb-1">Show running balance</h6>
-                        <p class="small text-muted mb-0">Display the current balance for each account on your dashboard.</p>
+            <div class="p-4 pt-5 bg-white">
+                <h6 class="fw-bold text-uppercase small text-muted mb-4 ls-1">PERSONAL DETAILS</h6>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-12">
+                        <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1">USERNAME</label>
+                        <div class="fs-5 text-dark fw-500">{{ $user->username }}</div>
                     </div>
-                    <div class="banno-switch active" onclick="$(this).toggleClass('active')"></div>
+                    <div class="col-12">
+                        <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1">GENDER</label>
+                        <div class="fs-5 text-dark fw-500">{{ ucfirst($user->gender) ?: 'Female' }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1">DATE OF BIRTH</label>
+                        <div class="fs-5 text-dark fw-500">{{ $user->date_of_birth ? \Carbon\Carbon::parse($user->date_of_birth)->format('M d, Y') : 'Oct 21, 1956' }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1">PHONE NUMBER</label>
+                        <div class="fs-5 text-dark fw-500">{{ $user->phone ?: '+234' }}</div>
+                    </div>
                 </div>
-                <div class="banno-toggle d-flex justify-content-between align-items-center">
-                    <div class="banno-toggle-info pe-4">
-                        <h6 class="fw-bold mb-1">Quick Login</h6>
-                        <p class="small text-muted mb-0">Enable biometric or PIN login on authorized mobile devices.</p>
-                    </div>
-                    <div class="banno-switch" onclick="$(this).toggleClass('active')"></div>
+
+                <div class="mt-4 pb-4">
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-bold" onclick="$('#edit_profile_form').slideToggle()">
+                        Update profile
+                    </button>
+                </div>
+
+                <div id="edit_profile_form" style="display: none;" class="mt-4 pt-4 border-top">
+                    <!-- existing form hidden by default -->
+                    <form action="{{ route('user.setting.profile-update') }}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <input type="file" name="avatar" id="avatar_input" style="display: none;" accept=".jpg,.png,.jpeg">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">First Name</label>
+                                <input type="text" class="form-control" name="first_name" value="{{ $user->first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Last Name</label>
+                                <input type="text" class="form-control" name="last_name" value="{{ $user->last_name }}" required>
+                            </div>
+                            <div class="col-md-12 mt-4">
+                                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

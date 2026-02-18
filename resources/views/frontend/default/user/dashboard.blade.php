@@ -14,31 +14,21 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold text-uppercase opacity-75">Accounts</span>
-                        <div class="d-flex gap-1">
+                        <div class="d-flex gap-3 align-items-center">
+                            <a href="{{ route('user.accounts') }}" class="text-white text-decoration-none small fw-bold opacity-75">View all</a>
                             <i class="fas fa-ellipsis-h opacity-75"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Accounts Carousel Prototype (Static for now but styled as Banno) -->
-                <div class="row g-2 mb-4">
-                    <div class="col-md-5">
-                        <div class="p-3 rounded-3" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>0000 SAVINGS</span>
-                                <span>${{ number_format(auth()->user()->balance * 0.1, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-end">
-                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->account_number, -4) }}S00</span>
-                                <span class="opacity-75" style="font-size: 11px;">Available</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5 d-none d-md-block">
-                        <div class="p-3 rounded-3" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                <!-- Dynamic Accounts Carousel -->
+                <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <!-- Checking Account -->
+                    <div class="flex-shrink-0" style="width: 280px;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
-                                <span>${{ number_format(auth()->user()->balance, 2) }}</span>
+                                <span>{{ $currency }}{{ number_format(auth()->user()->balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->account_number, -4) }}S10</span>
@@ -46,11 +36,43 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Savings Accounts -->
+                    @foreach($savings_accounts as $account)
+                    <div class="flex-shrink-0" style="width: 280px;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>{{ strtoupper($account->type) }}</span>
+                                <span>{{ $currency }}{{ number_format($account->balance, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr($account->account_number, -4) }}</span>
+                                <span class="opacity-75" style="font-size: 11px;">Available</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+
+                    @if($savings_accounts->isEmpty())
+                    <div class="flex-shrink-0" style="width: 280px;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>0000 SAVINGS</span>
+                                <span>{{ $currency }}0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->account_number, -4) }}S00</span>
+                                <span class="opacity-75" style="font-size: 11px;">Available</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
-                <div class="accounts-dots d-md-none mb-4">
-                    <div class="accounts-dot active"></div>
-                    <div class="accounts-dot"></div>
+                <div class="accounts-dots d-flex justify-content-center gap-1 mt-2 mb-3">
+                    <div class="accounts-dot active" style="width: 6px; height: 6px; background: #fff; border-radius: 50%;"></div>
+                    <div class="accounts-dot" style="width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
+                    <div class="accounts-dot" style="width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%;"></div>
                 </div>
 
                 <!-- 6 Quick Actions -->
@@ -94,67 +116,15 @@
 <div class="row">
     <!-- Left Column: Accounts & Transactions -->
     <div class="col-lg-8">
-        <!-- Accounts Section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h3 class="h5 fw-bold mb-3" style="color: var(--body-text-theme-color);">Accounts</h3>
-            </div>
-            
-            <!-- Checking -->
-            <div class="col-md-6 mb-3">
-                <div class="banno-card h-100">
-                    <div class="account-card-header">
-                        <span class="account-name">Checking</span>
-                        <i class="fas fa-ellipsis-v text-muted"></i>
-                    </div>
-                    <div class="account-balance mb-1">{{ $currency }} {{ number_format(auth()->user()->balance, 2) }}</div>
-                    <div class="account-details">Available Balance</div>
-                    <div class="mt-3 text-end">
-                        <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-sm btn-outline-primary rounded-pill">Transfer</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Savings Accounts -->
-            @foreach($savings_accounts as $account)
-            <div class="col-md-6 mb-3">
-                <div class="banno-card h-100">
-                    <div class="account-card-header">
-                        <span class="account-name">{{ strtoupper($account->type) }}</span>
-                        <i class="fas fa-ellipsis-v text-muted"></i>
-                    </div>
-                    <div class="account-balance mb-1">{{ $currency }} {{ number_format($account->balance, 2) }}</div>
-                    <div class="account-details">Current Balance</div>
-                    <div class="mt-3 text-end">
-                        <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-sm btn-outline-primary rounded-pill">Transfer</a>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-            
-            @if($savings_accounts->isEmpty())
-            <!-- Fallback if no savings accounts found, to maintain visual balance -->
-            <div class="col-md-6 mb-3">
-                <div class="banno-card h-100 opacity-75">
-                    <div class="account-card-header">
-                        <span class="account-name">PRIMARY SAVINGS</span>
-                        <i class="fas fa-ellipsis-v text-muted"></i>
-                    </div>
-                    <div class="account-balance mb-1">{{ $currency }} 0.00</div>
-                    <div class="account-details">Current Balance</div>
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill" disabled>Transfer</button>
-                    </div>
-                </div>
-            </div>
-            @endif
-        </div>
 
         <!-- Recent Transactions -->
         <div class="banno-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 fw-bold mb-0">Recent Transactions</h3>
-                <a href="{{ route('user.fund_transfer.transfer.log') }}" class="text-decoration-none" style="font-size: 13px; font-weight: 600;">View All</a>
+                <div class="d-flex gap-3 align-items-center">
+                    <i class="fas fa-search text-muted small"></i>
+                    <i class="fas fa-ellipsis-h text-muted"></i>
+                </div>
             </div>
             <ul class="txn-list">
                 @forelse($recentTransactions as $transaction)
@@ -175,6 +145,9 @@
                     <li class="text-center py-4 text-muted">No recent transactions</li>
                 @endforelse
             </ul>
+            <div class="mt-4 pt-2 border-top text-center">
+                <a href="{{ route('user.fund_transfer.transfer.log') }}" class="text-decoration-none fw-bold" style="font-size: 14px;">See more</a>
+            </div>
         </div>
     </div>
 

@@ -206,29 +206,29 @@ body {
     text-align: center;
 }
 
-/* Quick Action Buttons on Dashboard */
+/* Quick Action Buttons on Dashboard (Block Style) */
 .banno-quick-actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 8px;
+    padding-bottom: 12px;
     scrollbar-width: none;
-    /* Firefox */
 }
 
 .banno-quick-actions::-webkit-scrollbar {
     display: none;
-    /* Chrome/Safari */
 }
 
 .banno-action-btn {
     flex: 0 0 auto;
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
+    width: 68px;
+    height: 68px;
+    background: #004a89;
+    /* Solid Banno blue */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
     color: white;
     display: flex;
     flex-direction: column;
@@ -236,25 +236,32 @@ body {
     justify-content: center;
     text-decoration: none;
     transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .banno-action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #005fb0;
     color: white;
     transform: translateY(-2px);
 }
 
 .banno-action-btn i {
-    font-size: 20px;
-    margin-bottom: 6px;
+    font-size: 18px;
+    margin-bottom: 4px;
 }
 
 .banno-action-btn span {
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 9px;
+    font-weight: 700;
     text-align: center;
-    line-height: 1.1;
-    text-transform: uppercase;
+    line-height: 1;
+    text-transform: capitalize;
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
 }
 
 /* Dashboard Refinements */
