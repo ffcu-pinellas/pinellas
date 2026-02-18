@@ -103,7 +103,6 @@
     <div class="col-lg-6 col-12 mb-4">
 
         <!-- Recent Transactions -->
-                    @if($widget == 'transactions')
                         <!-- Recent Transactions (Widget Index: transactions) -->
                         <div class="banno-card h-100 overflow-hidden" style="padding: 0;">
                             <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-center">
@@ -139,7 +138,6 @@
                                 <a href="{{ route('user.transactions') }}" class="btn btn-light rounded-pill px-4 fw-bold text-primary" style="background: #eef6fb; border: none;">See more</a>
                             </div>
                         </div>
-                    @endif
     </div>
 
     <!-- Right Column: Sidebar Widgets -->
