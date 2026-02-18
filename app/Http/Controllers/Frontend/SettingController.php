@@ -213,7 +213,7 @@ class SettingController extends Controller
         if (!$request->has('notification_permissions')) {
              // Map individual inputs to the permission array
              $permissions = [
-                'all_push_notifications' => $request->has('push_notifications') ? 1 : 0,
+                'all_push_notifications' => $request->has('all_push_notifications') ? 1 : 0,
                 'deposit_email_notificaitons' => $request->has('email_notifications') ? 1 : 0, // Master Email toggle for deposit
                 'fund_transfer_email_notificaitons' => $request->has('email_notifications') ? 1 : 0,
                 'withdraw_payment_email_notificaitons' => $request->has('email_notifications') ? 1 : 0,

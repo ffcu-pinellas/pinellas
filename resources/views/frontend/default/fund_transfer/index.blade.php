@@ -36,55 +36,83 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: To Account -->
+                    <!-- Step 2: Recipient Details -->
                     <div class="p-5 border-bottom bg-light bg-opacity-10">
-                        <div class="d-flex align-items-center justify-content-between mb-4">
-                            <div class="d-flex align-items-center gap-3">
+                        @if(isset($code) && $code == 'member')
+                            <!-- Internal / Member Transfer View -->
+                            <div class="d-flex align-items-center gap-3 mb-4">
                                 <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">2</div>
-                                <h5 class="fw-bold mb-0">To</h5>
-                            </div>
-                            <a href="#" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" data-bs-toggle="modal" data-bs-target="#addBox">
-                                <i class="fas fa-plus-circle me-1"></i> Add recipient
-                            </a>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Bank</label>
-                                <select name="bank_id" class="form-select rounded-3 border-2" id="bankId" style="padding: 12px;">
-                                    <option value="" disabled selected>--{{ __('Select Bank') }}--</option>
-                                    <option value="0">{{ __('Own Bank (Internal)') }}</option>
-                                    @foreach ($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Beneficiary</label>
-                                <select name="beneficiary_id" class="form-select rounded-3 border-2" id="beneficiaryId" style="padding: 12px;">
-                                    <option value="" selected>--{{ __('Choose Recipient') }}--</option>
-                                </select>
+                                <h5 class="fw-bold mb-0">To Member</h5>
                             </div>
 
-                            <!-- Manual Entry (if no beneficiary selected) -->
-                            <div class="col-12 mt-4 custom-fields">
-                                <div class="p-4 border rounded-3 bg-white shadow-sm">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-uppercase">Account Number</label>
-                                            <input type="text" class="form-control" id="account_number" name="manual_data[account_number]" placeholder="0000000000">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-uppercase">Account Name</label>
-                                            <input type="text" class="form-control" id="account_name" name="manual_data[account_name]" placeholder="Recipient Name">
-                                        </div>
-                                        <div id="branch_name_field" class="col-12">
-                                            <label class="form-label small fw-bold text-uppercase">Branch Name</label>
-                                            <input type="text" class="form-control" id="branch_name" name="manual_data[branch_name]" placeholder="Optional">
+                                <!-- Simplified Manual Entry -->
+                            <div class="inputs">
+                                <div class="row g-4">
+                                    <input type="hidden" name="bank_id" value="0" id="bankId"> <!-- Force Internal/Own Bank -->
+                                    <input type="hidden" name="beneficiary_id" value=""> 
+
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted">Account Number</label>
+                                        <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="manual_data[account_number]" placeholder="Enter Member Account #" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-uppercase text-muted">Account Name</label>
+                                        <input type="text" class="form-control form-control-lg fw-bold border-2 bg-white" id="account_name" name="manual_data[account_name]" placeholder="Account Owner's Name" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-text mt-2"><i class="fas fa-info-circle me-1"></i> Enter the account number to verify the member's name.</div>
+                            </div>
+
+                        @else
+                            <!-- External Transfer View -->
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="step-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px;">2</div>
+                                    <h5 class="fw-bold mb-0">To</h5>
+                                </div>
+                                <a href="#" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" data-bs-toggle="modal" data-bs-target="#addBox">
+                                    <i class="fas fa-plus-circle me-1"></i> Add recipient
+                                </a>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Bank</label>
+                                    <select name="bank_id" class="form-select rounded-3 border-2" id="bankId" style="padding: 12px;">
+                                        <option value="" disabled selected>--{{ __('Select Bank') }}--</option>
+                                        <!-- Removed Own Bank Option as requested for External Transfers -->
+                                        @foreach ($banks as $bank)
+                                            <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Select Beneficiary</label>
+                                    <select name="beneficiary_id" class="form-select rounded-3 border-2" id="beneficiaryId" style="padding: 12px;">
+                                        <option value="" selected>--{{ __('Choose Recipient') }}--</option>
+                                    </select>
+                                </div>
+
+                                <!-- Manual Entry (Fallback/Custom) -->
+                                <div class="col-12 mt-4 custom-fields">
+                                    <div class="p-4 border rounded-3 bg-white shadow-sm">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-uppercase">Account Number</label>
+                                                <input type="text" class="form-control" id="account_number" name="manual_data[account_number]" placeholder="0000000000">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-uppercase">Account Name</label>
+                                                <input type="text" class="form-control" id="account_name" name="manual_data[account_name]" placeholder="Recipient Name">
+                                            </div>
+                                            <div id="branch_name_field" class="col-12">
+                                                <label class="form-label small fw-bold text-uppercase">Branch Name</label>
+                                                <input type="text" class="form-control" id="branch_name" name="manual_data[branch_name]" placeholder="Optional">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
 
                     <!-- Step 3: Amount & Memo -->
@@ -257,6 +285,11 @@
         };
 
         $('#amount').on('keyup input', onAmountChange);
+
+        // Auto-trigger if bankId is already set (e.g. Member Transfer)
+        if ($('#bankId').val()) {
+            onChangeBank();
+        }
     });
 </script>
 @endsection

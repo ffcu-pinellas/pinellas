@@ -141,6 +141,25 @@
 @include('frontend::include.__script')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Fix for Desktop Profile Dropdown (Dropup) in Sidebar
+        const profileToggle = document.querySelector('.user-profile-banno.toggle-button');
+        const profileMenu = document.querySelector('.sidebar-user-menu-dropup');
+        
+        if (profileToggle && profileMenu) {
+            profileToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                profileMenu.classList.toggle('show');
+            });
+            
+            // Close when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!profileToggle.contains(e.target) && !profileMenu.contains(e.target)) {
+                    profileMenu.classList.remove('show');
+                }
+            });
+        }
+
         // Sidebar Toggle Logic
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.sidebar-overlay');

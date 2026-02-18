@@ -59,28 +59,28 @@
                 </div>
 
                 <!-- 6 Quick Actions -->
-                <div class="banno-quick-actions">
-                    <a href="{{ route('user.fund_transfer.index') }}" class="banno-action-btn">
+                <div class="banno-quick-actions d-flex flex-nowrap overflow-auto pb-2 gap-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <a href="{{ route('user.fund_transfer.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-exchange-alt"></i>
                         <span>Transfer</span>
                     </a>
-                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn">
+                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-user"></i>
                         <span>Pay a person</span>
                     </a>
-                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn">
+                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <span>Pay a bill</span>
                     </a>
-                    <a href="{{ route('user.messages') }}" class="banno-action-btn">
+                    <a href="{{ route('user.messages') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-comment-medical"></i>
                         <span>Message</span>
                     </a>
-                    <a href="{{ route('user.fund_transfer.index') }}" class="banno-action-btn">
+                    <a href="{{ route('user.fund_transfer.member') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-university"></i>
                         <span>Member Transfers</span>
                     </a>
-                    <a href="#" class="banno-action-btn">
+                    <a href="#" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-file-alt"></i>
                         <span>Documents</span>
                     </a>
@@ -98,10 +98,12 @@
 
 <div class="row">
     <!-- Left Column: Accounts & Transactions -->
-    <div class="col-lg-8">
+<div class="row">
+    <!-- Left Column: Accounts & Transactions -->
+    <div class="col-lg-6 col-12 mb-4">
 
         <!-- Recent Transactions -->
-        <div class="banno-card">
+        <div class="banno-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 fw-bold mb-0">Transactions</h3>
                 <div class="d-flex gap-3 align-items-center">
@@ -118,10 +120,10 @@
                         </div>
                         <div class="txn-desc">
                             <div class="text-truncate">{{ $transaction->description ?? 'Transfer' }}</div>
-                            <div class="small text-muted">{{ $transaction->type == 'credit' ? 'Deposit' : 'Withdrawal' }}</div>
+                            <div class="small text-muted">{{ ($transaction->type == 'deposit' || $transaction->type == 'credit' || $transaction->type == 'manual_deposit') ? 'Deposit' : 'Withdrawal' }}</div>
                         </div>
-                        <div class="txn-amount {{ $transaction->type == 'debit' ? 'text-danger' : 'text-success' }}">
-                            {{ $transaction->type == 'debit' ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
+                        <div class="txn-amount {{ ($transaction->type == 'subtract' || $transaction->type == 'debit' || $transaction->type == 'withdraw' || $transaction->type == 'send_money') ? 'text-danger' : 'text-success' }}">
+                            {{ ($transaction->type == 'subtract' || $transaction->type == 'debit' || $transaction->type == 'withdraw' || $transaction->type == 'send_money') ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
                         </div>
                     </li>
                 @empty
@@ -135,10 +137,10 @@
     </div>
 
     <!-- Right Column: Sidebar Widgets -->
-    <div class="col-lg-4">
+    <div class="col-lg-6 col-12">
         <div id="dashboard-widgets" class="row">
             @foreach($widgetOrder as $widget)
-                <div class="col-lg-6 col-12 mb-4" data-id="{{ $widget }}">
+                <div class="col-12 mb-4" data-id="{{ $widget }}">
                     @if($widget == 'messages')
                         <!-- Messages Widget -->
                         <div class="banno-card text-center h-100">

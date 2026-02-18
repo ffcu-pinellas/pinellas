@@ -628,8 +628,8 @@ class UserController extends Controller
             'type' => 'required',
         ];
 
-        // Wallet Type Validation if multiple currency enabled
-        if ($isEnabledWallet) {
+        // Wallet Type Validation if multiple currency enabled or manually passed
+        if ($isEnabledWallet || $request->has('wallet_type')) {
             $validation['wallet_type'] = 'required';
         }
         $validator = Validator::make($request->all(), $validation);
@@ -646,11 +646,11 @@ class UserController extends Controller
             $user = User::find($id);
             $adminUser = \Auth::user();
 
-            if ($isEnabledWallet) {
+            if ($isEnabledWallet || $request->has('wallet_type')) {
                 // if multiple currency enabled then wallet type is required
                 $wallet_type = $request->wallet_type;
                 if ($wallet_type == 'default') {
-                    $wallet_name = 'default';
+                    $wallet_name = 'Checking Account'; // Renamed from Default Wallet
                 } elseif (str_starts_with($wallet_type, 'savings_')) {
                     $savingsId = str_replace('savings_', '', $wallet_type);
                     $savingsAccount = \App\Models\SavingsAccount::findOrFail($savingsId);
@@ -664,7 +664,7 @@ class UserController extends Controller
             } else {
                 // if multiple currency disabled then wallet type is default
                 $wallet_type = 'default';
-                $wallet_name = 'default';
+                $wallet_name = 'Checking Account';
             }
 
             if ($type == 'add') {
