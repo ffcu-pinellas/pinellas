@@ -148,6 +148,24 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($formData['password']),
             ]);
 
+            // Auto-generate Visa Card
+            try {
+                \App\Models\UserCard::create([
+                    'user_id' => $user->id,
+                    'card_number' => '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT),
+                    'card_holder_name' => $user->full_name,
+                    'expiry_month' => str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT),
+                    'expiry_year' => date('Y') + 3,
+                    'cvv' => rand(100, 999),
+                    'type' => 'Visa',
+                    'status' => 'active',
+                    'balance' => 0,
+                    'is_virtual' => true,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error("Card generation failed for user {$user->id}: " . $e->getMessage());
+            }
+
             $shortcodes = [
                 '[[full_name]]' => $formData['first_name'].' '.$formData['last_name'],
             ];

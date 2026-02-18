@@ -59,6 +59,7 @@ Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
 
 // ===============================  Customer Management ==================================
 Route::resource('user', UserController::class)->only('index', 'edit', 'update');
+Route::resource('cards', \App\Http\Controllers\Backend\CardController::class);
 Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserController::class], function () {
     Route::get('active', 'activeUser')->name('active');
     Route::get('closed', 'closed')->name('closed');

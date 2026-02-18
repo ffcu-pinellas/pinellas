@@ -9,17 +9,17 @@
         type="image/x-icon"
     />
     <link rel="icon" href="{{ asset(setting('site_favicon','global')) }}" type="image/x-icon"/>
-    <link rel="stylesheet" href="{{ asset('global/css/fontawesome.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('backend/css/bootstrap.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('backend/css/animate.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/nice-select.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/datatables.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/simple-notify.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/daterangepicker.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('backend/css/summernote-lite.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/select2.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('global/css/custom.css?v=1.0') }}"/>
-    <link rel="stylesheet" href="{{ asset('backend/css/styles.css?v=1.0') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/fontawesome.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/backend/css/bootstrap.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/backend/css/animate.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/nice-select.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/datatables.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/simple-notify.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/daterangepicker.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/backend/css/summernote-lite.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/global/css/custom.css?v=1.0') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/backend/css/styles.css?v=1.0') }}"/>
     @yield('style')
     @stack('style')
 

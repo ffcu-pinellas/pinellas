@@ -56,4 +56,17 @@ class DashboardController extends Controller
 
         return view('frontend::user.dashboard', $dataCount);
     }
+
+    public function saveOrder(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+        ]);
+
+        $user = auth()->user();
+        $user->dashboard_order = $request->order;
+        $user->save();
+
+        return response()->json(['status' => 'success']);
+    }
 }

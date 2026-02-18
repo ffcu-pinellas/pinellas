@@ -92,6 +92,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
 
     // Fund Transfer
     Route::group(['prefix' => 'fund-transfer', 'as' => 'fund_transfer.'], function () {
+        Route::get('/member', [FundTransferController::class, 'memberTransfer'])->name('member'); // Specific route first
         Route::get('/{code?}', [FundTransferController::class, 'index'])->name('index');
         Route::post('beneficiary/store', [BeneficiaryController::class, 'store'])->name('beneficiary.store');
         Route::get('beneficiary/list', [BeneficiaryController::class, 'index'])->name('beneficiary.index');
@@ -104,6 +105,9 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('transfer/wire', [FundTransferController::class, 'wirePost'])->middleware('passcode:fund_transfer')->name('transfer.wire.post');
         Route::get('beneficiary/show/{id}', [BeneficiaryController::class, 'show'])->name('beneficiary.show');
     });
+
+    // Cards
+    Route::get('cards', [UserController::class, 'cards'])->name('cards');
 
     // Dps
     Route::group(['prefix' => 'dps', 'as' => 'dps.'], function () {

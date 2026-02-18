@@ -52,6 +52,31 @@ class FundTransferController extends Controller
         return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets', 'savingsAccounts'));
     }
 
+    public function memberTransfer()
+    {
+        if (! setting('transfer_status', 'permission') || ! Auth::user()->transfer_status) {
+            notify()->error(__('Fund transfer currently unavailable!'), 'Error');
+            return to_route('user.dashboard');
+        } elseif (! setting('kyc_fund_transfer') && ! auth()->user()->kyc) {
+            notify()->error(__('Please verify your KYC.'), 'Error');
+            return to_route('user.dashboard');
+        }
+
+        $banks = OthersBank::active()->where('id', 0)->get(); // Only Own Bank
+        // If '0' isn't in DB as a bank, we might need to fake it or standard logic uses id=0 for own bank
+        // The view logic `value="0"` implies Own Bank is hardcoded option. 
+        // So we can just pass empty banks or handle it in view.
+        // Actually, the view has: <option value="0">{{ __('Own Bank (Internal)') }}</option>
+        // So we can just pass empty banks if we want ONLY own bank.
+        $banks = collect([]); 
+        
+        $wallets = auth()->user()->wallets->load('currency');
+        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
+        $code = 'member';
+
+        return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets', 'savingsAccounts'));
+    }
+
     public function getBeneficiary(Request $request, $bankId)
     {
         $currencyCode = $request->get('currency_code', setting('site_currency', 'global'));
