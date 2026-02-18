@@ -139,6 +139,7 @@
                                 <a href="{{ route('user.transactions') }}" class="btn btn-light rounded-pill px-4 fw-bold text-primary" style="background: #eef6fb; border: none;">See more</a>
                             </div>
                         </div>
+                    @endif
     </div>
 
     <!-- Right Column: Sidebar Widgets -->
@@ -220,6 +221,13 @@
                                     <i class="fas fa-credit-card text-primary"></i>
                                 </div>
                                 <div>
+                                    <h4 class="h6 fw-bold mb-0">Cards</h4>
+                                    <p class="small text-muted mb-0">Manage your cards</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <i class="fas fa-ellipsis-h text-muted" style="cursor: grab;"></i>
+                                </div>
+                            </div>
                             <a href="{{ route('user.cards') }}" class="btn btn-outline-primary w-100 rounded-pill">Manage Cards</a>
                         </div>
                     @endif

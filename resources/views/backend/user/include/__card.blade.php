@@ -56,7 +56,7 @@
                                         <div class="d-flex flex-wrap gap-2">
                                             @can('virtual-card-status-change')
                                             <!-- Activate/Deactivate -->
-                                            <a href="{{ route('admin.user.card.status.update', $card->card_id) }}"
+                                            <a href="{{ route('admin.user.card.status.update', $card->id) }}"
                                                 class="site-btn-sm {{ $card?->status == 'active' ? 'red':'green' }}-btn">
                                                 {!! $card->status == 'active' ? '<i data-lucide="shield-off"></i>'.__('Freeze') : '<i data-lucide="shield-check"></i>'.__('Unfreeze') !!}
                                             </a>

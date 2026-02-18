@@ -73,7 +73,7 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::get('mail-send/all', 'mailSendAll')->name('mail-send.all');
     Route::post('mail-send', 'mailSend')->name('mail-send');
     Route::get('destroy/{id}', 'destroy')->name('destroy');
-    Route::get('status/{card:card_id}', 'updateCardStatus')->name('card.status.update');
+    Route::get('status/{card}', 'updateCardStatus')->name('card.status.update');
     Route::put('card/balance/topup/{card}', 'cardBalanceUpdate')->name('card.balance.update');
 });
 

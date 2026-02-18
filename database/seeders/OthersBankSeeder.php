@@ -1,0 +1,82 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class OthersBankSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        // Clear existing data to avoid duplicates if re-seeding
+        DB::table('others_banks')->truncate();
+
+        $sql = "INSERT INTO `others_banks` (`name`, `code`, `processing_time`, `processing_type`, `charge`, `charge_type`, `minimum_transfer`, `maximum_transfer`, `daily_limit_maximum_amount`, `daily_limit_maximum_count`, `monthly_limit_maximum_amount`, `monthly_limit_maximum_count`, `field_options`, `details`, `status`, `created_at`, `updated_at`) VALUES
+('Chase Bank', 'CHASE', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"},{\"name\":\"Account Type\",\"type\":\"text\",\"validation\":\"required\"}]', 'JP Morgan Chase', 1, NOW(), NOW()),
+('Bank of America', 'BOA', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"},{\"name\":\"Account Type\",\"type\":\"text\",\"validation\":\"required\"}]', 'Bank of America', 1, NOW(), NOW()),
+('Wells Fargo', 'WF', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Wells Fargo', 1, NOW(), NOW()),
+('Citibank', 'CITI', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Citi', 1, NOW(), NOW()),
+('US Bank', 'USB', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'US Bank', 1, NOW(), NOW()),
+('PNC Bank', 'PNC', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'PNC Financial Services', 1, NOW(), NOW()),
+('Truist', 'TRUIST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Truist Financial', 1, NOW(), NOW()),
+('Goldman Sachs', 'GS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Goldman Sachs', 1, NOW(), NOW()),
+('Capital One', 'CAP1', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Capital One', 1, NOW(), NOW()),
+('TD Bank', 'TD', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'TD Bank', 1, NOW(), NOW()),
+('Bank of New York Mellon', 'BNY', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'BNY Mellon', 1, NOW(), NOW()),
+('State Street', 'SS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'State Street Corporation', 1, NOW(), NOW()),
+('BMO Harris', 'BMO', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'BMO Harris Bank', 1, NOW(), NOW()),
+('Citizens Bank', 'CITIZENS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Citizens Financial Group', 1, NOW(), NOW()),
+('Fifth Third Bank', '53', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Fifth Third Bancorp', 1, NOW(), NOW()),
+('M&T Bank', 'MT', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'M&T Bank', 1, NOW(), NOW()),
+('KeyBank', 'KEY', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'KeyCorp', 1, NOW(), NOW()),
+('Regions Bank', 'REGIONS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Regions Financial', 1, NOW(), NOW()),
+('Northern Trust', 'NT', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Northern Trust', 1, NOW(), NOW()),
+('Huntington Bank', 'HUNTINGTON', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Huntington Bancshares', 1, NOW(), NOW()),
+('Discover Bank', 'DISCOVER', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Discover Financial', 1, NOW(), NOW()),
+('Synchrony Bank', 'SYNCHRONY', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Synchrony Financial', 1, NOW(), NOW()),
+('Ally Bank', 'ALLY', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Ally Financial', 1, NOW(), NOW()),
+('USAA', 'USAA', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'USAA', 1, NOW(), NOW()),
+('Navy Federal Credit Union', 'NFCU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Navy Federal', 1, NOW(), NOW()),
+('American Express', 'AMEX', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'American Express', 1, NOW(), NOW()),
+('Barclays US', 'BARCLAYS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Barclays', 1, NOW(), NOW()),
+('Santander Bank', 'SANTANDER', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Santander Group', 1, NOW(), NOW()),
+('Comerica Bank', 'COMERICA', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Comerica', 1, NOW(), NOW()),
+('Zions Bank', 'ZIONS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Zions Bancorporation', 1, NOW(), NOW()),
+('First Republic Bank', 'FRB', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'First Republic Bank', 1, NOW(), NOW()),
+('Signature Bank', 'SIGNATURE', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Signature Bank', 1, NOW(), NOW()),
+('Union Bank', 'UNION', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'MUFG Union Bank', 1, NOW(), NOW()),
+('Synovus Bank', 'SYNOVUS', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Synovus', 1, NOW(), NOW()),
+('First Horizon Bank', 'FHB', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'First Horizon', 1, NOW(), NOW()),
+('BOK Financial', 'BOK', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'BOK Financial Corporation', 1, NOW(), NOW()),
+('East West Bank', 'EASTWEST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'East West Bancorp', 1, NOW(), NOW()),
+('Frost Bank', 'FROST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Cullen/Frost Bankers', 1, NOW(), NOW()),
+('First Citizens Bank', 'FCB', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'First Citizens BancShares', 1, NOW(), NOW()),
+('Webster Bank', 'WEBSTER', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Webster Financial', 1, NOW(), NOW()),
+('PenFed Credit Union', 'PENFED', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Pentagon Federal Credit Union', 1, NOW(), NOW()),
+('Boeing Employees Credit Union', 'BECU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'BECU', 1, NOW(), NOW()),
+('SchoolsFirst FCU', 'SCHOOLSFIRST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'SchoolsFirst Federal Credit Union', 1, NOW(), NOW()),
+('Golden 1 Credit Union', 'GOLDEN1', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Golden 1 Credit Union', 1, NOW(), NOW()),
+('Alliant Credit Union', 'ALLIANT', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Alliant Credit Union', 1, NOW(), NOW()),
+('Suncoast Credit Union', 'SUNCOAST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Suncoast Credit Union', 1, NOW(), NOW()),
+('America First Credit Union', 'AMERICATFIRST', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'America First Federal Credit Union', 1, NOW(), NOW()),
+('Chime', 'CHIME', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Chime Financial', 1, NOW(), NOW()),
+('Varo Bank', 'VARO', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Varo Money', 1, NOW(), NOW()),
+('State Employees Credit Union', 'SECU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'State Employees’ Credit Union', 1, NOW(), NOW()),
+('First Tech Federal Credit Union', 'FIRSTTECH', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'First Tech Federal Credit Union', 1, NOW(), NOW()),
+('Digital Federal Credit Union', 'DCU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Digital Federal Credit Union', 1, NOW(), NOW()),
+('Bethpage Federal Credit Union', 'BETHPAGE', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Bethpage Federal Credit Union', 1, NOW(), NOW()),
+('Randolph-Brooks Federal Credit Union', 'RBFCU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Randolph-Brooks Federal Credit Union', 1, NOW(), NOW()),
+('VyStar Credit Union', 'VYSTAR', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'VyStar Credit Union', 1, NOW(), NOW()),
+('Mountain America Credit Union', 'MACU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Mountain America Credit Union', 1, NOW(), NOW()),
+('Security Service Federal Credit Union', 'SSFCU', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Security Service Federal Credit Union', 1, NOW(), NOW()),
+('Local Bank / Credit Union', 'LOCAL', 'Instant', 'unspecified', 0.4, 'percent', 10, 10000000, 10000000, 25, 50000000, 100, '[{\"name\":\"Bank Name\",\"type\":\"text\",\"validation\":\"required\"},{\"name\":\"Routing Number\",\"type\":\"text\",\"validation\":\"required\"}]', 'Other / Local Institution', 1, NOW(), NOW());";
+
+        DB::unprepared($sql);
+    }
+}

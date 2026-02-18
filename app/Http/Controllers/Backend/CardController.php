@@ -97,4 +97,33 @@ class CardController extends Controller
         // Visa starts with 4
         return '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT);
     }
+
+    public function updateCardStatus($id)
+    {
+        $card = UserCard::find($id);
+        if ($card->status == 'active') {
+             $card->status = 'inactive'; 
+             $msg = 'Card Frozen Successfully';
+        } else {
+             $card->status = 'active';
+             $msg = 'Card Unfrozen Successfully';
+        }
+        $card->save();
+        notify()->success($msg);
+        return redirect()->back();
+    }
+
+    public function cardBalanceUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+        ]);
+        
+        $card = UserCard::find($id);
+        $card->balance += $request->amount;
+        $card->save();
+        
+        notify()->success('Card Balance Updated Successfully');
+        return redirect()->back();
+    }
 }
