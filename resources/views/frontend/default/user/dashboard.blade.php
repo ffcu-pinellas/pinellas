@@ -103,51 +103,42 @@
     <div class="col-lg-6 col-12 mb-4">
 
         <!-- Recent Transactions -->
-        <!-- Recent Transactions -->
-        <div class="banno-card h-100 overflow-hidden">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="h6 fw-bold mb-0">Transactions</h3>
-                <div class="d-flex gap-3 align-items-center">
-                    <i class="fas fa-search text-muted small"></i>
-                    <i class="fas fa-ellipsis-h text-muted"></i>
-                </div>
-            </div>
-            <ul class="txn-list">
-                @forelse($recentTransactions as $transaction)
-                    @php
-                        $txnType = is_object($transaction->type) ? $transaction->type->value : $transaction->type;
-                        $isDebit = in_array($txnType, ['subtract', 'debit', 'withdraw', 'send_money', 'fund_transfer']);
-                        $isDeposit = in_array($txnType, ['deposit', 'credit', 'manual_deposit', 'receive_money']);
-                        
-                        // Map type to label
-                        $label = 'Transaction';
-                        if($isDeposit) $label = 'Deposit';
-                        elseif($isDebit) $label = 'Withdrawal';
-                        elseif($txnType == 'fund_transfer') $label = 'Transfer';
-                        elseif($txnType == 'receive_money') $label = 'Received';
-                        else $label = ucwords(str_replace('_', ' ', $txnType));
-                    @endphp
-                    <li class="txn-item">
-                        <div class="txn-date text-uppercase">
-                            <div style="font-weight: 700; font-size: 14px; color: var(--body-text-primary-color);">{{ $transaction->created_at->format('M') }}</div>
-                            <div style="font-size: 18px;">{{ $transaction->created_at->format('d') }}</div>
+                    @if($widget == 'transactions')
+                        <!-- Recent Transactions (Widget Index: transactions) -->
+                        <div class="banno-card h-100 overflow-hidden" style="padding: 0;">
+                            <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-center">
+                                <h3 class="h6 fw-bold mb-0" style="font-size: 1.1rem;">Transactions</h3>
+                                <div class="d-flex gap-3 align-items-center">
+                                    <i class="fas fa-search text-muted small pointer"></i>
+                                    <i class="fas fa-ellipsis-h text-muted pointer"></i>
+                                </div>
+                            </div>
+                            <ul class="txn-list list-unstyled m-0">
+                                @forelse($recentTransactions->take(5) as $transaction)
+                                    @php
+                                        $txnType = is_object($transaction->type) ? $transaction->type->value : $transaction->type;
+                                        $isDebit = in_array($txnType, ['subtract', 'debit', 'withdraw', 'send_money', 'fund_transfer']);
+                                        $label = $transaction->description ?? 'Transaction';
+                                    @endphp
+                                    <li class="txn-item px-4 py-3 border-bottom" style="cursor: pointer;" onclick="window.location='{{ route('user.transactions') }}'">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="txn-desc text-truncate fw-bold text-dark" style="max-width: 70%;">{{ $label }}</div>
+                                            <div class="txn-amount fw-bold {{ $isDebit ? '' : 'text-success' }}" style="font-size: 1rem;">
+                                                {{ $isDebit ? '' : '+' }}${{ number_format($transaction->amount, 2) }}
+                                            </div>
+                                        </div>
+                                        <div class="small text-muted mt-1 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                            {{ $transaction->created_at->format('M j, Y') }} {{ auth()->user()->account_number }} CHECKING
+                                        </div>
+                                    </li>
+                                @empty
+                                    <li class="text-center py-4 text-muted">No recent transactions</li>
+                                @endforelse
+                            </ul>
+                            <div class="p-3 text-center">
+                                <a href="{{ route('user.transactions') }}" class="btn btn-light rounded-pill px-4 fw-bold text-primary" style="background: #eef6fb; border: none;">See more</a>
+                            </div>
                         </div>
-                        <div class="txn-desc">
-                            <div class="text-truncate">{{ $transaction->description ?? $label }}</div>
-                            <div class="small text-muted">{{ $label }}</div>
-                        </div>
-                        <div class="txn-amount {{ $isDebit ? 'text-danger' : 'text-success' }}">
-                            {{ $isDebit ? '-' : '+' }}${{ number_format($transaction->amount, 2) }}
-                        </div>
-                    </li>
-                @empty
-                    <li class="text-center py-4 text-muted">No recent transactions</li>
-                @endforelse
-            </ul>
-            <div class="mt-4 pt-2 border-top text-center">
-                <a href="{{ route('user.fund_transfer.transfer.log') }}" class="text-decoration-none fw-bold" style="font-size: 14px;">See more</a>
-            </div>
-        </div>
     </div>
 
     <!-- Right Column: Sidebar Widgets -->
@@ -244,12 +235,61 @@
         </div>
     </div>
 </div>
+<!-- Organizer Button -->
 <div class="row mt-5 mb-5 pb-5">
     <div class="col-12 d-flex justify-content-center">
-        <button id="save-dashboard-layout" class="btn btn-dark rounded-3 px-4 py-2 opacity-75 d-flex align-items-center gap-2" style="background-color: #3d454d; border: none; font-size: 14px; font-weight: 500;">
-            <i class="fas fa-save"></i>
-            Save Layout
+        <button type="button" class="btn btn-dark rounded-3 px-4 py-2 opacity-75 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#organizeModal" style="background-color: #3d454d; border: none; font-size: 14px; font-weight: 500;">
+            Organize dashboard
         </button>
+    </div>
+</div>
+
+<!-- Organizer Modal -->
+<div class="modal fade" id="organizeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="background-color: #f4f6f8;">
+            <div class="modal-header border-0 bg-white p-4">
+                <div>
+                    <h5 class="modal-title fw-bold" id="organizeModalLabel">Organize dashboard</h5>
+                    <p class="text-muted small mb-0">Drag & drop to reorder</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Accounts Section (Static for now as per image) -->
+                <div class="bg-white p-3 rounded-3 shadow-sm mb-3">
+                    <div class="fw-bold">Accounts</div>
+                </div>
+                
+                <!-- Sortable Grid -->
+                <!-- We exclude 'accounts' from sortable if it's treated separately/statically at top, but usually it's a widget too. -->
+                <!-- Image 3 shows Accounts separate at top. But my code treats 'accounts' as a widget. -->
+                <!-- I will filter 'accounts' out of the sortable grid if present, or keep it if user wants it draggable. -->
+                <!-- Image 3 shows 'Accounts' as a static block above the grid. -->
+                <div id="modal-widgets-grid" class="row g-3">
+                    @foreach($user_widgets as $widget)
+                        @if($widget == 'accounts') @continue @endif
+                        <div class="col-6 widget-tile" data-id="{{ $widget }}">
+                            <div class="bg-white p-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between cursor-move h-100">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-grip-vertical text-muted"></i>
+                                    <span class="fw-bold text-capitalize">{{ str_replace('_', ' ', $widget) }}</span>
+                                </div>
+                                <i class="fas fa-times text-muted"></i>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="mt-3">
+                     <a href="#" class="text-decoration-none small fw-bold text-primary">+ Add a card</a>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4">
+                 <button type="button" class="btn btn-link text-primary fw-bold text-decoration-none" data-bs-dismiss="modal">Cancel</button>
+                 <button type="button" class="btn btn-link text-primary fw-bold text-decoration-none" id="save-dashboard-order-btn">Done</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -260,17 +300,30 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const el = document.getElementById('dashboard-widgets');
+        // Initialize Sortable on the Modal Grid, not the main dashboard
+        const el = document.getElementById('modal-widgets-grid');
         const sortable = Sortable.create(el, {
             animation: 150,
-            handle: '.fa-ellipsis-h', // Use the menu icon as handle
+            handle: '.cursor-move', // Make the whole tile handle or specific icon
             ghostClass: 'bg-light'
         });
 
         // Save Layout
-        document.getElementById('save-dashboard-layout').addEventListener('click', function() {
-            const order = sortable.toArray();
+        document.getElementById('save-dashboard-order-btn').addEventListener('click', function() {
+            let order = sortable.toArray();
             
+            // Add 'accounts' back to the start of the order since it's static in the modal
+            // Check if 'accounts' is already there (unlikely due to blade exclusion)
+            if (!order.includes('accounts')) {
+                order.unshift('accounts');
+            }
+            
+            // Allow button to indicate loading
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
+
             fetch("{{ route('user.dashboard.save-order') }}", {
                 method: "POST",
                 headers: {
@@ -281,10 +334,14 @@
             })
             .then(response => response.json())
             .then(data => {
-                alert('Dashboard configuration saved!');
+                // Reload to reflect changes
+                window.location.reload();
             })
             .catch(error => {
                 console.error('Error:', error);
+                alert('Failed to save layout.');
+                btn.innerText = originalText;
+                btn.disabled = false;
             });
         });
     });

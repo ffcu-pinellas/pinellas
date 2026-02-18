@@ -77,7 +77,7 @@
                 <bannoweb-shared-icons><i class="fas fa-exchange-alt"></i></bannoweb-shared-icons>
                 <div class="ms-2">Transfers</div>
             </a>
-            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
+            <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
                 <bannoweb-shared-icons><i class="fas fa-users"></i></bannoweb-shared-icons>
                 <div class="ms-2">Member Transfers</div>
             </a>
@@ -143,7 +143,47 @@
 
     <!-- Main Content -->
     <main class="main-content-area">
-        <div class="container-fluid" style="height: 100%; display: flex; flex-direction: column; padding-bottom: 20px;">
+        <!-- Global Desktop Header (Top Right Profile) -->
+        <div class="d-none d-lg-flex justify-content-end align-items-center py-3 px-4 position-absolute top-0 end-0" style="z-index: 1000; width: 100%; pointer-events: none;">
+             <div style="pointer-events: auto;">
+                <div class="dropdown">
+                    <button class="btn p-0 border-0 bg-transparent" type="button" id="topProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; font-size: 16px; border: 2px solid rgba(255,255,255,0.8);">
+                            {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                        </div>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" aria-labelledby="topProfileDropdown" style="border-radius: 12px; margin-top: 10px; min-width: 200px;">
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}">
+                                <i class="far fa-user-circle me-3 text-muted" style="width: 20px;"></i>
+                                <span class="fw-medium">Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.messages') }}">
+                                <i class="far fa-question-circle me-3 text-muted" style="width: 20px;"></i>
+                                <span class="fw-medium">Support</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}">
+                                <i class="fas fa-cog me-3 text-muted" style="width: 20px;"></i>
+                                <span class="fw-medium">Settings</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="fas fa-sign-out-alt me-3" style="width: 20px;"></i>
+                                <span class="fw-medium">Sign out</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+             </div>
+        </div>
+
+        <div class="container-fluid" style="height: 100%; display: flex; flex-direction: column; padding-bottom: 20px; padding-top: 20px;">
             @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
                 @include('frontend::include.__kyc_warning')
             @endif
