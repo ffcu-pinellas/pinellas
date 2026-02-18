@@ -96,7 +96,7 @@ class DepositController extends Controller
         // Wallet type
         $walletType = $request->get('wallet_type', 'default');
 
-        $txnInfo = Txn::new($input['amount'], $charge, $finalAmount, $gatewayInfo->gateway_code, 'Deposit With '.$gatewayInfo->name, $depositType, TxnStatus::Pending, $gatewayInfo->currency, $payAmount, auth()->id(), null, 'User', $manualData ?? [], $walletType);
+        $txnInfo = Txn::new($input['amount'], $charge, $finalAmount, $gatewayInfo->gateway_code, 'DEPOSIT - '.strtoupper($gatewayInfo->name), $depositType, TxnStatus::Pending, $gatewayInfo->currency, $payAmount, auth()->id(), null, 'User', $manualData ?? [], $walletType);
 
         $symbol = setting('currency_symbol', 'global');
         $notify = [

@@ -18,8 +18,8 @@ class BillPayController extends Controller
     public function index()
     {
         $billers = BillService::orderBy('name')->get();
-        $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
-        return view('frontend::bill_pay.index', compact('billers', 'savingsAccounts'));
+        // Savings logic moved to View using auth()->user()
+        return view('frontend::bill_pay.index', compact('billers'));
     }
 
     public function pay(Request $request)
@@ -28,19 +28,19 @@ class BillPayController extends Controller
             'biller_id' => 'required|exists:bill_services,id',
             'amount' => 'required|numeric|min:0.01',
             'data' => 'required|array',
+            'account_type' => 'required|in:default,savings_primary',
         ]);
 
         $user = auth()->user();
         $biller = BillService::findOrFail($request->biller_id);
-        $walletType = $request->get('account_type', 'default');
+        $walletType = $request->account_type;
         
-        if (str_starts_with($walletType, 'savings_')) {
-            $savingsId = str_replace('savings_', '', $walletType);
-            $source = \App\Models\SavingsAccount::where('user_id', $user->id)->where('id', $savingsId)->firstOrFail();
-            $balance = $source->balance;
+        if ($walletType === 'savings_primary') {
+            $balance = $user->savings_balance;
+            $accountLabel = __('Savings');
         } else {
-            $source = $user;
             $balance = $user->balance;
+            $accountLabel = __('Checking');
         }
 
         if ($balance < $request->amount) {
@@ -54,10 +54,10 @@ class BillPayController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $user, $biller, $source, $walletType) {
+            DB::transaction(function () use ($request, $user, $biller, $walletType, $accountLabel) {
                 // Deduct Balance
-                if (str_starts_with($walletType, 'savings_')) {
-                    $source->decrement('balance', $request->amount);
+                if ($walletType === 'savings_primary') {
+                    $user->decrement('savings_balance', $request->amount);
                 } else {
                     $user->decrement('balance', $request->amount);
                 }
@@ -66,7 +66,7 @@ class BillPayController extends Controller
                 $bill = Bill::create([
                     'bill_service_id' => $biller->id,
                     'user_id' => $user->id,
-                    'data' => $request->data,
+                    'data' => json_encode($request->data), // Ensure JSON encoding
                     'amount' => $request->amount,
                     'charge' => 0,
                     'status' => 'completed',
@@ -85,7 +85,7 @@ class BillPayController extends Controller
                 $transaction->status = TxnStatus::Success;
                 $transaction->description = __('Bill Payment to :biller from :account', [
                     'biller' => $biller->name,
-                    'account' => str_starts_with($walletType, 'savings_') ? __('Savings') : __('Checking')
+                    'account' => $accountLabel
                 ]);
                 $transaction->wallet_type = $walletType;
                 $transaction->save();

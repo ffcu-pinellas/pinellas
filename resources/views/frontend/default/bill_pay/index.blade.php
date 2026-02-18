@@ -59,10 +59,8 @@
                                             <div class="mb-4">
                                                 <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Pay From Account</label>
                                                 <select name="account_type" class="form-select border-2 rounded-3 p-2 fw-600" required>
-                                                    <option value="default">{{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ auth()->user()->balance }}</option>
-                                                    @foreach($savingsAccounts as $savings)
-                                                        <option value="savings_{{ $savings->id }}">{{ __('Savings Account (...') . substr($savings->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ $savings->balance }}</option>
-                                                    @endforeach
+                                                    <option value="default">{{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->balance, 2) }}</option>
+                                                    <option value="savings_primary">{{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}</option>
                                                 </select>
                                             </div>
 

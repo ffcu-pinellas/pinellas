@@ -136,7 +136,7 @@ class TransferService
         $txnType = TxnType::FundTransfer;
         $transferType = $bankId == 0 ? TransferType::OwnBankTransfer : TransferType::OtherBankTransfer;
 
-        $txnInfo = Txn::transfer($amount, $charge, $finalAmount, 'Transfer to ' . $accountNumber, $txnType, TxnStatus::Pending, $currency, $finalAmount, $user->id, null, 'User', $beneficiary?->id, $bankId, $input['purpose'], $transferType, $manualData, $wallet->id ?? 'default');
+        $txnInfo = Txn::transfer($amount, $charge, $finalAmount, 'TRANSFER TO ' . $accountNumber, $txnType, TxnStatus::Pending, $currency, $finalAmount, $user->id, null, 'User', $beneficiary?->id, $bankId, $input['purpose'], $transferType, $manualData, $wallet->id ?? 'default');
 
         if ($bankId == 0 && $receiver) {
 
@@ -156,7 +156,7 @@ class TransferService
                 $receiver->increment('balance', $amount);
             }
 
-            (new Txn)->new($amount, $charge, $finalAmount, 'System', 'Received money from ' . $user->full_name, TxnType::ReceiveMoney, TxnStatus::Success, $currency, $finalAmount, $receiver->id, null, 'User', [], $wallet->id ?? null, approvalCause: $input['purpose']);
+            (new Txn)->new($amount, $charge, $finalAmount, 'System', 'TRANSFER FROM ' . strtoupper($user->full_name), TxnType::ReceiveMoney, TxnStatus::Success, $currency, $finalAmount, $receiver->id, null, 'User', [], $wallet->id ?? null, approvalCause: $input['purpose']);
         }
 
         if ($walletType == 'primary_savings') {

@@ -99,38 +99,52 @@
 
         <!-- Recent Transactions -->
                         <!-- Recent Transactions (Widget Index: transactions) -->
-                        <div class="banno-card h-100 overflow-hidden" style="padding: 0;">
-                            <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-center">
-                                <h3 class="h6 fw-bold mb-0" style="font-size: 1.1rem;">Transactions</h3>
+                        <div class="banno-card h-100 overflow-hidden d-flex flex-column" style="padding: 0;">
+                            <div class="px-3 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                                <h3 class="h6 fw-bold mb-0" style="font-size: 1.1rem; letter-spacing: -0.02em;">Transactions</h3>
                                 <div class="d-flex gap-3 align-items-center">
-                                    <i class="fas fa-search text-muted small pointer"></i>
-                                    <i class="fas fa-ellipsis-h text-muted pointer"></i>
+                                    <i class="fas fa-search text-muted small pointer opacity-75"></i>
+                                    <i class="fas fa-ellipsis-h text-muted pointer opacity-75"></i>
                                 </div>
                             </div>
-                            <ul class="txn-list list-unstyled m-0">
+                            <ul class="txn-list list-unstyled m-0 flex-grow-1 overflow-hidden">
                                 @forelse($recentTransactions->take(5) as $transaction)
                                     @php
                                         $txnType = is_object($transaction->type) ? $transaction->type->value : $transaction->type;
-                                        $isDebit = in_array($txnType, ['subtract', 'debit', 'withdraw', 'send_money', 'fund_transfer']);
-                                        $label = $transaction->description ?? 'Transaction';
+                                        $isDebit = in_array($txnType, ['subtract', 'debit', 'withdraw', 'send_money', 'fund_transfer', 'pay_bill']);
+                                        
+                                        // Standardize Description to Uppercase and Professional Terms
+                                        $desc = strtoupper($transaction->description ?? 'TRANSACTION');
+                                        
+                                        // Account Label Logic
+                                        $wallet = $transaction->wallet_type;
+                                        if ($wallet == 'default') {
+                                            $accountLabel = '0010 CHECKING';
+                                        } elseif ($wallet == 'savings_primary' || str_starts_with($wallet, 'savings_')) {
+                                            $accountLabel = '0000 SAVINGS';
+                                        } else {
+                                            $accountLabel = 'ACCOUNT';
+                                        }
                                     @endphp
-                                    <li class="txn-item px-4 py-3 border-bottom" style="cursor: pointer;" onclick="window.location='{{ route('user.transactions') }}'">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="txn-desc text-truncate fw-bold text-dark" style="max-width: 70%;">{{ $label }}</div>
-                                            <div class="txn-amount fw-bold {{ $isDebit ? '' : 'text-success' }}" style="font-size: 1rem;">
-                                                {{ $isDebit ? '' : '+' }}${{ number_format($transaction->amount, 2) }}
+                                    <li class="txn-item px-3 py-3 border-bottom d-flex justify-content-between align-items-start transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" onclick="window.location='{{ route('user.transactions') }}'">
+                                        <div style="min-width: 0;">
+                                            <div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.95rem; letter-spacing: 0.01em;">
+                                                {{ $desc }}
+                                            </div>
+                                            <div class="small text-muted" style="font-size: 0.8rem; font-weight: 500;">
+                                                {{ $transaction->created_at->format('M j, Y') }}, {{ $accountLabel }}
                                             </div>
                                         </div>
-                                        <div class="small text-muted mt-1 text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                                            {{ $transaction->created_at->format('M j, Y') }} {{ auth()->user()->account_number }} CHECKING
+                                        <div class="txn-amount fw-bold ms-3 {{ $isDebit ? 'text-dark' : 'text-success' }}" style="font-size: 0.95rem;">
+                                            {{ $isDebit ? '' : '+' }}${{ number_format($transaction->amount, 2) }}
                                         </div>
                                     </li>
                                 @empty
-                                    <li class="text-center py-4 text-muted">No recent transactions</li>
+                                    <li class="text-center py-5 text-muted small">No recent transactions</li>
                                 @endforelse
                             </ul>
-                            <div class="p-3 text-center">
-                                <a href="{{ route('user.transactions') }}" class="btn btn-light rounded-pill px-4 fw-bold text-primary" style="background: #eef6fb; border: none;">See more</a>
+                            <div class="p-3 text-center mt-auto">
+                                <a href="{{ route('user.transactions') }}" class="btn btn-light rounded-3 px-4 py-2 fw-bold text-primary w-100" style="background: #eef6fb; border: none; font-size: 0.9rem;">See more</a>
                             </div>
                         </div>
     </div>

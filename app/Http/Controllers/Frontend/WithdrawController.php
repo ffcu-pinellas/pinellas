@@ -308,7 +308,7 @@ class WithdrawController extends Controller
             $charge,
             $totalAmount,
             $withdrawMethod->name,
-            'Withdraw With '.$withdrawAccount->method_name,
+            'WITHDRAWAL - '.strtoupper($withdrawAccount->method_name),
             $type,
             TxnStatus::Pending,
             $withdrawMethod->currency,
