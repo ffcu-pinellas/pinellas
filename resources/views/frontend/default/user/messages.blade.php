@@ -34,7 +34,7 @@
                     Our team is available to assist you during regular business hours.<br>
                     Messages sent after hours will be answered the following business day.
                 </p>
-                <a href="{{ route('user.ticket.index') }}" class="btn btn-danger rounded-pill px-5 py-2 fw-bold shadow-sm">
+                <a href="{{ route('user.ticket.index') }}" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-sm">
                     Start a conversation
                 </a>
             </div>

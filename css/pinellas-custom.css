@@ -15,6 +15,54 @@
     /* Banno Blue */
 }
 
+/* Bootstrap Overrides for Pinellas Theme */
+.text-primary {
+    color: var(--body-text-theme-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--body-text-theme-color) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-button-color) !important;
+    border-color: var(--primary-button-color) !important;
+    color: var(--primary-button-text-color) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #b92b1e !important;
+    /* Darker shade of red */
+    border-color: #b92b1e !important;
+}
+
+.btn-outline-primary {
+    color: var(--primary-button-color) !important;
+    border-color: var(--primary-button-color) !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-button-color) !important;
+    color: #fff !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--body-text-theme-color) !important;
+    border-color: var(--body-text-theme-color) !important;
+}
+
+a {
+    color: var(--body-text-theme-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: #003d73;
+    /* Darker blue */
+}
+
 body {
     font-family: 'Open Sans', 'Roboto', sans-serif;
     color: var(--body-text-primary-color);
@@ -123,34 +171,49 @@ footer,
 .sidebar-nav-item {
     display: flex;
     align-items: center;
-    padding: 12px 24px;
+    padding: 14px 24px;
+    /* Increased vertical padding */
     color: var(--body-text-primary-color);
     text-decoration: none;
-    font-weight: 400 !important;
-    font-size: 13px !important;
+    font-weight: 500 !important;
+    /* Slightly bolder for readability */
+    font-size: 12px !important;
+    /* Increased from 13px */
     border-left: 4px solid transparent;
+    transition: all 0.2s;
 }
 
 .sidebar-nav-item:hover,
 .sidebar-nav-item.active {
-    background-color: #f8f9fa;
+    background-color: #eef6fb;
+    /* Light Blue Banno Style */
     color: var(--jha-text-theme);
     border-left-color: var(--jha-text-theme);
-}
-
-.sidebar-nav::-webkit-scrollbar {
-    display: none;
-}
-
-.sidebar-nav {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 
 .sidebar-nav-item i {
     width: 24px;
     margin-right: 12px;
     text-align: center;
+    font-size: 14px;
+    /* Slightly larger icons */
+}
+
+/* Strictly Remove Scrollbars */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari and Opera */
+    width: 0px;
+    background: transparent;
 }
 
 .sidebar-footer {

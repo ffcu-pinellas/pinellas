@@ -138,7 +138,7 @@
     <div class="col-lg-4">
         <div id="dashboard-widgets" class="row">
             @foreach($widgetOrder as $widget)
-                <div class="col-12 col-xl-6 mb-4" data-id="{{ $widget }}">
+                <div class="col-lg-6 col-12 mb-4" data-id="{{ $widget }}">
                     @if($widget == 'messages')
                         <!-- Messages Widget -->
                         <div class="banno-card text-center h-100">
@@ -172,7 +172,7 @@
                                 <p class="small text-muted px-4">We typically respond within one business day. Please call (727) 586-4422 us if you have an urgent issue.</p>
                             </div>
                             
-                            <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="background-color: #d73d09; border: none;">Start a conversation</a>
+                            <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="border: none;">Start a conversation</a>
                         </div>
                     @elseif($widget == 'promo')
                         <!-- Keep us in the loop Promo Card -->

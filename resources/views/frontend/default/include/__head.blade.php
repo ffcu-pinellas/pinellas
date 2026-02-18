@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{{ asset('assets/front/css/select2.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/nice-select.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/global/css/daterangepicker.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/global/css/custom.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/magnific-popup.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/aos.css') }}">

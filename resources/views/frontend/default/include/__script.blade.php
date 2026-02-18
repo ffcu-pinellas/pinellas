@@ -1,5 +1,7 @@
 <script src="{{ asset('assets/global/js/jquery.min.js') }}"></script>
 <script src="{{ asset('assets/global/js/jquery-migrate.js') }}"></script>
+<script src="{{ asset('assets/global/js/moment.min.js') }}"></script>
+<script src="{{ asset('assets/global/js/daterangepicker.min.js') }}"></script>
 <script src="{{ asset('assets/global/js/lucide.min.js') }}"></script>
 <script src="{{ asset('assets/front/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/front/js/select2.min.js') }}"></script>

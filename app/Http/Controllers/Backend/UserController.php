@@ -16,6 +16,7 @@ use App\Models\Loan;
 use App\Models\Ticket;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserCard;
 use App\Models\UserKyc;
 use App\Models\UserWallet;
 use App\Traits\ImageUpload;
@@ -322,7 +323,8 @@ class UserController extends Controller
                 ->paginate()
                 ->withQueryString();
         } elseif (request('tab') == 'card') {
-            $cards = Card::currentUser($id)->with('cardHolder')->latest()->get();
+            $cards = UserCard::where('user_id', $id)->latest()->get();
+            $data['cards'] = $cards;
         }
 
         $branches = Branch::where('status', 1)->get();

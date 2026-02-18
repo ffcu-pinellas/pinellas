@@ -401,6 +401,11 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         return $this->hasMany(UserWallet::class, 'user_id');
     }
 
+    public function cards()
+    {
+        return $this->hasMany(UserCard::class, 'user_id');
+    }
+
     protected static function booted(): void
     {
         static::created(function ($user) {
