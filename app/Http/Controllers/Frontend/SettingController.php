@@ -8,6 +8,7 @@ use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\LoginActivities;
 use PragmaRX\Google2FALaravel\Support\Authenticator;
 
 class SettingController extends Controller

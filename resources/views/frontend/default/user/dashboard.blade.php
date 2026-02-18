@@ -9,7 +9,7 @@
     <div class="col-12">
         <div class="welcome-section p-4 rounded-3 text-white position-relative" style="background-color: var(--navigation-bar-color); background-image: url('https://my.pinellasfcu.org/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-background-landscape-2c77924b.png'); background-size: cover; background-position: center; min-height: 240px;">
             <div class="position-relative z-1">
-                <h1 class="welcome-text mb-4 mt-2" style="font-size: 32px; font-weight: 700;">Hi, {{ strtoupper(auth()->user()->first_name) }}</h1>
+                <h1 class="welcome-text mb-4 mt-2" style="font-size: 32px; font-weight: 700; color: #fff !important;">Hi, {{ strtoupper(auth()->user()->first_name) }}</h1>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
