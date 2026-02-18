@@ -220,13 +220,6 @@
                                     <i class="fas fa-credit-card text-primary"></i>
                                 </div>
                                 <div>
-                                    <h4 class="h6 fw-bold mb-0">Card Management</h4>
-                                    <p class="small text-muted mb-0">Control your cards</p>
-                                </div>
-                                 <div class="ms-auto">
-                                    <i class="fas fa-ellipsis-h text-muted" style="cursor: grab;"></i>
-                                </div>
-                            </div>
                             <a href="{{ route('user.cards') }}" class="btn btn-outline-primary w-100 rounded-pill">Manage Cards</a>
                         </div>
                     @endif

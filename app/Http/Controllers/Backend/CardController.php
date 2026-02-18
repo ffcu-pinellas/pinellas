@@ -43,6 +43,10 @@ class CardController extends Controller
         $card->save();
 
         notify()->success('Card Created Successfully');
+        
+        if ($request->has('redirect_to')) {
+            return redirect($request->redirect_to);
+        }
         return redirect()->route('admin.cards.index');
     }
 
@@ -62,11 +66,23 @@ class CardController extends Controller
 
         $card = UserCard::find($id);
         $card->status = $request->status;
-        $card->balance = $request->balance;
+        if($request->has('balance')) {
+            $card->balance = $request->balance;
+        }
         $card->save();
 
         notify()->success('Card Updated Successfully');
-        return redirect()->route('admin.cards.index');
+        
+        if ($request->has('redirect_to')) {
+            return redirect($request->redirect_to);
+        }
+        
+        // If the request came from the user edit page (via referrer check as fallback or just back)
+        // But back() is safer if no redirect_to is provided and we want to return to where we came from
+        return redirect()->back(); 
+        // Original was redirect()->route('admin.cards.index'); but back() is better generally.
+        // However, if I stick to the plan:
+        // return redirect()->route('admin.cards.index');
     }
 
     public function destroy($id)
