@@ -234,3 +234,38 @@ Route::get('notification-tune', [AppController::class, 'notificationTune'])->nam
 Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.job');
 
 
+
+// Web-Based Migration Runner (Temporary)
+Route::get('deploy/run-migration', function () {
+    try {
+        \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'savings_account_number')) {
+                $table->string('savings_account_number')->nullable()->unique()->after('account_number');
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'savings_balance')) {
+                $table->decimal('savings_balance', 28, 8)->default(0)->after('balance');
+            }
+        });
+
+        // Populate existing users
+        $users = \App\Models\User::all();
+        $updated = 0;
+        foreach ($users as $user) {
+            if (empty($user->savings_account_number)) { 
+                $account_number = null;
+                do {
+                    $account_number = random_int(1000000000000000, 9999999999999999);
+                    $account_number = substr($account_number, 0, 12); 
+                } while (\App\Models\User::where('savings_account_number', $account_number)->exists());
+                
+                $user->savings_account_number = $account_number;
+                $user->save();
+                $updated++;
+            }
+        }
+
+        return "Migration Successful! Columns added and $updated users updated.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
