@@ -66,7 +66,7 @@
                                 <div class="small text-muted">Mobile</div>
                                 <div class="fs-6 text-dark fw-500">{{ $user->phone ?: '(737) 410-5689' }}</div>
                              </div>
-                             <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit phone numbers</a>
+                             <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=phone]').focus()" class="text-decoration-none small fw-bold">Edit phone numbers</a>
                         </div>
                     </div>
                     
@@ -76,7 +76,7 @@
                              <div class="w-100">
                                 <div class="small text-muted mb-1">Profile details for digital banking alerts and statements.</div>
                                 <div class="fs-6 text-dark fw-500 text-uppercase mb-2">{{ $user->email }}</div>
-                                <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit email</a>
+                                <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=email]').focus()" class="text-decoration-none small fw-bold">Edit email</a>
                              </div>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                         <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">PREFERRED FIRST NAME</label>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="fs-6 text-dark fw-500">{{ $user->preferred_first_name ?: $user->first_name }}</div>
-                            <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit</a>
+                            <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=preferred_first_name]').focus()" class="text-decoration-none small fw-bold">Edit</a>
                         </div>
                     </div>
                 
@@ -95,7 +95,7 @@
                              <div class="fs-6 text-dark fw-500 text-uppercase">{{ $user->address }}</div>
                              <div class="fs-6 text-dark fw-500 text-uppercase">{{ $user->city }}, {{ $user->zip_code }}</div>
                          </div>
-                         <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideToggle()" class="text-decoration-none small fw-bold">Edit address</a>
+                         <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=address]').focus()" class="text-decoration-none small fw-bold">Edit address</a>
                     </div>
 
                     <!-- Alerts Section -->

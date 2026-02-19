@@ -22,13 +22,8 @@
                     <div class="col-12">
                          <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to</label>
                          <select name="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fs-5 fw-600" style="padding-bottom: 10px;" required>
-                            <option value="checking">Personal Checking (...{{ substr(auth()->user()->account_number, -4) }})</option>
-                            @php
-                                $savingsAccounts = \App\Models\SavingsAccount::where('user_id', auth()->id())->get();
-                            @endphp
-                            @foreach($savingsAccounts as $savings)
-                                <option value="savings_{{ $savings->id }}">{{ $savings->type }} (...{{ substr($savings->account_number, -4) }})</option>
-                            @endforeach
+                            <option value="checking">Personal Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}</option>
+                            <option value="savings">Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}</option>
                         </select>
                     </div>
                     <div class="col-12 mt-4">

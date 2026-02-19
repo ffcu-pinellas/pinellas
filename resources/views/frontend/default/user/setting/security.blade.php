@@ -73,7 +73,6 @@
                                 </div>
                              </div>
                         </div>
-                    @endif
                 </div>
 
                 <!-- Connected Devices -->

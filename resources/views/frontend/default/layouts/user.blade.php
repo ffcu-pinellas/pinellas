@@ -12,26 +12,6 @@
     
     <link rel="stylesheet" href="{{ asset('assets/frontend/css/pinellas-custom.css') }}">
     
-    <style>
-        /* Sidebar Fixes */
-        .sidebar {
-            width: 260px !important;
-        }
-        .sidebar-nav-item {
-            font-size: 0.85rem !important; /* 13-14px */
-            padding: 12px 20px !important;
-            font-weight: 400 !important;
-        }
-        .sidebar-nav-item i {
-            font-size: 0.85rem !important;
-            width: 24px;
-            text-align: center;
-        }
-        .user-info-banno .username {
-            font-size: 0.8rem !important;
-            font-weight: 500 !important;
-        }
-    </style>
     
     @stack('style')
     @yield('style')
