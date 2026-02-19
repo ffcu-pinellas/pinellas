@@ -108,8 +108,8 @@
                                     <div class="fs-6 text-dark fw-500">Push Notifications</div>
                                     <div class="small text-muted">Receive alerts on your mobile device</div>
                                 </div>
-                                <label class="banno-switch">
-                                    <input type="checkbox" name="all_push_notifications" {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'checked' : '' }} onchange="this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                <label class="banno-switch {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'active' : '' }}">
+                                    <input type="checkbox" name="all_push_notifications" {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
                                 </label>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -117,8 +117,8 @@
                                     <div class="fs-6 text-dark fw-500">Email Notifications</div>
                                     <div class="small text-muted">Receive updates and alerts via email</div>
                                 </div>
-                                <label class="banno-switch">
-                                    <input type="checkbox" name="email_notifications" {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'checked' : '' }} onchange="this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                <label class="banno-switch {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'active' : '' }}">
+                                    <input type="checkbox" name="email_notifications" {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
                                 </label>
                             </div>
                         </form>
@@ -144,6 +144,10 @@
                                 <input type="text" class="form-control" name="last_name" value="{{ $user->last_name }}" required>
                             </div>
                             <div class="col-md-6">
+                                <label class="form-label small fw-bold">Email Address</label>
+                                <input type="email" class="form-control" name="email" value="{{ $user->email }}" required>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label small fw-bold">Phone</label>
                                 <input type="text" class="form-control" name="phone" value="{{ $user->phone }}">
                             </div>
@@ -157,6 +161,7 @@
                             </div>
                             <div class="col-md-12 mt-3">
                                 <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
+                                <button type="button" class="btn btn-link text-muted text-decoration-none small fw-bold ms-2" onclick="$('#edit_profile_form').slideUp()">Cancel</button>
                             </div>
                         </div>
                     </form>

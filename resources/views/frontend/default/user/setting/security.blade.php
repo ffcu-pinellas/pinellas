@@ -38,12 +38,15 @@
                 <div class="mb-5">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                         <h6 class="fw-bold text-uppercase small text-muted mb-0">Two-factor authentication</h6>
-                        <div class="banno-switch {{ $user->two_fa ? 'active' : '' }}" onclick="window.location.href='#2fa-details'"></div>
+                        @if($user->google2fa_secret == null)
+                            <a href="{{ route('user.setting.two.fa') }}" class="banno-switch"></a>
+                        @else
+                            <div class="banno-switch {{ $user->two_fa ? 'active' : '' }}" onclick="$('#2fa-details').slideToggle()"></div>
+                        @endif
                     </div>
                     <p class="small text-muted mb-4">Add an extra layer of security to your account by requiring a code from your mobile device to sign in.</p>
                     
-                    @if($user->google2fa_secret !== null)
-                        <div id="2fa-details" class="p-4 bg-light rounded-3">
+                    <div id="2fa-details" class="p-4 bg-light rounded-3 {{ $user->google2fa_secret == null ? 'd-none' : '' }}">
                              <div class="row align-items-center">
                                 <div class="col-md-auto mb-3 mb-md-0">
                                     <div class="bg-white p-2 rounded shadow-sm">

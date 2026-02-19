@@ -30,15 +30,13 @@ class SettingController extends Controller
     public function profileUpdate(Request $request)
     {
         $input = $request->all();
-
         $user = auth()->user();
 
-        // Remove unique check for username if it's the same user to avoid self-validation error
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'username' => 'required|unique:users,username,'.$user->id,
-            'phone' => 'required',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,'.$user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
         ]);
 
         if ($validator->fails()) {
@@ -50,21 +48,22 @@ class SettingController extends Controller
             'avatar' => $request->hasFile('avatar') ? self::imageUploadTrait($input['avatar'], $user->avatar) : $user->avatar,
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'],
-            'preferred_first_name' => $input['preferred_first_name'] ?? $user->preferred_first_name, // Add Preferred Name
+            'preferred_first_name' => $request->get('preferred_first_name', $user->preferred_first_name),
             'username' => $input['username'],
+            'email' => $input['email'] ?? $user->email,
             'gender' => $input['gender'] ?? $user->gender,
-            'date_of_birth' => $input['date_of_birth'] == '' ? null : $input['date_of_birth'],
-            'phone' => $input['phone'],
-            'city' => $input['city'] ?? $user->city,
-            'zip_code' => $input['zip_code'] ?? $user->zip_code,
-            'address' => $input['address'] ?? $user->address,
+            'date_of_birth' => $request->get('date_of_birth') ?: $user->date_of_birth,
+            'phone' => $request->get('phone', $user->phone),
+            'city' => $request->get('city', $user->city),
+            'zip_code' => $request->get('zip_code', $user->zip_code),
+            'address' => $request->get('address', $user->address),
         ];
 
         $user->update($data);
 
         notify()->success(__('Profile updated successfully'), 'Success');
 
-        return redirect()->route('user.setting.show');
+        return redirect()->back();
     }
 
     public function twoFa()

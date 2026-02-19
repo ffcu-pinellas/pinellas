@@ -184,7 +184,7 @@
              </div>
         </div>
 
-        <div class="container-fluid" style="height: 100%; display: flex; flex-direction: column; padding-bottom: 20px; padding-top: 20px;">
+        <div class="container-fluid py-4" style="min-height: 100%; display: flex; flex-direction: column;">
             @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
                 @include('frontend::include.__kyc_warning')
             @endif

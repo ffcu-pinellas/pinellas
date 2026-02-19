@@ -75,3 +75,124 @@ b {
     bottom: 100% !important;
     top: auto !important;
 }
+
+/* Sidebar Refinements */
+.sidebar {
+    width: 272px !important;
+    background: #fff !important;
+    border-right: 1px solid #e5e7eb !important;
+}
+
+.sidebar-nav-item {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #4b5563 !important;
+    padding: 14px 24px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.sidebar-nav-item:hover, .sidebar-nav-item.active {
+    background: #eef6fb !important;
+    color: var(--primary-color) !important;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 20px !important;
+}
+
+.sidebar-nav-item i {
+    width: 20px;
+    margin-right: 12px;
+}
+
+/* Quick Actions Styling */
+.banno-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 16px 12px;
+    transition: all 0.2s;
+    text-decoration: none !important;
+    color: var(--primary-color) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.banno-action-btn:hover {
+    background: var(--primary-color);
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 84, 155, 0.2);
+}
+
+.banno-action-btn i {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.banno-action-btn span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* Ticket & Global Card Styles */
+.site-card {
+    background: #fff;
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+    overflow: hidden;
+}
+
+.site-card-header {
+    background: #fff !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    padding: 20px 24px !important;
+}
+
+.site-card-header .title {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #1a202c !important;
+}
+
+.site-custom-table {
+    border: none !important;
+}
+
+.site-table-list.site-table-head {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    font-size: 11px !important;
+    letter-spacing: 0.05em !important;
+    padding: 12px 24px !important;
+}
+
+.site-table-list {
+    padding: 16px 24px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    transition: background 0.2s;
+}
+
+.site-table-list:hover {
+    background: #fdfdfd;
+}
+
+.site-badge {
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+}
+
+.badge-primary, .badge-success { background: #eef6fb !important; color: #00549b !important; }
+.badge-failed { background: #fef2f2 !important; color: #dc2626 !important; }
+
+/* Global Scrollbar Hide */
+::-webkit-scrollbar { width: 0; background: transparent; }
+* { scrollbar-width: none; -ms-overflow-style: none; }

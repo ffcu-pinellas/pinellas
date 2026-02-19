@@ -12,7 +12,7 @@
             <p class="text-muted">Send money to other banks or between your accounts.</p>
         </div>
 
-        <div class="banno-card p-0 overflow-hidden mb-4">
+        <div class="banno-card p-0 mb-4">
             <div class="wizard-header p-4 border-bottom bg-light">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="step-indicator active" data-step="1">1. Type</div>
