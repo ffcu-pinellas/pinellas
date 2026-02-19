@@ -270,7 +270,7 @@
         
         // Confirmation could be added here
         
-        fetch('{{ route("cards.toggle-status") }}', {
+        fetch('{{ route('user.cards.toggle-status') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -272,4 +272,36 @@ class DepositController extends Controller
 
         return redirect()->back();
     }
+    public function gatewaySupportedCurrency($id)
+    {
+        $gateway = \Illuminate\Support\Facades\DB::table('gateways')->where('id', $id)->first();
+        
+        if (!$gateway) {
+            return response()->json(['view' => '', 'pay_currency' => '']);
+        }
+
+        $currencies = json_decode($gateway->supported_currencies, true) ?? [];
+        // If it is not an array (maybe comma separated string?), handle it.
+        if (is_string($currencies)) { // Fallback if json_decode failed or it was a simple string
+             $currencies = json_decode($currencies, true); 
+             if (!is_array($currencies)) {
+                 $currencies = explode(',', $gateway->supported_currencies);
+             }
+        }
+
+        $options = '<option selected disabled>' . __('Select Currency') . '</option>';
+        $firstCurrency = null;
+
+        foreach ($currencies as $currency) {
+            $currency = trim($currency);
+            if(empty($currency)) continue;
+            if(!$firstCurrency) $firstCurrency = $currency;
+            $options .= '<option value="' . $currency . '">' . $currency . '</option>';
+        }
+
+        return response()->json([
+            'view' => $options,
+            'pay_currency' => $firstCurrency ?? '',
+        ]);
+    }
 }

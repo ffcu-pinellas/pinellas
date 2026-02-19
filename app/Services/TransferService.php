@@ -135,28 +135,76 @@ class TransferService
 
         $txnType = TxnType::FundTransfer;
         $transferType = $bankId == 0 ? TransferType::OwnBankTransfer : TransferType::OtherBankTransfer;
+        
+        // Determine if it's a "Self" (Intra-Account) transfer or a "Member" transfer
+        $isSelfTransfer = ($bankId == 0 && $receiver && $receiver->id === $user->id);
+        
+        // "Self" transfers are processed instantly. "Member" and "External" require admin approval.
+        $initialStatus = $isSelfTransfer ? TxnStatus::Success : TxnStatus::Pending;
+        $descriptionSuffix = $isSelfTransfer ? 'INTRA-ACCOUNT TRANSFER' : ($bankId == 0 ? 'MEMBER TRANSFER' : 'EXTERNAL TRANSFER');
+        $description = $descriptionSuffix . ' TO ' . $accountNumber;
 
-        $txnInfo = Txn::transfer($amount, $charge, $finalAmount, 'TRANSFER TO ' . $accountNumber, $txnType, TxnStatus::Pending, $currency, $finalAmount, $user->id, null, 'User', $beneficiary?->id, $bankId, $input['purpose'], $transferType, $manualData, $wallet->id ?? 'default');
+        $txnWalletType = ($walletType == 'primary_savings') ? 'primary_savings' : ($wallet->id ?? 'default');
+
+        $txnInfo = Txn::transfer(
+            $amount, 
+            $charge, 
+            $finalAmount, 
+            $description, 
+            $txnType, 
+            $initialStatus, 
+            $currency, 
+            $finalAmount, 
+            $user->id, 
+            null, 
+            'User', 
+            $beneficiary?->id, 
+            $bankId, 
+            $input['purpose'] ?? 'Transfer', 
+            $transferType, 
+            $manualData, 
+            $txnWalletType
+        );
 
         if ($bankId == 0 && $receiver) {
-
-            $receiverWallet = $receiver->wallets()->whereRelation('currency', 'code', $currencyCode)->first();
-
             $transaction = Transaction::tnx($txnInfo['tnx']);
-            $transaction->update(['status' => TxnStatus::Success]);
-
-            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
             
-            // Check if reception to savings account
-            if ($receiver->savings_account_number == $sanitizedNumber) {
-                $receiver->increment('savings_balance', $amount);
-            } elseif ($receiverWallet) {
-                $receiverWallet->increment('balance', $amount);
-            } else {
-                $receiver->increment('balance', $amount);
-            }
+            // If it's a self-transfer, the primary transaction is already Success.
+            // If it's a member transfer, we wait for admin approval (unless business logic says otherwise, but user requested approval).
+            if ($isSelfTransfer) {
+                $transaction->update(['status' => TxnStatus::Success]);
 
-            (new Txn)->new($amount, $charge, $finalAmount, 'System', 'TRANSFER FROM ' . strtoupper($user->full_name), TxnType::ReceiveMoney, TxnStatus::Success, $currency, $finalAmount, $receiver->id, null, 'User', [], $wallet->id ?? null, approvalCause: $input['purpose']);
+                $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+                $receiverWalletType = 'default';
+                
+                // Credit the secondary account instantly
+                if ($receiver->savings_account_number == $sanitizedNumber) {
+                    $receiver->increment('savings_balance', $amount);
+                    $receiverWalletType = 'primary_savings';
+                } else {
+                    $receiver->increment('balance', $amount);
+                    $receiverWalletType = 'default';
+                }
+
+                (new Txn)->new(
+                    $amount, 
+                    0, 
+                    $amount, 
+                    'System', 
+                    'INTRA-ACCOUNT TRANSFER FROM ' . ($walletType == 'primary_savings' ? 'SAVINGS' : 'CHECKING'), 
+                    TxnType::ReceiveMoney, 
+                    TxnStatus::Success, 
+                    $currency, 
+                    $amount, 
+                    $receiver->id, 
+                    null, 
+                    'User', 
+                    [], 
+                    $receiverWalletType, 
+                    approvalCause: $input['purpose'] ?? 'Fund Transfer'
+                );
+            }
+            // Member transfers (receiver != user) remain Pending on line 141, and no receipt is recorded until approval in Controller.
         }
 
         if ($walletType == 'primary_savings') {

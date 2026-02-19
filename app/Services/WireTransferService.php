@@ -128,7 +128,7 @@ class WireTransferService
             }
         }
 
-        $txnInfo = Txn::transfer($input['amount'], $charge, $finalAmount, 'Wire Transfer to ' . $request->account_number, $type, TxnStatus::Pending, $currency, $payAmount, auth()->id(), null, 'User', null, null, null, $transferType, $manualField);
+        $txnInfo = Txn::transfer($input['amount'], $charge, $finalAmount, 'Wire Transfer to ' . $request->account_number, $type, TxnStatus::Pending, $currency, $payAmount, auth()->id(), null, 'User', null, null, null, $transferType, $manualField, $request->get('wallet_type', 'default'));
 
         $user = auth()->user();
 

@@ -234,7 +234,53 @@ class FundTransferController extends Controller
 
         if ($input['status'] == 'success') {
             if ($transaction->transfer_type == TransferType::WireTransfer) {
-                $transaction->user?->decrement('balance', $amount);
+                if ($transaction->wallet_type == 'primary_savings') {
+                    $transaction->user?->decrement('savings_balance', $amount);
+                } else {
+                    $transaction->user?->decrement('balance', $amount);
+                }
+            } elseif ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+                // Determine receiver from manual account number
+                $manual_data_arr = json_decode($transaction->manual_field_data, true);
+                $accountNumber = data_get($manual_data_arr, 'account_number');
+                $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+                
+                $receiver = \App\Models\User::where('account_number', $sanitizedNumber)
+                                        ->orWhere('savings_account_number', $sanitizedNumber)
+                                        ->first();
+                
+                if ($receiver) {
+                    $receiverWalletType = 'default';
+                    $creditAmount = $transaction->amount; // Credit the original amount, not final_amount (which includes fees)
+                    
+                    if ($receiver->savings_account_number == $sanitizedNumber) {
+                        $receiver->increment('savings_balance', $creditAmount);
+                        $receiverWalletType = 'primary_savings';
+                    } else {
+                        $receiver->increment('balance', $creditAmount);
+                        $receiverWalletType = 'default';
+                    }
+
+                    // Create ReceiveMoney transaction for the recipient
+                    $txn = new \App\Facades\Txn\Txn;
+                    $txn->new(
+                        $creditAmount, 
+                        0, 
+                        $creditAmount, 
+                        'System', 
+                        'MEMBER TRANSFER FROM ' . strtoupper($transaction->user->full_name), 
+                        \App\Enums\TxnType::ReceiveMoney, 
+                        \App\Enums\TxnStatus::Success, 
+                        $transaction->pay_currency, 
+                        $creditAmount, 
+                        $receiver->id, 
+                        null, 
+                        'User', 
+                        [], 
+                        $receiverWalletType, 
+                        approvalCause: $transaction->purpose ?? 'Fund Transfer'
+                    );
+                }
             }
             $this->rewardToUser($transaction->user_id, $transaction->id);
         }
@@ -242,10 +288,13 @@ class FundTransferController extends Controller
         if ($input['status'] == 'failed') {
             $amount = $transaction->final_amount;
 
-            // Default wallet
             if ($transaction->wallet_type == 'default') {
                 $transaction->user?->increment('balance', $amount);
+            } elseif ($transaction->wallet_type == 'primary_savings') {
+                $transaction->user?->increment('savings_balance', $amount);
             } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
+                // Legacy support for specific savings accounts if still needed, 
+                // but we primarily use primary_savings now.
                 $savingsId = str_replace('savings_', '', $transaction->wallet_type);
                 $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
                 if ($savingsAccount) {

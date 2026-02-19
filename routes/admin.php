@@ -58,6 +58,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
 
 // ===============================  Customer Management ==================================
+Route::get('gateway/supported-currency/{id}', [DepositController::class, 'gatewaySupportedCurrency'])->name('gateway.supported.currency');
 Route::resource('user', UserController::class)->only('index', 'edit', 'update');
 Route::resource('cards', \App\Http\Controllers\Backend\CardController::class);
 Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserController::class], function () {

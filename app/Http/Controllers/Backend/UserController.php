@@ -7,7 +7,6 @@ use App\Enums\TxnStatus;
 use App\Enums\TxnType;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
-use App\Models\Card;
 use App\Models\Dps;
 use App\Models\Fdr;
 use App\Models\Kyc;
@@ -857,17 +856,21 @@ class UserController extends Controller
         }
     }
 
-    public function updateCardStatus($card_id)
+    public function updateCardStatus($id)
     {
-
-        $card = Card::where('card_id', $card_id)->firstOrFail();
+        $card = UserCard::findOrFail($id);
 
         try {
-            // update card status
-            $this->cardProviderMap($card->provider)->updateCardStatus($card);
+            if ($card->status == 'active') {
+                $card->status = 'inactive';
+                $msg = __('Card Frozen Successfully');
+            } else {
+                $card->status = 'active';
+                $msg = __('Card Unfrozen Successfully');
+            }
+            $card->save();
 
-            // Notify user and redirect back
-            notify()->success(__('Card status updated successfully'));
+            notify()->success($msg);
 
             return back();
         } catch (\Throwable $th) {
@@ -877,10 +880,10 @@ class UserController extends Controller
         }
     }
 
-    public function cardBalanceUpdate(Request $request, Card $card)
+    public function cardBalanceUpdate(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric',
+            'amount' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -890,11 +893,9 @@ class UserController extends Controller
         }
 
         try {
-            // Validate request data
-            $balance_amount = $card->amount + $request->amount;
-
-            // update stripe card balance
-            $this->cardProviderMap($card->provider)->addCardBalance($card, $balance_amount);
+            $card = UserCard::findOrFail($id);
+            $card->balance += $request->amount;
+            $card->save();
 
             // Notify user and redirect back
             notify()->success(__('Card balance updated successfully'));
