@@ -32,8 +32,8 @@
                     <h4 class="mb-4 text-center">Who are you sending money to?</h4>
                     <div class="row g-4 justify-content-center">
                         <div class="col-md-4">
-                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label">
-                                <input type="radio" name="transfer_type" value="self" class="d-none" onchange="selectType('self')">
+                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('self', event)">
+                                <input type="radio" name="transfer_type" value="self" class="d-none">
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                     <i class="fas fa-wallet fa-lg"></i>
                                 </div>
@@ -42,8 +42,8 @@
                             </label>
                         </div>
                         <div class="col-md-4">
-                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label">
-                                <input type="radio" name="transfer_type" value="member" class="d-none" onchange="selectType('member')">
+                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('member', event)">
+                                <input type="radio" name="transfer_type" value="member" class="d-none">
                                 <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                     <i class="fas fa-users fa-lg"></i>
                                 </div>
@@ -52,8 +52,8 @@
                             </label>
                         </div>
                         <div class="col-md-4">
-                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label">
-                                <input type="radio" name="transfer_type" value="external" class="d-none" onchange="selectType('external')">
+                            <label class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('external', event)">
+                                <input type="radio" name="transfer_type" value="external" class="d-none">
                                 <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                     <i class="fas fa-university fa-lg"></i>
                                 </div>
@@ -312,11 +312,15 @@
     var currentStep = 1;
     var transferType = null;
 
-    function selectType(type) {
+    function selectType(type, e) {
         transferType = type;
+        const card = e.currentTarget;
+        const radio = card.querySelector('input[type="radio"]');
+        if(radio) radio.checked = true;
+
         // Visual feedback
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-        event.target.closest('.transfer-type-card').classList.add('border-primary');
+        card.classList.add('border-primary');
         
         setTimeout(() => {
             goToStep(2);

@@ -217,11 +217,8 @@
             });
         }
 
-        if(overlay) {
-            overlay.addEventListener('click', toggleSidebar);
-        }
-
-        // Close sidebar on link click (mobile)
+        // Remove auto-closing sidebar on link click to prevent navigation interference
+        /*
         document.querySelectorAll('.sidebar-nav-item').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth < 992) {
@@ -229,6 +226,27 @@
                 }
             });
         });
+        */
+        if(overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+
+        // Remove auto-closing sidebar on link click
+        function selectType(type) {
+            transferType = type;
+            // Find the radio inside the clicked container and check it
+            const card = event.currentTarget || event.target.closest('.transfer-type-card');
+            const radio = card.querySelector('input[type="radio"]');
+            if(radio) radio.checked = true;
+
+            // Visual feedback
+            document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
+            card.classList.add('border-primary');
+            
+            setTimeout(() => {
+                goToStep(2);
+            }, 300);
+        }
         
         // Smart Header Logic
         let lastScrollTop = 0;

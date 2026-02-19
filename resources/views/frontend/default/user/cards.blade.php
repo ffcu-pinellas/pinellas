@@ -76,8 +76,8 @@
             <div class="bg-white rounded-4 shadow-sm p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="d-flex align-items-center">
-                        <div class="status-indicator {{ $card->status == 1 ? 'bg-success' : 'bg-danger' }} rounded-circle me-2" style="width: 10px; height: 10px;"></div>
-                        <span class="small" id="cardStatusText">{{ $card->status == 1 ? 'Active' : 'Locked' }}</span>
+                        <div class="status-indicator {{ $card->status == 'active' ? 'bg-success' : 'bg-danger' }} rounded-circle me-2" style="width: 10px; height: 10px;"></div>
+                        <span class="small" id="cardStatusText">{{ $card->status == 'active' ? 'Active' : 'Locked' }}</span>
                     </div>
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" id="showDetailsToggle">
@@ -88,8 +88,8 @@
                 <div class="row g-3">
                     <div class="col-6">
                         <button onclick="toggleCardStatus({{ $card->id }}, '{{ $card->status }}')" class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
-                            <i class="fas {{ $card->status == 1 ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
-                            <span class="small">{{ $card->status == 1 ? 'Lock Card' : 'Unlock Card' }}</span>
+                            <i class="fas {{ $card->status == 'active' ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
+                            <span class="small">{{ $card->status == 'active' ? 'Lock Card' : 'Unlock Card' }}</span>
                         </button>
                     </div>
                     <div class="col-6">
@@ -265,8 +265,7 @@
 
     // Toggle Status
     function toggleCardStatus(id, currentStatus) {
-        // Handle both string 'active'/'inactive' and integer 1/0
-        const isActive = (currentStatus == 1 || currentStatus == 'active');
+        const isActive = (currentStatus === 'active');
         const newStatus = isActive ? 0 : 1;
         const action = isActive ? 'Lock' : 'Unlock';
         
