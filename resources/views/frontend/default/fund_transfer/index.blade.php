@@ -312,7 +312,7 @@
     var currentStep = 1;
     var transferType = null;
 
-    function selectType(type, e) {
+    window.selectType = function(type, e) {
         transferType = type;
         const card = e.currentTarget;
         const radio = card.querySelector('input[type="radio"]');
