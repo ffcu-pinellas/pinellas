@@ -54,7 +54,7 @@
                                             $google2fa = (new \PragmaRX\Google2FAQRCode\Google2FA());
                                             $inlineUrl = $google2fa->getQRCodeInline(setting('site_title','global'),$user->email,$user->google2fa_secret);
                                         @endphp
-                                        {!! $inlineUrl !!}
+                                        <img src="{!! $inlineUrl !!}" alt="QR Code" class="img-fluid">
                                     </div>
                                 </div>
                                 <div class="col-md">

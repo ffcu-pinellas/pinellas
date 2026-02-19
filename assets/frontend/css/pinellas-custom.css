@@ -84,13 +84,14 @@ b {
 
 /* Sidebar Main Styling */
 .sidebar {
+    /* Mobile Default */
     width: 272px !important;
     flex-shrink: 0 !important;
     background: var(--sidebar-bg) !important;
     border-right: 1px solid var(--border-color) !important;
     height: 100vh !important;
     min-height: 100vh !important;
-    position: sticky !important;
+    position: fixed !important;
     top: 0;
     left: 0;
     z-index: 1002;
@@ -163,6 +164,8 @@ b {
     }
 
     .main-content-area {
+        margin-left: 260px !important;
+        /* Fixed Sidebar Offset */
         flex: 1 !important;
         min-width: 0;
         min-height: 100vh !important;
@@ -206,8 +209,11 @@ b {
     background: linear-gradient(135deg, #00549b 0%, #00305b 100%) !important;
     border: none !important;
     border-radius: 12px !important;
-    padding: 8px 4px !important;
-    min-width: 70px !important;
+    /* Micro Quick Actions */
+    padding: 6px 2px !important;
+    min-width: 60px !important;
+    background: #004077 !important;
+    /* Solid Dark Blue */
     transition: all 0.2s;
     text-decoration: none !important;
     color: #ffffff !important;
@@ -227,7 +233,7 @@ b {
 }
 
 .banno-action-btn span {
-    font-size: 9px !important;
+    font-size: 8px !important;
     font-weight: 700 !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
