@@ -88,6 +88,51 @@
             </button>
         </form>
     </div>
+
+    <!-- History Section -->
+    <div class="col-lg-7">
+        <div class="site-card p-4">
+             <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Deposit History</h6>
+             @if($deposits->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <tbody>
+                            @foreach($deposits as $deposit)
+                                <tr class="border-bottom">
+                                    <td class="ps-0 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-camera"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
+                                                <div class="small text-muted text-capitalize">{{ $deposit->account_name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end py-3">
+                                        <div class="fw-bold text-dark">+{{ setting('site_currency') }} {{ number_format($deposit->amount, 2) }}</div>
+                                        @if($deposit->status == 'pending')
+                                            <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
+                                        @elseif($deposit->status == 'approved')
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
+                                        @else
+                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+             @else
+                <div class="text-center py-4">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486747.png" alt="No Data" style="height: 60px; opacity: 0.5;" class="mb-3">
+                    <p class="text-muted small mb-0">No past deposits found.</p>
+                </div>
+             @endif
+        </div>
+    </div>
 </div>
 @endsection
 

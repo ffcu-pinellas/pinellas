@@ -313,16 +313,23 @@
     var transferType = null;
 
     window.selectType = function(type, e) {
-        transferType = type;
         const card = e.currentTarget;
-        const radio = card.querySelector('input[type="radio"]');
-        if(radio) radio.checked = true;
-
-        // Visual feedback
-        document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-        card.classList.add('border-primary');
+        if(!card) return;
         
-        setTimeout(() => {
+        try {
+            const radio = card.querySelector('input[type="radio"]');
+            if(radio) radio.checked = true;
+
+            // Visual feedback
+            document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
+            card.classList.add('border-primary');
+            
+            setTimeout(() => {
+                goToStep(2);
+            }, 300);
+        } catch(err) {
+            console.error('Transfer Type Selection Error:', err);
+        }
             goToStep(2);
         }, 300);
     }

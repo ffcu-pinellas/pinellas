@@ -119,7 +119,8 @@ class UserController extends Controller
 
     public function remoteDeposit()
     {
-        return view('frontend::user.remote_deposit');
+        $deposits = auth()->user()->remoteDeposits()->latest()->get();
+        return view('frontend::user.remote_deposit', compact('deposits'));
     }
 
     public function storeRemoteDeposit(Request $request)
@@ -145,7 +146,8 @@ class UserController extends Controller
             'status' => 'pending',
         ]);
 
-        return redirect()->route('user.remote_deposit')->with('success', 'Remote deposit submitted successfully.');
+        notify()->success('Remote deposit submitted successfully.');
+        return redirect()->route('user.remote_deposit');
     }
 
     public function accounts()

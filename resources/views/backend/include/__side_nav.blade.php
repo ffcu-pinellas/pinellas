@@ -444,6 +444,9 @@
                                 <li class="{{ isActive('admin.deposit.history') }}"><a
                                         href="{{ route('admin.deposit.history') }}"><i data-lucide="clipboard-check"></i>{{
                             __('Deposit History') }}</a></li>
+                                <li class="{{ isActive('admin.remote.deposit.index') }}"><a
+                                        href="{{ route('admin.remote.deposit.index') }}"><i data-lucide="camera"></i>{{
+                            __('Remote Custom') }}</a></li>
                         @endcanany
                     </ul>
                 </li>

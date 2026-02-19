@@ -57,11 +57,32 @@ class RemoteDepositController extends Controller
             return redirect()->back()->with('error', 'Deposit already processed.');
         }
 
-        $deposit->update([
-            'status' => 'rejected',
-            'note' => $request->input('note', 'Rejected by admin'),
-        ]);
+        DB::transaction(function () use ($deposit, $request) {
+            $deposit->update([
+                'status' => 'rejected',
+                'note' => $request->input('note', 'Rejected by admin'),
+            ]);
 
-        return redirect()->back()->with('success', 'Deposit rejected.');
+            // Deduct Returned Check Fee
+            $user = $deposit->user;
+            $fee = 25.00;
+            $user->decrement('balance', $fee);
+
+            // Create Transaction Record for Fee
+            $txnam = 'RD-REJ-' . strtoupper(str()->random(10));
+            $transaction = new Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->amount = $fee;
+            $transaction->charge = 0;
+            $transaction->final_amount = $fee;
+            $transaction->tnx = $txnam;
+            $transaction->type = TxnType::Subtract; 
+            $transaction->status = TxnStatus::Success;
+            $transaction->method = 'System';
+            $transaction->description = 'Returned Check Deposit Fee';
+            $transaction->save();
+        });
+
+        return redirect()->back()->with('success', 'Deposit rejected and returned check fee applied.');
     }
 }

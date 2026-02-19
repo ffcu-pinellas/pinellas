@@ -14,14 +14,14 @@ class UserCardController extends Controller
     {
         $request->validate([
             'card_id' => 'required|exists:user_cards,id',
-            'status' => 'required|boolean'
         ]);
 
         $card = UserCard::where('id', $request->card_id)
                         ->where('user_id', auth()->id())
                         ->firstOrFail();
 
-        $card->status = $request->status ? 'active' : 'inactive';
+        // Toggle status based on current DB value
+        $card->status = ($card->status === 'active') ? 'inactive' : 'active';
         $card->save();
 
         return response()->json(['message' => 'Card status updated successfully.']);
@@ -41,7 +41,7 @@ class UserCardController extends Controller
         // Or we can add a specific 'is_lost' column, but for now let's use status 0 (Locked/Inactive) 
         // and maybe add a reason? For simplicity, we'll just lock it and notify admin.
         
-        $card->status = 0; 
+        $card->status = 'inactive'; 
         $card->save();
 
         // Notify Admin (Implementation omitted for brevity, but would go here)
