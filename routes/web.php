@@ -200,7 +200,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Settings
     Route::group(['prefix' => 'settings', 'as' => 'setting.', 'controller' => SettingController::class], function () {
         Route::get('/', 'settings')->name('show');
-        Route::get('2fa', 'twoFa')->name('2fa');
+        Route::get('2fa', 'twoFa')->name('two.fa');
         Route::get('security', 'securitySettings')->name('security');
         Route::get('action', 'action')->name('action');
         Route::post('passcode', 'passcode')->name('passcode');

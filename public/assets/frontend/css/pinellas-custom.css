@@ -48,23 +48,45 @@ b {
     display: flex !important;
     flex-direction: row !important;
     min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+}
+
+.sidebar-overlay.show {
+    display: block;
 }
 
 /* Sidebar Toggle Header & Hamburger Visibility */
 .header-pinellas {
-    background: var(--primary-color) !important;
+    background: var(--navigation-bar-color, var(--primary-color)) !important;
     height: 60px;
     z-index: 1001;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
 }
 
 #sidebarToggle i {
     color: #000000 !important;
-    /* Hamburger made black for visibility */
 }
 
 /* Sidebar Main Styling */
 .sidebar {
     width: 272px !important;
+    flex-shrink: 0 !important;
+    /* Prevent shrinking in flexbox */
     background: var(--sidebar-bg) !important;
     border-right: 1px solid var(--border-color) !important;
     height: 100vh !important;
@@ -72,34 +94,41 @@ b {
     top: 0;
     left: 0;
     z-index: 1000;
-    transition: all 0.3s;
+    transition: transform 0.3s ease;
     display: flex !important;
     flex-direction: column !important;
-    /* Allow footer to be pushed down */
     overflow-y: hidden;
-    /* We want the profile fixed, nav scrollable */
 }
 
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    /* Nav items scroll if they overflow */
     padding-bottom: 20px;
 }
 
 .sidebar-nav-item {
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 500 !important;
     color: #4b5563 !important;
-    padding: 14px 24px !important;
+    padding: 12px 24px !important;
     display: flex !important;
+    flex-direction: row !important;
+    /* Force row for icon/text */
     align-items: center !important;
     text-decoration: none !important;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-nav-item bannoweb-shared-icons {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    margin-right: 12px;
 }
 
 .sidebar-nav-item i {
-    width: 20px;
-    margin-right: 12px;
+    font-size: 16px;
     color: var(--primary-color) !important;
 }
 
@@ -107,43 +136,38 @@ b {
 .sidebar-nav-item.active {
     background: var(--secondary-color) !important;
     color: var(--primary-color) !important;
-    border-left: 4px solid var(--primary-color);
-    padding-left: 20px !important;
+    border-left-color: var(--primary-color);
 }
 
 /* Fixed Profile Section at bottom of Sidebar */
 .sidebar-footer {
     margin-top: auto;
-    /* Push to bottom */
     border-top: 1px solid var(--border-color) !important;
-    background: #7f7e7e;
+    background: #ffffff;
     padding: 0 !important;
 }
 
-/* Desktop-Specific Scaling (Reduction by user request) */
+/* Desktop-Specific Scaling */
 @media (min-width: 992px) {
-
-    /* Reduce sidebar width slightly and items */
     .sidebar {
         width: 240px !important;
     }
 
     .sidebar-nav-item {
-        font-size: 11px !important;
-        /* Reduced by 2px */
+        font-size: 12px !important;
         padding: 10px 20px !important;
-        /* Reduced spacing */
     }
 
     .fi-logo img {
-        height: 45px !important;
-        /* Reduced logo size */
+        height: 40px !important;
     }
 
     .main-content-area {
         flex: 1 !important;
-        padding: 30px !important;
+        min-width: 0;
+        /* Fix flexbox overflow issues */
         background-color: var(--body-bg);
+        position: relative;
     }
 }
 
@@ -151,24 +175,24 @@ b {
 @media (max-width: 991.98px) {
     .sidebar {
         position: fixed !important;
-        left: -272px !important;
-        width: 272px !important;
-        z-index: 2000;
+        left: 0 !important;
+        transform: translateX(-272px);
+        /* Use transform for better performance */
     }
 
     .sidebar.show {
-        left: 0 !important;
+        transform: translateX(0);
     }
 
     .main-content-area {
         flex: 1;
-        padding-top: 80px !important;
-        padding-left: 15px;
-        padding-right: 15px;
+        width: 100%;
+        padding-top: 60px !important;
+        /* Match mobile header height */
     }
 }
 
-/* Quick Actions Styling - Reduced Size */
+/* Quick Actions Styling */
 .banno-action-btn {
     display: flex !important;
     flex-direction: column !important;
@@ -177,10 +201,8 @@ b {
     background: #ffffff !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 12px !important;
-    padding: 10px 8px !important;
-    /* Reduced size */
-    min-width: 75px !important;
-    /* Reduced from 85px */
+    padding: 12px 8px !important;
+    min-width: 80px !important;
     transition: all 0.2s;
     text-decoration: none !important;
     color: var(--primary-color) !important;
@@ -194,19 +216,25 @@ b {
 }
 
 .banno-action-btn i {
-    font-size: 18px !important;
-    /* Reduced from 22px */
-    margin-bottom: 5px !important;
+    font-size: 20px !important;
+    margin-bottom: 6px !important;
     color: inherit;
 }
 
 .banno-action-btn span {
     font-size: 10px !important;
-    /* Reduced from 11px */
     font-weight: 600 !important;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
     color: inherit;
+}
+
+/* Wizard Visibility Fixes */
+.wizard-step {
+    display: none;
+}
+
+.wizard-step.active {
+    display: block !important;
 }
 
 /* Global UI Overrides */

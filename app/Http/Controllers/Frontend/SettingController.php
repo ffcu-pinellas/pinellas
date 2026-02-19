@@ -35,7 +35,7 @@ class SettingController extends Controller
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,'.$user->id,
+            'username' => 'nullable|string|max:255|unique:users,username,'.$user->id,
             'email' => 'required|email|unique:users,email,'.$user->id,
         ]);
 
@@ -49,7 +49,7 @@ class SettingController extends Controller
             'first_name' => $input['first_name'],
             'last_name' => $input['last_name'],
             'preferred_first_name' => $request->get('preferred_first_name', $user->preferred_first_name),
-            'username' => $input['username'],
+            'username' => $input['username'] ?? $user->username,
             'email' => $input['email'] ?? $user->email,
             'gender' => $input['gender'] ?? $user->gender,
             'date_of_birth' => $request->get('date_of_birth') ?: $user->date_of_birth,

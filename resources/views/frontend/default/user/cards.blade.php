@@ -290,7 +290,7 @@
     function reportLost(id) {
         if(!confirm('Are you sure you want to report this card as lost? It will be permanently locked.')) return;
 
-        fetch('{{ route("cards.report-lost") }}', {
+        fetch('{{ route("user.cards.report-lost") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -310,7 +310,7 @@
         e.preventDefault();
         const formData = new FormData(this);
         
-        fetch('{{ route("cards.reset-pin") }}', {
+        fetch('{{ route("user.cards.reset-pin") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
