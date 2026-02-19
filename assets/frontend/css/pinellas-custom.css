@@ -1,0 +1,77 @@
+/* Global Font Overrides */
+body {
+    font-family: 'Inter', sans-serif;
+    /* Or existing font */
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+/* Remove bold from paragraphs and divs unless specified */
+p,
+div,
+span,
+li,
+a,
+input,
+select,
+textarea,
+button {
+    font-weight: 400;
+}
+
+/* Maintain bold for headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.fw-bold,
+strong,
+b {
+    font-weight: 500 !important;
+}
+
+/* Sidebar Specifics */
+.sidebar-wrapper {
+    width: 260px;
+    /* Slight reduction if needed */
+}
+
+.sidebar-menu-item {
+    font-size: 12px !important;
+    /* Smaller sidebar font */
+}
+
+/* Toggle Flip Card */
+.credit-card-wrap.flipped .credit-card-inner {
+    transform: rotateY(180deg);
+}
+
+/* Wizard Steps */
+.wizard-step {
+    display: none;
+}
+
+.wizard-step.active {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Profile Dropdown Fix */
+.sidebar-user-menu-dropup {
+    bottom: 100% !important;
+    top: auto !important;
+}

@@ -11,6 +11,12 @@ if (-not $status) {
     exit
 }
 
+# Sync assets from public to root (Hostinger production fix)
+Write-Host "Syncing assets to root..." -ForegroundColor Yellow
+if (Test-Path "public\assets") {
+    Copy-Item -Path "public\assets\*" -Destination "assets\" -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 Write-Host "Adding changes..."
 git add .
 
