@@ -45,38 +45,38 @@
         
         <nav class="sidebar-nav">
             <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-th-large"></i></bannoweb-shared-icons> 
-                <div class="ms-2">Dashboard</div>
+                <i class="fas fa-th-large"></i> 
+                <span>Dashboard</span>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-envelope"></i></bannoweb-shared-icons>
-                <div class="ms-2">Messages</div>
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
             </a>
             <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-university"></i></bannoweb-shared-icons>
-                <div class="ms-2">Accounts</div>
+                <i class="fas fa-university"></i>
+                <span>Accounts</span>
             </a>
-            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') ? 'active' : '' }}">
-                <i class="fas fa-exchange-alt"></i> Transfers
+            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
+                <i class="fas fa-exchange-alt"></i> <span>Transfers</span>
             </a>
-            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> Member Transfers
+            <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
+                <i class="fas fa-users"></i> <span>Member Transfers</span>
             </a>
             <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-mobile-alt"></i></bannoweb-shared-icons>
-                <div class="ms-2">Remote deposits</div>
+                <i class="fas fa-mobile-alt"></i>
+                <span>Remote deposits</span>
             </a>
             <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-file-invoice-dollar"></i></bannoweb-shared-icons>
-                <div class="ms-2">Bill pay</div>
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Bill pay</span>
             </a>
             <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                <bannoweb-shared-icons><i class="fas fa-gift"></i></bannoweb-shared-icons>
-                <div class="ms-2">Member Rewards</div>
+                <i class="fas fa-gift"></i>
+                <span>Member Rewards</span>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
-                <bannoweb-shared-icons><i class="fas fa-headset"></i></bannoweb-shared-icons>
-                <div class="ms-2">Support</div>
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
             </a>
         </nav>
 

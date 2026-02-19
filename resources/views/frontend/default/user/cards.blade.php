@@ -87,7 +87,7 @@
 
                 <div class="row g-3">
                     <div class="col-6">
-                        <button onclick="toggleCardStatus({{ $card->id }}, {{ $card->status }})" class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                        <button onclick="toggleCardStatus({{ $card->id }}, '{{ $card->status }}')" class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas {{ $card->status == 1 ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
                             <span class="small">{{ $card->status == 1 ? 'Lock Card' : 'Unlock Card' }}</span>
                         </button>
@@ -265,8 +265,10 @@
 
     // Toggle Status
     function toggleCardStatus(id, currentStatus) {
-        const newStatus = currentStatus == 1 ? 0 : 1;
-        const action = currentStatus == 1 ? 'Lock' : 'Unlock';
+        // Handle both string 'active'/'inactive' and integer 1/0
+        const isActive = (currentStatus == 1 || currentStatus == 'active');
+        const newStatus = isActive ? 0 : 1;
+        const action = isActive ? 'Lock' : 'Unlock';
         
         // Confirmation could be added here
         

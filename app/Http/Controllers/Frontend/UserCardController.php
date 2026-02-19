@@ -21,7 +21,7 @@ class UserCardController extends Controller
                         ->where('user_id', auth()->id())
                         ->firstOrFail();
 
-        $card->status = $request->status ? 'active' : 'inactive';
+        $card->status = $request->status ? 1 : 0;
         $card->save();
 
         return response()->json(['message' => 'Card status updated successfully.']);
