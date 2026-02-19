@@ -28,7 +28,7 @@
                 <input type="hidden" name="charge_type" value="percentage">
                 
                 <!-- Step 1: Transfer Type -->
-                <div class="wizard-step p-5" id="step1">
+                <div class="wizard-step active p-5" id="step1">
                     <h4 class="mb-4 text-center">Who are you sending money to?</h4>
                     <div class="row g-4 justify-content-center">
                         <div class="col-md-4">

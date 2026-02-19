@@ -1,12 +1,22 @@
+:root {
+    --primary-color: #00549b;
+    --primary-hover: #004077;
+    --secondary-color: #eef6fb;
+    --body-bg: #f5f7fa;
+    --sidebar-bg: #ffffff;
+    --text-dark: #1a202c;
+    --text-muted: #64748b;
+    --border-color: #e5e7eb;
+}
+
 /* Global Font Overrides */
 body {
     font-family: 'Inter', sans-serif;
-    /* Or existing font */
     font-size: 14px !important;
     font-weight: 400 !important;
+    background-color: var(--body-bg);
 }
 
-/* Remove bold from paragraphs and divs unless specified */
 p,
 div,
 span,
@@ -19,7 +29,6 @@ button {
     font-weight: 400;
 }
 
-/* Maintain bold for headings */
 h1,
 h2,
 h3,
@@ -32,55 +41,27 @@ b {
     font-weight: 500 !important;
 }
 
-/* Sidebar Specifics */
-.sidebar-wrapper {
-    width: 260px;
-    /* Slight reduction if needed */
+/* Dashboard Wrapper Layout */
+.dashboard-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    min-height: 100vh;
 }
 
-.sidebar-menu-item {
-    font-size: 12px !important;
-    /* Smaller sidebar font */
-}
-
-/* Toggle Flip Card */
-.credit-card-wrap.flipped .credit-card-inner {
-    transform: rotateY(180deg);
-}
-
-/* Wizard Steps */
-.wizard-step {
-    display: none;
-}
-
-.wizard-step.active {
-    display: block;
-    animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Profile Dropdown Fix */
-.sidebar-user-menu-dropup {
-    bottom: 100% !important;
-    top: auto !important;
-}
-
-/* Sidebar Refinements */
+/* Sidebar Styling */
 .sidebar {
     width: 272px !important;
-    background: #fff !important;
-    border-right: 1px solid #e5e7eb !important;
+    min-width: 272px !important;
+    background: var(--sidebar-bg) !important;
+    border-right: 1px solid var(--border-color) !important;
+    height: 100vh !important;
+    position: sticky !important;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-nav-item {
@@ -90,109 +71,141 @@ b {
     padding: 14px 24px !important;
     display: flex !important;
     align-items: center !important;
+    text-decoration: none !important;
 }
 
-.sidebar-nav-item:hover, .sidebar-nav-item.active {
-    background: #eef6fb !important;
+.sidebar-nav-item i {
+    width: 24px;
+    margin-right: 12px;
+    color: var(--primary-color) !important;
+}
+
+.sidebar-nav-item:hover,
+.sidebar-nav-item.active {
+    background: var(--secondary-color) !important;
     color: var(--primary-color) !important;
     border-left: 4px solid var(--primary-color);
     padding-left: 20px !important;
 }
 
-.sidebar-nav-item i {
-    width: 20px;
-    margin-right: 12px;
+/* Main Content Area */
+.main-content-area {
+    flex: 1 !important;
+    padding: 24px;
+    min-width: 0;
+    position: relative;
+    background-color: var(--body-bg);
 }
 
-/* Quick Actions Styling */
+/* Global Desktop Header Displacement Fix */
+.main-content-area {
+    padding-top: 60px !important;
+    /* Make room for the profile button row */
+}
+
+/* Mobile Adjustments */
+@media (max-width: 991.98px) {
+    .dashboard-wrapper {
+        flex-direction: column !important;
+    }
+
+    .sidebar {
+        position: fixed !important;
+        left: -272px !important;
+        z-index: 2000 !important;
+        width: 272px !important;
+    }
+
+    .sidebar.show {
+        left: 0 !important;
+    }
+
+    .main-content-area {
+        margin-left: 0 !important;
+        padding-top: 80px !important;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1500;
+        display: none;
+    }
+
+    .sidebar-overlay.show {
+        display: block !important;
+    }
+}
+
+/* Quick Actions Styling - Ensure Visibility */
 .banno-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 1px solid rgba(0,0,0,0.05);
-    border-radius: 12px;
-    padding: 16px 12px;
-    transition: all 0.2s;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 12px !important;
+    padding: 16px 12px !important;
+    transition: all 0.2s !important;
     text-decoration: none !important;
     color: var(--primary-color) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    min-width: 85px !important;
 }
 
 .banno-action-btn:hover {
-    background: var(--primary-color);
-    color: white !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 84, 155, 0.2);
+    background: var(--primary-color) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2) !important;
 }
 
 .banno-action-btn i {
-    font-size: 20px;
-    margin-bottom: 8px;
+    font-size: 22px !important;
+    margin-bottom: 8px !important;
+    color: inherit !important;
+    display: block !important;
 }
 
 .banno-action-btn span {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
+    color: inherit !important;
 }
 
-/* Ticket & Global Card Styles */
+/* Global Button Overrides */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+/* Card & Widget Overrides */
+.banno-card,
 .site-card {
-    background: #fff;
+    background: #ffffff;
     border: none !important;
     border-radius: 16px !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
-    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+    padding: 24px;
 }
-
-.site-card-header {
-    background: #fff !important;
-    border-bottom: 1px solid #f0f0f0 !important;
-    padding: 20px 24px !important;
-}
-
-.site-card-header .title {
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    color: #1a202c !important;
-}
-
-.site-custom-table {
-    border: none !important;
-}
-
-.site-table-list.site-table-head {
-    background: #f8fafc !important;
-    color: #64748b !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    font-size: 11px !important;
-    letter-spacing: 0.05em !important;
-    padding: 12px 24px !important;
-}
-
-.site-table-list {
-    padding: 16px 24px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    transition: background 0.2s;
-}
-
-.site-table-list:hover {
-    background: #fdfdfd;
-}
-
-.site-badge {
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    font-size: 11px !important;
-}
-
-.badge-primary, .badge-success { background: #eef6fb !important; color: #00549b !important; }
-.badge-failed { background: #fef2f2 !important; color: #dc2626 !important; }
 
 /* Global Scrollbar Hide */
-::-webkit-scrollbar { width: 0; background: transparent; }
-* { scrollbar-width: none; -ms-overflow-style: none; }
+::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}
+
+* {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
