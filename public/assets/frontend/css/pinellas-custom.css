@@ -1,3 +1,5 @@
+/* Pinellas FCU Custom Styles - Phase 32 Refinement */
+
 :root {
     --primary-color: #00549b;
     --primary-hover: #004077;
@@ -41,17 +43,28 @@ b {
     font-weight: 500 !important;
 }
 
-/* Dashboard Wrapper Layout */
+/* Dashboard Layout Wrapper */
 .dashboard-wrapper {
     display: flex !important;
     flex-direction: row !important;
     min-height: 100vh;
 }
 
-/* Sidebar Styling */
+/* Sidebar Toggle Header & Hamburger Visibility */
+.header-pinellas {
+    background: var(--primary-color) !important;
+    height: 60px;
+    z-index: 1001;
+}
+
+#sidebarToggle i {
+    color: #000000 !important;
+    /* Hamburger made black for visibility */
+}
+
+/* Sidebar Main Styling */
 .sidebar {
     width: 272px !important;
-    min-width: 272px !important;
     background: var(--sidebar-bg) !important;
     border-right: 1px solid var(--border-color) !important;
     height: 100vh !important;
@@ -62,20 +75,20 @@ b {
     transition: all 0.3s;
     display: flex !important;
     flex-direction: column !important;
+    /* Allow footer to be pushed down */
+    overflow-y: hidden;
+    /* We want the profile fixed, nav scrollable */
 }
 
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    scrollbar-width: none;
-}
-
-.sidebar-nav::-webkit-scrollbar {
-    width: 0;
+    /* Nav items scroll if they overflow */
+    padding-bottom: 20px;
 }
 
 .sidebar-nav-item {
-    font-size: 14px !important;
+    font-size: 12px !important;
     font-weight: 500 !important;
     color: #4b5563 !important;
     padding: 14px 24px !important;
@@ -84,18 +97,8 @@ b {
     text-decoration: none !important;
 }
 
-/* Desktop Sidebar Tweaks */
-@media (min-width: 992px) {
-    .sidebar-nav-item {
-        font-size: 12px !important;
-        /* -2px reduction */
-        padding: 10px 24px !important;
-        /* Reduced spacing */
-    }
-}
-
 .sidebar-nav-item i {
-    width: 24px;
+    width: 20px;
     margin-right: 12px;
     color: var(--primary-color) !important;
 }
@@ -108,38 +111,49 @@ b {
     padding-left: 20px !important;
 }
 
-/* Sidebar Footer (Profile) - Fixed to Bottom */
+/* Fixed Profile Section at bottom of Sidebar */
 .sidebar-footer {
-    margin-top: auto !important;
-    background: #fff;
-    border-top: 1px solid var(--border-color);
+    margin-top: auto;
+    /* Push to bottom */
+    border-top: 1px solid var(--border-color) !important;
+    background: #7f7e7e;
+    padding: 0 !important;
 }
 
-/* Main Content Area */
-.main-content-area {
-    flex: 1 !important;
-    padding: 24px;
-    min-width: 0;
-    position: relative;
-    background-color: var(--body-bg);
-}
+/* Desktop-Specific Scaling (Reduction by user request) */
+@media (min-width: 992px) {
 
-/* Global Desktop Header Displacement Fix */
-.main-content-area {
-    padding-top: 60px !important;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 991.98px) {
-    .dashboard-wrapper {
-        flex-direction: column !important;
+    /* Reduce sidebar width slightly and items */
+    .sidebar {
+        width: 240px !important;
     }
 
+    .sidebar-nav-item {
+        font-size: 11px !important;
+        /* Reduced by 2px */
+        padding: 10px 20px !important;
+        /* Reduced spacing */
+    }
+
+    .fi-logo img {
+        height: 45px !important;
+        /* Reduced logo size */
+    }
+
+    .main-content-area {
+        flex: 1 !important;
+        padding: 30px !important;
+        background-color: var(--body-bg);
+    }
+}
+
+/* Mobile Sidebar Behavior */
+@media (max-width: 991.98px) {
     .sidebar {
         position: fixed !important;
         left: -272px !important;
-        z-index: 2000 !important;
         width: 272px !important;
+        z-index: 2000;
     }
 
     .sidebar.show {
@@ -147,97 +161,67 @@ b {
     }
 
     .main-content-area {
-        margin-left: 0 !important;
+        flex: 1;
         padding-top: 80px !important;
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-
-    .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1500;
-        display: none;
-    }
-
-    .sidebar-overlay.show {
-        display: block !important;
-    }
-
-    #sidebarToggle i {
-        color: #000000 !important;
-        /* Black hamburger icon */
+        padding-left: 15px;
+        padding-right: 15px;
     }
 }
 
 /* Quick Actions Styling - Reduced Size */
-.banno-quick-actions {
-    gap: 12px !important;
-}
-
 .banno-action-btn {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
     background: #ffffff !important;
-    border: 1px solid #dee2e6 !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 12px !important;
-    padding: 12px 8px !important;
-    /* Shrunk padding */
-    transition: all 0.2s !important;
+    padding: 10px 8px !important;
+    /* Reduced size */
+    min-width: 75px !important;
+    /* Reduced from 85px */
+    transition: all 0.2s;
     text-decoration: none !important;
     color: var(--primary-color) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-    min-width: 75px !important;
-    /* Shrunk width */
-    height: 75px !important;
-    /* Ensure square-ish and smaller than card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .banno-action-btn:hover {
     background: var(--primary-color) !important;
     color: #ffffff !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2) !important;
+    transform: translateY(-2px);
 }
 
 .banno-action-btn i {
     font-size: 18px !important;
-    /* Shrunk icon */
-    margin-bottom: 4px !important;
-    color: inherit !important;
-    display: block !important;
+    /* Reduced from 22px */
+    margin-bottom: 5px !important;
+    color: inherit;
 }
 
 .banno-action-btn span {
-    font-size: 9px !important;
-    /* Shrunk text */
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
-    color: inherit !important;
+    font-size: 10px !important;
+    /* Reduced from 11px */
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: inherit;
 }
 
-/* Global Button Overrides */
+/* Global UI Overrides */
 .btn-primary {
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
-    color: #ffffff !important;
 }
 
-/* Card & Widget Overrides */
 .banno-card,
 .site-card {
-    background: #ffffff;
+    background: #fff;
     border: none !important;
     border-radius: 16px !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
-    padding: 24px;
+    overflow: hidden;
 }
 
 /* Global Scrollbar Hide */
