@@ -7,19 +7,28 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
-        <div class="text-center mb-5">
-            <h2 class="mb-3">Transfer Funds</h2>
-            <p class="text-muted">Send money to other banks or between your accounts.</p>
+        <div class="text-center mb-4">
+            <h2 class="mb-2">Transfer Funds</h2>
+            <p class="text-muted small">Send money to other banks or between your accounts.</p>
         </div>
 
-        <div class="banno-card p-0 mb-4">
-            <div class="wizard-header p-4 border-bottom bg-light">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="step-indicator active" data-step="1">1. Type</div>
-                    <div class="step-line flex-grow-1 mx-3 bg-secondary opacity-25" style="height: 2px;"></div>
-                    <div class="step-indicator" data-step="2">2. Details</div>
-                    <div class="step-line flex-grow-1 mx-3 bg-secondary opacity-25" style="height: 2px;"></div>
-                    <div class="step-indicator" data-step="3">3. Review</div>
+        <div class="banno-card p-0 mb-4 shadow-sm">
+            <div class="wizard-header p-3 p-md-4 border-bottom bg-light">
+                <div class="d-flex justify-content-between align-items-center flex-row">
+                    <div class="step-indicator active d-flex align-items-center" data-step="1">
+                        <div class="step-circle me-2">1</div>
+                        <span class="d-none d-sm-inline">Type</span>
+                    </div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
+                    <div class="step-indicator d-flex align-items-center" data-step="2">
+                        <div class="step-circle me-2">2</div>
+                        <span class="d-none d-sm-inline">Details</span>
+                    </div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
+                    <div class="step-indicator d-flex align-items-center" data-step="3">
+                        <div class="step-circle me-2">3</div>
+                        <span class="d-none d-sm-inline">Review</span>
+                    </div>
                 </div>
             </div>
 
@@ -28,36 +37,36 @@
                 <input type="hidden" name="charge_type" value="percentage">
                 
                 <!-- Step 1: Transfer Type -->
-                <div class="wizard-step active p-5" id="step1">
-                    <h4 class="mb-4 text-center">Who are you sending money to?</h4>
-                    <div class="row g-4 justify-content-center">
-                        <div class="col-md-4">
-                            <div class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('self', event)">
+                <div class="wizard-step active p-3 p-md-5" id="step1">
+                    <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
+                    <div class="row g-3 g-md-4 justify-content-center">
+                        <div class="col-12 col-md-4">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
-                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-wallet fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2">My Accounts</h6>
-                                <p class="small text-muted mb-0">Transfer between your checking and savings.</p>
+                                <h6 class="mb-2 fw-bold">My Accounts</h6>
+                                <p class="small text-muted mb-0">Transfer between checking and savings.</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('member', event)">
+                        <div class="col-12 col-md-4">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
-                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-users fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2">Another Member</h6>
-                                <p class="small text-muted mb-0">Send instantly to another credit union member.</p>
+                                <h6 class="mb-2 fw-bold">Another Member</h6>
+                                <p class="small text-muted mb-0">Send instantly to a credit union member.</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="transfer-type-card h-100 p-4 border rounded-3 text-center d-flex flex-column align-items-center cursor-pointer radio-label" onclick="selectType('external', event)">
+                        <div class="col-12 col-md-4">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
-                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-university fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2">External Bank</h6>
+                                <h6 class="mb-2 fw-bold">External Bank</h6>
                                 <p class="small text-muted mb-0">Send via ACH or Wire to another bank.</p>
                             </div>
                         </div>
@@ -65,14 +74,14 @@
                 </div>
 
                 <!-- Step 2: Core Details -->
-                <div class="wizard-step p-5 d-none" id="step2">
-                    <div class="d-flex align-items-center mb-4 cursor-pointer" onclick="goToStep(1)">
-                        <i class="fas fa-arrow-left me-2 text-muted"></i> <span class="text-muted small">Back to Type</span>
+                <div class="wizard-step p-4 p-md-5 d-none" id="step2">
+                    <div class="d-flex align-items-center mb-4 cursor-pointer text-primary" onclick="goToStep(1)">
+                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Type</span>
                     </div>
 
                     <div class="row g-4">
                         <div class="col-12">
-                            <label class="form-label small text-uppercase text-muted">From Account</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="updateAccountOptions()">
                                 @foreach($wallets as $wallet)
                                     <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ $wallet->balance }}">
@@ -85,25 +94,19 @@
                             </select>
                         </div>
 
-                        <!-- Dynamic 'To' Recipient Section -->
                         <div class="col-12" id="toRecipientSection">
-                            <!-- Case: Self -->
                             <div class="dynamic-field d-none" id="field-self">
-                                <label class="form-label small text-uppercase text-muted">To Account</label>
-                                <select name="to_wallet" class="form-select form-select-lg border-2 shadow-none" id="toWalletSelect">
-                                    <!-- Populated by JS -->
-                                </select>
+                                <label class="form-label small text-uppercase fw-bold text-muted">To Account</label>
+                                <select name="to_wallet" class="form-select form-select-lg border-2 shadow-none" id="toWalletSelect"></select>
                             </div>
 
-                            <!-- Case: Member -->
                             <div class="dynamic-field d-none" id="field-member">
-                                <label class="form-label small text-uppercase text-muted">Recipient Email or Account</label>
+                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Email or Account</label>
                                 <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter recipient info">
                             </div>
 
-                            <!-- Case: External -->
                             <div class="dynamic-field d-none" id="field-external">
-                                <label class="form-label small text-uppercase text-muted">Recipient Bank</label>
+                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
                                 <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
                                     <option value="" selected disabled>Select Destination Bank</option>
                                     @foreach($banks as $bank)
@@ -114,7 +117,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase text-muted">Amount</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Amount</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-white border-2 border-end-0">$</span>
                                 <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none" id="amount" name="amount" placeholder="0.00" oninput="validateBalance()">
@@ -123,7 +126,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase text-muted">Frequency</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Frequency</label>
                             <select name="frequency" class="form-select form-select-lg border-2 shadow-none">
                                 <option value="once">One-time Transfer</option>
                                 <option value="daily">Daily</option>
@@ -133,150 +136,108 @@
                         </div>
 
                         <div class="col-md-6" id="dateField">
-                            <label class="form-label small text-uppercase text-muted">Scheduled Date</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Scheduled Date</label>
                             <input type="date" name="scheduled_at" class="form-control form-control-lg border-2 shadow-none" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small text-uppercase text-muted">Purpose / Memo</label>
-                            <input type="text" name="purpose" id="transferPurpose" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. Rent, Grocery, Personal">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Purpose / Memo</label>
+                            <input type="text" name="purpose" id="transferPurpose" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. Personal, Shared Expense">
                         </div>
                     </div>
 
                     <div class="mt-5 text-end">
-                        <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm" onclick="validateStep2()">
-                            Continue <i class="fas fa-arrow-right ms-2"></i>
+                        <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" onclick="validateStep2()">
+                            Continue To Review <i class="fas fa-arrow-right ms-2"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 3: Account Details (External Specific) -->
-                <div class="wizard-step p-5 d-none" id="step3">
-                    <div class="d-flex align-items-center mb-4 cursor-pointer" onclick="goToStep(2)">
-                        <i class="fas fa-arrow-left me-2 text-muted"></i> <span class="text-muted small">Back to Base Details</span>
+                <div class="wizard-step p-4 p-md-5 d-none" id="step3">
+                    <div class="d-flex align-items-center mb-4 cursor-pointer text-primary" onclick="goToStep(2)">
+                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Details</span>
                     </div>
 
-                    <h4 class="mb-4">Recipient Information</h4>
+                    <h4 class="mb-4 fw-bold">Recipient Information</h4>
                     <div class="row g-4">
                         <div class="col-12">
-                            <label class="form-label small text-uppercase text-muted">Full Name</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Full Name</label>
                             <input type="text" name="manual_data[account_name]" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient's legal name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase text-muted">Routing Number</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="password" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-none toggle-password" placeholder="9 digits" maxlength="9">
-                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+                                <input type="password" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="9 digits" maxlength="9">
+                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase text-muted">Account Number</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Account Number</label>
                             <div class="input-group">
-                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-none toggle-password" placeholder="Checking/Savings Account #">
-                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Checking/Savings Account #">
+                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small text-uppercase text-muted">Confirm Account Number</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Confirm Account Number</label>
                             <div class="input-group">
-                                <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-none toggle-password" placeholder="Re-enter to confirm">
-                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
-                                    <i class="fas fa-eye-slash"></i>
-                                </button>
+                                <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Re-enter to confirm">
+                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
                     </div>
 
                     <div class="mt-5 text-end">
-                        <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm" onclick="validateStep3()">
+                        <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" onclick="validateStep3()">
                             Review Transfer <i class="fas fa-arrow-right ms-2"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- Step 4: Review -->
-                <div class="wizard-step p-5 d-none" id="step4">
-                    <div class="d-flex align-items-center mb-4 cursor-pointer" onclick="goBackFromReview()">
-                        <i class="fas fa-arrow-left me-2 text-muted"></i> <span class="text-muted small">Edit Details</span>
+                <div class="wizard-step p-4 p-md-5 d-none" id="step4">
+                    <div class="d-flex align-items-center mb-4 cursor-pointer text-primary" onclick="goBackFromReview()">
+                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Edit Details</span>
                     </div>
                     
-                    <h4 class="mb-4 text-center">Transfer Review</h4>
+                    <h4 class="mb-4 text-center fw-bold">Transfer Review</h4>
                     
-                    <div class="card bg-white border-2 mb-4 shadow-sm" style="border-radius: 15px;">
+                    <div class="card bg-white border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 1px solid var(--border-color) !important;">
                         <div class="card-body p-4">
                             <div class="row g-4">
-                                <div class="col-md-6">
-                                    <span class="text-muted d-block small text-uppercase">Payment From</span>
-                                    <span class="fw-bold" id="reviewFrom"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <span class="text-muted d-block small text-uppercase">Transfer To</span>
-                                    <span class="fw-bold" id="reviewTo"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <span class="text-muted d-block small text-uppercase">Delivery Method</span>
-                                    <span class="fw-bold text-capitalize" id="reviewType"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <span class="text-muted d-block small text-uppercase">Frequency</span>
-                                    <span class="fw-bold text-capitalize" id="reviewFreq"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <span class="text-muted d-block small text-uppercase">Transfer Date</span>
-                                    <span class="fw-bold" id="reviewDate"></span>
-                                </div>
-                                <div class="col-12">
-                                    <span class="text-muted d-block small text-uppercase">Purpose</span>
-                                    <span class="fw-bold" id="reviewPurpose"></span>
-                                </div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Payment From</span><span class="fw-bold" id="reviewFrom"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Transfer To</span><span class="fw-bold" id="reviewTo"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Delivery Method</span><span class="fw-bold text-capitalize" id="reviewType"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Frequency</span><span class="fw-bold text-capitalize" id="reviewFreq"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Date</span><span class="fw-bold" id="reviewDate"></span></div>
+                                <div class="col-12"><span class="text-muted d-block small text-uppercase fw-bold">Purpose</span><span class="fw-bold" id="reviewPurpose"></span></div>
                                 
                                 <div class="col-12 external-review-details d-none">
-                                    <hr class="my-3">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <span class="text-muted d-block small text-uppercase">Routing Number</span>
-                                            <span class="fw-bold" id="reviewRouting"></span>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <span class="text-muted d-block small text-uppercase">Account Number</span>
-                                            <span class="fw-bold" id="reviewAccount"></span>
-                                        </div>
+                                    <hr class="my-3"><div class="row">
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Routing #</span><span class="fw-bold" id="reviewRouting"></span></div>
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Account #</span><span class="fw-bold" id="reviewAccount"></span></div>
                                     </div>
                                 </div>
                             </div>
-                            
                             <hr class="my-4">
-                            
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <span class="h5 mb-0 d-block">Total to Send</span>
-                                    <span class="small text-muted">Funds will be available shortly after approval.</span>
-                                </div>
-                                <span class="h2 mb-0 text-primary" id="reviewAmount"></span>
+                                <div><span class="h5 mb-0 d-block fw-bold">Total to Send</span><span class="small text-muted">Immediate processing.</span></div>
+                                <span class="h2 mb-0 text-primary fw-bold" id="reviewAmount"></span>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
+                            <div class="col-12 mb-4">
+                                <label class="form-label small text-uppercase fw-bold text-muted">Passcode Confirmation</label>
                                 <div class="input-group">
-                                    <input type="password" name="passcode" id="passcodeInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-                                    <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
-                                        <i class="fas fa-eye-slash"></i>
-                                    </button>
+                                    <input type="password" name="passcode" id="passcodeInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                                    <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold mt-4" id="confirmBtn">
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                                 <i class="fas fa-shield-alt me-2"></i> Submit Transfer
                             </button>
-                            
-                            <div class="text-center mt-3">
-                                <p class="small text-muted mb-0">By clicking submit, you authorize Pinellas FCU to initiate this transfer.</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -288,27 +249,23 @@
 
 @section('style')
 <style>
-/* Make sure wizard steps take space when visible */
-.wizard-step {
-    display: block !important;  /* fights any lingering display:none */
-    min-height: 500px;          /* prevents total collapse */
-    visibility: visible !important;
-}
-
-.banno-card {
-    min-height: 900px !important;   /* give the whole card room to grow */
-    overflow: visible !important;
-    height: auto !important;
-}
-
-    .wizard-step { transition: all 0.3s ease-in-out; }
+    .wizard-step { transition: all 0.3s ease; }
     .cursor-pointer { cursor: pointer; }
-    .transfer-type-card { transition: all 0.2s; border: 2px solid transparent !important; }
-    .transfer-type-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
-    .transfer-type-card.border-primary { border-color: var(--primary-color) !important; background: rgba(var(--primary-rgb), 0.05); }
-    .step-indicator { font-size: 0.9rem; color: #adb5bd; font-weight: 500; white-space: nowrap; }
-    .step-indicator.active { color: var(--primary-color); font-weight: 700; }
-    .step-indicator.text-success { color: #198754; }
+    .transfer-type-card { transition: all 0.25s; border: 2px solid #edeff2 !important; background: #fff; }
+    .transfer-type-card:hover { transform: translateY(-5px); border-color: var(--primary-color) !important; box-shadow: 0 10px 25px rgba(0,0,0,0.08)!important; }
+    .transfer-type-card.border-primary { border-color: var(--primary-color) !important; background: rgba(0, 84, 155, 0.03); }
+    
+    .step-circle {
+        width: 32px; height: 32px; border-radius: 50%; background: #edeff2; color: #64748b;
+        display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+    }
+    .step-indicator.active .step-circle { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(0, 84, 155, 0.2); }
+    .step-indicator.text-success .step-circle { background: #198754; color: white; }
+    .step-indicator { font-size: 0.95rem; color: #64748b; font-weight: 600; }
+    .step-indicator.active { color: var(--primary-color); }
+
+    .icon-circle { transition: all 0.25s; }
+    .transfer-type-card:hover .icon-circle { transform: scale(1.1); }
 </style>
 @endsection
 
@@ -318,27 +275,33 @@
     var currentStep = 1;
     var transferType = null;
 
-    function selectType(type, e) {
-        console.log('selectType:', type);
+    // Moving this to a direct function so it's globally available
+    window.selectType = function(type, card) {
+        console.log('selectType called via listener:', type);
         transferType = type;
-        const card = e.currentTarget;
         
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
         card.classList.add('border-primary');
         const radio = card.querySelector('input[type="radio"]');
         if(radio) radio.checked = true;
 
-        setTimeout(() => goToStep(2), 300);
-    }
+        setTimeout(() => goToStep(2), 250);
+    };
 
     function goToStep(step) {
         console.log('goToStep:', step);
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none', 'active'));
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+        
         const stepEl = document.getElementById('step' + step);
-        if(stepEl) stepEl.classList.remove('d-none');
+        if(stepEl) {
+            stepEl.classList.remove('d-none');
+            stepEl.classList.add('active');
+        }
         
         updateIndicators(step);
         currentStep = step;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
         if(step === 2) setupStep2();
     }
@@ -347,7 +310,7 @@
         document.querySelectorAll('.step-indicator').forEach((el, index) => {
             const stepNum = index + 1;
             el.classList.remove('active', 'text-primary', 'text-success');
-            if (stepNum === step) el.classList.add('active', 'text-primary');
+            if (stepNum === step) el.classList.add('active');
             else if (stepNum < step) el.classList.add('text-success');
         });
     }
@@ -363,7 +326,6 @@
         const fromSelect = document.getElementById('walletSelect');
         const toSelect = document.getElementById('toWalletSelect');
         if(!fromSelect || !toSelect) return;
-
         const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
         
         if(transferType === 'self') {
@@ -392,10 +354,10 @@
         const feedback = document.getElementById('balanceFeedback');
         
         if (amount > balance) {
-            feedback.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Insufficient funds.</span>';
+            feedback.innerHTML = '<span class="text-danger small"><i class="fas fa-exclamation-triangle"></i> Insufficient funds available.</span>';
             return false;
         } else if (amount > 0) {
-            feedback.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Valid amount.</span>';
+            feedback.innerHTML = '<span class="text-success small"><i class="fas fa-check-circle"></i> Sufficient funds.</span>';
         } else {
             feedback.innerHTML = '';
         }
@@ -405,22 +367,21 @@
     function validateStep2() {
         const amount = document.getElementById('amount').value;
         if(!amount || amount <= 0) {
-            Swal.fire('Error', 'Please enter a valid amount.', 'error');
+            Swal.fire({ title: 'Invalid Amount', text: 'Please enter a value greater than 0.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
         if(!validateBalance()) {
-            Swal.fire('Insufficient Funds', 'Transfer amount exceeds balance.', 'warning');
+            Swal.fire({ title: 'Balance Too Low', text: 'You do not have enough funds for this transfer.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
         if(transferType === 'member' && !document.getElementById('member_identifier').value) {
-            Swal.fire('Error', 'Please enter member info.', 'warning');
+            Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
         if(transferType === 'external' && !document.getElementById('bankId').value) {
-            Swal.fire('Error', 'Please select a bank.', 'warning');
+            Swal.fire({ title: 'Bank Required', text: 'Please select a destination bank.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
-
         if(transferType === 'external') goToStep(3);
         else { populateReview(); goToStep(4); }
     }
@@ -432,11 +393,11 @@
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
 
         if(!name || !acc1 || routing.length < 9) {
-            Swal.fire('Error', 'Check recipient details.', 'warning');
+            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
         if(acc1 !== acc2) {
-            Swal.fire('Error', 'Account numbers mismatch.', 'error');
+            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
         populateReview();
@@ -444,18 +405,20 @@
     }
 
     function populateReview() {
-        document.getElementById('reviewType').innerText = transferType;
+        document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH');
         const fromSelect = document.getElementById('walletSelect');
         document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
         
         let toText = 'Unknown';
-        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0].text.split(' - ')[0];
-        else if(transferType === 'member') toText = document.getElementById('member_identifier').value;
+        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
+        else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
         else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
         
         document.getElementById('reviewTo').innerText = toText;
-        document.getElementById('reviewAmount').innerText = '$' + document.getElementById('amount').value;
+        document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
         document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
+        document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
+        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
     }
 
     function goBackFromReview() {
@@ -466,16 +429,30 @@
     function toggleVisibility(btn) {
         const input = btn.parentElement.querySelector('input');
         input.type = input.type === "password" ? "text" : "password";
+        btn.querySelector('i').classList.toggle('fa-eye');
+        btn.querySelector('i').classList.toggle('fa-eye-slash');
     }
 
-    document.getElementById('transferForm').addEventListener('submit', function(e) {
-        const passcode = document.getElementById('passcodeInput').value;
-        if(!passcode) {
-            e.preventDefault();
-            Swal.fire('Passcode Required', 'Enter your 4-digit passcode.', 'warning');
-            return;
-        }
-        document.getElementById('confirmBtn').disabled = true;
+    // Attach listeners after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.js-type-select').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const type = this.getAttribute('data-type');
+                window.selectType(type, this);
+            });
+        });
+        
+        document.getElementById('transferForm').addEventListener('submit', function(e) {
+            const passcode = document.getElementById('passcodeInput').value;
+            if(!passcode) {
+                e.preventDefault();
+                Swal.fire('Passcode Required', 'Please enter your 4-digit passcode to confirm.', 'warning');
+                return;
+            }
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        });
     });
 </script>
 @endsection
