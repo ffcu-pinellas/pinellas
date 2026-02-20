@@ -59,7 +59,7 @@
                                 </td>
 
                                 <td><strong
-                                        class="{{ txn_type($transaction->type->value,['green-color','red-color']) }}">{{ txn_type($transaction->type->value,['+','-']) .$transaction->amount.' '.$currency }}</strong>
+                                        class="@if($transaction->status->value == \App\Enums\TxnStatus::Failed->value) red-color @else {{ txn_type($transaction->type->value,['green-color','red-color']) }} @endif">{{ txn_type($transaction->type->value,['+','-']) .$transaction->amount.' '.$currency }}</strong>
                                 </td>
                                 <td><strong>{{ $transaction->charge.' '. $currency }}</strong></td>
                                 <td>

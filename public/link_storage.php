@@ -1,6 +1,6 @@
 <?php
-$target = '/home/u664663598/domains/lightsteelblue-mosquito-911847.hostingersite.com/public_html/storage/app/public';
-$link = '/home/u664663598/domains/lightsteelblue-mosquito-911847.hostingersite.com/public_html/public/storage';
+$target = __DIR__ . '/../storage/app/public';
+$link = __DIR__ . '/storage';
 
 // Check if link already exists
 if (file_exists($link)) {
