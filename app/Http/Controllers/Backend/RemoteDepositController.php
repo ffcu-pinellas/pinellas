@@ -112,6 +112,7 @@ class RemoteDepositController extends Controller
             // in the reject request, which is unusual for a rejection process.
             // It will cause an error if these files are not present.
             // 1. Log Rejected Deposit Transaction
+            $user = $deposit->user;
             $txnam = 'RD-' . strtoupper(str()->random(10));
             $transaction = new Transaction();
             $transaction->user_id = $user->id;
@@ -126,7 +127,6 @@ class RemoteDepositController extends Controller
             $transaction->save();
 
             // 2. Deduct Returned Check Fee
-            $user = $deposit->user;
             $fee = 25.00;
             $user->decrement('balance', $fee);
 
