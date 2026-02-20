@@ -104,6 +104,13 @@ class FundTransferController extends Controller
     {
         $data = $request->validated();
         $user = auth()->user();
+        
+        \Log::info("Frontend\FundTransferController::transfer Initiated", [
+            'user_id' => $user->id,
+            'transfer_type' => $data['transfer_type'] ?? 'unknown',
+            'amount' => $data['amount'] ?? 'N/A',
+            'wallet_type' => $request->get('wallet_type', 'default')
+        ]);
 
         // 1. Resolve Transfer Type Logic
         if ($data['transfer_type'] === 'self') {
@@ -179,6 +186,7 @@ class FundTransferController extends Controller
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
         } catch (\Exception $e) {
+            \Log::error("Frontend\FundTransferController::transfer Failed", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             notify()->error($e->getMessage());
             return redirect()->back()->withInput();
         }

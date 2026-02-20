@@ -30,9 +30,15 @@ class RemoteDepositController extends Controller
 
             // Credit the user's account
             $user = $deposit->user;
-            if (str_contains(strtolower($deposit->account_name), 'saving')) {
+            
+            // Log for debugging
+            \Log::info("Approving Remote Deposit ID: {$deposit->id}. Account Name: '{$deposit->account_name}'");
+
+            if (str_contains(strtolower($deposit->account_name), 'saving')) { // Check for 'saving' or 'savings'
+                 \Log::info("Crediting SAVINGS account.");
                  $user->increment('savings_balance', $deposit->amount);
             } else {
+                 \Log::info("Crediting MAIN/CHECKING account.");
                  $user->increment('balance', $deposit->amount);
             }
 
@@ -63,6 +69,10 @@ class RemoteDepositController extends Controller
 
         DB::transaction(function () use ($deposit, $request) {
             $deposit->update([
+                'status' => 'rejected',
+                'note' => $request->input('note', 'Rejected by admin'),
+            ]);
+
             // 1. Log Rejected Deposit Transaction (First)
             $user = $deposit->user; // Ensure $user is defined
             $txnam = 'RD-' . strtoupper(str()->random(10));

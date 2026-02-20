@@ -22,6 +22,7 @@ class TransferService
     public function validate(User $user, array $input, $walletType = 'default')
     {
         if (! setting('transfer_status', 'permission') || ! $user->transfer_status) {
+            \Log::error("TransferService::validate - Transfer Disabled for User ID: {$user->id}");
             throw ValidationException::withMessages(['error' => __('Fund transfer currently unavailable!')]);
         }
 
@@ -31,6 +32,9 @@ class TransferService
 
         $amount = $input['amount'];
         $bankId = $input['bank_id'];
+        
+        \Log::info("TransferService::validate - Amount: $amount, BankID: $bankId, Wallet: $walletType");
+
         $bankInfo = OthersBank::find($bankId);
         $currencyCode = $walletType == 'default' ? setting('site_currency', 'global') : $walletType;
 
