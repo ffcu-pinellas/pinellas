@@ -85,17 +85,20 @@ class TransferService
             $accountNumber = $input['manual_data']['account_number'] ?? null;
             $beneficiaryId = $input['beneficiary_id'] ?? null;
             if ($beneficiaryId) {
-                $beneficiary = Beneficiary::find($beneficiaryId);
+                $beneficiary = \App\Models\Beneficiary::find($beneficiaryId);
                 $accountNumber = $beneficiary->account_number ?? $accountNumber;
             }
             
-            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
-            $receiver = User::where('account_number', $sanitizedNumber)->first();
-            
-            if (!$receiver) {
-                $receiver = User::where('savings_account_number', $sanitizedNumber)->first();
+            if (!$accountNumber) {
+                throw ValidationException::withMessages(['error' => __('Recipient Account Number is required.')]);
             }
 
+            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+            $receiver = User::where(function($q) use ($sanitizedNumber) {
+                $q->where('account_number', $sanitizedNumber)
+                  ->orWhere('savings_account_number', $sanitizedNumber);
+            })->first();
+            
             if (! $receiver) {
                 throw ValidationException::withMessages(['error' => __('Receiver Account not found!')]);
             }
@@ -111,12 +114,17 @@ class TransferService
         $currencyCode = ($walletType == 'default' || $walletType == 'primary_savings') ? $currency : $walletType;
 
         $manualData = $input['manual_data'] ?? [];
-        $beneficiary = Beneficiary::find($input['beneficiary_id'] ?? null);
-        $accountNumber = $beneficiary?->account_number ?? $manualData['account_number'];
-        $sanitizedNumber = sanitizeAccountNumber($accountNumber);
-        $receiver = User::where('account_number', $sanitizedNumber)
-                        ->orWhere('savings_account_number', $sanitizedNumber)
-                        ->first();
+        $beneficiary = \App\Models\Beneficiary::find($input['beneficiary_id'] ?? null);
+        $accountNumber = $beneficiary?->account_number ?? ($manualData['account_number'] ?? null);
+        
+        $receiver = null;
+        if ($bankId == 0 && $accountNumber) {
+            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+            $receiver = User::where(function($q) use ($sanitizedNumber) {
+                $q->where('account_number', $sanitizedNumber)
+                  ->orWhere('savings_account_number', $sanitizedNumber);
+            })->first();
+        }
 
         $charge = $this->calculateTransferCharge($bankInfo, $amount, $currencyCode);
 

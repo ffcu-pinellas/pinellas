@@ -129,11 +129,12 @@ class FundTransferController extends Controller
         } elseif ($data['transfer_type'] === 'member') {
             $data['bank_id'] = 0; // Internal
             $identifier = $data['member_identifier'];
+            $sanitizedIdentifier = sanitizeAccountNumber($identifier);
             
-            // Find Receiver
+            // Find Receiver by Email, Checking, or Savings
             $receiver = User::where('email', $identifier)
-                          ->orWhere('account_number', $identifier)
-                          ->orWhere('savings_account_number', $identifier)
+                          ->orWhere('account_number', $sanitizedIdentifier)
+                          ->orWhere('savings_account_number', $sanitizedIdentifier)
                           ->first();
 
             if (!$receiver) {
@@ -141,14 +142,16 @@ class FundTransferController extends Controller
                 return redirect()->back()->withInput();
             }
 
-            // Default to main account if email/name used, or specific if number used
-            $data['manual_data']['account_number'] = ($request->input('target_account_type') === 'savings') ? $receiver->savings_account_number : $receiver->account_number;
+            // Determine which account number to target
+            $targetType = $request->input('target_account_type', 'checking');
             
-            // Override if they searched with a specific account number
-            if($receiver->savings_account_number === $identifier) {
-                 $data['manual_data']['account_number'] = $receiver->savings_account_number;
-            } elseif($receiver->account_number === $identifier) {
-                 $data['manual_data']['account_number'] = $receiver->account_number;
+            if ($targetType === 'savings' && $receiver->savings_account_number) {
+                $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            } elseif ($sanitizedIdentifier === $receiver->savings_account_number) {
+                // If they searched with savings account number, target that even if forgot to toggle
+                $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            } else {
+                $data['manual_data']['account_number'] = $receiver->account_number;
             }
             
             $data['manual_data']['account_name'] = $receiver->full_name;

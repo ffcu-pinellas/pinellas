@@ -31,9 +31,10 @@ class UserController extends Controller
     {
         $sanitizedNumber = sanitizeAccountNumber($number);
         
-        $user = User::where('account_number', $sanitizedNumber)
+        // Try Email first, then sanitized numbers
+        $user = User::where('email', $number)
+                    ->orWhere('account_number', $sanitizedNumber)
                     ->orWhere('savings_account_number', $sanitizedNumber)
-                    ->orWhere('email', $number)
                     ->first();
 
         if (!$user) {
@@ -51,7 +52,7 @@ class UserController extends Controller
             'branch_name' => $user->branch?->name ?? '',
             'account_number' => $user->account_number,
             'savings_account_number' => $user->savings_account_number,
-            'has_savings' => $user->savings_account_number ? true : false,
+            'has_savings' => !empty($user->savings_account_number),
         ]);
     }
 
