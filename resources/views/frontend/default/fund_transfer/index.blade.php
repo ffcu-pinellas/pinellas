@@ -319,6 +319,7 @@
         try {
             const radio = card.querySelector('input[type="radio"]');
             if(radio) radio.checked = true;
+            transferType = type; // Fix: Assign global variable
 
             // Visual feedback
             document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));

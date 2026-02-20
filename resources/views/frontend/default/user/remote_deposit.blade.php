@@ -114,7 +114,12 @@
                                                 </div>
                                                 <div>
                                                     <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
-                                                    <div class="small text-muted text-capitalize">{{ $deposit->account_name }}</div>
+                                                    <div class="small text-muted text-capitalize">
+                                                        {{ $deposit->account_name }} 
+                                                        @if($deposit->account_number)
+                                                            <span class="text-xs">(...{{ substr($deposit->account_number, -4) }})</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>

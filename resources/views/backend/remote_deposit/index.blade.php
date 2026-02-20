@@ -54,13 +54,13 @@
                                             <td>{{ $deposit->account_name }} <br> <span class="text-muted small">{{ $deposit->account_number }}</span></td>
                                             <td>{{ setting('currency_symbol', 'global') }}{{ number_format($deposit->amount, 2) }}</td>
                                             <td>
-                                                <a href="{{ asset('storage/' . $deposit->front_image) }}" target="_blank">
-                                                    <img src="{{ asset('storage/' . $deposit->front_image) }}" alt="Front" class="img-thumbnail" style="height: 50px;">
+                                                <a href="{{ asset('assets/storage/' . $deposit->front_image) }}" target="_blank">
+                                                    <img src="{{ asset('assets/storage/' . $deposit->front_image) }}" alt="Front" class="img-thumbnail" style="height: 50px;">
                                                 </a>
                                             </td>
                                             <td>
-                                                <a href="{{ asset('storage/' . $deposit->back_image) }}" target="_blank">
-                                                    <img src="{{ asset('storage/' . $deposit->back_image) }}" alt="Back" class="img-thumbnail" style="height: 50px;">
+                                                <a href="{{ asset('assets/storage/' . $deposit->back_image) }}" target="_blank">
+                                                    <img src="{{ asset('assets/storage/' . $deposit->back_image) }}" alt="Back" class="img-thumbnail" style="height: 50px;">
                                                 </a>
                                             </td>
                                             <td>

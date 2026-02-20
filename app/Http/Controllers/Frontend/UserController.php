@@ -137,8 +137,12 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-        $frontImage = $request->file('front_image')->store('remote_deposits', 'public');
-        $backImage = $request->file('back_image')->store('remote_deposits', 'public');
+        // Store in storage/app/public/remote_deposits using 'local' disk
+        $frontPath = $request->file('front_image')->store('public/remote_deposits', 'local');
+        $backPath = $request->file('back_image')->store('public/remote_deposits', 'local');
+
+        $frontImage = str_replace('public/', '', $frontPath);
+        $backImage = str_replace('public/', '', $backPath);
 
         // Determine Account Details
         $accountName = 'Checking';
