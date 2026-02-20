@@ -288,6 +288,19 @@
 
 @section('style')
 <style>
+/* Make sure wizard steps take space when visible */
+.wizard-step {
+    display: block !important;  /* fights any lingering display:none */
+    min-height: 500px;          /* prevents total collapse */
+    visibility: visible !important;
+}
+
+.banno-card {
+    min-height: 900px !important;   /* give the whole card room to grow */
+    overflow: visible !important;
+    height: auto !important;
+}
+
     .wizard-step { transition: all 0.3s ease-in-out; }
     .cursor-pointer { cursor: pointer; }
     .transfer-type-card { transition: all 0.2s; border: 2px solid transparent !important; }
