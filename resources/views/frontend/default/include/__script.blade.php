@@ -46,8 +46,6 @@
     <script src="{{ asset('assets/global/js/pusher.min.js') }}"></script>
     @include('global.__notification_script',['for'=>'user','userId' => auth()->user()->id])
 @endif
-@yield('script')
-@stack('js')
 @php
     $googleAnalytics = plugin_active('Google Analytics');
     $tawkChat = plugin_active('Tawk Chat');
@@ -63,4 +61,3 @@
 @if($fb)
     @include('frontend::plugin.fb',['data' => json_decode($fb->data, true)])
 @endif
-

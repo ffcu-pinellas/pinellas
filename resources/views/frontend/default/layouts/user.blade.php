@@ -5,16 +5,10 @@
 @endphp
 <html lang="{{ app()->getLocale() }}" @if($isRtl) dir="rtl" @endif>
 <head>
-    <title>@yield('title') | Pinellas FCU</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     @include('frontend::include.__head')
-    
-    <!-- jQuery (Required for many plugins) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <!-- Pinellas Custom Styling -->
     <link rel="stylesheet" href="{{ asset('assets/frontend/css/pinellas-custom.css') }}">
-    
     
     @stack('style')
     @yield('style')
@@ -48,16 +42,13 @@
         
         <nav class="sidebar-nav">
             <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-th-large"></i> 
-                <span>Dashboard</span>
+                <i class="fas fa-th-large"></i> <span>Dashboard</span>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
+                <i class="fas fa-envelope"></i> <span>Messages</span>
             </a>
             <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
-                <i class="fas fa-university"></i>
-                <span>Accounts</span>
+                <i class="fas fa-university"></i> <span>Accounts</span>
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
                 <i class="fas fa-exchange-alt"></i> <span>Transfers</span>
@@ -66,20 +57,16 @@
                 <i class="fas fa-users"></i> <span>Member Transfers</span>
             </a>
             <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                <i class="fas fa-mobile-alt"></i>
-                <span>Remote deposits</span>
+                <i class="fas fa-mobile-alt"></i> <span>Remote deposits</span>
             </a>
             <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                <i class="fas fa-file-invoice-dollar"></i>
-                <span>Bill pay</span>
+                <i class="fas fa-file-invoice-dollar"></i> <span>Bill pay</span>
             </a>
             <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                <i class="fas fa-gift"></i>
-                <span>Member Rewards</span>
+                <i class="fas fa-gift"></i> <span>Member Rewards</span>
             </a>
             <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
-                <i class="fas fa-headset"></i>
-                <span>Support</span>
+                <i class="fas fa-headset"></i> <span>Support</span>
             </a>
         </nav>
 
@@ -90,119 +77,65 @@
                          <i class="fas fa-user"></i>
                     </div>
                     <div class="user-info-banno flex-grow-1">
-                        <div class="username">{{ strtoupper($user->full_name) }}</div>
+                        <div class="username text-truncate" style="max-width: 150px;">{{ strtoupper($user->full_name) }}</div>
                     </div>
                     <i class="fas fa-chevron-up small text-muted"></i>
                 </div>
                 <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
-                    <li>
-                        <a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="fas fa-columns me-3 text-primary icon"></i> 
-                            <div>Organize dashboard</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="fas fa-user-circle me-3 text-primary icon"></i> 
-                            <div>Personal settings</div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center">
-                            <i class="fas fa-tools me-3 text-primary icon"></i> 
-                            <div>Account settings</div>
-                        </a>
-                    </li>
+                    <li><a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-columns me-3 text-primary icon"></i><div>Organize dashboard</div></a></li>
+                    <li><a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-user-circle me-3 text-primary icon"></i><div>Settings</div></a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="fas fa-sign-out-alt me-3 text-muted icon"></i> 
-                            <div>Sign out</div>
-                        </a>
-                    </li>
+                    <li><a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3 text-muted icon"></i><div>Sign out</div></a></li>
                 </ul>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main class="main-content-area">
-        <!-- Global Desktop Header (Top Right Profile) -->
+        <!-- Desktop Header (Top Right Profile) -->
         <div class="d-none d-lg-flex justify-content-end align-items-center py-3 px-4 position-absolute top-0 end-0" style="z-index: 1000; width: 100%; pointer-events: none;">
              <div style="pointer-events: auto;">
                 <div class="dropdown">
-                    <button class="btn p-0 border-0 bg-transparent" type="button" id="topProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
                         <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
                             {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                         </div>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" aria-labelledby="topProfileDropdown" style="border-radius: 12px; margin-top: 10px; min-width: 200px;">
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}">
-                                <i class="far fa-user-circle me-3 text-muted" style="width: 20px;"></i>
-                                <span class="fw-medium">Profile</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.messages') }}">
-                                <i class="far fa-question-circle me-3 text-muted" style="width: 20px;"></i>
-                                <span class="fw-medium">Support</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}">
-                                <i class="fas fa-cog me-3 text-muted" style="width: 20px;"></i>
-                                <span class="fw-medium">Settings</span>
-                            </a>
-                        </li>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 200px;">
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
                         <li><hr class="dropdown-divider my-1"></li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="fas fa-sign-out-alt me-3" style="width: 20px;"></i>
-                                <span class="fw-medium">Sign out</span>
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
                     </ul>
                 </div>
              </div>
         </div>
 
-        <div class="container-fluid py-4" style="min-height: 100%; display: flex; flex-direction: column;">
-            @if(false && auth()->user()->kyc !== \App\Enums\KYCStatus::Verified->value)
-                @include('frontend::include.__kyc_warning')
-            @endif
+        <div class="container-fluid py-4" style="min-height: 100%;">
             @yield('content')
         </div>
     </main>
 </div>
 
-<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-    @csrf
-</form>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
 @include('frontend::include.__script')
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fix for Sidebar Profile Dropdown (Dropup)
+        // Sidebar Profile Toggle
         const profileToggle = document.querySelector('.user-profile-banno.toggle-button');
         const profileMenu = document.querySelector('.sidebar-user-menu-dropup');
-        
         if (profileToggle && profileMenu) {
-            profileToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            profileToggle.addEventListener('click', (e) => {
+                e.preventDefault(); e.stopPropagation();
                 profileMenu.classList.toggle('show');
             });
-            
-            // Close when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!profileToggle.contains(e.target) && !profileMenu.contains(e.target)) {
-                    profileMenu.classList.remove('show');
-                }
-            });
+            document.addEventListener('click', () => profileMenu.classList.remove('show'));
         }
 
-        // Sidebar Toggle Logic
+        // Sidebar Main Toggle
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.querySelector('.sidebar-overlay');
         const toggleBtn = document.getElementById('sidebarToggle');
@@ -214,41 +147,12 @@
             document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
         }
 
-        if(toggleBtn) {
-            toggleBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if(overlay) {
-            overlay.addEventListener('click', toggleSidebar);
-        }
-        
-        // Smart Header Logic
-        let lastScrollTop = 0;
-        const header = document.querySelector('.header-pinellas');
-        
-        if(header) {
-            window.addEventListener('scroll', function() {
-                let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 64) {
-                    // Scrolling Down
-                    header.classList.add('header-hidden');
-                } else {
-                    // Scrolling Up
-                    header.classList.remove('header-hidden');
-                }
-                lastScrollTop = scrollTop;
-            });
-        }
+        if(toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
+        if(overlay) overlay.addEventListener('click', toggleSidebar);
     });
 </script>
+
 @stack('js')
 @yield('script')
 </body>
 </html>
-
-
-

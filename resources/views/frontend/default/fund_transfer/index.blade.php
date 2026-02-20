@@ -124,7 +124,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase text-muted">Frequency</label>
-                            <select name="frequency" class="form-select form-select-lg border-2 shadow-none" onchange="toggleDateField()">
+                            <select name="frequency" class="form-select form-select-lg border-2 shadow-none">
                                 <option value="once">One-time Transfer</option>
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
@@ -249,11 +249,9 @@
                                 </div>
                             </div>
                             
-                            </div>
-                            
                             <hr class="my-4">
                             
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div>
                                     <span class="h5 mb-0 d-block">Total to Send</span>
                                     <span class="small text-muted">Funds will be available shortly after approval.</span>
@@ -261,14 +259,13 @@
                                 <span class="h2 mb-0 text-primary" id="reviewAmount"></span>
                             </div>
 
-                                <div class="col-12">
-                                    <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
-                                    <div class="input-group">
-                                        <input type="password" name="passcode" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-                                        <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
-                                            <i class="fas fa-eye-slash"></i>
-                                        </button>
-                                    </div>
+                            <div class="col-12">
+                                <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
+                                <div class="input-group">
+                                    <input type="password" name="passcode" id="passcodeInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                                    <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
                                 </div>
                             </div>
 
@@ -291,164 +288,71 @@
 
 @section('style')
 <style>
-    .wizard-step {
-        transition: all 0.3s ease-in-out;
-    }
-    .step-indicator {
-        position: relative;
-        z-index: 1;
-    }
-    .step-indicator.active .rounded-circle {
-        background-color: var(--primary-color) !important;
-        color: white !important;
-    }
-    .step-indicator.text-success .rounded-circle {
-        background-color: #198754 !important;
-        color: white !important;
-    }
-    /* ... existing styles ... */
-    .cursor-pointer {
-        cursor: pointer;
-    }
-    .transfer-type-card {
-        transition: all 0.2s;
-    }
-    .transfer-type-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-    }
-    .card-radio {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 20px;
-        height: 20px;
-        accent-color: var(--primary-color);
-    }
-    .step-indicator {
-        font-size: 0.9rem;
-        color: #adb5bd;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-    .step-indicator.active {
-        color: var(--primary-color);
-        font-weight: 700;
-    }
-    .radio-label {
-        transition: all 0.2s;
-    }
-    .radio-label:hover, .radio-label:has(input:checked) {
-        background-color: #f8f9fa;
-        border-color: var(--primary-color) !important;
-        transform: translateY(-2px);
-    }
-    .radio-label:has(input:checked) .icon-circle {
-        background-color: var(--primary-color) !important;
-        color: white !important;
-    }
-    .radio-label:has(input:checked) p {
-        color: var(--primary-color) !important;
-    }
+    .wizard-step { transition: all 0.3s ease-in-out; }
+    .cursor-pointer { cursor: pointer; }
+    .transfer-type-card { transition: all 0.2s; border: 2px solid transparent !important; }
+    .transfer-type-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    .transfer-type-card.border-primary { border-color: var(--primary-color) !important; background: rgba(var(--primary-rgb), 0.05); }
+    .step-indicator { font-size: 0.9rem; color: #adb5bd; font-weight: 500; white-space: nowrap; }
+    .step-indicator.active { color: var(--primary-color); font-weight: 700; }
+    .step-indicator.text-success { color: #198754; }
 </style>
 @endsection
 
 @section('script')
-<!-- SweetAlert2 -->
-<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Define global functions immediately to avoid ReferenceError if user clicks fast
-    function selectType(type, e) {
-        console.log('selectType called:', type);
-        const card = e.currentTarget;
-        if(!card) return;
-        
-        try {
-            const radio = card.querySelector('input[type="radio"]');
-            if(radio) radio.checked = true;
-            window.transferType = type; // Set global
-
-            document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-            card.classList.add('border-primary');
-            
-            setTimeout(() => {
-                goToStep(2);
-            }, 300);
-        } catch(err) {
-            console.error('Transfer Type Selection Error:', err);
-        }
-    }
-
     var currentStep = 1;
-    window.transferType = null;
+    var transferType = null;
 
-    console.log('Fund Transfer Script Loaded');
+    function selectType(type, e) {
+        console.log('selectType:', type);
+        transferType = type;
+        const card = e.currentTarget;
+        
+        document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
+        card.classList.add('border-primary');
+        const radio = card.querySelector('input[type="radio"]');
+        if(radio) radio.checked = true;
 
-    // Remove window.selectType assignment, use the hoisted function above or defined in head
-    // Actually, function declaration in script block is not hoisted out of the block if it's a module, but here it is standard JS.
-    // However, putting it in @section('style') is hacky but ensures it is in head if 'style' yields to head.
-    // Better to put it in the main script block but maybe use simple function declaration.
-
-    function toggleVisibility(btn) {
-        const input = btn.parentElement.querySelector('input');
-        const icon = btn.querySelector('i');
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        } else {
-            input.type = "password";
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        }
+        setTimeout(() => goToStep(2), 300);
     }
 
     function goToStep(step) {
         console.log('goToStep:', step);
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
-        document.getElementById('step' + step).classList.remove('d-none');
+        const stepEl = document.getElementById('step' + step);
+        if(stepEl) stepEl.classList.remove('d-none');
+        
         updateIndicators(step);
         currentStep = step;
 
-        if(step === 2) {
-            setupStep2();
-        }
+        if(step === 2) setupStep2();
     }
 
     function updateIndicators(step) {
         document.querySelectorAll('.step-indicator').forEach((el, index) => {
             const stepNum = index + 1;
-            el.classList.remove('active', 'text-primary');
-            if (stepNum === step) {
-                el.classList.add('active', 'text-primary');
-            } else if (stepNum < step) {
-                el.classList.add('text-success');
-            }
+            el.classList.remove('active', 'text-primary', 'text-success');
+            if (stepNum === step) el.classList.add('active', 'text-primary');
+            else if (stepNum < step) el.classList.add('text-success');
         });
     }
 
     function setupStep2() {
-        console.log('setupStep2 for type:', transferType);
         document.querySelectorAll('.dynamic-field').forEach(el => el.classList.add('d-none'));
         const field = document.getElementById('field-' + transferType);
-        if(field) {
-            field.classList.remove('d-none');
-        } else {
-             console.error('Field not found for:', transferType);
-        }
+        if(field) field.classList.remove('d-none');
         updateAccountOptions();
-        toggleDateField();
-    }
-
-    function toggleDateField() {
-        // Placeholder
     }
 
     function updateAccountOptions() {
         const fromSelect = document.getElementById('walletSelect');
         const toSelect = document.getElementById('toWalletSelect');
+        if(!fromSelect || !toSelect) return;
+
         const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
         
-        console.log('updateAccountOptions', { transferType, fromType: selectedType });
-
         if(transferType === 'self') {
             toSelect.innerHTML = '';
             if(selectedType === 'checking') {
@@ -474,15 +378,11 @@
         const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
         
-        console.log('validateBalance', { amount, balance });
-
         if (amount > balance) {
-            feedback.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Insufficient funds.';
-            feedback.className = 'small mt-1 text-danger';
+            feedback.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Insufficient funds.</span>';
             return false;
         } else if (amount > 0) {
-            feedback.innerHTML = '<i class="fas fa-check-circle me-1"></i> Amount is within balance.';
-            feedback.className = 'small mt-1 text-success';
+            feedback.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Valid amount.</span>';
         } else {
             feedback.innerHTML = '';
         }
@@ -490,56 +390,59 @@
     }
 
     function validateStep2() {
-        console.log('validateStep2');
         const amount = document.getElementById('amount').value;
         if(!amount || amount <= 0) {
             Swal.fire('Error', 'Please enter a valid amount.', 'error');
             return;
         }
         if(!validateBalance()) {
-            Swal.fire('Insufficient Funds', 'You do not have enough funds in the selected account.', 'warning');
+            Swal.fire('Insufficient Funds', 'Transfer amount exceeds balance.', 'warning');
             return;
         }
-
         if(transferType === 'member' && !document.getElementById('member_identifier').value) {
-            Swal.fire('Missing Information', 'Please enter the recipient\'s email or account number.', 'warning');
+            Swal.fire('Error', 'Please enter member info.', 'warning');
+            return;
+        }
+        if(transferType === 'external' && !document.getElementById('bankId').value) {
+            Swal.fire('Error', 'Please select a bank.', 'warning');
             return;
         }
 
-        if(transferType === 'external') {
-            if(!document.getElementById('bankId').value) {
-                Swal.fire('Select Bank', 'Please select a destination bank.', 'warning');
-                return;
-            }
-            goToStep(3);
-        } else {
-            populateReview();
-            goToStep(4);
-        }
+        if(transferType === 'external') goToStep(3);
+        else { populateReview(); goToStep(4); }
     }
 
     function validateStep3() {
-        console.log('validateStep3');
         const name = document.querySelector('input[name="manual_data[account_name]"]').value;
         const acc1 = document.getElementById('ext_acc_num').value;
         const acc2 = document.getElementById('ext_acc_num_confirm').value;
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
 
-        if(!name || !acc1 || !routing) {
-            Swal.fire('Missing Information', 'Please fill in all recipient details.', 'warning');
+        if(!name || !acc1 || routing.length < 9) {
+            Swal.fire('Error', 'Check recipient details.', 'warning');
             return;
         }
         if(acc1 !== acc2) {
-            Swal.fire('Mismatch', 'Account numbers do not match.', 'error');
+            Swal.fire('Error', 'Account numbers mismatch.', 'error');
             return;
         }
-        if(routing.length < 9) {
-            Swal.fire('Invalid Routing', 'Routing number must be 9 digits.', 'warning');
-            return;
-        }
-
         populateReview();
         goToStep(4);
+    }
+
+    function populateReview() {
+        document.getElementById('reviewType').innerText = transferType;
+        const fromSelect = document.getElementById('walletSelect');
+        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
+        
+        let toText = 'Unknown';
+        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0].text.split(' - ')[0];
+        else if(transferType === 'member') toText = document.getElementById('member_identifier').value;
+        else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
+        
+        document.getElementById('reviewTo').innerText = toText;
+        document.getElementById('reviewAmount').innerText = '$' + document.getElementById('amount').value;
+        document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
     }
 
     function goBackFromReview() {
@@ -547,54 +450,19 @@
         else goToStep(2);
     }
 
-    function populateReview() {
-        console.log('populateReview');
-        document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH/Wire');
-        
-        const fromSelect = document.getElementById('walletSelect');
-        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
-        
-        let toText = '';
-        const extReview = document.querySelector('.external-review-details');
-        extReview.classList.add('d-none');
-
-        if(transferType === 'self') {
-            const toSelect = document.getElementById('toWalletSelect');
-            toText = toSelect.options[toSelect.selectedIndex].text.split(' - ')[0];
-        } else if(transferType === 'member') {
-            toText = 'Member: ' + document.getElementById('member_identifier').value;
-        } else {
-            const bankSelect = document.getElementById('bankId');
-            toText = bankSelect.options[bankSelect.selectedIndex].text;
-            extReview.classList.remove('d-none');
-            document.getElementById('reviewRouting').innerText = '****' + document.querySelector('input[name="manual_data[routing_number]"]').value.slice(-4);
-            document.getElementById('reviewAccount').innerText = '****' + document.getElementById('ext_acc_num').value.slice(-4);
-        }
-        document.getElementById('reviewTo').innerText = toText;
-        document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
-        document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
-        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'N/A';
-        document.getElementById('reviewAmount').innerText = '$' + document.getElementById('amount').value;
+    function toggleVisibility(btn) {
+        const input = btn.parentElement.querySelector('input');
+        input.type = input.type === "password" ? "text" : "password";
     }
 
-    // Form submission handling
     document.getElementById('transferForm').addEventListener('submit', function(e) {
-        console.log('Form Submit Triggered');
-        const passcode = document.querySelector('input[name="passcode"]').value;
-        console.log('Passcode value:', passcode);
-        
+        const passcode = document.getElementById('passcodeInput').value;
         if(!passcode) {
             e.preventDefault();
-            console.log('Passcode missing, validation failed');
-            Swal.fire('Passcode Required', 'Please enter your passcode to confirm the transfer.', 'warning');
+            Swal.fire('Passcode Required', 'Enter your 4-digit passcode.', 'warning');
             return;
         }
-
-        const btn = document.getElementById('confirmBtn');
-        btn.disabled = true;
-        btn.querySelector('.spinner-border').classList.remove('d-none');
-        btn.querySelector('i').classList.add('d-none');
+        document.getElementById('confirmBtn').disabled = true;
     });
-
 </script>
 @endsection
