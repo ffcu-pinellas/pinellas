@@ -49,7 +49,7 @@
                         <div class="col-md-6 text-center">
                             <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
                                 <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
-                                    <input type="file" name="front_image" class="d-none" accept="image/*" capture="environment" required>
+                                    <input type="file" name="front_image" class="d-none" accept="image/*" required>
                                 </label>
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-camera fa-2x text-primary"></i>
@@ -61,7 +61,7 @@
                         <div class="col-md-6 text-center">
                             <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
                                 <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
-                                    <input type="file" name="back_image" class="d-none" accept="image/*" capture="environment" required>
+                                    <input type="file" name="back_image" class="d-none" accept="image/*" required>
                                 </label>
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-signature fa-2x text-primary"></i>

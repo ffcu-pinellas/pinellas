@@ -185,9 +185,15 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     function goToStep(step) {
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.wizard-step').forEach(el => {
+            el.classList.add('d-none');
+            el.classList.remove('active');
+        });
         const stepEl = document.getElementById('step' + step);
-        if(stepEl) stepEl.classList.remove('d-none');
+        if(stepEl) {
+            stepEl.classList.remove('d-none');
+            stepEl.classList.add('active');
+        }
         
         document.querySelectorAll('.step-indicator').forEach((el, index) => {
             const stepNum = index + 1;
