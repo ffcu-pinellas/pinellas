@@ -24,7 +24,7 @@ class Txn
      * @param  string  $fromModel
      * @param  array  $manualDepositData
      */
-    public function new($amount, $charge, $final_amount, $method, $description, string|TxnType $type, string|TxnStatus $status = TxnStatus::Pending, $payCurrency = null, $payAmount = null, $userID = null, $relatedUserID = null, $relatedModel = 'User', array $manualFieldData = [], $walletType = 'default', $card_id = null, string $approvalCause = 'none', $targetId = null, $targetType = null, $isLevel = false): Transaction
+    public static function new($amount, $charge, $final_amount, $method, $description, string|TxnType $type, string|TxnStatus $status = TxnStatus::Pending, $payCurrency = null, $payAmount = null, $userID = null, $relatedUserID = null, $relatedModel = 'User', array $manualFieldData = [], $walletType = 'default', $card_id = null, string $approvalCause = 'none', $targetId = null, $targetType = null, $isLevel = false): Transaction
     {
         if ($type === 'withdraw') {
             self::withdrawBalance($amount);
@@ -53,7 +53,7 @@ class Txn
         $transaction->save();
 
         if ($transaction->status === TxnStatus::Success) {
-            self::rewardToUser($transaction->user_id, $transaction->id);
+            (new self())->rewardToUser($transaction->user_id, $transaction->id);
         }
 
         return $transaction;
@@ -83,18 +83,18 @@ class Txn
         $transaction->save();
 
         if ($transaction->status === TxnStatus::Success) {
-            self::rewardToUser($transaction->user_id, $transaction->id);
+            (new self())->rewardToUser($transaction->user_id, $transaction->id);
         }
 
         return $transaction;
     }
 
-    private function withdrawBalance($amount): void
+    private static function withdrawBalance($amount): void
     {
-        User::find(auth()->user()->id)->removeMoney($amount);
+        User::find(auth()->user()->id)->decrement('balance', $amount);
     }
 
-    public function update($tnx, $status, $userId = null, $approvalCause = 'none')
+    public static function update($tnx, $status, $userId = null, $approvalCause = 'none')
     {
         $transaction = Transaction::tnx($tnx);
 
@@ -147,7 +147,7 @@ class Txn
             $charge = setting('card_topup_charge_type', 'virtual_card') == 'percentage' ? ((setting('card_topup_charge', 'virtual_card') / 100) * $total_amount) : setting('card_topup_charge', 'virtual_card');
 
             // create transaction for card topup
-            Txn::new($charge, 0, $charge, 'System', 'Card Topup Charge', TxnType::CardLoad, TxnStatus::Success, 'USD', $charge, auth()->id(), null, 'User', $manualData ?? [], 'default');
+            self::new($charge, 0, $charge, 'System', 'Card Topup Charge', TxnType::CardLoad, TxnStatus::Success, 'USD', $charge, auth()->id(), null, 'User', $manualData ?? [], 'default');
 
             // update card balance
             $this->cardProviderMap($card->provider)->addCardBalance($card, $total_amount);
@@ -160,7 +160,7 @@ class Txn
         ];
 
         if ($status == TxnStatus::Success) {
-            $this->rewardToUser($uId, $transaction->id);
+            (new self())->rewardToUser($uId, $transaction->id);
         }
 
         $transaction = $transaction->update($data);
