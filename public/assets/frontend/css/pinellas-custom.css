@@ -148,9 +148,20 @@ b {
 }
 
 .sidebar-user-menu-dropup {
+    position: absolute;
     bottom: 100% !important;
+    left: 10px !important;
+    width: 240px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.15);
+    padding: 10px 0;
+    margin-bottom: 10px;
+    display: none;
+    /* Toggled by JS */
+    z-index: 9999;
     top: auto !important;
-    margin-bottom: 15px !important;
+    transform: none !important;
 }
 
 /* Desktop-Specific Scaling */

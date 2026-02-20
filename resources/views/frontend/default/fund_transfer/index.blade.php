@@ -330,8 +330,6 @@
         } catch(err) {
             console.error('Transfer Type Selection Error:', err);
         }
-            goToStep(2);
-        }, 300);
     }
 
     function toggleVisibility(btn) {

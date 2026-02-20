@@ -11,6 +11,9 @@
         <div class="text-center mb-5">
             <h1 class="h2 fw-bold mb-3">Deposit a check</h1>
             <p class="text-muted">Quickly deposit checks from anywhere using your device's camera.</p>
+            <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#historyModal">
+                <i class="fas fa-history me-1"></i> View History
+            </button>
         </div>
 
         <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
@@ -21,7 +24,7 @@
                 <div class="row g-3">
                     <div class="col-12">
                          <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to</label>
-                         <select name="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fs-5 fw-600" style="padding-bottom: 10px;" required>
+                         <select name="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fw-600" style="padding-bottom: 10px; font-size: 14px;" required>
                             <option value="checking">Personal Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}</option>
                             <option value="savings">Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}</option>
                         </select>
@@ -89,52 +92,65 @@
         </form>
     </div>
 
-    <!-- History Section -->
-    <div class="col-lg-7">
-        <div class="site-card p-4">
-             <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Deposit History</h6>
-             @if($deposits->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-borderless align-middle">
-                        <tbody>
-                            @foreach($deposits as $deposit)
-                                <tr class="border-bottom">
-                                    <td class="ps-0 py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
-                                                <i class="fas fa-camera"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
-                                                <div class="small text-muted text-capitalize">{{ $deposit->account_name }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-end py-3">
-                                        <div class="fw-bold text-dark">+{{ setting('site_currency') }} {{ number_format($deposit->amount, 2) }}</div>
-                                        @if($deposit->status == 'pending')
-                                            <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
-                                        @elseif($deposit->status == 'approved')
-                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
-                                        @else
-                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+    <!-- History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold">Deposit History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-             @else
-                <div class="text-center py-4">
-                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486747.png" alt="No Data" style="height: 60px; opacity: 0.5;" class="mb-3">
-                    <p class="text-muted small mb-0">No past deposits found.</p>
+                <div class="modal-body p-0">
+                    @if($deposits->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <tbody>
+                                @foreach($deposits as $deposit)
+                                    <tr class="border-bottom">
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-camera"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
+                                                    <div class="small text-muted text-capitalize">{{ $deposit->account_name }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end pe-4 py-3">
+                                            <div class="fw-bold text-dark">+{{ setting('site_currency') }} {{ number_format($deposit->amount, 2) }}</div>
+                                            @if($deposit->status == 'pending')
+                                                <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
+                                            @elseif($deposit->status == 'approved')
+                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
+                                            @else
+                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <div class="text-center py-5">
+                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486747.png" alt="No Data" style="height: 60px; opacity: 0.5;" class="mb-3">
+                        <p class="text-muted small mb-0">No past deposits found.</p>
+                    </div>
+                    @endif
                 </div>
-             @endif
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('js')
+<script>
+    // Adjust select font size via JS if needed, or CSS below
+</script>
+@endpush
 
 @section('style')
 <style>

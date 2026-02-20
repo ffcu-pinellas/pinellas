@@ -26,7 +26,7 @@
                                 <span class="text-white opacity-75 small">{{ $card->card_type ?? 'Debit' }}</span>
                             </div>
                             <div class="d-flex align-items-center my-3">
-                                <img src="{{ asset('assets/global/images/chip.png') }}" alt="Chip" style="height: 35px; margin-right: 15px;">
+                                <i class="fas fa-microchip fa-3x text-warning me-3" style="opacity: 0.8;"></i>
                                 <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
                             </div>
                             <div class="card-number-display mb-2">
@@ -36,11 +36,11 @@
                             <div class="d-flex justify-content-between align-items-end">
                                 <div>
                                     <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Card Holder</div>
-                                    <div class="text-white text-uppercase small">{{ $card->name_on_card }}</div>
+                                    <div class="text-white text-uppercase small fw-bold">{{ $card->name_on_card ?? auth()->user()->full_name }}</div>
                                 </div>
                                 <div class="text-end">
                                     <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Expires</div>
-                                    <div class="text-white small">{{ $card->expiry_date }}</div>
+                                    <div class="text-white small fw-bold">{{ $card->expiry_date ?? '12/28' }}</div>
                                 </div>
                                 <!-- Visa/Mastercard Logo -->
                                 <div class="card-brand">
@@ -58,9 +58,9 @@
                             <span class="cvv-number">{{ $card->cvv ?? rand(100,999) }}</span>
                         </div>
                         <div class="card-content p-4 position-relative z-1 mt-4">
-                            <p class="text-white small opacity-75">Authorized Signature - Not Valid Unless Signed</p>
-                            <div class="bg-white" style="height: 30px; opacity: 0.8;"></div>
-                            <div class="mt-3 text-white small opacity-75">
+                            <p class="text-white small fw-bold">Authorized Signature - Not Valid Unless Signed</p>
+                            <div class="bg-white mb-3" style="height: 30px; opacity: 0.9;"></div>
+                            <div class="text-white small fw-bold">
                                 For customer service, call 1-800-PINELLAS.
                             </div>
                         </div>

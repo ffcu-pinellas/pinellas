@@ -127,8 +127,9 @@ class UserController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'account_id' => 'required|string',
         ]);
 
         if (!\Schema::hasTable('remote_deposits')) {
@@ -139,11 +140,22 @@ class UserController extends Controller
         $frontImage = $request->file('front_image')->store('remote_deposits', 'public');
         $backImage = $request->file('back_image')->store('remote_deposits', 'public');
 
+        // Determine Account Details
+        $accountName = 'Checking';
+        $accountNumber = auth()->user()->account_number;
+
+        if ($request->account_id === 'savings') {
+            $accountName = 'Savings';
+            $accountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number; // Fallback
+        }
+
         auth()->user()->remoteDeposits()->create([
             'amount' => $request->amount,
             'front_image' => $frontImage,
             'back_image' => $backImage,
             'status' => 'pending',
+            'account_name' => $accountName,
+            'account_number' => $accountNumber,
         ]);
 
         notify()->success('Remote deposit submitted successfully.');

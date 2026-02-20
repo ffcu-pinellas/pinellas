@@ -25,6 +25,7 @@
                                     <thead>
                                     <tr>
                                         <th>{{ __('User') }}</th>
+                                        <th>{{ __('Date') }}</th>
                                         <th>{{ __('Account') }}</th>
                                         <th>{{ __('Amount') }}</th>
                                         <th>{{ __('Front Image') }}</th>
@@ -46,6 +47,9 @@
                                                         <span class="text-muted small">{{ $deposit->user->email }}</span>
                                                     </div>
                                                 </div>
+                                            </td>
+                                            <td>
+                                                {{ $deposit->created_at->format('M d, Y h:i A') }}
                                             </td>
                                             <td>{{ $deposit->account_name }} <br> <span class="text-muted small">{{ $deposit->account_number }}</span></td>
                                             <td>{{ setting('currency_symbol', 'global') }}{{ number_format($deposit->amount, 2) }}</td>
