@@ -47,7 +47,6 @@ class DashboardController extends Controller
             'dps_mature_amount' => $user->dps->whereIn('status', [DpsStatus::Running, DpsStatus::Due])->sum('total_mature_amount'),
             'fdr_mature_amount' => $user->fdr->where('status', FdrStatus::Running)->sum('total_mature_amount'),
             'total_loan_amount' => $user->loan->whereIn('status', [LoanStatus::Running, LoanStatus::Due])->sum('total_loan_amount'),
-            'savings_accounts' => \Schema::hasTable('savings_accounts') ? $user->savingsAccounts : collect([]),
             'currency' => setting('currency_symbol', '$'),
         ];
 

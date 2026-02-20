@@ -630,10 +630,8 @@ if (! function_exists('getAccountName')) {
             return 'CHECKING';
         }
 
-        if (str_starts_with($walletType, 'savings_')) {
-            $id = str_replace('savings_', '', $walletType);
-            $account = \App\Models\SavingsAccount::find($id);
-            return $account ? 'SAVINGS' : 'SAVINGS';
+        if (str_contains($walletType, 'savings')) {
+            return 'SAVINGS';
         }
 
         if (is_numeric($walletType)) {

@@ -108,12 +108,6 @@ class Txn
                 $user->increment('balance', $transaction->amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $user->increment('savings_balance', $transaction->amount);
-            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
-                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
-                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
-                if ($savingsAccount) {
-                    $savingsAccount->increment('balance', $transaction->amount);
-                }
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 
@@ -129,12 +123,6 @@ class Txn
                 $user->increment('balance', $transaction->final_amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $user->increment('savings_balance', $transaction->final_amount);
-            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
-                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
-                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
-                if ($savingsAccount) {
-                    $savingsAccount->increment('balance', $transaction->final_amount);
-                }
             }
         }
 

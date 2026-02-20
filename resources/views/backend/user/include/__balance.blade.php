@@ -57,13 +57,8 @@
                                         @endif
                                     @endforeach
                                     <option data-curr-name="Primary Savings" value="primary_savings">
-                                        Primary Savings ({{ $user->savings_account_number ?? 'N/A' }}) - {{ setting('currency_symbol','global') }}{{ $user->savings_balance }}
+                                        Primary Savings ({{ $user->savings_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->savings_balance }}
                                     </option>
-                                    @foreach($savings_accounts as $savings)
-                                        <option data-curr-name="Savings" value="savings_{{ $savings->id }}">
-                                            Savings - {{ $savings->account_number }}
-                                        </option>
-                                    @endforeach
                                 </select>
                             </div>
                         </div>

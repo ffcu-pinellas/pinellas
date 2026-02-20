@@ -51,18 +51,21 @@
                                 <input type="hidden" name="beneficiary_id" value=""> 
 
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Account Number</label>
-                                    <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="member_identifier" placeholder="Enter Member Account #" required>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Recipient Info</label>
+                                    <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="member_identifier" placeholder="Email or Account #" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Account Name</label>
-                                    <input type="text" class="form-control form-control-lg fw-bold border-2 bg-white" id="account_name" name="manual_data[account_name]" placeholder="Account Owner's Name" readonly>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Member's Name</label>
+                                    <div id="account_name_wrapper" class="form-control form-control-lg border-2 bg-light d-flex align-items-center" style="min-height: 50px; color: #64748b;">
+                                        <span id="account_name_text">Enter info to verify...</span>
+                                    </div>
+                                    <input type="hidden" id="account_name" name="manual_data[account_name]">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-uppercase text-muted">Target Account</label>
+                                    <label class="form-label small fw-bold text-uppercase text-muted mb-2">Target Account</label>
                                     <select name="target_account_type" id="target_account_type" class="form-select form-select-lg fw-bold border-2">
                                         <option value="checking" selected>Checking</option>
-                                        <option value="savings" id="opt-savings" class="d-none">Savings</option>
+                                        <option value="savings" id="opt-savings" hidden disabled>Savings</option>
                                     </select>
                                 </div>
                             </div>
@@ -180,40 +183,48 @@
         });
         onWalletChange();
 
-        // Search by account number or email logic
         $('#account_number').on('input', function() {
             var val = $(this).val();
+            var nameText = $('#account_name_text');
+            var nameInput = $('#account_name');
+            var optSavings = $('#opt-savings');
+            var targetSelect = $('#target_account_type');
+
             if(val.length > 4 || (val.includes('@') && val.length > 3)) {
                 $.ajax({
                     type: 'GET',
                     url: '/user/search-by-account-number/' + encodeURIComponent(val),
                     success: function(data) {
                         if (data.name) {
-                            $('#account_name').val(data.name);
+                            nameText.text(data.name).removeClass('text-muted text-danger').addClass('fw-bold text-dark');
+                            nameInput.val(data.name);
+
                             if(data.has_savings) {
-                                $('#opt-savings').removeClass('d-none');
+                                optSavings.prop('hidden', false).prop('disabled', false);
                             } else {
-                                $('#opt-savings').addClass('d-none');
-                                $('#target_account_type').val('checking');
+                                optSavings.prop('hidden', true).prop('disabled', true);
+                                targetSelect.val('checking');
                             }
                             
                             // Auto-select based on identifier
                             if(val === data.savings_account_number) {
-                                $('#target_account_type').val('savings');
+                                targetSelect.val('savings');
                             } else if(val === data.account_number) {
-                                $('#target_account_type').val('checking');
+                                targetSelect.val('checking');
                             }
                         } else {
-                            $('#account_name').val('User Not Found');
-                            $('#opt-savings').addClass('d-none');
-                            $('#target_account_type').val('checking');
+                            nameText.text('User Not Found').addClass('text-danger').removeClass('text-muted fw-bold text-dark');
+                            nameInput.val('');
+                            optSavings.prop('hidden', true).prop('disabled', true);
+                            targetSelect.val('checking');
                         }
                     }
                 });
             } else {
-                $('#account_name').val('');
-                $('#opt-savings').addClass('d-none');
-                $('#target_account_type').val('checking');
+                nameText.text('Enter info to verify...').removeClass('text-danger fw-bold text-dark').addClass('text-muted');
+                nameInput.val('');
+                optSavings.prop('hidden', true).prop('disabled', true);
+                targetSelect.val('checking');
             }
         });
 

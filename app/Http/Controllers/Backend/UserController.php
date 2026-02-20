@@ -361,7 +361,6 @@ class UserController extends Controller
             'wallets' => $wallets,
             'user_wallets' => $user_wallets,
             'cards' => $cards,
-            'savings_accounts' => \App\Models\SavingsAccount::where('user_id', $user->id)->get(),
         ]);
     }
 
@@ -650,10 +649,6 @@ class UserController extends Controller
                 $wallet_type = $request->wallet_type;
                 if ($wallet_type == 'default') {
                     $wallet_name = 'Checking Account'; // Renamed from Default Wallet
-                } elseif (str_starts_with($wallet_type, 'savings_')) {
-                    $savingsId = str_replace('savings_', '', $wallet_type);
-                    $savingsAccount = \App\Models\SavingsAccount::findOrFail($savingsId);
-                    $wallet_name = 'Savings';
                 } elseif ($wallet_type == 'primary_savings') {
                     $wallet_name = 'Primary Savings';
                 } else {
@@ -670,8 +665,6 @@ class UserController extends Controller
                 if ($wallet_type == 'default') {
                     $user->balance += $amount;
                     $user->save();
-                } elseif (str_starts_with($wallet_type, 'savings_')) {
-                    $savingsAccount->increment('balance', $amount);
                 } elseif ($wallet_type == 'primary_savings') {
                     $user->increment('savings_balance', $amount);
                 } else {
@@ -702,8 +695,6 @@ class UserController extends Controller
                 if ($wallet_type == 'default') {
                     $user->balance -= $amount;
                     $user->save();
-                } elseif (str_starts_with($wallet_type, 'savings_')) {
-                    $savingsAccount->decrement('balance', $amount);
                 } elseif ($wallet_type == 'primary_savings') {
                     $user->decrement('savings_balance', $amount);
                 } else {

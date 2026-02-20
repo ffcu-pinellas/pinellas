@@ -292,14 +292,6 @@ class FundTransferController extends Controller
                 $transaction->user?->increment('balance', $amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $transaction->user?->increment('savings_balance', $amount);
-            } elseif (str_starts_with($transaction->wallet_type, 'savings_')) {
-                // Legacy support for specific savings accounts if still needed, 
-                // but we primarily use primary_savings now.
-                $savingsId = str_replace('savings_', '', $transaction->wallet_type);
-                $savingsAccount = \App\Models\SavingsAccount::find($savingsId);
-                if ($savingsAccount) {
-                    $savingsAccount->increment('balance', $amount);
-                }
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 

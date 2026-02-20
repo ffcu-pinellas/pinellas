@@ -109,18 +109,20 @@
                             <div class="dynamic-field d-none" id="field-member">
                                 <div class="row g-3">
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Email or Account</label>
-                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter recipient info">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient Info</label>
+                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Email or Account #">
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Name</label>
-                                        <input type="text" id="member_name_display" class="form-control form-control-lg border-2 shadow-none bg-light" placeholder="Auto-populated" readonly>
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Member's Name</label>
+                                        <div id="member_name_display_wrapper" class="form-control form-control-lg border-2 bg-light d-flex align-items-center" style="min-height: 50px; color: #64748b;">
+                                            <span id="member_name_display_text">Enter info to verify...</span>
+                                        </div>
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted">Target Account</label>
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Target Account</label>
                                         <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
                                             <option value="checking" selected>Checking</option>
-                                            <option value="savings" id="opt-savings" class="d-none">Savings</option>
+                                            <option value="savings" id="opt-savings" hidden disabled>Savings</option>
                                         </select>
                                     </div>
                                 </div>
@@ -502,16 +504,24 @@
         if(memberInput) {
             memberInput.addEventListener('input', function() {
                 const val = this.value;
+                const memberNameDisplayText = document.getElementById('member_name_display_text');
+                const memberNameWrapper = document.getElementById('member_name_display_wrapper');
+
                 if(val.length > 4 || (val.includes('@') && val.length > 3)) {
                     fetch('/user/search-by-account-number/' + encodeURIComponent(val))
                         .then(response => response.json())
                         .then(data => {
                             if(data.name) {
-                                memberNameDisplay.value = data.name;
+                                memberNameDisplayText.innerText = data.name;
+                                memberNameDisplayText.classList.remove('text-muted');
+                                memberNameDisplayText.classList.add('fw-bold', 'text-dark');
+                                
                                 if(data.has_savings) {
-                                    optSavings.classList.remove('d-none');
+                                    optSavings.hidden = false;
+                                    optSavings.disabled = false;
                                 } else {
-                                    optSavings.classList.add('d-none');
+                                    optSavings.hidden = true;
+                                    optSavings.disabled = true;
                                     targetAccountType.value = 'checking';
                                 }
                                 
@@ -522,14 +532,19 @@
                                     targetAccountType.value = 'checking';
                                 }
                             } else {
-                                memberNameDisplay.value = 'User Not Found';
-                                optSavings.classList.add('d-none');
+                                memberNameDisplayText.innerText = 'User Not Found';
+                                memberNameDisplayText.classList.add('text-danger');
+                                memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
+                                optSavings.hidden = true;
+                                optSavings.disabled = true;
                                 targetAccountType.value = 'checking';
                             }
                         });
                 } else {
-                    memberNameDisplay.value = '';
-                    optSavings.classList.add('d-none');
+                    memberNameDisplayText.innerText = 'Enter info to verify...';
+                    memberNameDisplayText.classList.remove('text-danger', 'text-dark', 'fw-bold');
+                    optSavings.hidden = true;
+                    optSavings.disabled = true;
                     targetAccountType.value = 'checking';
                 }
             });
