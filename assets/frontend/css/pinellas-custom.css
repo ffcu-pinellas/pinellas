@@ -197,24 +197,106 @@ b {
     }
 }
 
-/* Mobile Sidebar Behavior */
+/* ============================================================ */
+/* PREMIUM MOBILE-FIRST UI/UX OVERHAUL (Banno/Modern Bank Style) */
+/* ============================================================ */
 @media (max-width: 991.98px) {
+    body {
+        background-color: #f0f2f5 !important;
+        font-size: 13px !important;
+    }
+
     .sidebar {
         position: fixed !important;
         left: 0 !important;
         transform: translateX(-272px);
-        /* Use transform for better performance */
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar.show {
         transform: translateX(0);
     }
 
+    .header-pinellas {
+        background: linear-gradient(90deg, #00549b 0%, #003a6c 100%) !important;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
     .main-content-area {
-        flex: 1;
-        width: 100%;
-        padding-top: 60px !important;
-        /* Match mobile header height */
+        padding-top: 70px !important;
+        /* Extra space for sticky header */
+    }
+
+    .container-fluid {
+        padding: 20px 16px !important;
+    }
+
+    /* Premium Banno Cards for Mobile */
+    .banno-card,
+    .site-card,
+    .card {
+        border-radius: 20px !important;
+        border: none !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 10px 30px rgba(0, 84, 155, 0.08) !important;
+        margin-bottom: 24px !important;
+        overflow: hidden;
+    }
+
+    /* Headings */
+    h2 {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.5rem;
+    }
+
+    h4 {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Buttons & Inputs (Mobile Optimization) */
+    .btn-lg,
+    .form-control-lg,
+    .form-select-lg {
+        height: 56px !important;
+        border-radius: 12px !important;
+        font-size: 1rem !important;
+        font-weight: 500 !important;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #00549b 0%, #003a6c 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(0, 84, 155, 0.3) !important;
+    }
+
+    /* Wizard Polish */
+    .wizard-header {
+        padding: 16px 20px !important;
+        background: rgba(238, 246, 251, 0.5) !important;
+    }
+
+    .step-indicator {
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+    }
+
+    .step-circle {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
+
+    /* Dropdown Menus */
+    .dropdown-menu {
+        border-radius: 16px !important;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(10px);
     }
 }
 

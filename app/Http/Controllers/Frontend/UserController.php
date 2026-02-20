@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\Portfolio;
 use App\Models\User;
 use App\Rules\MatchOldPassword;
+use App\Traits\ImageUpload;
 use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,8 @@ use Session;
 
 class UserController extends Controller
 {
+    use ImageUpload;
+
     public function userExist($email)
     {
         $user = User::where('email', $email)->first();
@@ -155,12 +158,9 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-        // Store in storage/app/public/remote_deposits using 'local' disk
-        $frontPath = $request->file('front_image')->store('public/remote_deposits', 'local');
-        $backPath = $request->file('back_image')->store('public/remote_deposits', 'local');
-
-        $frontImage = str_replace('public/', '', $frontPath);
-        $backImage = str_replace('public/', '', $backPath);
+        // Store using ImageUpload trait to assets/global/images/
+        $frontImage = self::imageUploadTrait($request->file('front_image'));
+        $backImage = self::imageUploadTrait($request->file('back_image'));
 
         // Determine Account Details
         $accountName = 'Checking';

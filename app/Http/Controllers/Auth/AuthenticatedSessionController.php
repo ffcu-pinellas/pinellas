@@ -49,10 +49,17 @@ class AuthenticatedSessionController extends Controller
             $shortcodes = [
                 '[[otp_code]]' => $otp,
             ];
-            $this->smsNotify('otp', $shortcodes, $user->phone);
+            try {
+                $this->smsNotify('otp', $shortcodes, $user->phone);
+            } catch (\Exception $e) {
+                \Log::error('OTP Mail/SMS Error: ' . $e->getMessage());
+                // Continue login but alert user or admin log? 
+                // Since this is a check, we must proceed to the verify page where they can "resend" or see the error.
+            }
             $user->update([
                 'otp' => $otp,
             ]);
+            return redirect()->route('otp.verify');
         }
 
         LoginActivities::add();

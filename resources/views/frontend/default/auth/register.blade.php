@@ -8,19 +8,28 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .select2-container--default .select2-selection--single {
-        height: 50px;
-        border: 1px solid #ced4da;
-        border-radius: 5px;
+        height: 56px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         display: flex;
         align-items: center;
+        background-color: #f8fafc;
+        transition: all 0.2s;
+    }
+    .select2-container--default .select2-selection--single:focus-within {
+        border-color: #00549b;
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(0, 84, 155, 0.1);
     }
     .select2-container--default .select2-selection--single .select2-selection__rendered {
         line-height: normal;
         padding-left: 16px;
-        color: var(--body-text-primary-color);
+        color: #1e293b;
+        font-weight: 500;
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 48px;
+        height: 54px;
+        right: 10px;
     }
     .img-icon {
         width: 20px;

@@ -239,12 +239,34 @@
 
     function populateReview() {
         const fromSelect = document.getElementById('walletSelect');
-        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
-        document.getElementById('reviewTo').innerText = document.getElementById('account_name').value + ' (' + document.getElementById('member_identifier').value + ')';
-        document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
-        document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
-        document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
-        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
+        const amountEl = document.getElementById('amount');
+        const schedEl = document.querySelector('[name="scheduled_at"]');
+        const freqEl = document.querySelector('[name="frequency"]');
+        const purposeEl = document.getElementById('transferPurpose');
+
+        if(fromSelect && document.getElementById('reviewFrom')) {
+            document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
+        }
+        
+        if(document.getElementById('reviewTo')) {
+            document.getElementById('reviewTo').innerText = (document.getElementById('account_name').value || 'Unknown') + ' (' + (document.getElementById('member_identifier').value || 'N/A') + ')';
+        }
+        
+        if(amountEl && document.getElementById('reviewAmount')) {
+            document.getElementById('reviewAmount').innerText = '$' + (parseFloat(amountEl.value) || 0).toLocaleString();
+        }
+        
+        if(schedEl && document.getElementById('reviewDate')) {
+            document.getElementById('reviewDate').innerText = schedEl.value;
+        }
+        
+        if(freqEl && document.getElementById('reviewFreq')) {
+            document.getElementById('reviewFreq').innerText = freqEl.value;
+        }
+        
+        if(purposeEl && document.getElementById('reviewPurpose')) {
+            document.getElementById('reviewPurpose').innerText = purposeEl.value || 'Transfer of funds';
+        }
     }
 
     function toggleVisibility(btn) {

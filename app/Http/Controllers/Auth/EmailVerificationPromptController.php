@@ -20,7 +20,12 @@ class EmailVerificationPromptController extends Controller
             return redirect()->route('user.dashboard');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        try {
+            $request->user()->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            \Log::error('Mail Error: ' . $e->getMessage());
+            notify()->warning(__('We were unable to send the verification email to your registered email address. Please  contact support to verify your account or check personal email settings.'), 'Mail Server Error');
+        }
 
         return $request->user()->hasVerifiedEmail()
             ? redirect()->intended(RouteServiceProvider::HOME)
