@@ -306,6 +306,52 @@ Route::get('deploy/run-migration', function () {
 });
 
 // Clear Cache Route
+// Temporary route to fix storage links
+Route::get('/fix-storage', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+    
+    echo "<h1>Storage Linker</h1>";
+    echo "Target: $target<br>";
+    echo "Link: $link<br><hr>";
+
+    if (file_exists($link)) {
+        echo "Link path already exists.<br>";
+        if (is_link($link)) {
+            echo "It is a SYMLINK.<br>";
+            echo "Points to: " . readlink($link) . "<br>";
+            if (readlink($link) !== $target) {
+                echo "<strong>MISMATCH!</strong> Deleting and re-linking...<br>";
+                unlink($link);
+                if (symlink($target, $link)) {
+                    echo "Success: Symlink corrected.<br>";
+                } else {
+                    echo "Error: Could not create symlink.<br>";
+                }
+            } else {
+                echo "Link is correct.<br>";
+                // Force permission fix just in case
+                echo "Attempting to fix permissions on storage...<br>";
+                try {
+                    chmod($target, 0755);
+                    echo "Permissions updated.<br>";
+                } catch (\Exception $e) {
+                    echo "Permission update failed: " . $e->getMessage() . "<br>";
+                }
+            }
+        } else {
+            echo "<strong>WARNING:</strong> It is a DIRECTORY, not a symlink. Please rename/delete 'public/storage' manually via FTP/File Manager.<br>";
+        }
+    } else {
+        echo "Link does not exist. Creating...<br>";
+        if (symlink($target, $link)) {
+            echo "<strong>Success:</strong> Symlink created.<br>";
+        } else {
+            echo "<strong>Error:</strong> Symlink creation failed. (Check permissions)<br>";
+        }
+    }
+    return "Done.";
+});
 Route::get('/clear-cache', function () {
     \Illuminate\Support\Facades\Artisan::call('view:clear');
     \Illuminate\Support\Facades\Artisan::call('cache:clear');

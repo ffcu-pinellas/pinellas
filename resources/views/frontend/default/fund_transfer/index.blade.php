@@ -293,6 +293,39 @@
 
 @section('style')
 <style>
+    .wizard-step {
+        transition: all 0.3s ease-in-out;
+    }
+    .step-indicator {
+        position: relative;
+        z-index: 1;
+    }
+    .step-indicator.active .rounded-circle {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+    }
+    .step-indicator.text-success .rounded-circle {
+        background-color: #198754 !important;
+        color: white !important;
+    }
+    /* ... existing styles ... */
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .transfer-type-card {
+        transition: all 0.2s;
+    }
+    .transfer-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .card-radio {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary-color);
     .step-indicator {
         font-size: 0.9rem;
         color: #adb5bd;
@@ -322,13 +355,11 @@
 @endsection
 
 @section('script')
+<!-- SweetAlert2 -->
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    var currentStep = 1;
-    var transferType = null;
-
-    console.log('Fund Transfer Script Loaded');
-
-    window.selectType = function(type, e) {
+    // Define global functions immediately to avoid ReferenceError if user clicks fast
+    function selectType(type, e) {
         console.log('selectType called:', type);
         const card = e.currentTarget;
         if(!card) return;
@@ -336,7 +367,7 @@
         try {
             const radio = card.querySelector('input[type="radio"]');
             if(radio) radio.checked = true;
-            transferType = type;
+            window.transferType = type; // Set global
 
             document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
             card.classList.add('border-primary');
@@ -348,6 +379,16 @@
             console.error('Transfer Type Selection Error:', err);
         }
     }
+
+    var currentStep = 1;
+    window.transferType = null;
+
+    console.log('Fund Transfer Script Loaded');
+
+    // Remove window.selectType assignment, use the hoisted function above or defined in head
+    // Actually, function declaration in script block is not hoisted out of the block if it's a module, but here it is standard JS.
+    // However, putting it in @section('style') is hacky but ensures it is in head if 'style' yields to head.
+    // Better to put it in the main script block but maybe use simple function declaration.
 
     function toggleVisibility(btn) {
         const input = btn.parentElement.querySelector('input');
