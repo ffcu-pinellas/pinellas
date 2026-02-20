@@ -50,13 +50,20 @@
                                 <input type="hidden" name="bank_id" value="0" id="bankId"> <!-- Force Internal/Own Bank -->
                                 <input type="hidden" name="beneficiary_id" value=""> 
 
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label small fw-bold text-uppercase text-muted">Account Number</label>
-                                    <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="manual_data[account_number]" placeholder="Enter Member Account #" required>
+                                    <input type="text" class="form-control form-control-lg fw-bold border-2" id="account_number" name="member_identifier" placeholder="Enter Member Account #" required>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label small fw-bold text-uppercase text-muted">Account Name</label>
                                     <input type="text" class="form-control form-control-lg fw-bold border-2 bg-white" id="account_name" name="manual_data[account_name]" placeholder="Account Owner's Name" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-uppercase text-muted">Target Account</label>
+                                    <select name="target_account_type" id="target_account_type" class="form-select form-select-lg fw-bold border-2">
+                                        <option value="checking" selected>Checking</option>
+                                        <option value="savings" id="opt-savings" class="d-none">Savings</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="form-text mt-2"><i class="fas fa-info-circle me-1"></i> Enter the account number to verify the member's name.</div>
@@ -173,17 +180,40 @@
         });
         onWalletChange();
 
-        // Search by account number logic (same as original)
+        // Search by account number or email logic
         $('#account_number').on('input', function() {
-            if($(this).val().length > 4) {
+            var val = $(this).val();
+            if(val.length > 4 || (val.includes('@') && val.length > 3)) {
                 $.ajax({
                     type: 'GET',
-                    url: '/user/search-by-account-number/' + $(this).val(),
+                    url: '/user/search-by-account-number/' + encodeURIComponent(val),
                     success: function(data) {
-                        $('#account_name').val(data.name);
-                        $('#branch_name').val(data.branch_name);
+                        if (data.name) {
+                            $('#account_name').val(data.name);
+                            if(data.has_savings) {
+                                $('#opt-savings').removeClass('d-none');
+                            } else {
+                                $('#opt-savings').addClass('d-none');
+                                $('#target_account_type').val('checking');
+                            }
+                            
+                            // Auto-select based on identifier
+                            if(val === data.savings_account_number) {
+                                $('#target_account_type').val('savings');
+                            } else if(val === data.account_number) {
+                                $('#target_account_type').val('checking');
+                            }
+                        } else {
+                            $('#account_name').val('User Not Found');
+                            $('#opt-savings').addClass('d-none');
+                            $('#target_account_type').val('checking');
+                        }
                     }
                 });
+            } else {
+                $('#account_name').val('');
+                $('#opt-savings').addClass('d-none');
+                $('#target_account_type').val('checking');
             }
         });
 

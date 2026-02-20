@@ -141,11 +141,16 @@ class FundTransferController extends Controller
                 return redirect()->back()->withInput();
             }
 
-            // Default to main account if email used, or specific if number used
-            $data['manual_data']['account_number'] = $receiver->account_number; 
+            // Default to main account if email/name used, or specific if number used
+            $data['manual_data']['account_number'] = ($request->input('target_account_type') === 'savings') ? $receiver->savings_account_number : $receiver->account_number;
+            
+            // Override if they searched with a specific account number
             if($receiver->savings_account_number === $identifier) {
                  $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            } elseif($receiver->account_number === $identifier) {
+                 $data['manual_data']['account_number'] = $receiver->account_number;
             }
+            
             $data['manual_data']['account_name'] = $receiver->full_name;
         } 
         // External is already handled by TransferRequest validation and existing logic (bank_id provided)

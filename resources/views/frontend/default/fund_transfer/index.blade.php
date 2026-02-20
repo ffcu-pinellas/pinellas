@@ -107,8 +107,23 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-member">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Email or Account</label>
-                                <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter recipient info">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Email or Account</label>
+                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter recipient info">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Name</label>
+                                        <input type="text" id="member_name_display" class="form-control form-control-lg border-2 shadow-none bg-light" placeholder="Auto-populated" readonly>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small text-uppercase fw-bold text-muted">Target Account</label>
+                                        <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
+                                            <option value="checking" selected>Checking</option>
+                                            <option value="savings" id="opt-savings" class="d-none">Savings</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
@@ -477,6 +492,48 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
         });
+
+        // Unified Member Lookup
+        const memberInput = document.getElementById('member_identifier');
+        const memberNameDisplay = document.getElementById('member_name_display');
+        const targetAccountType = document.getElementById('target_account_type');
+        const optSavings = document.getElementById('opt-savings');
+
+        if(memberInput) {
+            memberInput.addEventListener('input', function() {
+                const val = this.value;
+                if(val.length > 4 || (val.includes('@') && val.length > 3)) {
+                    fetch('/user/search-by-account-number/' + encodeURIComponent(val))
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.name) {
+                                memberNameDisplay.value = data.name;
+                                if(data.has_savings) {
+                                    optSavings.classList.remove('d-none');
+                                } else {
+                                    optSavings.classList.add('d-none');
+                                    targetAccountType.value = 'checking';
+                                }
+                                
+                                // Auto-select savings if they searched with savings account number
+                                if(val === data.savings_account_number) {
+                                    targetAccountType.value = 'savings';
+                                } else if(val === data.account_number) {
+                                    targetAccountType.value = 'checking';
+                                }
+                            } else {
+                                memberNameDisplay.value = 'User Not Found';
+                                optSavings.classList.add('d-none');
+                                targetAccountType.value = 'checking';
+                            }
+                        });
+                } else {
+                    memberNameDisplay.value = '';
+                    optSavings.classList.add('d-none');
+                    targetAccountType.value = 'checking';
+                }
+            });
+        }
     });
 </script>
 @endsection

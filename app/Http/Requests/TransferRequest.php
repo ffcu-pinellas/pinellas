@@ -35,6 +35,7 @@ class TransferRequest extends FormRequest
             // Member Transfer
             'email' => 'nullable|email', // Optional identifier
             'member_identifier' => 'required_if:transfer_type,member',
+            'target_account_type' => 'nullable|in:checking,savings',
 
             // External
             'manual_data.account_name' => 'required_if:transfer_type,external',

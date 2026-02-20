@@ -29,13 +29,20 @@ class UserController extends Controller
  
     public function searchByAccountNumber($number)
     {
-        $user = User::where('account_number', sanitizeAccountNumber($number))->first();
+        $sanitizedNumber = sanitizeAccountNumber($number);
+        
+        $user = User::where('account_number', $sanitizedNumber)
+                    ->orWhere('savings_account_number', $sanitizedNumber)
+                    ->orWhere('email', $number)
+                    ->first();
 
         return response()->json([
             'name' => $user->full_name ?? '',
             'branch_name' => $user->branch?->name ?? '',
+            'account_number' => $user->account_number ?? '',
+            'savings_account_number' => $user->savings_account_number ?? '',
+            'has_savings' => $user->savings_account_number ? true : false,
         ]);
-
     }
 
     public function changePassword()
