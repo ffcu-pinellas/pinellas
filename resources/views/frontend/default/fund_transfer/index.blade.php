@@ -261,7 +261,6 @@
                                 <span class="h2 mb-0 text-primary" id="reviewAmount"></span>
                             </div>
 
-                            <div class="row mt-4">
                                 <div class="col-12">
                                     <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
                                     <div class="input-group">
@@ -272,19 +271,18 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold mt-4" id="confirmBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
+                            </button>
+                            
+                            <div class="text-center mt-3">
+                                <p class="small text-muted mb-0">By clicking submit, you authorize Pinellas FCU to initiate this transfer.</p>
+                            </div>
                         </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold mt-2" id="confirmBtn">
-                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                        <i class="fas fa-shield-alt me-2"></i> Submit Transfer
-                    </button>
-                    
-                    <div class="text-center mt-3">
-                        <p class="small text-muted mb-0">By clicking submit, you authorize Pinellas FCU to initiate this transfer.</p>
-                    </div>
                 </div>
-
             </form>
         </div>
     </div>
@@ -326,6 +324,7 @@
         width: 20px;
         height: 20px;
         accent-color: var(--primary-color);
+    }
     .step-indicator {
         font-size: 0.9rem;
         color: #adb5bd;
@@ -598,5 +597,4 @@
     });
 
 </script>
-@endsection
 @endsection

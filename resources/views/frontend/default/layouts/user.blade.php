@@ -208,6 +208,7 @@
         const toggleBtn = document.getElementById('sidebarToggle');
         
         function toggleSidebar() {
+            if(!sidebar || !overlay) return;
             sidebar.classList.toggle('show');
             overlay.classList.toggle('show');
             document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
@@ -220,35 +221,8 @@
             });
         }
 
-        // Remove auto-closing sidebar on link click to prevent navigation interference
-        /*
-        document.querySelectorAll('.sidebar-nav-item').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 992) {
-                    toggleSidebar();
-                }
-            });
-        });
-        */
         if(overlay) {
             overlay.addEventListener('click', toggleSidebar);
-        }
-
-        // Remove auto-closing sidebar on link click
-        function selectType(type) {
-            transferType = type;
-            // Find the radio inside the clicked container and check it
-            const card = event.currentTarget || event.target.closest('.transfer-type-card');
-            const radio = card.querySelector('input[type="radio"]');
-            if(radio) radio.checked = true;
-
-            // Visual feedback
-            document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-            card.classList.add('border-primary');
-            
-            setTimeout(() => {
-                goToStep(2);
-            }, 300);
         }
         
         // Smart Header Logic
