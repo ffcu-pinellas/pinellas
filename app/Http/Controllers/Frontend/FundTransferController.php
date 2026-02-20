@@ -47,7 +47,6 @@ class FundTransferController extends Controller
 
         $banks = OthersBank::active()->get();
         $wallets = auth()->user()->wallets->load('currency');
-        $wallets = auth()->user()->wallets->load('currency');
 
         return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets'));
     }

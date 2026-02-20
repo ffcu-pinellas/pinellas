@@ -78,7 +78,16 @@
                 </div>
                 <div class="profile-text-data">
                     <div class="attribute">{{ __('Bank Name') }}:</div>
-                    <div class="value">{{ $transaction->beneficiary->bank->name ?? 'Own Bank'}}</div>
+                    <div class="value">
+                        @if($transaction->beneficiary && $transaction->beneficiary->bank)
+                            {{ $transaction->beneficiary->bank->name }}
+                        @elseif($transaction->bank_id != 0)
+                            @php $bank = \App\Models\OthersBank::find($transaction->bank_id); @endphp
+                            {{ $bank->name ?? 'External Bank' }}
+                        @else
+                            {{ __('Own Bank') }}
+                        @endif
+                    </div>
                 </div>
                 <div class="profile-text-data">
                     <div class="attribute">{{ __('Branch Name') }}:</div>

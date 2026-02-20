@@ -83,13 +83,19 @@
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="updateAccountOptions()">
-                                @foreach($wallets as $wallet)
-                                    <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ $wallet->balance }}">
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
+                                @if($wallets->isEmpty())
+                                    <option value="default" data-type="checking" data-balance="{{ auth()->user()->balance }}">
+                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
                                     </option>
-                                @endforeach
+                                @else
+                                    @foreach($wallets as $wallet)
+                                        <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ $wallet->balance }}">
+                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
+                                        </option>
+                                    @endforeach
+                                @endif
                                 <option value="primary_savings" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}">
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency') }} {{ auth()->user()->savings_balance }}
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ auth()->user()->savings_balance }}
                                 </option>
                             </select>
                         </div>
@@ -168,14 +174,13 @@
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="password" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="9 digits" maxlength="9">
-                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Account Number</label>
                             <div class="input-group">
-                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Checking/Savings Account #">
+                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="4-20 digits numeric" minlength="4" maxlength="20" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                 <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
@@ -266,6 +271,18 @@
 
     .icon-circle { transition: all 0.25s; }
     .transfer-type-card:hover .icon-circle { transform: scale(1.1); }
+
+    /* Mobile Refinements */
+    @media (max-width: 768px) {
+        .wizard-step { padding: 1.5rem !important; }
+        .transfer-type-card { padding: 1.5rem !important; margin-bottom: 0.5rem; }
+        .form-control-lg, .form-select-lg { font-size: 1rem; padding: 0.75rem 1rem; }
+        h4 { font-size: 1.25rem; }
+    }
+    
+    ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
+    .form-control::-webkit-input-placeholder { font-size: 0.85rem !important; }
+    .form-control:-ms-input-placeholder { font-size: 0.85rem !important; }
 </style>
 @endsection
 
@@ -333,15 +350,22 @@
             if(selectedType === 'checking') {
                 const opt = document.createElement('option');
                 opt.value = 'primary_savings';
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency") }} {{ auth()->user()->savings_balance }}';
+                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ auth()->user()->savings_balance }}';
                 toSelect.add(opt);
             } else {
-                @foreach($wallets as $wallet)
+                if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
                     var opt = document.createElement('option');
-                    opt.value = '{{ $wallet->currency->code }}';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}';
+                    opt.value = 'default';
+                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ auth()->user()->balance }}';
                     toSelect.add(opt);
-                @endforeach
+                } else {
+                    @foreach($wallets as $wallet)
+                        var opt = document.createElement('option');
+                        opt.value = '{{ $wallet->currency->code }}';
+                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}';
+                        toSelect.add(opt);
+                    @endforeach
+                }
             }
         }
         validateBalance();
