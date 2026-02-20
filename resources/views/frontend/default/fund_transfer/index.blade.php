@@ -249,6 +249,8 @@
                                 </div>
                             </div>
                             
+                            </div>
+                            
                             <hr class="my-4">
                             
                             <div class="d-flex justify-content-between align-items-center">
@@ -257,6 +259,18 @@
                                     <span class="small text-muted">Funds will be available shortly after approval.</span>
                                 </div>
                                 <span class="h2 mb-0 text-primary" id="reviewAmount"></span>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
+                                    <div class="input-group">
+                                        <input type="password" name="passcode" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" required maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                                        <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
+                                            <i class="fas fa-eye-slash"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -523,6 +537,13 @@
 
     // Form submission handling
     document.getElementById('transferForm').addEventListener('submit', function(e) {
+        const passcode = document.querySelector('input[name="passcode"]').value;
+        if(!passcode) {
+            e.preventDefault();
+            Swal.fire('Passcode Required', 'Please enter your passcode to confirm the transfer.', 'warning');
+            return;
+        }
+
         const btn = document.getElementById('confirmBtn');
         btn.disabled = true;
         btn.querySelector('.spinner-border').classList.remove('d-none');
