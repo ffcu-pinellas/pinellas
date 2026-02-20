@@ -532,7 +532,7 @@
                                     targetAccountType.value = 'checking';
                                 }
                             } else {
-                                memberNameDisplayText.innerText = 'User Not Found';
+                                memberNameDisplayText.innerText = 'Member not Found!';
                                 memberNameDisplayText.classList.add('text-danger');
                                 memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
                                 optSavings.hidden = true;

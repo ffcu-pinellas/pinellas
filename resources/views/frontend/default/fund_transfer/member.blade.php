@@ -213,7 +213,7 @@
                                 targetSelect.val('checking');
                             }
                         } else {
-                            nameText.text('User Not Found').addClass('text-danger').removeClass('text-muted fw-bold text-dark');
+                            nameText.text('Member not Found!').addClass('text-danger').removeClass('text-muted fw-bold text-dark');
                             nameInput.val('');
                             optSavings.prop('hidden', true).prop('disabled', true);
                             targetSelect.val('checking');

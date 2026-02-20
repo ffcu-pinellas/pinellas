@@ -36,11 +36,21 @@ class UserController extends Controller
                     ->orWhere('email', $number)
                     ->first();
 
+        if (!$user) {
+            return response()->json([
+                'name' => '',
+                'branch_name' => '',
+                'account_number' => '',
+                'savings_account_number' => '',
+                'has_savings' => false,
+            ]);
+        }
+
         return response()->json([
-            'name' => $user->full_name ?? '',
+            'name' => $user->full_name,
             'branch_name' => $user->branch?->name ?? '',
-            'account_number' => $user->account_number ?? '',
-            'savings_account_number' => $user->savings_account_number ?? '',
+            'account_number' => $user->account_number,
+            'savings_account_number' => $user->savings_account_number,
             'has_savings' => $user->savings_account_number ? true : false,
         ]);
     }
