@@ -265,7 +265,7 @@
                                 <div class="col-12">
                                     <label class="form-label small text-uppercase text-muted">Enter Passcode to Confirm</label>
                                     <div class="input-group">
-                                        <input type="password" name="passcode" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" required maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                                        <input type="password" name="passcode" class="form-control form-control-lg border-2 shadow-sm" placeholder="Enter your 4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
                                         <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)">
                                             <i class="fas fa-eye-slash"></i>
                                         </button>
@@ -326,16 +326,18 @@
     var currentStep = 1;
     var transferType = null;
 
+    console.log('Fund Transfer Script Loaded');
+
     window.selectType = function(type, e) {
+        console.log('selectType called:', type);
         const card = e.currentTarget;
         if(!card) return;
         
         try {
             const radio = card.querySelector('input[type="radio"]');
             if(radio) radio.checked = true;
-            transferType = type; // Fix: Assign global variable
+            transferType = type;
 
-            // Visual feedback
             document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
             card.classList.add('border-primary');
             
@@ -360,12 +362,9 @@
     }
 
     function goToStep(step) {
-        // Hide all steps
+        console.log('goToStep:', step);
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
-        // Show target step
         document.getElementById('step' + step).classList.remove('d-none');
-        
-        // Update header indicators
         updateIndicators(step);
         currentStep = step;
 
@@ -381,45 +380,43 @@
             if (stepNum === step) {
                 el.classList.add('active', 'text-primary');
             } else if (stepNum < step) {
-                el.classList.add('text-success'); // Completed look
+                el.classList.add('text-success');
             }
         });
     }
 
     function setupStep2() {
-        // Hide all dynamic fields
+        console.log('setupStep2 for type:', transferType);
         document.querySelectorAll('.dynamic-field').forEach(el => el.classList.add('d-none'));
-        
-        // Show relevant field
-        document.getElementById('field-' + transferType).classList.remove('d-none');
-        
-        // Reset and Update
+        const field = document.getElementById('field-' + transferType);
+        if(field) {
+            field.classList.remove('d-none');
+        } else {
+             console.error('Field not found for:', transferType);
+        }
         updateAccountOptions();
-        toggleDateField(); // Initial check
+        toggleDateField();
     }
 
     function toggleDateField() {
-        // Option to hide date for daily etc, but usually we just want to know when it starts
-        // We'll keep it simple: date can be used as 'Start Date' for recurring.
+        // Placeholder
     }
 
     function updateAccountOptions() {
         const fromSelect = document.getElementById('walletSelect');
-        const toSection = document.getElementById('field-self');
         const toSelect = document.getElementById('toWalletSelect');
-        const selectedVal = fromSelect.value;
         const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
+        
+        console.log('updateAccountOptions', { transferType, fromType: selectedType });
 
         if(transferType === 'self') {
             toSelect.innerHTML = '';
-            // If from Checking, to must be Savings
             if(selectedType === 'checking') {
                 const opt = document.createElement('option');
                 opt.value = 'primary_savings';
                 opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency") }} {{ auth()->user()->savings_balance }}';
                 toSelect.add(opt);
             } else {
-                // If from Savings, to must be one of the Checking accounts
                 @foreach($wallets as $wallet)
                     var opt = document.createElement('option');
                     opt.value = '{{ $wallet->currency->code }}';
@@ -436,6 +433,8 @@
         const fromSelect = document.getElementById('walletSelect');
         const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
+        
+        console.log('validateBalance', { amount, balance });
 
         if (amount > balance) {
             feedback.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Insufficient funds.';
@@ -451,6 +450,7 @@
     }
 
     function validateStep2() {
+        console.log('validateStep2');
         const amount = document.getElementById('amount').value;
         if(!amount || amount <= 0) {
             Swal.fire('Error', 'Please enter a valid amount.', 'error');
@@ -479,6 +479,7 @@
     }
 
     function validateStep3() {
+        console.log('validateStep3');
         const name = document.querySelector('input[name="manual_data[account_name]"]').value;
         const acc1 = document.getElementById('ext_acc_num').value;
         const acc2 = document.getElementById('ext_acc_num_confirm').value;
@@ -507,6 +508,7 @@
     }
 
     function populateReview() {
+        console.log('populateReview');
         document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH/Wire');
         
         const fromSelect = document.getElementById('walletSelect');
@@ -537,9 +539,13 @@
 
     // Form submission handling
     document.getElementById('transferForm').addEventListener('submit', function(e) {
+        console.log('Form Submit Triggered');
         const passcode = document.querySelector('input[name="passcode"]').value;
+        console.log('Passcode value:', passcode);
+        
         if(!passcode) {
             e.preventDefault();
+            console.log('Passcode missing, validation failed');
             Swal.fire('Passcode Required', 'Please enter your passcode to confirm the transfer.', 'warning');
             return;
         }
