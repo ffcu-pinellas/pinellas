@@ -36,7 +36,7 @@ class TransferService
         \Log::info("TransferService::validate - Amount: $amount, BankID: $bankId, Wallet: $walletType");
 
         $bankInfo = OthersBank::find($bankId);
-        $currencyCode = $walletType == 'default' ? setting('site_currency', 'global') : $walletType;
+        $currencyCode = ($walletType == 'default' || $walletType == 'primary_savings') ? setting('site_currency', 'global') : $walletType;
 
         if ($bankId != 0) {
             $query = Transaction::where('user_id', $user->id)
@@ -108,12 +108,15 @@ class TransferService
         $bankId = $input['bank_id'];
         $bankInfo = OthersBank::find($bankId);
         $currency = setting('site_currency', 'global');
-        $currencyCode = $walletType == 'default' ? $currency : $walletType;
+        $currencyCode = ($walletType == 'default' || $walletType == 'primary_savings') ? $currency : $walletType;
 
         $manualData = $input['manual_data'] ?? [];
         $beneficiary = Beneficiary::find($input['beneficiary_id'] ?? null);
         $accountNumber = $beneficiary?->account_number ?? $manualData['account_number'];
-        $receiver = User::where('account_number', sanitizeAccountNumber($accountNumber))->first();
+        $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+        $receiver = User::where('account_number', $sanitizedNumber)
+                        ->orWhere('savings_account_number', $sanitizedNumber)
+                        ->first();
 
         $charge = $this->calculateTransferCharge($bankInfo, $amount, $currencyCode);
 
