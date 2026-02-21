@@ -301,7 +301,6 @@
     </div>
 </div>
 
-<a href="#" class="fab-help"><i class="fas fa-question small"></i></a>
 @endsection
 
 @push('js')
