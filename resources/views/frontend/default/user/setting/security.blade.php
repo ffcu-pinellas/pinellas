@@ -24,11 +24,11 @@
                 </div>
 
                 <!-- Transaction Security -->
-                <div class="mb-5">
+                <div class="mb-5" id="transaction-security">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Transaction Security</h6>
                     
                     <!-- Transaction PIN -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 py-2">
+                    <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ auth()->user()->transaction_pin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
                         <div>
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Transaction PIN</label>
                             <div class="fw-600 text-dark fs-5">
@@ -38,10 +38,10 @@
                                     <span class="text-danger small">Not Set Up</span>
                                 @endif
                             </div>
-                            <div class="small text-muted">Used for confirming transfers and sensitive updates.</div>
+                            <div class="small text-muted">Used for Extra Security on sensitive actions.</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
-                            {{ auth()->user()->transaction_pin ? 'Change PIN' : 'Setup PIN' }}
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ auth()->user()->transaction_pin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                            {{ auth()->user()->transaction_pin ? 'Change PIN' : 'Set Up Now' }}
                         </button>
                     </div>
 
@@ -87,7 +87,7 @@
                 </div>
 
                 <!-- Login Credentials -->
-                <div class="mb-5">
+                <div class="mb-5" id="login-credentials">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Login Credentials</h6>
                     <div class="d-flex justify-content-between align-items-center mb-4 py-2">
                         <div>
@@ -319,6 +319,16 @@
         if (window.innerWidth < 992) {
             $('#settings-nav-col').hide();
             $('#settings-content-col').removeClass('d-none').show();
+            // Scroll to transaction security if requested, otherwise top
+            if (window.location.search.includes('focus=true')) {
+                const target = $('#transaction-security');
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 20
+                    }, 500);
+                    return;
+                }
+            }
             window.scrollTo(0, 0);
         }
     }

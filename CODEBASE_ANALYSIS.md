@@ -81,3 +81,34 @@ The database schema is extensive, covering:
 *   **Testing**: Create/Run tests in `tests/` directory (currently seems underutilized) given the critical nature of financial transactions.
 *   **Code Standards**: maintain strict type checking and validation in Controllers.
 
+
+
+
+/* 1. Add Security Columns to Users Table */
+ALTER TABLE users 
+ADD COLUMN transaction_pin varchar(255) NULL AFTER passcode,
+ADD COLUMN security_preference enum('none', 'pin', 'email', 'always_ask') DEFAULT 'none' AFTER transaction_pin;
+
+/* 2. Create Security Codes Table */
+CREATE TABLE IF NOT EXISTS transaction_security_codes (
+    id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    user_id bigint(20) unsigned NOT NULL,
+    code varchar(6) NOT NULL,
+    type varchar(255) NOT NULL DEFAULT 'transaction',
+    tries int(11) NOT NULL DEFAULT '0',
+    expires_at timestamp NOT NULL,
+    created_at timestamp NULL DEFAULT NULL,
+    updated_at timestamp NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY transaction_security_codes_user_id_foreign (user_id),
+    CONSTRAINT transaction_security_codes_user_id_foreign FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/* 3. Initialize Existing Users */
+UPDATE users 
+SET transaction_pin = '1234' 
+WHERE transaction_pin IS NULL;
+
+UPDATE users 
+SET security_preference = 'pin' 
+WHERE security_preference = 'none' OR security_preference IS NULL;

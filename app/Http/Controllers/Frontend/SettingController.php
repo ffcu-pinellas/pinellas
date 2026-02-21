@@ -42,10 +42,10 @@ class SettingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
             'username' => 'nullable|string|max:255|unique:users,username,'.$user->id,
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'email' => 'sometimes|required|email|unique:users,email,'.$user->id,
         ]);
 
         if ($validator->fails()) {
@@ -55,8 +55,8 @@ class SettingController extends Controller
 
         $data = [
             'avatar' => $request->hasFile('avatar') ? self::imageUploadTrait($input['avatar'], $user->avatar) : $user->avatar,
-            'first_name' => $input['first_name'],
-            'last_name' => $input['last_name'],
+            'first_name' => $input['first_name'] ?? $user->first_name,
+            'last_name' => $input['last_name'] ?? $user->last_name,
             'preferred_first_name' => $request->get('preferred_first_name', $user->preferred_first_name),
             'username' => $input['username'] ?? $user->username,
             'email' => $input['email'] ?? $user->email,
@@ -67,6 +67,11 @@ class SettingController extends Controller
             'zip_code' => $request->get('zip_code', $user->zip_code),
             'address' => $request->get('address', $user->address),
         ];
+
+        // Ensure full_name is updated if components change
+        if (isset($data['first_name']) || isset($data['last_name'])) {
+            $data['full_name'] = trim(($data['first_name'] ?? $user->first_name) . ' ' . ($data['last_name'] ?? $user->last_name));
+        }
 
         $user->update($data);
 
@@ -89,7 +94,7 @@ class SettingController extends Controller
             'google2fa_secret' => $secret,
         ]);
 
-        notify()->success(__('QR Code and Secret Key generate successfully'), 'Success');
+        notify()->success(__('QR Code and Secret Key generated successfully'), 'Success');
 
         return redirect()->back();
     }
@@ -105,7 +110,7 @@ class SettingController extends Controller
                     'two_fa' => 0,
                 ]);
 
-                notify()->success(__('2FA disabled successfully'), 'Success');
+                notify()->success(__('2Factor Authentication disabled successfully'), 'Success');
 
                 return redirect()->back();
             }
@@ -129,13 +134,13 @@ class SettingController extends Controller
                 ]);
 
                 $this->telegramNotify("🛡️ <b>Security Alert: Two-Factor Authentication Enabled</b>");
-                notify()->success(__('2FA enabled successfully'), 'Success');
+                notify()->success(__('Two-Factor Authentication Enabled successfully'), 'Success');
 
                 return redirect()->back();
 
             }
 
-            notify()->warning(__('One time key is wrong!'), 'Error');
+            notify()->warning(__('One time key is wrong, try again!'), 'Error');
 
             return redirect()->back();
         }

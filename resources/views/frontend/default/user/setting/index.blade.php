@@ -44,9 +44,29 @@
                 <div class="p-4 bg-white">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 ls-1" style="font-size: 11px;">PERSONAL DETAILS</h6>
                     
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">FIRST NAME</label>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="fs-6 text-dark fw-500">{{ $user->first_name }}</div>
+                                <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=first_name]').focus()" class="text-decoration-none small fw-bold">Edit</a>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">LAST NAME</label>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="fs-6 text-dark fw-500">{{ $user->last_name }}</div>
+                                <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=last_name]').focus()" class="text-decoration-none small fw-bold">Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="mb-4">
                         <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">USERNAME</label>
-                        <div class="fs-6 text-dark fw-500">{{ $user->username }}</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fs-6 text-dark fw-500">{{ $user->username }}</div>
+                            <a href="javascript:void(0)" onclick="$('#changeUsernameModal').modal('show')" class="text-decoration-none small fw-bold">Edit</a>
+                        </div>
                     </div>
                     
                     <div class="mb-4">
