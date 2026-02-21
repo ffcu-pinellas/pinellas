@@ -109,13 +109,20 @@
                     <h5 class="modal-title text-white">Capture Check</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCamera()"></button>
                 </div>
-                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center" style="height: 70vh;">
-                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-cover"></video>
-                    <div class="camera-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none">
+                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 70vh;">
+                    <div id="cameraStatus" class="position-absolute text-center text-white p-4" style="z-index: 5;">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <p class="mb-3">Configuring camera...</p>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 d-none" id="retryCameraButton" onclick="startCameraStream()">
+                            Grant Permission
+                        </button>
+                    </div>
+                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-cover d-none"></video>
+                    <div class="camera-overlay position-absolute top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center pointer-events-none" id="cameraOverlay">
                          <div class="check-guide" style="width: 85%; height: 50%; border: 2px dashed rgba(255,255,255,0.6); border-radius: 15px;"></div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 justify-content-center bg-dark p-4">
+                <div class="modal-footer border-0 justify-content-center bg-dark p-4 d-none" id="cameraActions">
                     <button type="button" class="btn btn-light rounded-circle p-3 shadow-lg" onclick="takeSnapshot()" style="width: 70px; height: 70px;">
                         <i class="fas fa-camera fa-2x"></i>
                     </button>
@@ -208,13 +215,25 @@
 
     async function openCamera(side) {
         currentSide = side;
-        const video = document.getElementById('videoStream');
-        
-        // Stop any existing stream
         stopCamera();
+        
+        // Reset UI
+        document.getElementById('cameraStatus').classList.remove('d-none');
+        document.getElementById('retryCameraButton').classList.add('d-none');
+        document.getElementById('videoStream').classList.add('d-none');
+        document.getElementById('cameraOverlay').classList.add('d-none');
+        document.getElementById('cameraActions').classList.add('d-none');
 
-        // Show loading state or modal immediately? 
-        // Better to wait for stream to be ready to avoid 'black screen' flicker
+        cameraModal.show();
+        
+        // Try auto-start
+        setTimeout(startCameraStream, 500);
+    }
+
+    async function startCameraStream() {
+        const video = document.getElementById('videoStream');
+        const status = document.getElementById('cameraStatus');
+        const retryBtn = document.getElementById('retryCameraButton');
         
         const constraints = {
             video: { 
@@ -225,32 +244,33 @@
             audio: false
         };
 
-        // Set a timeout to fallback if camera takes too long (e.g. 5 seconds)
-        cameraTimeout = setTimeout(() => {
-            console.warn("Camera initialization timed out.");
-            triggerUploadFallback();
-        }, 5000);
-
         try {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
-            clearTimeout(cameraTimeout);
-            
             video.srcObject = stream;
             
-            // Critical for iOS Safari: wait for metadata and play
             video.onloadedmetadata = () => {
                 video.play().then(() => {
-                    cameraModal.show();
+                    // Success UI
+                    status.classList.add('d-none');
+                    video.classList.remove('d-none');
+                    document.getElementById('cameraOverlay').classList.remove('d-none');
+                    document.getElementById('cameraActions').classList.remove('d-none');
                 }).catch(e => {
-                    console.error("Video play failed:", e);
-                    triggerUploadFallback();
+                    console.warn("Play failed:", e);
+                    retryBtn.classList.remove('d-none');
+                    status.querySelector('p').innerText = "Permission needed to start video.";
+                    status.querySelector('.spinner-border').classList.add('d-none');
                 });
             };
-
         } catch (err) {
             console.error("Camera error:", err);
-            clearTimeout(cameraTimeout);
-            triggerUploadFallback();
+            status.querySelector('p').innerText = "Unable to access camera.";
+            status.querySelector('.spinner-border').classList.add('d-none');
+            retryBtn.classList.remove('d-none');
+            // If it's a hard error (not found), show fallback link
+            if(err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                 triggerUploadFallback();
+            }
         }
     }
 
