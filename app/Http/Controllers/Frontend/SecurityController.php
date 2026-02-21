@@ -42,26 +42,50 @@ class SecurityController extends Controller
             ]
         );
 
+        // Determine which template to use based on action
+        $action = $request->get('action', 'Verification');
+        $templateCode = 'mfa_otp'; // Default fallback
+        
+        $actionLower = strtolower($action);
+        if (str_contains($actionLower, 'transfer')) {
+            $templateCode = 'mfa_transfer';
+        } elseif (str_contains($actionLower, 'withdraw')) {
+            $templateCode = 'mfa_withdrawal';
+        } elseif (str_contains($actionLower, 'profile') || str_contains($actionLower, 'username') || str_contains($actionLower, 'email')) {
+            $templateCode = 'mfa_profile_update';
+        } elseif (str_contains($actionLower, 'security') || str_contains($actionLower, 'pin') || str_contains($actionLower, 'password')) {
+            $templateCode = 'mfa_security_change';
+        }
+
         // Send Email
         $shortcodes = [
             '[[otp_code]]' => $code,
             '[[full_name]]' => $user->full_name,
-            '[[action]]' => $request->get('action', 'Transaction'),
+            '[[action]]' => $action,
         ];
         
         try {
-            // Using existing 'otp' template from NotifyTrait
-            $this->mailNotify('otp', $shortcodes, $user->email);
+            // Correct parameter order for mailNotify: $email, $templateCode, $shortcodes
+            $this->mailNotify($user->email, $templateCode, $shortcodes);
             
             return response()->json([
                 'status' => 'success',
                 'message' => 'Verification code sent to your email.'
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to send email. Please try using your PIN.'
-            ], 500);
+            // Fallback to generic 'otp' if specialized template fails or doesn't exist yet
+            try {
+                $this->mailNotify($user->email, 'otp', $shortcodes);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Verification code sent to your email.'
+                ]);
+            } catch (\Exception $e2) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to send email. Please try using your PIN.'
+                ], 500);
+            }
         }
     }
 
