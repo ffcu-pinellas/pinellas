@@ -64,13 +64,13 @@
                         <i class="fas fa-exchange-alt"></i>
                         <span>Transfer</span>
                     </a>
-                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
-                        <i class="fas fa-user"></i>
-                        <span>Pay a person</span>
+                    <a href="{{ route('user.remote_deposit') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Remote Deposit</span>
                     </a>
-                    <a href="{{ route('user.bill-pay.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <span>Pay a bill</span>
+                    <a href="{{ route('user.cards') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Manage Cards</span>
                     </a>
                     <a href="{{ route('user.messages') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-comment-medical"></i>
