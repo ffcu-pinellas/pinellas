@@ -225,6 +225,11 @@
 
 @section('script')
 <script>
-    // Local scripts for profile page only (if any)
+    $(document).ready(function() {
+        // If navigated directly from nav with focus (on mobile)
+        if (window.innerWidth < 992 && window.location.search.includes('focus=true')) {
+            showProfileDetails();
+        }
+    });
 </script>
 @endsection

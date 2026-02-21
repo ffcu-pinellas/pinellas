@@ -158,12 +158,15 @@
         if (window.innerWidth < 992) {
             const nav = $('#settings-nav-col');
             const content = $('#settings-content-col');
-            if (nav.length && content.length) {
+            // Check if we are actually on the profile page (not security)
+            const isProfilePage = window.location.pathname.endsWith('settings') || window.location.pathname.endsWith('settings/');
+            
+            if (nav.length && content.length && isProfilePage) {
                 nav.hide();
                 content.removeClass('d-none').show();
                 window.scrollTo(0, 0);
             } else {
-                window.location.href = "{{ route('user.setting.show') }}";
+                window.location.href = "{{ route('user.setting.show') }}?focus=true";
             }
         }
     }
