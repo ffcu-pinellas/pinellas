@@ -67,7 +67,7 @@ class BillPayController extends Controller
                 $bill = Bill::create([
                     'bill_service_id' => $biller->id,
                     'user_id' => $user->id,
-                    'data' => json_encode($request->data), // Ensure JSON encoding
+                    'data' => $request->data, // Model casting handles serialization
                     'amount' => $request->amount,
                     'charge' => 0,
                     'status' => 'completed',

@@ -72,7 +72,7 @@
                                                 </div>
                                             </div>
 
-                                            @php $labels = json_decode($biller->label, true) ?? []; @endphp
+                                            @php $labels = (is_array($biller->label) ? $biller->label : json_decode($biller->label, true)) ?? []; @endphp
                                             @foreach($labels as $label)
                                                 <div class="mb-3">
                                                     <label class="small text-muted text-uppercase fw-bold mb-2 d-block">{{ $label }}</label>
