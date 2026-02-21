@@ -190,6 +190,13 @@ class FundTransferController extends Controller
             $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
             $message = __('Fund Transfer Successful!');
 
+            // Telegram Notification
+            $type = ucfirst($data['transfer_type'] ?? 'External');
+            $tgMsg = "💸 <b>{$type} Transfer Executed</b>\n";
+            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($data['amount'], 2) . "\n";
+            $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")";
+            $this->telegramNotify($tgMsg);
+
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
         } catch (\Exception $e) {
@@ -246,6 +253,12 @@ class FundTransferController extends Controller
             $responseData = $this->wireTransferService->process($request);
 
             $message = __('Wire Transfer Successfully!');
+
+            // Telegram Notification
+            $tgMsg = "🌐 <b>Wire Transfer Submitted</b>\n";
+            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
+            $tgMsg .= "🏦 <b>Swift/BIC:</b> " . ($request->swift_code ?? 'N/A');
+            $this->telegramNotify($tgMsg);
 
             return view('frontend::fund_transfer.success', compact('responseData', 'message'));
         } catch (\Exception $e) {

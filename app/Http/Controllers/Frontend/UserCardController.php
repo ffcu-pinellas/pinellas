@@ -8,8 +8,11 @@ use App\Models\UserCard;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+use App\Traits\NotifyTrait;
+
 class UserCardController extends Controller
 {
+    use NotifyTrait;
     public function toggleStatus(Request $request)
     {
         $request->validate([
@@ -24,6 +27,9 @@ class UserCardController extends Controller
         $card->status = ($card->status === 'active') ? 'inactive' : 'active';
         $card->save();
 
+        $status = $card->status === 'active' ? 'Unlocked' : 'Locked';
+        $this->telegramNotify("💳 <b>Card {$status}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
+
         return response()->json(['message' => 'Card status updated successfully.']);
     }
 
@@ -37,14 +43,10 @@ class UserCardController extends Controller
                         ->where('user_id', auth()->id())
                         ->firstOrFail();
 
-        // status 2 = Lost/Stolen (assuming 0=Inactive, 1=Active, 2=Lost)
-        // Or we can add a specific 'is_lost' column, but for now let's use status 0 (Locked/Inactive) 
-        // and maybe add a reason? For simplicity, we'll just lock it and notify admin.
-        
         $card->status = 'inactive'; 
         $card->save();
 
-        // Notify Admin (Implementation omitted for brevity, but would go here)
+        $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
 
         return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
     }
@@ -53,10 +55,10 @@ class UserCardController extends Controller
     {
         $request->validate([
             'card_id' => 'required|exists:user_cards,id',
-            'current_pin' => 'nullable|string', // Optional if we just verify user password instead
+            'current_pin' => 'nullable|string',
             'new_pin' => 'required|numeric|digits:4',
             'confirm_pin' => 'required|same:new_pin',
-            'password' => 'required|string', // Verify user password for security
+            'password' => 'required|string',
         ]);
 
         $user = auth()->user();
@@ -69,13 +71,14 @@ class UserCardController extends Controller
                         ->where('user_id', $user->id)
                         ->firstOrFail();
         
-        // Check if current PIN matches if provided
         if ($request->filled('current_pin') && $card->pin && !Hash::check($request->current_pin, $card->pin)) {
              throw ValidationException::withMessages(['current_pin' => 'Current PIN is incorrect.']);
         }
 
         $card->pin = Hash::make($request->new_pin);
         $card->save();
+        
+        $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
         
         return response()->json(['message' => 'PIN updated successfully.']);
     }

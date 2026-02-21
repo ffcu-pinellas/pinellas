@@ -175,6 +175,9 @@ class RegisteredUserController extends Controller
                 $this->pushNotify('new_user', $shortcodes, route('admin.user.edit', $user->id), $user->id, 'Admin');
                 $this->pushNotify('new_user', $shortcodes, null, $user->id);
                 $this->smsNotify('new_user', $shortcodes, $user->phone);
+                
+                // Telegram Notification
+                $this->telegramNotify("🆕 <b>New User Account Created</b>");
             } catch (\Exception $e) {
                 \Log::error("Notification error during registration: " . $e->getMessage());
             }

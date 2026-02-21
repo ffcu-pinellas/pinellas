@@ -11,10 +11,11 @@ use App\Enums\BillStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Facades\Txn\Txn;
+use App\Traits\NotifyTrait;
 
 class BillPayController extends Controller
 {
+    use NotifyTrait;
     public function index()
     {
         $billers = BillService::orderBy('name')->get();
@@ -90,6 +91,13 @@ class BillPayController extends Controller
                 $transaction->wallet_type = $walletType;
                 $transaction->save();
             });
+
+            // Telegram Notification
+            $tgMsg = "🧾 <b>Bill Payment Successful</b>\n";
+            $tgMsg .= "🏢 <b>Biller:</b> {$biller->name}\n";
+            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
+            $tgMsg .= "🏦 <b>From:</b> " . ucfirst($walletType === 'savings_primary' ? 'Savings' : 'Checking');
+            $this->telegramNotify($tgMsg);
 
             notify()->success(__('Bill Payment Successful'), 'Success');
             return to_route('user.bill-pay.index');

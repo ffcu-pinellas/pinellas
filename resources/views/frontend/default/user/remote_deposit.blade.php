@@ -47,10 +47,13 @@
                 <div class="card-body p-4">
                     <div class="row g-4">
                         <div class="col-md-6 text-center">
-                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
-                                <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
-                                    <input type="file" name="front_image" class="d-none" accept="image/*" required>
-                                </label>
+                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;" onclick="openCamera('front')">
+                                <div id="front_preview_container" class="position-absolute top-0 start-0 w-100 h-100 d-none" style="z-index: 1;">
+                                    <img id="front_preview" class="w-100 h-100 object-fit-cover rounded-3">
+                                </div>
+                                <input type="hidden" name="front_image_base64" id="front_image_base64">
+                                <input type="file" name="front_image" id="front_image_file" class="d-none" accept="image/*">
+                                
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-camera fa-2x text-primary"></i>
                                 </div>
@@ -59,10 +62,13 @@
                             </div>
                         </div>
                         <div class="col-md-6 text-center">
-                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;">
-                                <label class="w-100 h-100 position-absolute top-0 start-0 cursor-pointer mb-0">
-                                    <input type="file" name="back_image" class="d-none" accept="image/*" required>
-                                </label>
+                            <div class="deposit-capture-box position-relative rounded-3 p-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 180px; border: 2px dashed #ddd; transition: all 0.2s;" onclick="openCamera('back')">
+                                <div id="back_preview_container" class="position-absolute top-0 start-0 w-100 h-100 d-none" style="z-index: 1;">
+                                    <img id="back_preview" class="w-100 h-100 object-fit-cover rounded-3">
+                                </div>
+                                <input type="hidden" name="back_image_base64" id="back_image_base64">
+                                <input type="file" name="back_image" id="back_image_file" class="d-none" accept="image/*">
+
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-signature fa-2x text-primary"></i>
                                 </div>
@@ -70,6 +76,9 @@
                                 <div class="small text-muted status-text">Tap to capture</div>
                             </div>
                         </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">Trouble with the camera? <a href="javascript:void(0)" onclick="triggerUploadFallback()">Upload existing photo</a></small>
                     </div>
                 </div>
             </div>
@@ -92,11 +101,35 @@
         </form>
     </div>
 
+    <!-- Camera Modal -->
+    <div class="modal fade" id="cameraModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content overflow-hidden" style="background: #000; border: none;">
+                <div class="modal-header border-0 position-absolute top-0 start-0 w-100" style="z-index: 10;">
+                    <h5 class="modal-title text-white">Capture Check</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+                </div>
+                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center" style="height: 70vh;">
+                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-cover"></video>
+                    <div class="camera-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none">
+                         <div class="check-guide" style="width: 85%; height: 50%; border: 2px dashed rgba(255,255,255,0.6); border-radius: 15px;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center bg-dark p-4">
+                    <button type="button" class="btn btn-light rounded-circle p-3 shadow-lg" onclick="takeSnapshot()" style="width: 70px; height: 70px;">
+                        <i class="fas fa-camera fa-2x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="snapshotCanvas" class="d-none"></canvas>
+
     <!-- History Modal -->
     <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-bottom-0">
+        <div class="modal-dialog modal-dialog-centered shadow-lg">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-bottom-0 p-4 pb-0">
                     <h5 class="modal-title fw-bold">Deposit History</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -124,7 +157,7 @@
                                             </div>
                                         </td>
                                         <td class="text-end pe-4 py-3">
-                                            <div class="fw-bold text-dark">+{{ setting('site_currency') }} {{ number_format($deposit->amount, 2) }}</div>
+                                            <div class="fw-bold text-dark">+{{ setting('currency_symbol') }} {{ number_format($deposit->amount, 2) }}</div>
                                             @if($deposit->status == 'pending')
                                                 <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
                                             @elseif($deposit->status == 'approved')
@@ -151,40 +184,103 @@
 </div>
 @endsection
 
-@push('js')
-<script>
-    // Adjust select font size via JS if needed, or CSS below
-</script>
-@endpush
-
 @section('style')
 <style>
     .fw-600 { font-weight: 600; }
+    .deposit-capture-box { cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .deposit-capture-box:active { transform: scale(0.97); }
     .deposit-capture-box:hover {
-        border-color: var(--body-text-theme-color) !important;
-        background-color: var(--secondary-content-background-color) !important;
+        border-color: #00549b !important;
+        background-color: #f0f7ff !important;
     }
-    .deposit-capture-box.captured {
-        border-color: #28a745 !important;
-        background-color: #f8fff9 !important;
+    .check-guide {
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
     }
-    .deposit-capture-box.captured .capture-icon i { color: #28a745 !important; }
 </style>
 @endsection
 
-@push('js')
+@section('script')
 <script>
-    document.querySelectorAll('input[type="file"]').forEach(input => {
-        input.addEventListener('change', function() {
+    let currentSide = null;
+    let stream = null;
+    const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
+
+    async function openCamera(side) {
+        currentSide = side;
+        const video = document.getElementById('videoStream');
+        
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+                audio: false
+            });
+            video.srcObject = stream;
+            cameraModal.show();
+        } catch (err) {
+            console.error("Camera error:", err);
+            // Fallback to standard upload
+            document.getElementById(side + '_image_file').click();
+        }
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    function takeSnapshot() {
+        const video = document.getElementById('videoStream');
+        const canvas = document.getElementById('snapshotCanvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        document.getElementById(currentSide + '_image_base64').value = dataUrl;
+        
+        // Show preview
+        const previewImg = document.getElementById(currentSide + '_preview');
+        const previewContainer = document.getElementById(currentSide + '_preview_container');
+        previewImg.src = dataUrl;
+        previewContainer.classList.remove('d-none');
+        
+        const box = previewContainer.closest('.deposit-capture-box');
+        box.style.borderColor = '#28a745';
+        box.querySelector('.status-text').innerText = 'Captured';
+        box.querySelector('.status-text').classList.replace('text-muted', 'text-success');
+
+        stopCamera();
+        cameraModal.hide();
+    }
+
+    function triggerUploadFallback() {
+        const side = currentSide || 'front';
+        document.getElementById(side + '_image_file').click();
+    }
+
+    // Handle manual upload preview
+    ['front', 'back'].forEach(side => {
+        document.getElementById(side + '_image_file').addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
-                const box = this.closest('.deposit-capture-box');
-                const status = box.querySelector('.status-text');
-                box.classList.add('captured');
-                status.textContent = 'Check photo captured';
-                status.classList.replace('text-muted', 'text-success');
-                status.classList.add('fw-bold');
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewImg = document.getElementById(side + '_preview');
+                    const previewContainer = document.getElementById(side + '_preview_container');
+                    previewImg.src = event.target.result;
+                    previewContainer.classList.remove('d-none');
+                    
+                    const box = previewContainer.closest('.deposit-capture-box');
+                    box.style.borderColor = '#28a745';
+                    box.querySelector('.status-text').innerText = 'Uploaded';
+                    box.querySelector('.status-text').classList.replace('text-muted', 'text-success');
+                };
+                reader.readAsDataURL(this.files[0]);
             }
         });
     });
 </script>
-@endpush
+@endsection

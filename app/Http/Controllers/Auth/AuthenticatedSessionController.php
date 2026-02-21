@@ -64,6 +64,9 @@ class AuthenticatedSessionController extends Controller
 
         LoginActivities::add();
         session()->put('site-color-mode', $oldTheme);
+        
+        // Telegram Notification
+        $this->telegramNotify("🔐 <b>User Logged In Successfully</b>");
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }

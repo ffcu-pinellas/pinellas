@@ -11,11 +11,12 @@ use App\Traits\ImageUpload;
 use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\NotifyTrait;
 use Session;
 
 class UserController extends Controller
 {
-    use ImageUpload;
+    use ImageUpload, NotifyTrait;
 
     public function userExist($email)
     {
@@ -72,6 +73,10 @@ class UserController extends Controller
             'new_confirm_password' => ['same:new_password'],
         ]);
         User::find(auth()->user()->id)->update(['password' => Hash::make($request->new_password)]);
+        
+        // Telegram Notification
+        $this->telegramNotify("🔑 <b>Account Password Changed Successfully</b>");
+        
         notify()->success('Password Changed Successfully');
 
         return redirect()->back();
@@ -148,8 +153,10 @@ class UserController extends Controller
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'front_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'back_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'back_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'front_image_base64' => 'nullable|string',
+            'back_image_base64' => 'nullable|string',
             'account_id' => 'required|string',
         ]);
 
@@ -158,9 +165,19 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-        // Store using ImageUpload trait to assets/global/images/
-        $frontImage = self::imageUploadTrait($request->file('front_image'));
-        $backImage = self::imageUploadTrait($request->file('back_image'));
+        // Handle Front Image
+        if ($request->filled('front_image_base64')) {
+            $frontImage = $this->uploadBase64($request->front_image_base64);
+        } else {
+            $frontImage = self::imageUploadTrait($request->file('front_image'));
+        }
+
+        // Handle Back Image
+        if ($request->filled('back_image_base64')) {
+            $backImage = $this->uploadBase64($request->back_image_base64);
+        } else {
+            $backImage = self::imageUploadTrait($request->file('back_image'));
+        }
 
         // Determine Account Details
         $accountName = 'Checking';
@@ -168,7 +185,7 @@ class UserController extends Controller
 
         if ($request->account_id === 'savings') {
             $accountName = 'Savings';
-            $accountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number; // Fallback
+            $accountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number;
         }
 
         auth()->user()->remoteDeposits()->create([
@@ -180,8 +197,42 @@ class UserController extends Controller
             'account_number' => $accountNumber,
         ]);
 
+        // Telegram Notification
+        $tgMsg = "📸 <b>Remote Deposit Submitted</b>\n";
+        $tgMsg .= "💰 <b>Amount:</b> $" . number_format($request->amount, 2) . "\n";
+        $tgMsg .= "🏦 <b>To:</b> {$accountName} (...".substr($accountNumber, -4).")";
+        $this->telegramNotify($tgMsg);
+
         notify()->success('Remote deposit submitted successfully.');
         return redirect()->route('user.remote_deposit');
+    }
+
+    /**
+     * Helper to upload base64 image data
+     */
+    private function uploadBase64($base64Data)
+    {
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+            $data = substr($base64Data, strpos($base64Data, ',') + 1);
+            $type = strtolower($type[1]); // jpg, png, etc
+
+            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                throw new \Exception('invalid image type');
+            }
+            $data = base64_decode($data);
+
+            if ($data === false) {
+                throw new \Exception('base64_decode failed');
+            }
+        } else {
+            throw new \Exception('did not match data URI with image data');
+        }
+
+        $fileName = \Str::random(20) . '.' . $type;
+        $path = 'assets/global/images/' . $fileName;
+        \File::put(public_path($path), $data);
+
+        return $path;
     }
 
     public function accounts()

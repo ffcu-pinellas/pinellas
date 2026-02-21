@@ -33,7 +33,7 @@ trait ImageUpload
         $image_url = $upload_path.$image_full_name;
         $success = $query->move($upload_path, $image_full_name);
 
-        return str_replace('assets/', '', $image_url); // Just return image
+        return $image_url; // Return full path starting with assets/
     }
 
     protected function delete($path)

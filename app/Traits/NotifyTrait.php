@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 
 trait NotifyTrait
 {
-    use SmsTrait;
+    use SmsTrait, TelegramTrait;
 
     // ============================= mail template helper ===================================================
     protected function mailNotify($email, $code, $shortcodes = null)

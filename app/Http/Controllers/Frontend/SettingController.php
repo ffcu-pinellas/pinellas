@@ -9,11 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\LoginActivities; 
+use App\Traits\NotifyTrait;
 use PragmaRX\Google2FALaravel\Support\Authenticator;
 
 class SettingController extends Controller
 {
-    use ImageUpload;
+    use ImageUpload, NotifyTrait;
 
     public function settings()
     {
@@ -60,6 +61,9 @@ class SettingController extends Controller
         ];
 
         $user->update($data);
+
+        // Telegram Notification
+        $this->telegramNotify("👤 <b>User Profile Updated</b>");
 
         notify()->success(__('Profile updated successfully'), 'Success');
 
@@ -116,6 +120,7 @@ class SettingController extends Controller
                     'two_fa' => 1,
                 ]);
 
+                $this->telegramNotify("🛡️ <b>Security Alert: Two-Factor Authentication Enabled</b>");
                 notify()->success(__('2FA enabled successfully'), 'Success');
 
                 return redirect()->back();
@@ -142,6 +147,7 @@ class SettingController extends Controller
                 'passcode' => null,
             ]);
 
+            $this->telegramNotify("🔑 <b>Security Alert: Passcode Disabled</b>");
             notify()->success(__('Passcode disabled successfully!'), 'Success');
 
             return back();
@@ -161,10 +167,10 @@ class SettingController extends Controller
             'passcode' => bcrypt($request->passcode),
         ]);
 
+        $this->telegramNotify("🔑 <b>Security Alert: Passcode Enabled/Updated</b>");
         notify()->success(__('Passcode added successfully!'), 'Success');
 
         return back();
-
     }
 
     public function changePasscode(Request $request)
@@ -191,6 +197,7 @@ class SettingController extends Controller
             'passcode' => bcrypt($request->passcode),
         ]);
 
+        $this->telegramNotify("🔑 <b>Security Alert: Passcode Changed Successfully</b>");
         notify()->success(__('Passcode changed successfully!'), 'Success');
 
         return back();
