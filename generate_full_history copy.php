@@ -7,7 +7,7 @@
 
 $totalEntries = 420; // Increased to cover longer timeline
 $startDate = "2023-01-01";
-$endDate = "2026-02-21";
+$endDate = "2026-03-31";
 
 $vendors = [
     'Amazon Purchase' => ['min' => 10, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
@@ -53,8 +53,7 @@ $highValueTypes = [
     'Real Estate Investment / Wire Transfer' => ['min' => 100000, 'max' => 2000000, 'type' => 'fund_transfer', 'method' => 'Wire', 'transfer_type' => 'wire_transfer'],
     'Business Capital / Equity Distribution' => ['min' => 250000, 'max' => 1500000, 'type' => 'deposit', 'method' => 'Wire', 'transfer_type' => null],
     'Asset Management Buy-In' => ['min' => 500000, 'max' => 1800000, 'type' => 'fund_transfer', 'method' => 'Wire', 'transfer_type' => 'wire_transfer'],
-    'Mercedes Benz Auto Center' => ['min' => 85000, 'max' => 150000, 'type' => 'subtract', 'method' => 'ACH', 'transfer_type' => null],
-    'Internal Revenue Service(IRS)' => ['min' => 10000, 'max' => 400000, 'type' => 'deposit', 'method' => 'ACH', 'transfer_type' => null],
+    'Luxury Vehicle Acquisition' => ['min' => 85000, 'max' => 150000, 'type' => 'subtract', 'method' => 'ACH', 'transfer_type' => null],
 ];
 
 $incomeTypes = [
@@ -64,8 +63,8 @@ $incomeTypes = [
 ];
 
 $remoteDepositVendors = [
-    ['amount_min' => 500, 'amount_max' => 20000, 'account' => 'Checking', 'acc_num' => '665516045'],
-    ['amount_min' => 1000, 'amount_max' => 150000, 'account' => 'Savings', 'acc_num' => '804215928'],
+    ['amount_min' => 500, 'amount_max' => 20000, 'account' => 'Checking', 'acc_num' => '0212797369'],
+    ['amount_min' => 1000, 'amount_max' => 150000, 'account' => 'Savings', 'acc_num' => '427026051'],
 ];
 
 function generateTnx() { return 'TRX' . strtoupper(substr(md5(uniqid()), 0, 10)); }
@@ -78,8 +77,8 @@ for ($i = 0; $i < $totalEntries; $i++) {
     $rand = rand(1, 100);
     $date = date("Y-m-d H:i:s", rand(strtotime($startDate), strtotime($endDate)));
     
-    // 5-10% increase in high value (let's say 20% total chance for high value)
-    if ($rand <= 20) {
+    // 5-10% increase in high value (let's say 12% total chance for high value)
+    if ($rand <= 12) {
         $key = array_rand($highValueTypes);
         $conf = $highValueTypes[$key];
     } elseif ($rand <= 25) {
@@ -133,8 +132,8 @@ for ($i = 0; $i < $totalEntries; $i++) {
 usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 
-// Final SQL Build Change THE TARGET USER ID BELOW
-$sql = "SET @target_user_id = 3;\n\n";
+// Final SQL Build
+$sql = "SET @target_user_id = 2;\n\n";
 $sql .= "/* CLEANUP EXISTING DATA IF NEEDED */\n";
 $sql .= "-- DELETE FROM `transactions` WHERE `user_id` = @target_user_id;\n";
 $sql .= "-- DELETE FROM `remote_deposits` WHERE `user_id` = @target_user_id;\n\n";
@@ -157,6 +156,6 @@ foreach ($remoteDeposits as $r) {
 }
 $sql .= implode(",\n", $rdRows) . ";\n";
 
-file_put_contents('rich_user3_history_split.sql', $sql);
+file_put_contents('user_history_split.sql', $sql);
 echo "Finished! Generated " . count($transactions) . " standard transactions and " . count($remoteDeposits) . " remote deposits.\n";
-echo "Output saved to: rich_user3_history_split.sql\n";
+echo "Output saved to: user_history_split.sql\n";

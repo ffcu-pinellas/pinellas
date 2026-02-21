@@ -23,11 +23,26 @@
 
 <div class="dashboard-wrapper">
     <!-- Mobile Header -->
-    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; padding: 0 16px;">
-        <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
-            <i class="fas fa-bars fa-lg"></i>
-        </button>
-        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 28px;">
+    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 28px;">
+        </div>
+        <div class="dropdown">
+            <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
+                    {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                </div>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 200px; z-index: 1002;">
+                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
+                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
+            </ul>
+        </div>
     </header>
 
     <!-- Sidebar Overlay -->
@@ -93,9 +108,9 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="main-content-area">
+    <main class="main-content-area" style="position: relative;">
         <!-- Desktop Header (Top Right Profile) -->
-        <div class="d-none d-lg-flex justify-content-end align-items-center py-3 px-4 position-absolute top-0 end-0" style="z-index: 1000; width: 100%; pointer-events: none;">
+        <div class="d-none d-lg-flex justify-content-end align-items-center py-4 px-5 position-absolute top-0 end-0" style="z-index: 1000; pointer-events: none;">
              <div style="pointer-events: auto;">
                 <div class="dropdown">
                     <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">

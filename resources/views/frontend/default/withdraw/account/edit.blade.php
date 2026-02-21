@@ -16,7 +16,7 @@
                 <div class="site-card-body">
                     <div class="step-details-form ">
                         <form action="{{ route('user.withdraw.account.update',$withdrawAccount->id) }}" method="post"
-                              enctype="multipart/form-data">
+                              enctype="multipart/form-data" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                             @method('PUT')
                             @csrf
 

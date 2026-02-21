@@ -52,7 +52,7 @@
                                         <h5 class="fw-bold mb-0">Pay {{ $biller->name }}</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
-                                    <form action="{{ route('user.bill-pay.pay') }}" method="POST">
+                                    <form action="{{ route('user.bill-pay.pay') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                         @csrf
                                         <input type="hidden" name="biller_id" value="{{ $biller->id }}">
                                         <div class="modal-body p-4">

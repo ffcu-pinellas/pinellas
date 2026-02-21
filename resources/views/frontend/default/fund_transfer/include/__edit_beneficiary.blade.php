@@ -5,7 +5,7 @@
                 <h5 class="fw-bold mb-0">{{ __('Edit Recipient') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.fund_transfer.beneficiary.update') }}" method="POST">
+            <form action="{{ route('user.fund_transfer.beneficiary.update') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <input type="hidden" name="id" id="edit_id">
                 <div class="modal-body p-4">

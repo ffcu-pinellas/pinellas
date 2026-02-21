@@ -14,7 +14,7 @@
                     <p class="text-muted">You are about to remove this recipient. This action cannot be undone and they will be removed from your list.</p>
                 </div>
 
-                <form action="{{ route('user.fund_transfer.beneficiary.delete') }}" method="POST" id="dltForm">
+                <form action="{{ route('user.fund_transfer.beneficiary.delete') }}" method="POST" id="dltForm" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                     @csrf
                     <input type="hidden" name="id" id="dltId" value="">
                     

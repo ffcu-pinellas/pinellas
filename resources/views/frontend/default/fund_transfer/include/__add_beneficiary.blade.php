@@ -5,7 +5,7 @@
                 <h5 class="fw-bold mb-0">{{ __('Add New Recipient') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.fund_transfer.beneficiary.store') }}" method="POST">
+            <form action="{{ route('user.fund_transfer.beneficiary.store') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-4">

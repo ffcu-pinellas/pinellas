@@ -15,7 +15,7 @@
                     </div>
                 </div>
                 <form action="{{ route('user.withdraw.account.store') }}" method="post"
-                      enctype="multipart/form-data">
+                      enctype="multipart/form-data" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                     @csrf
                     <div class="site-card-body">
                         <div class="step-details-form mb-4">
