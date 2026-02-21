@@ -224,13 +224,18 @@ b {
         -webkit-backdrop-filter: blur(8px);
     }
 
-    .main-content-area {
-        padding-top: 70px !important;
-        /* Extra space for sticky header */
-    }
-
     .container-fluid {
         padding: 20px 16px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    .main-content-area {
+        padding-top: 70px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
     }
 
     /* Premium Banno Cards for Mobile */

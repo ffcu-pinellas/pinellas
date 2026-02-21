@@ -3,7 +3,7 @@
     $isRtl = isRtl(app()->getLocale());
     $user = auth()->user();
 @endphp
-<html lang="{{ app()->getLocale() }}" @if($isRtl) dir="rtl" @endif>
+<html lang="{{ app()->getLocale() }}" @if($isRtl) dir="rtl" @endif style="overflow-x: hidden;">
 <head>
     @include('frontend::include.__head')
 
@@ -16,7 +16,7 @@
 <body @class([
     'dark-theme' => session()->get('site-color-mode',setting('default_mode')) == 'dark',
     'rtl_mode' => $isRtl
-])>
+]) style="overflow-x: hidden;">
 
 @include('global._notify')
 

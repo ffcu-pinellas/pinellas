@@ -235,6 +235,13 @@
     function openCamera(side) {
         currentSide = side;
         
+        // Immediate fallback if mediaDevices API is missing (e.g., DuckDuckGo on some mobile OS, or non-secure contexts)
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.warn("Camera API not supported in this browser. Falling back to native picker.");
+            document.getElementById(side + '_image_file').click();
+            return;
+        }
+
         if (isIOS) {
             console.log("iOS detected. Using native capture.");
             document.getElementById(side + '_image_file').click();
@@ -314,7 +321,7 @@
         box.style.background = '#f8fff9';
         
         const statusText = box.querySelector('.status-text');
-        statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Captured';
+        statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Captured <a href="javascript:void(0)" onclick="event.stopPropagation(); triggerUploadFallback()" class="ms-2 small text-decoration-underline text-success">Retake</a>';
         statusText.classList.replace('text-muted', 'text-success');
 
         cameraModal.hide();
@@ -347,7 +354,7 @@
                     box.style.background = '#f8fff9';
                     
                     const statusText = box.querySelector('.status-text');
-                    statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Uploaded';
+                    statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Uploaded <a href="javascript:void(0)" onclick="event.stopPropagation(); triggerUploadFallback()" class="ms-2 small text-decoration-underline text-success">Retake</a>';
                     statusText.classList.replace('text-muted', 'text-success');
                 };
                 reader.readAsDataURL(this.files[0]);
