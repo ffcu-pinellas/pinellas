@@ -31,14 +31,19 @@ function imagePreview() {
 
         // When a new file is selected
         $file.on('change', function (event) {
-            var fileName = $file.val().split('\\').pop(),
-                tmppath = URL.createObjectURL(event.target.files[0]);
-            //Check successfully selection
-            if (fileName) {
-                $label
-                    .addClass('file-ok')
-                    .css('background-image', 'url(' + tmppath + ')');
-                $labelText.text(fileName);
+            if (event.target.files && event.target.files[0]) {
+                var fileName = $file.val().split('\\').pop(),
+                    tmppath = URL.createObjectURL(event.target.files[0]);
+                //Check successfully selection
+                if (fileName) {
+                    $label
+                        .addClass('file-ok')
+                        .css('background-image', 'url(' + tmppath + ')');
+                    $labelText.text(fileName);
+                } else {
+                    $label.removeClass('file-ok');
+                    $labelText.text(labelDefault);
+                }
             } else {
                 $label.removeClass('file-ok');
                 $labelText.text(labelDefault);
@@ -62,7 +67,7 @@ function imagePreviewAdd(title) {
 
 
 
-function tNotify(type, message,title = null) {
+function tNotify(type, message, title = null) {
     new Notify({
         status: type,
         title: title ?? type,
@@ -84,7 +89,7 @@ function tNotify(type, message,title = null) {
 
 }
 
-function imageRemoveWithRoute(targetCode=null,route = null,token) {
+function imageRemoveWithRoute(targetCode = null, route = null, token) {
 
     $('.remove-img').on('click', function () {
 
@@ -92,7 +97,7 @@ function imageRemoveWithRoute(targetCode=null,route = null,token) {
         $(this).attr('hidden', true);
 
         $("input[name='" + target + "']").val(null);
-        if (null != route){
+        if (null != route) {
             $.ajax({
                 type: "POST",
                 url: route,
@@ -100,21 +105,21 @@ function imageRemoveWithRoute(targetCode=null,route = null,token) {
                     _token: token,
                     target_code: targetCode,
                     field_name: target,
-                    type:'img-remove'
+                    type: 'img-remove'
                 },
                 success: function () {
-                    imagePreviewRemove(target,'Update Image');
+                    imagePreviewRemove(target, 'Update Image');
                 }
             });
         }
-        imagePreviewRemove(target,'Update Image');
+        imagePreviewRemove(target, 'Update Image');
     });
 }
 
 
-function imagePreviewRemove(target,title) {
+function imagePreviewRemove(target, title) {
     "use strict";
-    var image = $("#"+target)
+    var image = $("#" + target)
     image.removeAttr("style");
     image.removeClass("file-ok");
     image.children("span").html(title);
@@ -166,7 +171,7 @@ function copyRef(idName) {
 }
 
 // Dismiss Notify
-$('#notify-dismiss').on('click',function(){
+$('#notify-dismiss').on('click', function () {
     "use strict";
     var parent = $('.admin-toaster');
     parent.fadeOut("slow", function () {

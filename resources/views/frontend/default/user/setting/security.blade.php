@@ -315,43 +315,6 @@
 
 @section('script')
 <script>
-    function showSecurityDetails() {
-        if (window.innerWidth < 992) {
-            $('#settings-nav-col').hide();
-            $('#settings-content-col').removeClass('d-none').show();
-            // Scroll to transaction security if requested, otherwise top
-            if (window.location.search.includes('focus=true')) {
-                const target = $('#transaction-security');
-                if (target.length) {
-                    $('html, body').animate({
-                        scrollTop: target.offset().top - 20
-                    }, 500);
-                    return;
-                }
-            }
-            window.scrollTo(0, 0);
-        }
-    }
-
-    function hideSecurityDetails() {
-        if (window.innerWidth < 992) {
-            $('#settings-content-col').hide();
-            $('#settings-nav-col').show();
-        }
-    }
-
-    // Ensure correct state on resize
-    $(window).resize(function() {
-        if (window.innerWidth >= 992) {
-            $('#settings-nav-col').show();
-            $('#settings-content-col').addClass('d-lg-block').show();
-        } else {
-            if ($('#settings-content-col').is(':visible') && $('#settings-nav-col').is(':visible')) {
-                 $('#settings-content-col').hide();
-            }
-        }
-    });
-
     // If navigated directly from nav
     $(document).ready(function() {
         if (window.innerWidth < 992 && window.location.search.includes('focus=true')) {

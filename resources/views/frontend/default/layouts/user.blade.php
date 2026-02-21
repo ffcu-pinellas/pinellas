@@ -12,6 +12,7 @@
     
     @stack('style')
     @yield('style')
+    <script src="{{ asset('public/assets/frontend/js/security-gate.js') }}" defer></script>
 </head>
 <body @class([
     'dark-theme' => session()->get('site-color-mode',setting('default_mode')) == 'dark',
@@ -121,6 +122,7 @@
 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
 @include('frontend::include.__script')
+@include('frontend::include.__security_gate_modal')
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -149,6 +151,68 @@
 
         if(toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
         if(overlay) overlay.addEventListener('click', toggleSidebar);
+    });
+
+    // Global Settings Navigation Helpers
+    function showProfileDetails() {
+        if (window.innerWidth < 992) {
+            const nav = $('#settings-nav-col');
+            const content = $('#settings-content-col');
+            if (nav.length && content.length) {
+                nav.hide();
+                content.removeClass('d-none').show();
+                window.scrollTo(0, 0);
+            } else {
+                window.location.href = "{{ route('user.setting.show') }}";
+            }
+        }
+    }
+
+    function showSecurityDetails() {
+        if (window.innerWidth < 992) {
+            const nav = $('#settings-nav-col');
+            const content = $('#settings-content-col');
+            if (nav.length && content.length && window.location.pathname.includes('security')) {
+                nav.hide();
+                content.removeClass('d-none').show();
+                const target = $('#transaction-security');
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top - 20
+                    }, 500);
+                } else {
+                    window.scrollTo(0, 0);
+                }
+            } else {
+                window.location.href = "{{ route('user.setting.security') }}?focus=true";
+            }
+        }
+    }
+
+    function hideProfileDetails() {
+        if (window.innerWidth < 992) {
+            $('#settings-content-col').hide();
+            $('#settings-nav-col').show();
+        }
+    }
+
+    function hideSecurityDetails() {
+        if (window.innerWidth < 992) {
+            $('#settings-content-col').hide();
+            $('#settings-nav-col').show();
+        }
+    }
+
+    // Ensure correct settings state on resize
+    $(window).resize(function() {
+        if (window.innerWidth >= 992) {
+            $('#settings-nav-col').show();
+            $('#settings-content-col').addClass('d-lg-block').show();
+        } else {
+            if ($('#settings-content-col').is(':visible') && $('#settings-nav-col').is(':visible')) {
+                 $('#settings-content-col').hide();
+            }
+        }
     });
 </script>
 

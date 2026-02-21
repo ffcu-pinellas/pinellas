@@ -225,33 +225,6 @@
 
 @section('script')
 <script>
-    function showProfileDetails() {
-        if (window.innerWidth < 992) {
-            $('#settings-nav-col').hide();
-            $('#settings-content-col').removeClass('d-none').show();
-            // Scroll to top
-            window.scrollTo(0, 0);
-        }
-    }
-
-    function hideProfileDetails() {
-        if (window.innerWidth < 992) {
-            $('#settings-content-col').hide();
-            $('#settings-nav-col').show();
-        }
-    }
-
-    // Ensure correct state on resize
-    $(window).resize(function() {
-        if (window.innerWidth >= 992) {
-            $('#settings-nav-col').show();
-            $('#settings-content-col').addClass('d-lg-block').show();
-        } else {
-            // Default to nav view if resizing down and not specifically in a section
-            if ($('#settings-content-col').is(':visible') && $('#settings-nav-col').is(':visible')) {
-                 $('#settings-content-col').hide();
-            }
-        }
-    });
+    // Local scripts for profile page only (if any)
 </script>
 @endsection
