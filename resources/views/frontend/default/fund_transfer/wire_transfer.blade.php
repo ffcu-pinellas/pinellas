@@ -64,40 +64,12 @@
                 </div>
 
                 <div class="site-card-footer p-4 bg-light bg-opacity-50 text-center">
-                    <button type="button" 
-                        @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status')) 
-                            data-bs-toggle="modal" data-bs-target="#passcode"
-                        @else 
-                            onclick="document.getElementById('wireForm').submit()" 
-                        @endif
+                    <button type="submit" 
+                        onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('wireForm'));"
                         class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm">
                         <i class="fas fa-paper-plane me-2"></i> Submit Wire Transfer
                     </button>
                 </div>
-
-                <!-- Passcode Modal Injected -->
-                @if (auth()->user()->passcode !== null && setting('fund_transfer_passcode_status'))
-                    <div class="modal fade" id="passcode" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-                                <div class="modal-header border-0 p-4 pb-0">
-                                    <h5 class="fw-bold mb-0">Confirm Security Code</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body p-4">
-                                    <p class="text-muted small mb-4">For your security, please enter your 6-digit passcode to confirm this wire transfer.</p>
-                                    <div class="mb-3">
-                                        <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Passcode</label>
-                                        <input type="password" class="form-control border-2 rounded-3 p-3 text-center fw-bold letter-spacing-5" name="passcode" required maxlength="6" placeholder="••••••" style="font-size: 1.5rem;">
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-0 p-4 pt-0">
-                                    <button type="submit" class="btn btn-primary rounded-pill w-100 py-3 fw-bold shadow-sm">Confirm & Send</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </form>
         </div>
     </div>

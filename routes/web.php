@@ -84,7 +84,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::group(['prefix' => 'deposit', 'as' => 'deposit.'], function () {
         Route::get('gateway/{code}', [DepositController::class, 'gateway'])->name('gateway');
         Route::get('get-gateways/{currency}', [DepositController::class, 'getGateways'])->name('get.gateways');
-        Route::post('now', [DepositController::class, 'depositNow'])->middleware('passcode:deposit')->name('now');
+        Route::post('now', [DepositController::class, 'depositNow'])->name('now');
         Route::get('success', [DepositController::class, 'depositSuccess'])->name('success');
         Route::get('log', [DepositController::class, 'depositLog'])->name('log');
         Route::get('/{code?}', [DepositController::class, 'deposit'])->name('amount');
@@ -99,10 +99,10 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('beneficiary/delete', [BeneficiaryController::class, 'delete'])->name('beneficiary.delete');
         Route::post('beneficiary/update', [BeneficiaryController::class, 'update'])->name('beneficiary.update');
         Route::get('beneficiary-details/{bankId}', [FundTransferController::class, 'getBeneficiary'])->name('beneficiary-get');
-        Route::post('transfer', [FundTransferController::class, 'transfer'])->middleware('passcode:fund_transfer')->name('transfer');
+        Route::post('transfer', [FundTransferController::class, 'transfer'])->name('transfer');
         Route::get('transfer/log', [FundTransferController::class, 'log'])->name('transfer.log');
         Route::get('transfer/wire', [FundTransferController::class, 'wire'])->name('transfer.wire');
-        Route::post('transfer/wire', [FundTransferController::class, 'wirePost'])->middleware('passcode:fund_transfer')->name('transfer.wire.post');
+        Route::post('transfer/wire', [FundTransferController::class, 'wirePost'])->name('transfer.wire.post');
         Route::get('beneficiary/show/{id}', [BeneficiaryController::class, 'show'])->name('beneficiary.show');
     });
 
@@ -115,7 +115,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Dps
     Route::group(['prefix' => 'dps', 'as' => 'dps.'], function () {
         Route::get('/', [DpsController::class, 'index'])->name('index');
-        Route::get('/subscribe/{id}', [DpsController::class, 'subscribe'])->middleware('passcode:dps')->name('subscribe');
+        Route::get('/subscribe/{id}', [DpsController::class, 'subscribe'])->name('subscribe');
         Route::get('/history', [DpsController::class, 'history'])->name('history');
         Route::get('/details/{id}', [DpsController::class, 'details'])->name('details');
         Route::get('/cancel/{id}', [DpsController::class, 'cancel'])->name('cancel');
@@ -127,7 +127,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::group(['prefix' => 'loan', 'as' => 'loan.'], function () {
         Route::get('/', [LoanController::class, 'index'])->name('index');
         Route::get('/application/{id}', [LoanController::class, 'application'])->name('application');
-        Route::post('/subscribe', [LoanController::class, 'subscribe'])->middleware('passcode:loan')->name('subscribe');
+        Route::post('/subscribe', [LoanController::class, 'subscribe'])->name('subscribe');
         Route::get('/history', [LoanController::class, 'history'])->name('history');
         Route::get('/details/{id}', [LoanController::class, 'details'])->name('details');
         Route::get('/cancel/{id}', [LoanController::class, 'cancel'])->name('cancel');
@@ -137,7 +137,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Fdr
     Route::group(['prefix' => 'fdr', 'as' => 'fdr.'], function () {
         Route::get('/', [FdrController::class, 'index'])->name('index');
-        Route::post('/subscribe', [FdrController::class, 'subscribe'])->middleware('passcode:fdr')->name('subscribe');
+        Route::post('/subscribe', [FdrController::class, 'subscribe'])->name('subscribe');
         Route::get('/history', [FdrController::class, 'history'])->name('history');
         Route::get('/details/{id}', [FdrController::class, 'details'])->name('details');
         Route::get('/cancel/{id}', [FdrController::class, 'cancel'])->name('cancel');
@@ -163,7 +163,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('/', 'withdraw')->name('view');
         Route::get('details/{accountId}/{amount?}', 'details')->name('details');
         Route::get('method/{id}', 'withdrawMethod')->name('method');
-        Route::post('now', 'withdrawNow')->name('now')->middleware('passcode:withdraw');
+        Route::post('now', 'withdrawNow')->name('now');
         Route::get('log', 'withdrawLog')->name('log');
     });
 
@@ -214,6 +214,16 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('/2fa/verify', function () {
             return redirect(route('user.dashboard'));
         })->name('2fa.verify');
+
+        // Transaction MFA & PIN
+        Route::post('update-pin', 'updatePin')->name('update-pin');
+        Route::post('update-security-preference', 'updateSecurityPreference')->name('update-security-preference');
+    });
+
+    // Security Gate AJAX
+    Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function() {
+        Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
+        Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
     });
 });
 
@@ -279,6 +289,28 @@ Route::get('deploy/run-migration', function () {
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('user_cards', 'pin')) {
                     $table->string('pin')->nullable()->after('status');
                 }
+            });
+        }
+
+        // 4. Transaction Security (PIN & MFA)
+        \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'transaction_pin')) {
+                $table->string('transaction_pin')->nullable()->after('passcode');
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'security_preference')) {
+                $table->enum('security_preference', ['none', 'pin', 'email', 'always_ask'])->default('none')->after('transaction_pin');
+            }
+        });
+
+        if (!\Illuminate\Support\Facades\Schema::hasTable('transaction_security_codes')) {
+            \Illuminate\Support\Facades\Schema::create('transaction_security_codes', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('code', 6);
+                $table->string('type')->default('transaction');
+                $table->integer('tries')->default(0);
+                $table->timestamp('expires_at');
+                $table->timestamps();
             });
         }
         

@@ -95,7 +95,7 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow">
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="event.preventDefault(); SecurityGate.gate(this.form);">
                 Submit deposit
             </button>
         </form>
@@ -105,9 +105,14 @@
     <div class="modal fade" id="cameraModal" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
             <div class="modal-content overflow-hidden" style="background: #000; border: none;">
-                <div class="modal-header border-0 position-absolute top-0 start-0 w-100" style="z-index: 10;">
+                <div class="modal-header border-0 position-absolute top-0 start-0 w-100 d-flex justify-content-between align-items-center" style="z-index: 10;">
                     <h5 class="modal-title text-white">Capture Check</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="triggerUploadFallback()" style="font-size: 11px; background: rgba(0,0,0,0.3);">
+                            Camera won't start?
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+                    </div>
                 </div>
                 <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 50vh;">
                     <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-contain"></video>
@@ -232,12 +237,22 @@
     // iPad on iOS 13 detection
     || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
 
+    // DuckDuckGo or In-App Browser detection
+    const isRestrictedBrowser = /DuckDuckGo|FBAN|FBAV|Instagram|LinkedInApp/.test(navigator.userAgent);
+
     function openCamera(side) {
         currentSide = side;
         
-        // Immediate fallback if mediaDevices API is missing (e.g., DuckDuckGo on some mobile OS, or non-secure contexts)
+        // Immediate fallback if mediaDevices API is missing
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.warn("Camera API not supported in this browser. Falling back to native picker.");
+            console.warn("Camera API not supported. Falling back.");
+            document.getElementById(side + '_image_file').click();
+            return;
+        }
+
+        // Force fallback for restricted browsers (DuckDuckGo, FB, etc)
+        if (isRestrictedBrowser) {
+            console.warn("Restricted browser detected. Using native picker.");
             document.getElementById(side + '_image_file').click();
             return;
         }

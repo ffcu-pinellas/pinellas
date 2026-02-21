@@ -104,6 +104,12 @@ class FundTransferController extends Controller
         $data = $request->validated();
         $user = auth()->user();
         
+        // Security Gate Check
+        if (!session()->has('security_verified_' . $user->id)) {
+             notify()->error(__('Security verification required to complete this transfer.'));
+             return redirect()->back()->withInput();
+        }
+
         \Log::info("Frontend\FundTransferController::transfer Initiated", [
             'user_id' => $user->id,
             'transfer_type' => $data['transfer_type'] ?? 'unknown',
@@ -247,6 +253,12 @@ class FundTransferController extends Controller
     {
         try {
             $user = auth()->user();
+
+            // Security Gate Check
+            if (!session()->has('security_verified_' . $user->id)) {
+                 notify()->error(__('Security verification required to complete this transfer.'));
+                 return redirect()->back()->withInput();
+            }
 
             $this->wireTransferService->validate($user, $request);
 

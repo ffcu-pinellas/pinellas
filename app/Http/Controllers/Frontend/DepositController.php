@@ -40,6 +40,11 @@ class DepositController extends Controller
 
     public function depositNow(Request $request)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+             notify()->error(__('Security verification required.'));
+             return redirect()->back()->withInput();
+        }
+
         if (! setting('user_deposit', 'permission') || ! Auth::user()->deposit_status) {
             notify()->error(__('Deposit currently unavailable!'), 'Error');
 

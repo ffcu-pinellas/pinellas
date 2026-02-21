@@ -74,6 +74,11 @@ class LoanController extends Controller
 
     public function subscribe(Request $request)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+             notify()->error(__('Security verification required.'));
+             return redirect()->back()->withInput();
+        }
+
         // Check loan available or not
         if (! setting('user_loan', 'permission') || ! Auth::user()->loan_status) {
             notify()->error(__('Loan currently unavailable!'), 'Error');

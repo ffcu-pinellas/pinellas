@@ -1,5 +1,8 @@
 # Comprehensive Codebase Analysis
 
+
+.\push.ps1
+
 ## 1. Executive Summary
 This project is a robust **FinTech / Banking Application** built on the **Laravel Framework (v10)**. It is designed to handle a wide range of financial operations including user wallets, card management, fund transfers, loans, fixed deposits (FDR), recurring deposits (DPS), and bill payments. It features a monolithic architecture with support for multiple frontend themes and a modular approach for specific functionalities.
 

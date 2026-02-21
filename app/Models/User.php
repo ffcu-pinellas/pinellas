@@ -67,6 +67,8 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'phone_verified',
         'otp',
         'notifications_permission',
+        'transaction_pin',
+        'security_preference',
         'close_reason',
         'savings_account_number',
         'savings_balance',

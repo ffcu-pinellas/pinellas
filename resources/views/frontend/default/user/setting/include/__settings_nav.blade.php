@@ -11,7 +11,7 @@
                         </a>
                     </li>
                     <li class="mb-0">
-                        <a href="{{ route('user.setting.security') }}" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom">
+                        <a href="{{ route('user.setting.security') }}?focus=true" onclick="if(window.innerWidth < 992) { event.preventDefault(); showSecurityDetails(); }" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom">
                             <i class="fas fa-shield-alt fs-5 text-muted" style="width: 24px; text-align: center;"></i> 
                             <span>Security</span>
                         </a>

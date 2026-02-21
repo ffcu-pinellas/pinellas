@@ -236,8 +236,15 @@ class WithdrawController extends Controller
      */
     public function withdrawNow(Request $request)
     {
+        $user = Auth::user();
 
-        if (! setting('user_withdraw', 'permission') || ! Auth::user()->withdraw_status) {
+        // 🚨 Security Gate Check
+        if (!session()->has('security_verified_' . $user->id)) {
+             notify()->error(__('Security verification required to complete this withdrawal.'));
+             return redirect()->back()->withInput();
+        }
+
+        if (! setting('user_withdraw', 'permission') || ! $user->withdraw_status) {
             notify()->error(__('Withdraw currently unavailable!'), 'Error');
 
             return back();

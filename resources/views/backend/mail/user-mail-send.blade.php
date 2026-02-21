@@ -6,76 +6,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
     <title>{{ $details['title'] }}</title>
     <style>
-        @media (max-width: 650px) {
-            .container {
-                width: 550px;
-            }
+        body { margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f5f7fa; padding-bottom: 40px; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .header { padding: 30px 40px; background-color: #ffffff; text-align: center; border-bottom: 1px solid #edf2f7; }
+        .logo { height: 35px; width: auto; }
+        .banner-img { width: 100%; display: block; }
+        .content { padding: 40px; color: #4a5568; line-height: 1.6; }
+        .title { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 700; color: #00549b; margin-top: 0; margin-bottom: 24px; }
+        .salutation { font-weight: 600; font-size: 16px; color: #2d3748; margin-bottom: 16px; }
+        .message-body { font-size: 16px; color: #4a5568; margin-bottom: 30px; }
+        .btn-container { text-align: center; margin-top: 35px; margin-bottom: 10px; }
+        .btn { display: inline-block; background-color: #00549b; color: #ffffff !important; padding: 14px 32px; border-radius: 30px; font-weight: 600; text-decoration: none; text-transform: uppercase; font-size: 14px; letter-spacing: 0.05em; transition: background-color 0.2s; }
+        .footer { padding: 30px 40px; background-color: #f8fafc; border-top: 1px solid #edf2f7; color: #718096; font-size: 13px; text-align: center; }
+        .footer-logo { height: 20px; margin-bottom: 15px; opacity: 0.8; }
+        .bottom-section { padding: 25px 40px; background-color: #ffffff; margin-top: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .bottom-title { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 600; color: #00549b; margin-top: 0; margin-bottom: 10px; }
+        .bottom-link { color: #da291c; font-weight: 600; text-decoration: none; }
+        @media only screen and (max-width: 620px) {
+            .container, .bottom-section { border-radius: 0; }
+            .content, .header, .footer { padding: 30px 20px; }
         }
-
-        @media (max-width: 500px) {
-            .container {
-                width: 400px;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .container {
-                width: 340px;
-            }
-        }
-
-        @media (max-width: 320px) {
-            .container {
-                width: 290px;
-            }
-        }
-
     </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Jost', sans-serif; font-weight: 400; background: #5e3fc9;">
-<div class="container" style="width: 650px; margin: 0 auto; padding-top:15px; padding-bottom: 15px;">
-    <div class="header" style="padding: 15px 15px; background: #fff;">
-        <a href="{{ $details['site_link'] }}" style="text-decoration: none; transition: 0.3s;">
-            <img style="height: 20px; width: auto;" src="{{ $details['site_logo'] }}" alt="">
-        </a>
+<body>
+    <table class="wrapper" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center">
+                <div style="padding: 20px 0;">
+                    <!-- Main Card -->
+                    <div class="container">
+                        <div class="header">
+                            <a href="{{ $details['site_link'] }}">
+                                <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
+                            </a>
+                        </div>
+                        
+                        @if($details['banner'])
+                        <div class="banner">
+                            <img src="{{ $details['banner'] }}" alt="Banner" class="banner-img">
+                        </div>
+                        @endif
 
-    </div>
-    <div class="main-content">
-        <div class="banner" style="margin-bottom: 0px;">
-            <img style="max-width: 100%;" src="{{ $details['banner'] }}" alt="">
-        </div>
-        <div class="contents" style="color: #666; background: #fff; padding: 35px;">
-            <h2 class="title"
-                style="font-size: 24px; font-weight: 500; color: #333; margin-bottom: 40px;">{{ $details['title'] }}</h2>
-            <div class="greetings" style="margin-bottom: 15px; margin-top: 15px;">
-                {{ $details['salutation'] }}
-            </div>
-            <p style="margin-bottom: 0px; line-height: 32px; font-size: 16px;">{!! $details['message_body'] !!}</p>
-            <a href="{{ $details['button_link'] }}" class="btn-link"
-               style="margin-top: 35px; display: inline-block; padding: 18px 42px; border-radius: 3px; color: #001219; background: #ffffff; font-weight: 500; text-transform: uppercase; font-size: 13px; box-shadow: 0px 0px 2px #00304966; background: #e73667; color: #ffffff; text-decoration: none; text-decoration: none; transition: 0.3s;">{{ $details['button_level'] }}</a>
+                        <div class="content">
+                            <h1 class="title">{{ $details['title'] }}</h1>
+                            <div class="salutation">{{ $details['salutation'] }},</div>
+                            <div class="message-body">
+                                {!! $details['message_body'] !!}
+                            </div>
+                            
+                            @if($details['button_level'])
+                            <div class="btn-container">
+                                <a href="{{ $details['button_link'] }}" class="btn">{{ $details['button_level'] }}</a>
+                            </div>
+                            @endif
+                        </div>
 
-            @if($details['footer_status'])
-                <div class="content-footer" style="margin-top: 50px;">
-                    <img class="footer-logo" style="height: 15px; margin-bottom: 5px;" src="{{ $details['site_logo'] }}"
-                         alt="{{ $details['site_title'] }}">
-                    <p style="font-size: 14px !important; line-height: 12px !important;">{!! $details['footer_body'] !!}</p>
+                        @if($details['footer_status'])
+                        <div class="footer">
+                            <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="footer-logo">
+                            <div>{!! $details['footer_body'] !!}</div>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Bottom CTA Card (Optional) -->
+                    @if($details['bottom_status'])
+                    <div class="container" style="margin-top: 20px; background-color: #ffffff; border-radius: 12px;">
+                         <div class="content" style="padding: 30px 40px; text-align: left;">
+                            <h3 class="bottom-title">{{ $details['bottom_title'] }}</h3>
+                            <div style="font-size: 14px; margin-bottom: 15px;">{!! $details['bottom_body'] !!}</div>
+                            <a href="{{ $details['site_link'] }}" class="bottom-link">Learn More &rarr;</a>
+                        </div>
+                    </div>
+                    @endif
                 </div>
-            @endif
-        </div>
-        @if($details['bottom_status'])
-            <div class="newslatter-bottom" style="padding: 35px; background: #fff; margin-top: 15px;">
-                <h3 class="title"
-                    style="font-size: 18px; margin-bottom: 10px; font-weight: 500;">{{ $details['bottom_title'] }}</h3>
-                <p class="text" style="font-size: 14px; line-height: 24px;">{!! $details['bottom_body'] !!}</p>
-                <a href="{{ $details['site_link'] }}" class="link"
-                   style="font-size: 14px; font-weight: 500; color: #e73667; display: inline-block; margin-top: 10px; text-decoration: none;">Learn
-                    More</a>
-            </div>
-        @endif
-    </div>
-</div>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

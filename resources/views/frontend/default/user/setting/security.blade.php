@@ -7,12 +7,83 @@
 @section('content')
 <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
-    <div class="col-xl-9 col-lg-8 col-md-12 col-12">
+    
+    <div class="col-xl-9 col-lg-8 col-md-12 col-12 d-none d-lg-block" id="settings-content-col">
+        <!-- Mobile Header -->
+        <div class="d-lg-none mb-3">
+             <a href="javascript:void(0)" onclick="hideSecurityDetails()" class="text-decoration-none text-dark fw-bold d-flex align-items-center gap-2">
+                 <i class="fas fa-arrow-left"></i> Security
+             </a>
+        </div>
+
         <div class="site-card border-0 shadow-sm overflow-hidden mb-4">
-            <div class="p-5">
+            <div class="p-4 p-md-5">
                 <div class="section-title mb-5">
                     <h2 class="fw-bold text-dark mb-2">Security</h2>
-                    <p class="text-muted">Manage your credentials, multi-factor authentication, and recognized devices.</p>
+                    <p class="text-muted">Manage your credentials, multi-factor authentication, and transaction security.</p>
+                </div>
+
+                <!-- Transaction Security -->
+                <div class="mb-5">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Transaction Security</h6>
+                    
+                    <!-- Transaction PIN -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 py-2">
+                        <div>
+                            <label class="small text-muted d-block text-uppercase fw-bold mb-1">Transaction PIN</label>
+                            <div class="fw-600 text-dark fs-5">
+                                @if(auth()->user()->transaction_pin)
+                                    ••••
+                                @else
+                                    <span class="text-danger small">Not Set Up</span>
+                                @endif
+                            </div>
+                            <div class="small text-muted">Used for confirming transfers and sensitive updates.</div>
+                        </div>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                            {{ auth()->user()->transaction_pin ? 'Change PIN' : 'Setup PIN' }}
+                        </button>
+                    </div>
+
+                    <!-- Security Preference -->
+                    <div class="py-2">
+                        <label class="small text-muted d-block text-uppercase fw-bold mb-3">Security Preference</label>
+                        <form action="{{ route('user.setting.update-security-preference') }}" method="POST" id="securityPreferenceForm">
+                            @csrf
+                            <div class="d-grid gap-2">
+                                <div class="form-check custom-option border-0 p-0">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_always" value="always_ask" {{ auth()->user()->security_preference == 'always_ask' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'always_ask' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_always" style="cursor: pointer;">
+                                        <div>
+                                            <div class="fw-bold text-dark">Always Ask</div>
+                                            <div class="small text-muted">Choose between PIN or Email on every action.</div>
+                                        </div>
+                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'always_ask' ? '' : 'd-none' }}"></i>
+                                    </label>
+                                </div>
+                                <div class="form-check custom-option border-0 p-0">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_pin" value="pin" {{ auth()->user()->security_preference == 'pin' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'pin' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_pin" style="cursor: pointer;">
+                                        <div>
+                                            <div class="fw-bold text-dark">PIN Priority</div>
+                                            <div class="small text-muted">Always use your 4-digit PIN first.</div>
+                                        </div>
+                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'pin' ? '' : 'd-none' }}"></i>
+                                    </label>
+                                </div>
+                                <div class="form-check custom-option border-0 p-0">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_email" value="email" {{ auth()->user()->security_preference == 'email' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'email' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_email" style="cursor: pointer;">
+                                        <div>
+                                            <div class="fw-bold text-dark">Email Priority</div>
+                                            <div class="small text-muted">Always send a verification code to your email.</div>
+                                        </div>
+                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'email' ? '' : 'd-none' }}"></i>
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <!-- Login Credentials -->
@@ -44,7 +115,7 @@
                             <div class="banno-switch {{ $user->two_fa ? 'active' : '' }}" onclick="$('#2fa-details').slideToggle()"></div>
                         @endif
                     </div>
-                    <p class="small text-muted mb-4">Add an extra layer of security to your account by requiring a code from your mobile device to sign in.</p>
+                    <p class="small text-muted mb-4">Add an extra layer of security your account by requiring a code from your mobile device to sign in.</p>
                     
                     <div id="2fa-details" class="p-4 bg-light rounded-3 {{ $user->google2fa_secret == null ? 'd-none' : '' }}">
                              <div class="row align-items-center">
@@ -75,7 +146,7 @@
                         </div>
                 </div>
 
-                <!-- Connected Devices -->
+                <!-- Recognized Devices -->
                 <div>
                      <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Recognized devices</h6>
                      <div class="device-list">
@@ -110,7 +181,7 @@
         </div>
 
         <!-- Security Warning -->
-        <div class="p-4 bg-info bg-opacity-10 rounded-3 border-start border-info border-4">
+        <div class="p-4 bg-info bg-opacity-10 rounded-4 border-start border-info border-4 mb-4">
             <div class="d-flex gap-3">
                 <i class="fas fa-shield-alt text-info fs-4"></i>
                 <div class="small text-dark">
@@ -122,14 +193,45 @@
 </div>
 
 <!-- Modals -->
+<div class="modal fade" id="setupPinModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold text-dark pt-3 px-3">{{ auth()->user()->transaction_pin ? 'Update PIN' : 'Setup PIN' }}</h5>
+                <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('user.setting.update-pin') }}" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-4">Set a 4-digit PIN for transaction verification. This is separate from your login password.</p>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-uppercase">New 4-Digit PIN</label>
+                        <input type="password" class="form-control form-control-lg text-center fw-bold fs-2 border-2 shadow-none" name="pin" maxlength="4" placeholder="••••" required pattern="[0-9]*" inputmode="numeric">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase">Confirm Current Password</label>
+                        <input type="password" class="form-control" name="current_password" placeholder="Enter password to save" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">Save Transaction PIN</button>
+                    <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="changeUsernameModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold text-dark pt-3 px-3">Change Username</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.setting.profile-update') }}" method="POST">
+            <form action="{{ route('user.setting.profile-update') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-4">Your username is used to sign in to your accounts. It must be unique and between 6-20 characters.</p>
@@ -141,7 +243,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">Save changes</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">Save changes</button>
                     <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </form>
@@ -151,12 +253,12 @@
 
 <div class="modal fade" id="changePasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold text-dark pt-3 px-3">Update Password</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.new.password') }}" method="POST">
+            <form action="{{ route('user.new.password') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">
@@ -173,7 +275,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">Update password</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">Update password</button>
                     <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </form>
@@ -209,5 +311,43 @@
     .banno-switch.active { background-color: #28a745; }
     .banno-switch.active::after { transform: translateX(24px); }
 </style>
+@endsection
+
+@section('script')
+<script>
+    function showSecurityDetails() {
+        if (window.innerWidth < 992) {
+            $('#settings-nav-col').hide();
+            $('#settings-content-col').removeClass('d-none').show();
+            window.scrollTo(0, 0);
+        }
+    }
+
+    function hideSecurityDetails() {
+        if (window.innerWidth < 992) {
+            $('#settings-content-col').hide();
+            $('#settings-nav-col').show();
+        }
+    }
+
+    // Ensure correct state on resize
+    $(window).resize(function() {
+        if (window.innerWidth >= 992) {
+            $('#settings-nav-col').show();
+            $('#settings-content-col').addClass('d-lg-block').show();
+        } else {
+            if ($('#settings-content-col').is(':visible') && $('#settings-nav-col').is(':visible')) {
+                 $('#settings-content-col').hide();
+            }
+        }
+    });
+
+    // If navigated directly from nav
+    $(document).ready(function() {
+        if (window.innerWidth < 992 && window.location.search.includes('focus=true')) {
+            showSecurityDetails();
+        }
+    });
+</script>
 @endsection
 

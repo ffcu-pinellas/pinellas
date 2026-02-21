@@ -248,15 +248,7 @@
                                 <span class="h2 mb-0 text-primary fw-bold" id="reviewAmount"></span>
                             </div>
 
-                            <div class="col-12 mb-4">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Passcode Confirmation</label>
-                                <div class="input-group">
-                                    <input type="password" name="passcode" id="passcodeInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="4-digit passcode" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-                                    <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn">
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                                 <i class="fas fa-shield-alt me-2"></i> Submit Transfer
                             </button>
@@ -483,17 +475,7 @@
             });
         });
         
-        document.getElementById('transferForm').addEventListener('submit', function(e) {
-            const passcode = document.getElementById('passcodeInput').value;
-            if(!passcode) {
-                e.preventDefault();
-                Swal.fire('Passcode Required', 'Please enter your 4-digit passcode to confirm.', 'warning');
-                return;
-            }
-            const btn = document.getElementById('confirmBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-        });
+        // Form submission is handled by SecurityGate via onclick on the confirm button
 
         // Unified Member Lookup
         const memberInput = document.getElementById('member_identifier');

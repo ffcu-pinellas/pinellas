@@ -40,6 +40,11 @@ class FdrController extends Controller
 
     public function subscribe(Request $request)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+             notify()->error(__('Security verification required.'));
+             return redirect()->back()->withInput();
+        }
+
         if (! setting('user_fdr', 'permission') || ! Auth::user()->fdr_status) {
             notify()->error(__('FDR currently unavailable!'), 'Error');
 

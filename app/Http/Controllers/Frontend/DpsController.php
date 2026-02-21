@@ -62,6 +62,11 @@ class DpsController extends Controller
 
     public function subscribe($id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+             notify()->error(__('Security verification required.'));
+             return redirect()->back();
+        }
+
         if (! setting('user_dps', 'permission') || ! Auth::user()->dps_status) {
             notify()->error(__('DPS currently unavailable!'), 'Error');
 

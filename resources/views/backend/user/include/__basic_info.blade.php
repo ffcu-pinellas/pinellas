@@ -151,6 +151,25 @@
                                     </div>
                                 </div>
 
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Transaction PIN:') }}</label>
+                                        <input type="text" class="box-input" name="transaction_pin" value="{{ $user->transaction_pin }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Security Preference:') }}</label>
+                                        <select name="security_preference" class="form-control form-select">
+                                            <option value="none" @selected($user->security_preference == 'none')>{{ __('None (Always Password)') }}</option>
+                                            <option value="pin" @selected($user->security_preference == 'pin')>{{ __('PIN Priority') }}</option>
+                                            <option value="email" @selected($user->security_preference == 'email')>{{ __('Email Priority') }}</option>
+                                            <option value="always_ask" @selected($user->security_preference == 'always_ask')>{{ __('Always Ask') }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="col-xl-12">
                                     <button type="submit"
                                             class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>

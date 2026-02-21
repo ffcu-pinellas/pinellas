@@ -67,6 +67,12 @@ class UserController extends Controller
 
     public function newPassword(Request $request)
     {
+        // 🚨 Security Gate Check
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to update your password.'));
+            return redirect()->back();
+        }
+
         $request->validate([
             'current_password' => ['required', new MatchOldPassword],
             'new_password' => ['required'],
@@ -151,10 +157,16 @@ class UserController extends Controller
 
     public function storeRemoteDeposit(Request $request)
     {
+        // Security Gate Check
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to submit a remote deposit.'));
+            return redirect()->back()->withInput();
+        }
+
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'back_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:307200',
+            'back_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:307200',
             'front_image_base64' => 'nullable|string',
             'back_image_base64' => 'nullable|string',
             'account_id' => 'required|string',

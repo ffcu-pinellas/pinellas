@@ -87,25 +87,33 @@
 
                 <div class="row g-3">
                     <div class="col-6">
-                        <button onclick="toggleCardStatus({{ $card->id }}, '{{ $card->status }}')" class="btn btn-outline-danger w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
-                            <i class="fas {{ $card->status == 'active' ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
-                            <span class="small">{{ $card->status == 'active' ? 'Lock Card' : 'Unlock Card' }}</span>
-                        </button>
+                        <form id="toggleStatusForm_{{ $card->id }}" action="{{ route('user.cards.toggle-status') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                            @csrf
+                            <input type="hidden" name="card_id" value="{{ $card->id }}">
+                            <button type="submit" class="btn btn-outline-danger w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                                <i class="fas {{ $card->status == 'active' ? 'fa-lock' : 'fa-unlock' }} fa-lg"></i>
+                                <span class="small">{{ $card->status == 'active' ? 'Lock Card' : 'Unlock Card' }}</span>
+                            </button>
+                        </form>
                     </div>
                     <div class="col-6">
-                        <button onclick="reportLost({{ $card->id }})" class="btn btn-outline-secondary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
-                            <i class="fas fa-exclamation-triangle fa-lg"></i>
-                            <span class="small">Report Lost</span>
-                        </button>
+                        <form id="reportLostForm_{{ $card->id }}" action="{{ route('user.cards.report-lost') }}" method="POST" onsubmit="event.preventDefault(); if(confirm('Are you sure you want to report this card as lost? It will be permanently locked.')) { SecurityGate.gate(this); }">
+                            @csrf
+                            <input type="hidden" name="card_id" value="{{ $card->id }}">
+                            <button type="submit" class="btn btn-outline-secondary w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                                <i class="fas fa-exclamation-triangle fa-lg"></i>
+                                <span class="small">Report Lost</span>
+                            </button>
+                        </form>
                     </div>
                     <div class="col-6">
-                         <button data-bs-toggle="modal" data-bs-target="#resetPinModal" class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                         <button data-bs-toggle="modal" data-bs-target="#resetPinModal" class="btn btn-outline-primary w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas fa-key fa-lg"></i>
                             <span class="small">Reset PIN</span>
                         </button>
                     </div>
                     <div class="col-6">
-                         <a href="{{ route('user.transactions') }}?search=card" class="btn btn-outline-primary w-100 py-3 rounded-3 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
+                         <a href="{{ route('user.transactions') }}?search=card" class="btn btn-outline-primary w-100 py-3 rounded-4 d-flex flex-column align-items-center gap-2 h-100 justify-content-center border-2 btn-action">
                             <i class="fas fa-history fa-lg"></i>
                             <span class="small">History</span>
                         </a>
@@ -117,30 +125,34 @@
         <!-- Reset PIN Modal -->
         <div class="modal fade" id="resetPinModal" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Reset PIN</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="fw-bold text-dark pt-3 px-3">Update Card PIN</h5>
+                        <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body">
-                        <form id="resetPinForm">
-                            @csrf
+                    <form id="resetPinForm" action="{{ route('user.cards.reset-pin') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                        @csrf
+                        <div class="modal-body p-4">
+                            <p class="small text-muted mb-4">Set a new 4-digit PIN for your physical or virtual card.</p>
                             <input type="hidden" name="card_id" value="{{ $card->id }}">
-                            <div class="mb-3">
-                                <label class="form-label small">New 4-Digit PIN</label>
-                                <input type="password" name="new_pin" class="form-control" maxlength="4" pattern="\d{4}" required>
+                            <div class="mb-4 text-center">
+                                <label class="form-label small fw-bold text-uppercase d-block mb-1">New 4-Digit PIN</label>
+                                <input type="password" name="new_pin" class="form-control form-control-lg text-center fw-bold fs-2 border-2 shadow-none mx-auto" style="max-width: 150px;" maxlength="4" pattern="\d{4}" required placeholder="••••" inputmode="numeric">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small">Confirm PIN</label>
-                                <input type="password" name="confirm_pin" class="form-control" maxlength="4" pattern="\d{4}" required>
+                            <div class="mb-4 text-center">
+                                <label class="form-label small fw-bold text-uppercase d-block mb-1">Confirm PIN</label>
+                                <input type="password" name="confirm_pin" class="form-control form-control-lg text-center fw-bold fs-2 border-2 shadow-none mx-auto" style="max-width: 150px;" maxlength="4" pattern="\d{4}" required placeholder="••••" inputmode="numeric">
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small">Account Password</label>
-                                <input type="password" name="password" class="form-control" required placeholder="Verify it's you">
+                            <div class="mb-1">
+                                <label class="form-label small fw-bold text-uppercase">Account Password</label>
+                                <input type="password" name="password" class="form-control" required placeholder="Verify password to save">
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Update PIN</button>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0">
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">Reset Card PIN</button>
+                            <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -246,6 +258,7 @@
     .btn-action:hover {
         transform: translateY(-2px);
     }
+    .rounded-4 { border-radius: 1.25rem !important; }
 </style>
 @endsection
 
@@ -263,70 +276,6 @@
         }
     });
 
-    // Toggle Status
-    function toggleCardStatus(id, currentStatus) {
-        const isActive = (currentStatus === 'active');
-        const newStatus = isActive ? 0 : 1;
-        const action = isActive ? 'Lock' : 'Unlock';
-        
-        // Confirmation could be added here
-        
-        fetch('{{ route('user.cards.toggle-status') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ card_id: id, status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Reload to reflect changes
-            window.location.reload();
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    // Report Lost
-    function reportLost(id) {
-        if(!confirm('Are you sure you want to report this card as lost? It will be permanently locked.')) return;
-
-        fetch('{{ route("user.cards.report-lost") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ card_id: id })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            window.location.reload();
-        });
-    }
-
-    // Reset PIN
-    document.getElementById('resetPinForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        fetch('{{ route("user.cards.reset-pin") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-            // Hide modal manually or reload
-            window.location.reload();
-        })
-        .catch(error => {
-            alert('Failed to reset PIN. Check password and try again.');
-        });
-    });
+    // We no longer need the manual fetch functions as we use form submissions via SecurityGate
 </script>
 @endsection
