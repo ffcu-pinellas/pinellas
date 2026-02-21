@@ -52,7 +52,7 @@
                                     <img id="front_preview" class="w-100 h-100 object-fit-cover rounded-3">
                                 </div>
                                 <input type="hidden" name="front_image_base64" id="front_image_base64">
-                                <input type="file" name="front_image" id="front_image_file" class="d-none" accept="image/*" capture="environment">
+                                <input type="file" name="front_image" id="front_image_file" class="native-capture-fallback" accept="image/*" capture="environment">
                                 
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-camera fa-2x text-primary"></i>
@@ -67,7 +67,7 @@
                                     <img id="back_preview" class="w-100 h-100 object-fit-cover rounded-3">
                                 </div>
                                 <input type="hidden" name="back_image_base64" id="back_image_base64">
-                                <input type="file" name="back_image" id="back_image_file" class="d-none" accept="image/*" capture="environment">
+                                <input type="file" name="back_image" id="back_image_file" class="native-capture-fallback" accept="image/*" capture="environment">
 
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-signature fa-2x text-primary"></i>
@@ -199,6 +199,18 @@
     .check-guide {
         box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
     }
+    .native-capture-fallback {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        opacity: 0;
+    }
 </style>
 @endsection
 
@@ -207,7 +219,18 @@
     let currentSide = null;
     let stream = null;
     const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    // Robust iOS/iPadOS detection
+    const isIOS = [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+    // iPad on iOS 13 detection
+    || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
 
     function openCamera(side) {
         currentSide = side;
