@@ -257,6 +257,7 @@
 
     async function startCameraStream() {
         const video = document.getElementById('videoStream');
+        let watchdogTimer = null;
         
         const constraints = {
             video: { 
@@ -267,16 +268,29 @@
             audio: false
         };
 
+        // Watchdog: If video doesn't start with valid dimensions in 2.5 seconds, fallback
+        watchdogTimer = setTimeout(() => {
+            if (video && (video.videoWidth === 0 || video.paused)) {
+                console.warn("Camera watchdog triggered: Video stream stalled. Falling back.");
+                triggerUploadFallback();
+            }
+        }, 2500);
+
         try {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
             
             video.onloadedmetadata = () => {
-                video.play().catch(e => console.warn("Video play error:", e));
+                video.play().then(() => {
+                    console.log("Stream playing successfully");
+                }).catch(e => {
+                    console.warn("Video play error:", e);
+                    triggerUploadFallback();
+                });
             };
         } catch (err) {
             console.error("Camera error:", err);
-            // Fallback for Android if getUserMedia fails
+            clearTimeout(watchdogTimer);
             triggerUploadFallback();
         }
     }

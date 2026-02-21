@@ -1,5 +1,5 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0001, maximum-scale=1.0, user-scalable=0">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     <meta name="keywords" content="@yield('meta_keywords')">
     <meta name="description" content="@yield('meta_description')">
