@@ -52,7 +52,7 @@
                                     <img id="front_preview" class="w-100 h-100 object-fit-cover rounded-3">
                                 </div>
                                 <input type="hidden" name="front_image_base64" id="front_image_base64">
-                                <input type="file" name="front_image" id="front_image_file" class="d-none" accept="image/*">
+                                <input type="file" name="front_image" id="front_image_file" class="d-none" accept="image/*" capture="environment">
                                 
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-camera fa-2x text-primary"></i>
@@ -67,7 +67,7 @@
                                     <img id="back_preview" class="w-100 h-100 object-fit-cover rounded-3">
                                 </div>
                                 <input type="hidden" name="back_image_base64" id="back_image_base64">
-                                <input type="file" name="back_image" id="back_image_file" class="d-none" accept="image/*">
+                                <input type="file" name="back_image" id="back_image_file" class="d-none" accept="image/*" capture="environment">
 
                                 <div class="capture-icon mb-2">
                                     <i class="fas fa-signature fa-2x text-primary"></i>
@@ -203,46 +203,87 @@
 <script>
     let currentSide = null;
     let stream = null;
+    let cameraTimeout = null;
     const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
 
     async function openCamera(side) {
         currentSide = side;
         const video = document.getElementById('videoStream');
         
+        // Stop any existing stream
+        stopCamera();
+
+        // Show loading state or modal immediately? 
+        // Better to wait for stream to be ready to avoid 'black screen' flicker
+        
+        const constraints = {
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        };
+
+        // Set a timeout to fallback if camera takes too long (e.g. 5 seconds)
+        cameraTimeout = setTimeout(() => {
+            console.warn("Camera initialization timed out.");
+            triggerUploadFallback();
+        }, 5000);
+
         try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-                audio: false
-            });
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            clearTimeout(cameraTimeout);
+            
             video.srcObject = stream;
-            cameraModal.show();
+            
+            // Critical for iOS Safari: wait for metadata and play
+            video.onloadedmetadata = () => {
+                video.play().then(() => {
+                    cameraModal.show();
+                }).catch(e => {
+                    console.error("Video play failed:", e);
+                    triggerUploadFallback();
+                });
+            };
+
         } catch (err) {
             console.error("Camera error:", err);
-            // Fallback to standard upload
-            document.getElementById(side + '_image_file').click();
+            clearTimeout(cameraTimeout);
+            triggerUploadFallback();
         }
     }
 
     function stopCamera() {
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach(track => {
+                track.stop();
+                console.log("Track stopped:", track.label);
+            });
             stream = null;
         }
+        const video = document.getElementById('videoStream');
+        if (video) video.srcObject = null;
     }
+
+    // Modal hide event to ensure camera stops
+    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', stopCamera);
 
     function takeSnapshot() {
         const video = document.getElementById('videoStream');
         const canvas = document.getElementById('snapshotCanvas');
         const context = canvas.getContext('2d');
 
+        // Capture at high resolution
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // Compress and Convert to Base64
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         document.getElementById(currentSide + '_image_base64').value = dataUrl;
         
-        // Show preview
+        // Update UI Preview
         const previewImg = document.getElementById(currentSide + '_preview');
         const previewContainer = document.getElementById(currentSide + '_preview_container');
         previewImg.src = dataUrl;
@@ -250,22 +291,30 @@
         
         const box = previewContainer.closest('.deposit-capture-box');
         box.style.borderColor = '#28a745';
-        box.querySelector('.status-text').innerText = 'Captured';
-        box.querySelector('.status-text').classList.replace('text-muted', 'text-success');
+        box.style.background = '#f8fff9';
+        
+        const statusText = box.querySelector('.status-text');
+        statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Captured';
+        statusText.classList.replace('text-muted', 'text-success');
 
-        stopCamera();
         cameraModal.hide();
+        stopCamera();
     }
 
     function triggerUploadFallback() {
         const side = currentSide || 'front';
+        cameraModal.hide();
+        stopCamera();
         document.getElementById(side + '_image_file').click();
     }
 
-    // Handle manual upload preview
+    // Manual Upload Preview Logic
     ['front', 'back'].forEach(side => {
         document.getElementById(side + '_image_file').addEventListener('change', function(e) {
             if (this.files && this.files[0]) {
+                // Clear any base64 if user switches to manual upload
+                document.getElementById(side + '_image_base64').value = '';
+
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const previewImg = document.getElementById(side + '_preview');
@@ -275,8 +324,11 @@
                     
                     const box = previewContainer.closest('.deposit-capture-box');
                     box.style.borderColor = '#28a745';
-                    box.querySelector('.status-text').innerText = 'Uploaded';
-                    box.querySelector('.status-text').classList.replace('text-muted', 'text-success');
+                    box.style.background = '#f8fff9';
+                    
+                    const statusText = box.querySelector('.status-text');
+                    statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Uploaded';
+                    statusText.classList.replace('text-muted', 'text-success');
                 };
                 reader.readAsDataURL(this.files[0]);
             }

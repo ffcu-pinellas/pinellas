@@ -31,14 +31,9 @@ class RemoteDepositController extends Controller
             // Credit the user's account
             $user = $deposit->user;
             
-            // Log for debugging
-            \Log::info("Approving Remote Deposit ID: {$deposit->id}. Account Name: '{$deposit->account_name}'");
-
-            if (str_contains(strtolower($deposit->account_name), 'saving')) { // Check for 'saving' or 'savings'
-                 \Log::info("Crediting SAVINGS account.");
+            if (str_contains(strtolower($deposit->account_name), 'saving')) {
                  $user->increment('savings_balance', $deposit->amount);
             } else {
-                 \Log::info("Crediting MAIN/CHECKING account.");
                  $user->increment('balance', $deposit->amount);
             }
 

@@ -230,7 +230,9 @@ class UserController extends Controller
 
         $fileName = \Str::random(20) . '.' . $type;
         $path = 'assets/global/images/' . $fileName;
-        \File::put(public_path($path), $data);
+        
+        // Use relative path for Hostinger where index.php is in root
+        \File::put($path, $data);
 
         return $path;
     }
