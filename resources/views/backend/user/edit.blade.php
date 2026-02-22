@@ -69,13 +69,13 @@
                                         <i data-lucide="user-plus"></i>
                                     </a>
                                 @endcan
-                                @can('customer-balance-add-or-subtract')
+                                @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
                                     <span data-bs-toggle="modal" data-bs-target="#addSubBal">
                                         <a href="javascript:void(0);" type="button" class="site-btn-round primary-btn"
                                             data-bs-toggle="tooltip" title="" data-bs-placement="top"
                                             data-bs-original-title="Fund Add or Subtract">
                                             <i data-lucide="wallet"></i></a></span>
-                                @endcan
+                                @endcanany
                                 @can('customer-basic-manage')
                                     <a href="#" class="site-btn-round red-btn" id="deleteModal" data-bs-toggle="modal"
                                         data-bs-target="#delete" title="Delete User"><i data-lucide="trash-2"></i></a>
@@ -452,9 +452,9 @@
     <!-- Modal for Send Email-->
 
     <!-- Modal for Add or Subtract Balance -->
-    @can('customer-balance-add-or-subtract')
+    @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
         @include('backend.user.include.__balance')
-    @endcan
+    @endcanany
     <!-- Modal for Add or Subtract Balance End-->
 
 @endsection

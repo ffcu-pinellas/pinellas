@@ -64,11 +64,11 @@
     </div>
 
     @if(isset($permissions) && count($permissions) > 0)
-    <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasAnyRole(['Account Officer', 'Account-Officer']) ? '' : 'display:none;' }}">
+    <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') ? '' : 'display:none;' }}">
         <label class="box-input-label">{{ __('Account Officer Specific Permissions:') }}</label>
         <div class="row">
             @foreach($permissions as $category => $items)
-                @if($category == 'Account Officer Permissions')
+                @if(trim($category) == 'Account Officer Permissions')
                     @foreach($items as $permission)
                         <div class="col-md-6 mb-2">
                             <div class="form-check form-switch">

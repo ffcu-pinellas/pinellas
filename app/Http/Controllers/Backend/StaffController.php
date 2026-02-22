@@ -123,7 +123,7 @@ class StaffController extends Controller
 
         $staff = Admin::find($id);
 
-        if ($staff->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+        if ($staff->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             notify()->warning('Super admin not changeable');
 
             return redirect()->back();

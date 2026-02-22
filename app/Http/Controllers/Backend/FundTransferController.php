@@ -38,7 +38,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -75,7 +75,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -110,7 +110,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -147,7 +147,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -184,7 +184,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -220,7 +220,7 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -248,7 +248,7 @@ class FundTransferController extends Controller
         $transaction = Transaction::with(['user', 'fromUser'])->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($transaction->user?->staff_id != auth()->id()) {
                 abort(403, 'Unauthorized access.');
             }
@@ -265,7 +265,7 @@ class FundTransferController extends Controller
         $transaction = Transaction::with('user')->findOrFail($input['id']);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($transaction->user?->staff_id != auth()->id() || !auth()->user()->can('officer-transfer-manage')) {
                 abort(403, 'Unauthorized action.');
             }

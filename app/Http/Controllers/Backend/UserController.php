@@ -58,7 +58,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::query()
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -94,7 +94,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::active()
-            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -129,7 +129,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::disabled()
-            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -164,7 +164,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::closed()
-            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -212,7 +212,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Ownership and Role Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($user->staff_id != auth()->id()) {
                 abort(403, 'Unauthorized access to this user.');
             }
@@ -368,7 +368,7 @@ class UserController extends Controller
         }
 
         $staffs = [];
-        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             $staffs = Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
@@ -620,7 +620,7 @@ class UserController extends Controller
         }
 
         // Assignment logic (Super-Admin only)
-        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']) && isset($input['staff_id'])) {
+        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {
             $user->staff_id = $input['staff_id'];
         }
 
@@ -695,8 +695,8 @@ class UserController extends Controller
             $user = User::find($id);
 
             // Security Check
-            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
-                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-user-manage')) {
+            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-balance-manage', 'admin')) {
                     abort(403, 'Unauthorized action.');
                 }
             }
