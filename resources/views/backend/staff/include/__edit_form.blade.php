@@ -74,7 +74,7 @@
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="permissions[]" 
                                     value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
-                                    @checked($staff->hasPermissionTo($permission->name))>
+                                    @checked($staff->hasPermissionTo($permission->name, 'admin'))>
                                 <label class="form-check-label" for="perm_{{ $permission->id }}">
                                     {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
                                 </label>
