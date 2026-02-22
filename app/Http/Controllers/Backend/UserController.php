@@ -212,8 +212,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
-        if (auth()->check() && auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($user->staff_id != auth()->id()) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access to this user.');
             }
         }
@@ -368,7 +368,7 @@ class UserController extends Controller
         }
 
         $staffs = [];
-        if (auth()->check()) {
+        if (auth('admin')->check()) {
             $staffs = Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
