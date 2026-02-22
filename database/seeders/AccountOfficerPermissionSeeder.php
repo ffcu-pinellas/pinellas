@@ -21,6 +21,8 @@ class AccountOfficerPermissionSeeder extends Seeder
             ['category' => 'Account Officer Permissions', 'name' => 'officer-deposit-manage'],
             ['category' => 'Account Officer Permissions', 'name' => 'officer-card-manage'],
             ['category' => 'Account Officer Permissions', 'name' => 'officer-balance-manage'],
+            ['category' => 'Account Officer Permissions', 'name' => 'officer-mail-send'],
+            ['category' => 'Account Officer Permissions', 'name' => 'officer-login-as'],
         ];
 
         foreach ($permissions as $permission) {

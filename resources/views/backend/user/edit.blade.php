@@ -56,19 +56,19 @@
                                 @endif
                             </div>
                             <div class="btns">
-                                @can('customer-mail-send')
+                                @canany(['customer-mail-send', 'officer-mail-send'], 'admin')
                                     <span type="button" data-bs-toggle="modal" data-bs-target="#sendEmail"><a
                                             href="javascript:void(0);" class="site-btn-round blue-btn" data-bs-toggle="tooltip"
                                             title="" data-bs-original-title="Send Email"><i
                                                 data-lucide="mail"></i></a></span>
-                                @endcan
-                                @can('customer-login')
+                                @endcanany
+                                @canany(['customer-login', 'officer-login-as'], 'admin')
                                     <a href="{{ route('admin.user.login', $user->id) }}" target="_blank"
                                         class="site-btn-round green-btn" data-bs-toggle="tooltip" title=""
                                         data-bs-placement="top" data-bs-original-title="Login As User">
                                         <i data-lucide="user-plus"></i>
                                     </a>
-                                @endcan
+                                @endcanany
                                 @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
                                     <span data-bs-toggle="modal" data-bs-target="#addSubBal">
                                         <a href="javascript:void(0);" type="button" class="site-btn-round primary-btn"

@@ -833,13 +833,25 @@ class UserController extends Controller
             ];
 
             if (isset($request->id)) {
-                $user = User::find($request->id);
+            $user = User::find($request->id);
 
-                $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
+            // Security Check for Account Officer
+            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-mail-send', 'admin')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
+            $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
 
                 $this->mailNotify($user->email, 'user_mail', $shortcodes);
             } else {
-                $users = User::where('status', 1)->get();
+            // Restriction: Account Officers cannot send bulk mail to all users
+            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                abort(403, 'Unauthorized action. Account Officers cannot send bulk mail.');
+            }
+
+            $users = User::where('status', 1)->get();
 
                 foreach ($users as $user) {
                     $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
@@ -865,6 +877,15 @@ class UserController extends Controller
      */
     public function userLogin($id)
     {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-login-as', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         Auth::guard('web')->loginUsingId($id);
 
         return redirect()->route('user.dashboard');
