@@ -28,7 +28,7 @@
                             />
                             <label for="accSta2">{{ __('Disabled') }}</label>
                             
-                            @if(auth()->user()->hasRole('Super-Admin'))
+                            @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']))
                             <input
                                 type="radio"
                                 id="accStaClosed"

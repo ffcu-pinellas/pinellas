@@ -37,7 +37,7 @@ class StaffController extends Controller
      */
     public function index()
     {
-        $roles = Role::whereNot('name', 'Super-Admin')->get();
+        $roles = Role::whereNotIn('name', ['Super-Admin', 'Super Admin'])->get();
         $staffs = Admin::all();
 
         return view('backend.staff.index', compact('roles', 'staffs'));
@@ -54,7 +54,7 @@ class StaffController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:admins,email',
             'password' => 'required|same:confirm-password',
-            'role' => ['required', Rule::notIn('Super-Admin')],
+            'role' => ['required', Rule::notIn(['Super-Admin', 'Super Admin'])],
             'status' => 'boolean',
         ]);
 
@@ -83,7 +83,7 @@ class StaffController extends Controller
      */
     public function edit($id)
     {
-        $roles = Role::whereNot('name', 'Super-Admin')->get();
+        $roles = Role::whereNotIn('name', ['Super-Admin', 'Super Admin'])->get();
         $staff = Admin::with('permissions')->find($id);
         $permissions = \Spatie\Permission\Models\Permission::get()->groupBy('category');
 
@@ -103,7 +103,7 @@ class StaffController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:admins,email,'.$id,
             'password' => 'same:confirm-password',
-            'role' => ['required', Rule::notIn('Super-Admin')],
+            'role' => ['required', Rule::notIn(['Super-Admin', 'Super Admin'])],
             'status' => 'boolean',
         ]);
 
@@ -123,7 +123,7 @@ class StaffController extends Controller
 
         $staff = Admin::find($id);
 
-        if ($staff->getRoleNames()->first() === 'Super-Admin') {
+        if ($staff->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             notify()->warning('Super admin not changeable');
 
             return redirect()->back();

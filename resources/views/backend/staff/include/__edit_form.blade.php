@@ -64,7 +64,7 @@
     </div>
 
     @if(isset($permissions) && count($permissions) > 0)
-    <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasRole('Account Officer') ? '' : 'display:none;' }}">
+    <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasAnyRole(['Account Officer', 'Account-Officer']) ? '' : 'display:none;' }}">
         <label class="box-input-label">{{ __('Account Officer Specific Permissions:') }}</label>
         <div class="row">
             @foreach($permissions as $category => $items)

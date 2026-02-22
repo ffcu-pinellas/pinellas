@@ -13,7 +13,7 @@ class CardController extends Controller
     public function index()
     {
         $cards = UserCard::with('user')
-            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -32,7 +32,7 @@ class CardController extends Controller
     {
         // Security Check
         $user = User::findOrFail($request->user_id);
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
                 abort(403, 'Unauthorized action.');
             }
@@ -81,7 +81,7 @@ class CardController extends Controller
         $card = UserCard::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
                 abort(403, 'Unauthorized action.');
             }
@@ -112,7 +112,7 @@ class CardController extends Controller
         $card = UserCard::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
                 abort(403, 'Unauthorized action.');
             }
@@ -134,7 +134,7 @@ class CardController extends Controller
         $card = UserCard::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
                 abort(403, 'Unauthorized action.');
             }
@@ -157,7 +157,7 @@ class CardController extends Controller
         $card = UserCard::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
                 abort(403, 'Unauthorized action.');
             }

@@ -170,7 +170,7 @@
                                     </div>
                                 </div>
 
-                                @if(auth()->user()->hasRole('Super-Admin'))
+                                @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']))
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label">{{ __('Assigned Staff (Account Officer):') }}</label>

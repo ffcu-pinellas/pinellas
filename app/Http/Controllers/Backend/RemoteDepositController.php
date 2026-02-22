@@ -15,7 +15,7 @@ class RemoteDepositController extends Controller
     public function index()
     {
         $deposits = RemoteDeposit::with('user')
-            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin']), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -29,7 +29,7 @@ class RemoteDepositController extends Controller
         $deposit = RemoteDeposit::with('user')->findOrFail($id);
         
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
                 abort(403, 'Unauthorized action.');
             }
@@ -74,7 +74,7 @@ class RemoteDepositController extends Controller
         $deposit = RemoteDeposit::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
             if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
                 abort(403, 'Unauthorized action.');
             }
