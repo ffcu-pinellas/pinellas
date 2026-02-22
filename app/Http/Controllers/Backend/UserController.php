@@ -211,9 +211,9 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Ownership and Role Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($user->staff_id != auth()->id()) {
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access to this user.');
             }
         }
@@ -368,7 +368,7 @@ class UserController extends Controller
         }
 
         $staffs = [];
-        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             $staffs = Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
@@ -426,6 +426,15 @@ class UserController extends Controller
      */
     public function statusUpdate($id, Request $request)
     {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-user-manage', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $input = $request->all();
         $validator = Validator::make($input, [
             'status' => 'required',
@@ -592,6 +601,15 @@ class UserController extends Controller
      */
     public function update($id, Request $request)
     {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-user-manage', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         if ($request->date('date_of_birth') == null) {
             $request->merge(['date_of_birth' => null]);
         }
@@ -695,8 +713,9 @@ class UserController extends Controller
             $user = User::find($id);
 
             // Security Check
-            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-balance-manage', 'admin')) {
+            // Security Check
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-balance-manage', 'admin')) {
                     abort(403, 'Unauthorized action.');
                 }
             }
@@ -836,8 +855,8 @@ class UserController extends Controller
             $user = User::find($request->id);
 
             // Security Check for Account Officer
-            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-mail-send', 'admin')) {
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-mail-send', 'admin')) {
                     abort(403, 'Unauthorized action.');
                 }
             }
@@ -847,7 +866,7 @@ class UserController extends Controller
                 $this->mailNotify($user->email, 'user_mail', $shortcodes);
             } else {
             // Restriction: Account Officers cannot send bulk mail to all users
-            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
                 abort(403, 'Unauthorized action. Account Officers cannot send bulk mail.');
             }
 
@@ -880,8 +899,8 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-login-as', 'admin')) {
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-login-as', 'admin')) {
                 abort(403, 'Unauthorized action.');
             }
         }

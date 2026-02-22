@@ -21,7 +21,6 @@
                             <div class="row">
 
                                 {{-- VERY PROMINENT ASSIGMENT BLOCK --}}
-                                @if(auth('admin')->check())
                                 <div class="col-xl-12 mb-4 mt-2">
                                     <div class="site-input-groups" style="border: 3px dashed #5d78ff; padding: 20px; border-radius: 12px; background: #ebf0ff;">
                                         <h4 class="mb-3" style="color: #5d78ff;"><i data-lucide="user-cog"></i> {{ __('ACCOUNT OFFICER ASSIGNMENT') }}</h4>
@@ -37,7 +36,6 @@
                                         <p class="mt-2 mb-0" style="font-size: 0.85rem; color: #444;">{{ __('The selected officer will have permission to manage this customer based on their individual settings.') }}</p>
                                     </div>
                                 </div>
-                                @endif
 
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">

@@ -103,3 +103,14 @@
         </a>
     </div>
 </form>
+
+<script>
+    $('#role').on('change', function() {
+        var role = $(this).val();
+        if (role === 'Account Officer' || role === 'Account-Officer') {
+            $('#permissions-container').show();
+        } else {
+            $('#permissions-container').hide();
+        }
+    });
+</script>
