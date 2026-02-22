@@ -58,11 +58,34 @@
         <select name="role" class="form-select" id="role">
             @foreach($roles as $role)
                 <option
-                    @selected($role->name == $staff->roles[0]['name']) value="{{$role->name}}">{{ str_replace('-', ' ', $role->name) }}</option>
+                    @selected($role->name == $staff->getRoleNames()->first()) value="{{$role->name}}">{{ str_replace('-', ' ', $role->name) }}</option>
             @endforeach
-
         </select>
     </div>
+
+    @if(isset($permissions) && count($permissions) > 0)
+    <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasRole('Account Officer') ? '' : 'display:none;' }}">
+        <label class="box-input-label">{{ __('Account Officer Specific Permissions:') }}</label>
+        <div class="row">
+            @foreach($permissions as $category => $items)
+                @if($category == 'Account Officer Permissions')
+                    @foreach($items as $permission)
+                        <div class="col-md-6 mb-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="permissions[]" 
+                                    value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
+                                    @checked($staff->hasPermissionTo($permission->name))>
+                                <label class="form-check-label" for="perm_{{ $permission->id }}">
+                                    {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <div class="action-btns">
         <button type="submit" href="" class="site-btn-sm primary-btn me-2">

@@ -14,8 +14,8 @@ class Admin extends Authenticatable
 
     protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'device_token', 'is_admin', 'status'];
 
-    public function getCreatedAtAttribute(): string
+    public function managedUsers()
     {
-        return Carbon::parse($this->attributes['created_at'])->format('M d Y h:i');
+        return $this->hasMany(User::class, 'staff_id');
     }
 }

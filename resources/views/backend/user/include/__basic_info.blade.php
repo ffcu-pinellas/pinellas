@@ -170,6 +170,20 @@
                                     </div>
                                 </div>
 
+                                @if(auth()->user()->hasRole('Super-Admin'))
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Assigned Staff (Account Officer):') }}</label>
+                                        <select name="staff_id" class="form-control form-select">
+                                            <option value="">{{ __('None') }}</option>
+                                            @foreach($staffs as $staff)
+                                                <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                @endif
+
                                 <div class="col-xl-12">
                                     <button type="submit"
                                             class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>

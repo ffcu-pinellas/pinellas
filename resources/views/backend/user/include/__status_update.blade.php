@@ -27,6 +27,8 @@
                                 @if(!$user->status) checked @endif
                             />
                             <label for="accSta2">{{ __('Disabled') }}</label>
+                            
+                            @if(auth()->user()->hasRole('Super-Admin'))
                             <input
                                 type="radio"
                                 id="accStaClosed"
@@ -35,6 +37,7 @@
                                 @if($user->status == 2) checked @endif
                             />
                             <label for="accStaClosed">{{ __('Closed') }}</label>
+                            @endif
                         </div>
                     </div>
                 </div>

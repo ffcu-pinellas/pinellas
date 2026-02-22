@@ -73,7 +73,13 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'savings_account_number',
         'savings_balance',
         'dashboard_order',
+        'staff_id',
     ];
+
+    public function staff()
+    {
+        return $this->belongsTo(Admin::class, 'staff_id');
+    }
 
     protected $appends = [
         'full_name',

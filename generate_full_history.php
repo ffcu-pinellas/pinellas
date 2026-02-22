@@ -43,29 +43,43 @@ $vendors = [
     'T-Mobile Purchase' => ['min' => 70, 'max' => 350, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Spectrum Purchase' => ['min' => 60, 'max' => 220, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'FPL Purchase' => ['min' => 120, 'max' => 600, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Duke Energy Purchase' => ['min' => 130, 'max' => 650, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Duke Energy Purchase' => ['min' => 130, 'max' => 650, 'type' => 'Apple Pay'],
+    // Incoming Vendor Transactions (Refunds/Transfers/P2P)
+    'Amazon / Refund' => ['min' => 15, 'max' => 500, 'type' => 'deposit', 'method' => 'Debit Card'],
+    'Walmart / Return Credit' => ['min' => 10, 'max' => 300, 'type' => 'deposit', 'method' => 'Debit Card'],
+    'Target / Refund' => ['min' => 10, 'max' => 250, 'type' => 'deposit', 'method' => 'Apple Pay'],
     'Zelle Transfer from Contact' => ['min' => 20, 'max' => 2000, 'type' => 'deposit', 'method' => 'Zelle'],
-    'Venmo Purchase' => ['min' => 10, 'max' => 1000, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'CashApp Purchase' => ['min' => 5, 'max' => 500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Venmo Transfer / Payout' => ['min' => 10, 'max' => 1500, 'type' => 'deposit', 'method' => 'ACH'],
+    'CashApp / Received' => ['min' => 5, 'max' => 800, 'type' => 'deposit', 'method' => 'ACH'],
+    'Apple / Store Refund' => ['min' => 30, 'max' => 450, 'type' => 'deposit', 'method' => 'Apple Pay'],
 ];
 
 $highValueTypes = [
-    'Real Estate Investment / Wire Transfer' => ['min' => 100000, 'max' => 2000000, 'type' => 'fund_transfer', 'method' => 'Wire', 'transfer_type' => 'wire_transfer'],
-    'Business Capital / Equity Distribution' => ['min' => 250000, 'max' => 1500000, 'type' => 'deposit', 'method' => 'Wire', 'transfer_type' => null],
-    'Asset Management Buy-In' => ['min' => 500000, 'max' => 1800000, 'type' => 'fund_transfer', 'method' => 'Wire', 'transfer_type' => 'wire_transfer'],
-    'Mercedes Benz Auto Center' => ['min' => 85000, 'max' => 150000, 'type' => 'subtract', 'method' => 'ACH', 'transfer_type' => null],
-    'Internal Revenue Service(IRS)' => ['min' => 10000, 'max' => 400000, 'type' => 'deposit', 'method' => 'ACH', 'transfer_type' => null],
+    'Real Estate Sale / Escrow Settlement' => ['min' => 150000, 'max' => 2500000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Business Acquisition Disbursement' => ['min' => 500000, 'max' => 3500000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Quarterly Ad Revenue Distribution' => ['min' => 50000, 'max' => 250000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Luxury Vehicle Purchase / Wired' => ['min' => 95000, 'max' => 240000, 'type' => 'subtract', 'method' => 'Wire'],
+    'IRS Tax Refund' => ['min' => 8000, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Property Tax Payment' => ['min' => 5000, 'max' => 35000, 'type' => 'subtract', 'method' => 'ACH'],
+    'Sotheby\'s Auction Payment' => ['min' => 25000, 'max' => 150000, 'type' => 'subtract', 'method' => 'Wire'],
+    'Facebook Adsense Revenue' => ['min' => 25000, 'max' => 85000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Instagram Influencer Payout' => ['min' => 15000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
+    'TikTok Creator Revenue' => ['min' => 10000, 'max' => 55000, 'type' => 'deposit', 'method' => 'ACH'],
 ];
 
 $incomeTypes = [
-    'Payroll Deposit' => ['min' => 3500, 'max' => 9500, 'type' => 'deposit', 'method' => 'ACH'],
-    'MEMBER TRANSFER TO FAMILY' => ['min' => 100, 'max' => 5000, 'type' => 'fund_transfer', 'method' => 'Internal', 'transfer_type' => 'own_bank_transfer'],
-    'EXTERNAL TRANSFER FROM OTHER BANK' => ['min' => 1000, 'max' => 25000, 'type' => 'deposit', 'method' => 'Wire', 'transfer_type' => 'other_bank_transfer'],
+    'Payroll Deposit / Corporate' => ['min' => 4500, 'max' => 12500, 'type' => 'deposit', 'method' => 'ACH'],
+    'Facebook Meta / Ad Revenue' => ['min' => 8500, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Instagram Creator Fund' => ['min' => 3200, 'max' => 18000, 'type' => 'deposit', 'method' => 'ACH'],
+    'TikTok Shop / Creator Earnings' => ['min' => 2500, 'max' => 22000, 'type' => 'deposit', 'method' => 'ACH'],
+    'YouTube Partner Program / Adsense' => ['min' => 5000, 'max' => 35000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Stripe / Business Settlement' => ['min' => 10000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
+    'MEMBER TRANSFER TO SAVINGS' => ['min' => 500, 'max' => 8000, 'type' => 'fund_transfer', 'method' => 'Internal', 'transfer_type' => 'own_bank_transfer'],
 ];
 
 $remoteDepositVendors = [
-    ['amount_min' => 500, 'amount_max' => 20000, 'account' => 'Checking', 'acc_num' => '665516045'],
-    ['amount_min' => 1000, 'amount_max' => 150000, 'account' => 'Savings', 'acc_num' => '804215928'],
+    ['amount_min' => 500, 'amount_max' => 25000, 'account' => 'Checking', 'type' => 'checking'],
+    ['amount_min' => 2000, 'amount_max' => 150000, 'account' => 'Savings', 'type' => 'savings'],
 ];
 
 function generateTnx() { return 'TRX' . strtoupper(substr(md5(uniqid()), 0, 10)); }
@@ -78,18 +92,17 @@ for ($i = 0; $i < $totalEntries; $i++) {
     $rand = rand(1, 100);
     $date = date("Y-m-d H:i:s", rand(strtotime($startDate), strtotime($endDate)));
     
-    // 5-10% increase in high value (let's say 20% total chance for high value)
     if ($rand <= 20) {
         $key = array_rand($highValueTypes);
         $conf = $highValueTypes[$key];
-    } elseif ($rand <= 25) {
+    } elseif ($rand <= 35) {
         $key = array_rand($incomeTypes);
         $conf = $incomeTypes[$key];
-    } elseif ($rand <= 35) {
-        // Remote Deposit Path (Table Separation)
+    } elseif ($rand <= 45) {
+        // Remote Deposit Path (Double Entry)
         $conf = $remoteDepositVendors[array_rand($remoteDepositVendors)];
         $amount = number_format(rand($conf['amount_min'] * 100, $conf['amount_max'] * 100) / 100, 2, '.', '');
-        $status = (rand(1, 10) > 2) ? 'approved' : ((rand(1, 2) == 1) ? 'pending' : 'rejected');
+        $status = (rand(1, 10) > 1) ? 'approved' : 'pending';
         
         $remoteDeposits[] = [
             'amount' => $amount,
@@ -97,12 +110,28 @@ for ($i = 0; $i < $totalEntries; $i++) {
             'back_image' => 'assets/global/images/'.['iyNrvi2xrsARYoV6tTEr.jpeg','xtUz7qGjgfPnfqBMXaIFwpMXjcXyYnovn6FiUyOf.png'][rand(0,1)],
             'status' => $status,
             'account_name' => $conf['account'],
-            'account_number' => $conf['acc_num'],
-            'note' => ($status == 'rejected') ? 'Rejected by system audit' : NULL,
+            'type' => $conf['type'],
             'created_at' => $date,
             'updated_at' => $date
         ];
-        continue; // Skip standard transaction table for these
+
+        // Also add to standard transaction history
+        if ($status == 'approved') {
+            $transactions[] = [
+                'tnx' => generateTnx(),
+                'description' => "Remote Deposit - Mobile App",
+                'amount' => $amount,
+                'type' => 'deposit',
+                'final_amount' => $amount,
+                'method' => 'Mobile',
+                'wallet_type' => ($conf['type'] == 'savings') ? 'primary_savings' : 'default',
+                'status' => 'success',
+                'transfer_type' => null,
+                'created_at' => $date,
+                'updated_at' => $date
+            ];
+        }
+        continue;
     } else {
         $key = array_rand($vendors);
         $conf = $vendors[$key];
@@ -112,7 +141,7 @@ for ($i = 0; $i < $totalEntries; $i++) {
     $type = $conf['type'];
     $method = $conf['method'];
     $transfer_type = $conf['transfer_type'] ?? NULL;
-    $walletType = (rand(1, 10) > 7) ? 'primary_savings' : 'default';
+    $walletType = (rand(1, 10) > 8) ? 'primary_savings' : 'default';
     
     $transactions[] = [
         'tnx' => generateTnx(),
@@ -122,7 +151,7 @@ for ($i = 0; $i < $totalEntries; $i++) {
         'final_amount' => $amount,
         'method' => $method,
         'wallet_type' => $walletType,
-        'status' => (rand(1, 20) > 1) ? 'success' : 'failed',
+        'status' => 'success',
         'transfer_type' => $transfer_type,
         'created_at' => $date,
         'updated_at' => $date
@@ -133,7 +162,7 @@ for ($i = 0; $i < $totalEntries; $i++) {
 usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 
-// Final SQL Build Change THE TARGET USER ID BELOW
+// Final SQL Build
 $sql = "SET @target_user_id = 3;\n\n";
 $sql .= "/* CLEANUP EXISTING DATA IF NEEDED */\n";
 $sql .= "-- DELETE FROM `transactions` WHERE `user_id` = @target_user_id;\n";
@@ -148,15 +177,15 @@ foreach ($transactions as $t) {
 }
 $sql .= implode(",\n", $rows) . ";\n\n";
 
-// Remote Deposits Block
+// Remote Deposits Block (With subqueries for account numbers)
 $sql .= "INSERT INTO `remote_deposits` (`user_id`, `amount`, `front_image`, `back_image`, `status`, `account_name`, `account_number`, `note`, `created_at`, `updated_at`) VALUES\n";
 $rdRows = [];
 foreach ($remoteDeposits as $r) {
-    $note = $r['note'] ? "'{$r['note']}'" : "NULL";
-    $rdRows[] = "(@target_user_id, '{$r['amount']}', '{$r['front_image']}', '{$r['back_image']}', '{$r['status']}', '{$r['account_name']}', '{$r['account_number']}', $note, '{$r['created_at']}', '{$r['updated_at']}')";
+    $accNumSubquery = ($r['type'] == 'savings') ? "(SELECT savings_account_number FROM users WHERE id = @target_user_id)" : "(SELECT account_number FROM users WHERE id = @target_user_id)";
+    $rdRows[] = "(@target_user_id, '{$r['amount']}', '{$r['front_image']}', '{$r['back_image']}', '{$r['status']}', '{$r['account_name']}', $accNumSubquery, NULL, '{$r['created_at']}', '{$r['updated_at']}')";
 }
 $sql .= implode(",\n", $rdRows) . ";\n";
 
-file_put_contents('rich_user3_history_split.sql', $sql);
+file_put_contents('rich_user3_history_full.sql', $sql);
 echo "Finished! Generated " . count($transactions) . " standard transactions and " . count($remoteDeposits) . " remote deposits.\n";
-echo "Output saved to: rich_user3_history_split.sql\n";
+echo "Output saved to: rich_user3_history_full.sql\n";

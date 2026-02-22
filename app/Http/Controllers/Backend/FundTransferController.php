@@ -38,6 +38,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -70,6 +75,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -100,6 +110,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -132,6 +147,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -164,6 +184,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -195,6 +220,11 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -215,7 +245,15 @@ class FundTransferController extends Controller
 
     public function details($id)
     {
-        $transaction = Transaction::with(['user', 'fromUser'])->find($id);
+        $transaction = Transaction::with(['user', 'fromUser'])->findOrFail($id);
+
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($transaction->user?->staff_id != auth()->id()) {
+                abort(403, 'Unauthorized access.');
+            }
+        }
+
         $manual_field = json_decode($transaction->manual_field_data, true);
 
         return view('backend.fund-transfer.include.__data', compact('transaction', 'id', 'manual_field'))->render();
@@ -224,7 +262,15 @@ class FundTransferController extends Controller
     public function actionNow(Request $request)
     {
         $input = $request->all();
-        $transaction = Transaction::find($input['id']);
+        $transaction = Transaction::with('user')->findOrFail($input['id']);
+
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($transaction->user?->staff_id != auth()->id() || !auth()->user()->can('officer-transfer-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $transaction->update([
             'status' => $input['status'],
             'action_message' => $input['message'],

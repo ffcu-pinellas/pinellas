@@ -58,6 +58,9 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::query()
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -91,6 +94,9 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::active()
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -123,6 +129,9 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::disabled()
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -155,6 +164,9 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::closed()
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -198,6 +210,14 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
+
+        // Ownership and Role Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($user->staff_id != auth()->id()) {
+                abort(403, 'Unauthorized access to this user.');
+            }
+        }
+
         $level = LevelReferral::where('type', 'investment')->max('the_order') + 1;
 
         $earnings = null;
@@ -347,6 +367,13 @@ class UserController extends Controller
             [$wallets, $user_wallets] = $this->userWallets($user);
         }
 
+        $staffs = [];
+        if (auth()->user()->hasRole('Super-Admin')) {
+            $staffs = Admin::whereHas('roles', function($q) {
+                $q->where('name', 'Account Officer');
+            })->get();
+        }
+
         return view('backend.user.edit', [
             'user' => $user,
             'level' => $level,
@@ -361,6 +388,7 @@ class UserController extends Controller
             'wallets' => $wallets,
             'user_wallets' => $user_wallets,
             'cards' => $cards,
+            'staffs' => $staffs,
         ]);
     }
 
@@ -582,7 +610,21 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-        User::find($id)->update($input);
+        $user = User::find($id);
+
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-user-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        // Assignment logic (Super-Admin only)
+        if (auth()->user()->hasRole('Super-Admin') && isset($input['staff_id'])) {
+            $user->staff_id = $input['staff_id'];
+        }
+
+        $user->update($input);
         notify()->success('User Info Updated Successfully', 'Success');
 
         return redirect()->back();
@@ -607,7 +649,16 @@ class UserController extends Controller
 
         $password = $validator->validated();
 
-        User::find($id)->update([
+        $user = User::find($id);
+
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-security-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $user->update([
             'password' => Hash::make($password['new_password']),
         ]);
         notify()->success('User Password Updated Successfully', 'Success');
@@ -642,6 +693,14 @@ class UserController extends Controller
             $amount = $request->amount;
             $type = $request->type;
             $user = User::find($id);
+
+            // Security Check
+            if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+                if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-user-manage')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
             $adminUser = \Auth::user();
 
             if ($isEnabledWallet || $request->has('wallet_type')) {

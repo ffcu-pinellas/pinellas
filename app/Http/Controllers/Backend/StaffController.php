@@ -84,10 +84,10 @@ class StaffController extends Controller
     public function edit($id)
     {
         $roles = Role::whereNot('name', 'Super-Admin')->get();
-        $staff = Admin::find($id);
-        $staff->getRoleNames()->first();
+        $staff = Admin::with('permissions')->find($id);
+        $permissions = \Spatie\Permission\Models\Permission::get()->groupBy('category');
 
-        return view('backend.staff.include.__edit_form', compact('staff', 'roles'))->render();
+        return view('backend.staff.include.__edit_form', compact('staff', 'roles', 'permissions'))->render();
     }
 
     /**
@@ -133,6 +133,9 @@ class StaffController extends Controller
         DB::table('model_has_roles')->where('model_id', $id)->delete();
 
         $staff->assignRole($request->input('role'));
+
+        // Sync Individual Permissions
+        $staff->syncPermissions($request->input('permissions', []));
 
         notify()->success('Staff updated successfully');
 

@@ -14,13 +14,27 @@ class RemoteDepositController extends Controller
 {
     public function index()
     {
-        $deposits = RemoteDeposit::with('user')->latest()->paginate(15);
+        $deposits = RemoteDeposit::with('user')
+            ->when(auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->latest()->paginate(15);
         return view('backend.remote_deposit.index', compact('deposits'));
     }
 
     public function approve($id)
     {
-        $deposit = RemoteDeposit::findOrFail($id);
+        $deposit = RemoteDeposit::with('user')->findOrFail($id);
+        
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         if ($deposit->status !== 'pending') {
             return redirect()->back()->with('error', 'Deposit already processed.');
         }
@@ -57,7 +71,15 @@ class RemoteDepositController extends Controller
 
     public function reject(Request $request, $id)
     {
-        $deposit = RemoteDeposit::findOrFail($id);
+        $deposit = RemoteDeposit::with('user')->findOrFail($id);
+
+        // Security Check
+        if (auth()->user()->hasRole('Account Officer') && !auth()->user()->hasRole('Super-Admin')) {
+            if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         if ($deposit->status !== 'pending') {
             return redirect()->back()->with('error', 'Deposit already processed.');
         }
