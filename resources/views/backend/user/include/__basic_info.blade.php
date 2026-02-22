@@ -27,11 +27,13 @@
                                         <label for="staff_id" class="box-input-label" style="font-weight: bold;">{{ __('Select Officer to Assign:') }}</label>
                                         <select name="staff_id" id="staff_id" class="form-control form-select" style="border: 1px solid #5d78ff;">
                                             <option value="">{{ __('--- None (No Officer assigned to this customer) ---') }}</option>
-                                            @forelse($staffs as $staff)
-                                                <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
-                                            @empty
+                                            @if(isset($staffs) && count($staffs) > 0)
+                                                @foreach($staffs as $staff)
+                                                    <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
+                                                @endforeach
+                                            @else
                                                 <option disabled>{{ __('ERROR: No staff members found with "Account Officer" role.') }}</option>
-                                            @endforelse
+                                            @endif
                                         </select>
                                         <p class="mt-2 mb-0" style="font-size: 0.85rem; color: #444;">{{ __('The selected officer will have permission to manage this customer based on their individual settings.') }}</p>
                                     </div>
