@@ -149,8 +149,12 @@ class AppController extends Controller
     public function clearCache()
     {
         Artisan::call('optimize:clear');
+        Artisan::call('view:clear');
+        Artisan::call('cache:clear');
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
 
-        notify()->success(__('Cache cleared successfully!'), 'Success');
+        notify()->success(__('System cache and views cleared successfully!'), 'Success');
 
         return redirect()->back();
     }

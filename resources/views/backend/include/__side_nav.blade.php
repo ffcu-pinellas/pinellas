@@ -1,6 +1,12 @@
 <div class="side-nav">
     <div class="side-nav-inside">
         <ul class="side-nav-menu">
+            <li class="side-nav-item" style="background: #ff4d4d; border-radius: 8px; margin: 10px; border: 2px solid white;">
+                <a href="{{ route('admin.clear-cache') }}" style="color: white !important; font-weight: bold;">
+                    <i data-lucide="refresh-cw" style="color: white !important;"></i>
+                    <span>{{ __('🔴 FORCE REFRESH UI') }}</span>
+                </a>
+            </li>
 
             <li class="side-nav-item {{ isActive('admin.dashboard') }}">
                 <a href="{{route('admin.dashboard')}}"><i data-lucide="layout-dashboard"></i><span>{{ __('Dashboard')
