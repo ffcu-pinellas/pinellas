@@ -6,12 +6,22 @@ const SecurityGate = {
     gate: function (target) {
         this.currentTarget = target;
         this.reset();
-        $('#securityGateModal').modal('show');
+
+        // Priority Handling: Auto-navigate based on preference
+        const preference = $('meta[name="user-security-preference"]').attr('content');
+        if (preference === 'email') {
+            this.selectMethod('email');
+        } else if (preference === 'pin') {
+            this.selectMethod('pin');
+        } else {
+            $('#sg-method-selection').removeClass('d-none');
+            $('#securityGateModal').modal('show');
+        }
     },
 
     reset: function () {
         this.selectedMethod = null;
-        $('#sg-method-selection').removeClass('d-none');
+        $('#sg-method-selection').addClass('d-none');
         $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
         $('#sg-email-code-input, #sg-pin-input').val('');
         $('#sg-back-btn').text('Cancel');
@@ -24,19 +34,29 @@ const SecurityGate = {
         $('#sg-verify-btn, #sg-back-btn').removeClass('d-none');
         $('#sg-back-btn').text('Back');
 
+        // Show modal if not already shown (for priority auto-entry)
+        if (!$('#securityGateModal').hasClass('show')) {
+            $('#securityGateModal').modal('show');
+        }
+
         if (method === 'email') {
             $('#sg-email-verify').removeClass('d-none');
+            $('#sg-pin-verify').addClass('d-none');
             this.resendEmail(); // Trigger first send
             setTimeout(() => $('#sg-email-code-input').focus(), 500);
         } else {
             $('#sg-pin-verify').removeClass('d-none');
+            $('#sg-email-verify').addClass('d-none');
             setTimeout(() => $('#sg-pin-input').focus(), 500);
         }
     },
 
     backToChoice: function () {
-        if ($('#sg-method-selection').hasClass('d-none')) {
+        const preference = $('meta[name="user-security-preference"]').attr('content');
+        if (preference === 'always_ask' && $('#sg-method-selection').hasClass('d-none')) {
             this.reset();
+            $('#sg-method-selection').removeClass('d-none');
+            $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
         } else {
             $('#securityGateModal').modal('hide');
         }
@@ -58,7 +78,7 @@ const SecurityGate = {
         const value = this.selectedMethod === 'email' ? $('#sg-email-code-input').val() : $('#sg-pin-input').val();
 
         if (!value) {
-            $('#sg-feedback').text('Please enter the code or PIN.').removeClass('d-none');
+            $('#sg-feedback').text('Please enter the Email Verification code or Multi-Factor Authentication PIN.').removeClass('d-none');
             return;
         }
 
@@ -72,35 +92,44 @@ const SecurityGate = {
             value: value
         }).done((res) => {
             if (res.status === 'success') {
-                // Verification successful, submit the original form or redirect
+                // Verification successful
                 $('#securityGateModal').modal('hide');
                 if (typeof this.currentTarget === 'string') {
                     window.location.href = this.currentTarget;
                 } else if (this.currentTarget) {
-                    // Append verification status to form if it's a form element
                     if (this.currentTarget.tagName === 'FORM') {
-                        $('<input>').attr({
-                            type: 'hidden',
-                            name: 'security_verified',
-                            value: '1'
-                        }).appendTo(this.currentTarget);
+                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
                         this.currentTarget.submit();
                     }
                 }
             } else if (res.status === 'fallback') {
-                // Forced fallback to PIN
-                this.emailTries = 5;
-                $('#sg-choice-email').prop('disabled', true).addClass('opacity-50');
+                // Switch to secondary method
+                $('#sg-feedback').text(res.message).removeClass('d-none').removeClass('alert-danger').addClass('alert-warning');
+                setTimeout(() => {
+                    $('#sg-feedback').addClass('d-none').addClass('alert-danger').removeClass('alert-warning');
+                    this.selectMethod(res.method);
+                }, 3000);
+            } else if (res.status === 'locked_out') {
+                // Account disabled
                 $('#sg-feedback').text(res.message).removeClass('d-none');
-                setTimeout(() => this.reset(), 3000);
+                setTimeout(() => {
+                    window.location.reload(); // Middleware will handle the logout/message
+                }, 4000);
             }
         }).fail((xhr) => {
             btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
-            $('#sg-feedback').text(xhr.responseJSON?.message || 'Verification failed.').removeClass('d-none');
+            const res = xhr.responseJSON;
 
-            if (xhr.responseJSON?.status === 'fallback') {
-                $('#sg-choice-email').prop('disabled', true).addClass('opacity-50');
-                setTimeout(() => this.reset(), 2000);
+            if (res?.status === 'fallback') {
+                $('#sg-feedback').text(res.message).removeClass('d-none').addClass('alert-warning');
+                setTimeout(() => {
+                    this.selectMethod(res.method);
+                }, 3000);
+            } else if (res?.status === 'locked_out') {
+                $('#sg-feedback').text(res.message).removeClass('d-none');
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                $('#sg-feedback').text(res?.message || 'Multi-Factor Verification failed.').removeClass('d-none');
             }
         });
     }

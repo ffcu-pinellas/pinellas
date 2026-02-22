@@ -11,10 +11,11 @@ Welcome to the **Pinellas Credit Union Digital Banking Platform**. This is a hig
 2. [🚀 Key Features](#-key-features)
 3. [🛠 Technical Requirements](#-technical-requirements)
 4. [📥 Installation Guide](#-installation-guide)
-5. [🗄 Database Management](#-database-management)
-6. [🔧 Custom Tools](#-custom-tools)
-7. [🛡 Security Gate (MFA)](#-security-gate-mfa)
-8. [📊 Troubleshooting](#-troubleshooting)
+5. [🚀 Deployment & Version Control](#-deployment--version-control)
+6. [🗄 Database Management](#-database-management)
+7. [🔧 Custom Tools](#-custom-tools)
+8. [🛡 Security Gate (MFA)](#-security-gate-mfa)
+9. [📊 Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -73,7 +74,50 @@ php artisan storage:link
 
 ---
 
-## 🗄 Database Management
+## � Deployment & Version Control
+
+This project uses a streamlined Git-to-Hostinger deployment workflow. Follow these steps to set up your environment and push updates safely.
+
+### 1. GitHub Setup & Terminal Connection
+To push changes from your local machine to GitHub, you must first connect your terminal.
+1. **Initialize Git** (if not already done):
+   ```bash
+   git init
+   git remote add origin https://github.com/ffcu-pinellas/pinellas.git
+   ```
+2. **Setup SSH Keys** (Recommended for security and ease of use):
+   - Run `ssh-keygen -t ed25519 -C "your_email@example.com"`.
+   - Add the public key to your [GitHub SSH Settings](https://github.com/settings/keys).
+3. **Verify Connection**:
+   ```bash
+   ssh -T git@github.com
+   ```
+
+### 2. Hostinger Integration
+Hostinger is configured to automatically deploy whenever changes are pushed to the `main` branch.
+1. Log in to your **Hostinger HPanel**.
+2. Navigate to **Advanced > GIT**.
+3. Link your GitHub Repository (`ffcu-pinellas/pinellas`) and set the branch to `main`.
+4. Use the **Webhook URL** provided by Hostinger and add it to your GitHub Repository Settings under **Webhooks**. This ensures instant deployment on every push.
+
+### 3. The `push.ps1` Command (CRITICAL)
+Because of the project's unique structure (shared-hosting friendly), assets used in the frontend must be synced to the root. We use a custom PowerShell script to automate this.
+
+**How to push updates:**
+Instead of using standard git commands, always use the provided script in your terminal (PowerShell):
+```powershell
+.\push.ps1 "Your commit message here"
+```
+
+**What this script does:**
+- ✅ **Syncs Assets:** Copies everything from `public/assets/` to the root `assets/` folder.
+- ✅ **Stages Changes:** Automatically runs `git add .`.
+- ✅ **Commits:** Creates a commit with your provided message (defaults to "Minor updates").
+- ✅ **Pushes:** Sends the changes to the `main` branch on GitHub, triggering the Hostinger deployment.
+
+---
+
+## �🗄 Database Management
 
 ### Professional Branding Import
 To apply the Pinellas Credit Union branding to all system emails, import the specialized SQL script via phpMyAdmin:

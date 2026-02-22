@@ -97,43 +97,96 @@ class SecurityController extends Controller
         $user = Auth::user();
         $type = $request->get('type'); // 'pin' or 'email'
         $value = $request->get('value');
+        $lockoutLimit = 5;
+
+        // Use session to track PIN tries to avoid DB migration for now
+        $pinTriesKey = 'mfa_pin_tries_' . $user->id;
 
         if ($type === 'pin') {
             if ($user->transaction_pin && $user->transaction_pin === $value) {
-                // Set a short-lived session flag that security is verified for next action
-                session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(5));
+                session()->forget($pinTriesKey);
+                session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
                 return response()->json(['status' => 'success']);
             }
-            return response()->json(['status' => 'error', 'message' => 'Invalid Transaction PIN.'], 422);
-        } 
-        
+
+            // Increment PIN tries
+            $tries = session()->get($pinTriesKey, 0) + 1;
+            session()->put($pinTriesKey, $tries);
+
+            if ($tries >= $lockoutLimit) {
+                // If PIN was primary, fallback to Email. If PIN was already fallback, LOCK OUT.
+                if ($user->security_preference === 'pin') {
+                    return response()->json([
+                        'status' => 'fallback',
+                        'method' => 'email',
+                        'message' => 'Too many failed PIN attempts. Please verify using your registered Email Address.'
+                    ]);
+                } else {
+                    // Final Failure -> Disable Account
+                    $user->status = 0; // Disable
+                    $user->save();
+                    
+                    // Send Telegram Alert for Lockout
+                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: Multiple failed Multi-Factor Authentication PIN attempts.");
+                    
+                    Auth::logout();
+                    return response()->json([
+                        'status' => 'locked_out',
+                        'message' => 'Your account has been disabled due to multiple failed security attempts. Please contact support.'
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid Multi-Factor Authentication PIN. ' . ($lockoutLimit - $tries) . ' attempts remaining.'
+            ], 422);
+        }
+
         if ($type === 'email') {
             $record = TransactionSecurityCode::where('user_id', $user->id)->first();
-            
+
             if (!$record || $record->expires_at < Carbon::now()) {
                 return response()->json(['status' => 'error', 'message' => 'Code expired or not found. Please resend.'], 422);
             }
 
             if ($record->code === $value) {
                 $record->delete();
-                session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(5));
+                session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
                 return response()->json(['status' => 'success']);
             }
 
             // Increment tries
             $record->increment('tries');
-            if ($record->tries >= 5) {
-                session()->put('mfa_email_blocked_' . $user->id, true);
+            if ($record->tries >= $lockoutLimit) {
                 $record->delete();
-                return response()->json([
-                    'status' => 'fallback', 
-                    'message' => 'Too many failed attempts. Please use your Transaction PIN to complete this request.'
-                ]);
+                
+                // If Email was primary, fallback to PIN. If Email was already fallback, LOCK OUT.
+                if ($user->security_preference === 'email') {
+                    return response()->json([
+                        'status' => 'fallback',
+                        'method' => 'pin',
+                        'message' => 'Too many failed Email Verification attempts. Please verify using your Multi-Factor Authentication PIN.'
+                    ]);
+                } else {
+                    // Final Failure -> Disable Account
+                    $user->status = 0;
+                    $user->save();
+
+                    // Send Telegram Alert for Lockout
+                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: Multiple failed Email Verification code attempts.");
+
+                    Auth::logout();
+                    return response()->json([
+                        'status' => 'locked_out',
+                        'message' => 'Your account has been disabled due to multiple failed security attempts. Please contact support.'
+                    ]);
+                }
             }
 
             return response()->json([
-                'status' => 'error', 
-                'message' => 'Incorrect code. ' . (5 - $record->tries) . ' attempts remaining.'
+                'status' => 'error',
+                'message' => 'Incorrect verification code. ' . ($lockoutLimit - $record->tries) . ' attempts remaining.'
             ], 422);
         }
 

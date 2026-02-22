@@ -1,9 +1,10 @@
 <!-- Security Gate Modal -->
+<meta name="user-security-preference" content="{{ auth()->user()->security_preference }}">
 <div class="modal fade" id="securityGateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold text-dark pt-3 px-3">Security Verification</h5>
+                <h5 class="fw-bold text-dark pt-3 px-3">Multi-Factor Authentication Verification</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
@@ -18,7 +19,7 @@
                                 <i class="fas fa-envelope text-primary"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-dark">Send Email Code</div>
+                                <div class="fw-bold text-dark">Email Verification Code</div>
                                 <div class="small text-muted">Get a 6-digit code via email</div>
                             </div>
                         </button>
@@ -28,7 +29,7 @@
                                 <i class="fas fa-key text-primary"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-dark">Transaction PIN</div>
+                                <div class="fw-bold text-dark">Multi-Factor Authentication PIN</div>
                                 <div class="small text-muted">{{ auth()->user()->transaction_pin ? 'Enter your 4-digit PIN' : 'PIN not set up yet' }}</div>
                             </div>
                         </button>
@@ -52,7 +53,7 @@
                 <!-- PIN Input -->
                 <div id="sg-pin-verify" class="d-none">
                     <div class="text-center mb-3">
-                        <label class="form-label fw-bold text-dark">Enter 4-Digit Transaction PIN</label>
+                        <label class="form-label fw-bold text-dark">Enter 4-Digit Multi-Factor Authentication PIN</label>
                     </div>
                     <input type="password" maxlength="4" class="form-control form-control-lg text-center fw-bold fs-1 border-2 rounded-4 shadow-none mb-4" style="letter-spacing: 0.8em;" placeholder="••••" id="sg-pin-input">
                 </div>
