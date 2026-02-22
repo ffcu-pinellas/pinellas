@@ -28,10 +28,24 @@ class SecurityController extends Controller
         $emailTries = session()->get($emailTriesKey, 0);
         
         if ($emailTries >= 5) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Email verification limit exceeded. Please use your Multi-Factor Authentication PIN.'
-            ], 403);
+            // Check if they can fallback to PIN
+            if ($user->transaction_pin) {
+                return response()->json([
+                    'status' => 'fallback',
+                    'method' => 'pin',
+                    'message' => 'Email verification limit exceeded. Please use your Multi-Factor Authentication PIN.'
+                ], 403);
+            } else {
+                // Final lockout if no PIN is set
+                $user->status = 0;
+                $user->save();
+                $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: Email limit exceeded (No Multi-Factor Authentication PIN set).");
+                Auth::logout();
+                return response()->json([
+                    'status' => 'locked_out',
+                    'message' => 'Security limit exceeded. Your account has been disabled. Please contact support.'
+                ], 403);
+            }
         }
 
         $code = random_int(100000, 999999);

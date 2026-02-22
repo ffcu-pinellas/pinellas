@@ -53,12 +53,14 @@ const SecurityGate = {
     },
 
     backToChoice: function () {
-        const preference = window.UserSecurityPreference;
-        if (preference === 'always_ask' && $('#sg-method-selection').hasClass('d-none')) {
+        if ($('#sg-method-selection').hasClass('d-none')) {
+            // We are in a verification view (PIN or Email). Go back to choice screen.
             this.reset();
             $('#sg-method-selection').removeClass('d-none');
             $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
+            $('#sg-back-btn').text('Cancel');
         } else {
+            // We are already at the selection screen. Close modal.
             $('#securityGateModal').modal('hide');
         }
     },
@@ -72,7 +74,18 @@ const SecurityGate = {
         }).done(function (res) {
             // Success
         }).fail(function (xhr) {
-            $('#sg-feedback').text(xhr.responseJSON?.message || 'Error sending code.').removeClass('d-none');
+            const res = xhr.responseJSON;
+            if (res?.status === 'fallback') {
+                $('#sg-feedback').text(res.message).removeClass('d-none').addClass('alert-warning');
+                setTimeout(() => {
+                    SecurityGate.selectMethod(res.method);
+                }, 3000);
+            } else if (res?.status === 'locked_out') {
+                $('#sg-feedback').text(res.message).removeClass('d-none');
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                $('#sg-feedback').text(res?.message || 'Error sending code.').removeClass('d-none');
+            }
         });
     },
 

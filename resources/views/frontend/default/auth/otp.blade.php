@@ -1,7 +1,7 @@
 @extends('frontend::layouts.pinellas_auth')
 
 @section('title')
-    {{ __('Verify OTP') }}
+    {{ __('Verify One Time Passcode-OTP') }}
 @endsection
 
 @push('style')
@@ -58,10 +58,10 @@
 @endpush
 
 @section('content')
-    <h3>{{ __('OTP Verification') }}</h3>
+    <h3>{{ __('Security Verification') }}</h3>
     
     <div class="otp-info">
-        {{ __('Enter the OTP code sent to') }} <strong>{{ auth()->user()->phone }}</strong><br>
+        {{ __('Enter the 6-digit security code sent to') }} <strong>{{ auth()->user()->phone }}</strong><br>
         {{ __('Time left:') }} <span id="otptimer"></span>
     </div>
 
