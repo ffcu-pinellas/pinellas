@@ -21,9 +21,12 @@ class SecurityController extends Controller
     public function sendEmailCode(Request $request)
     {
         $user = Auth::user();
+        $gateId = $request->get('gate_id', 'global');
         
-        // Check if user has exceeded email attempts during this session
-        $emailTries = session()->get('mfa_email_tries_' . $user->id, 0);
+        // Check if user has exceeded email attempts for this specific action sequence
+        $emailTriesKey = 'mfa_email_tries_' . $user->id . '_' . $gateId;
+        $emailTries = session()->get($emailTriesKey, 0);
+        
         if ($emailTries >= 5) {
             return response()->json([
                 'status' => 'error',
@@ -98,10 +101,11 @@ class SecurityController extends Controller
         $user = Auth::user();
         $type = $request->get('type'); // 'pin' or 'email'
         $value = $request->get('value');
+        $gateId = $request->get('gate_id', 'global');
         $lockoutLimit = 5;
 
-        $pinTriesKey = 'mfa_pin_tries_' . $user->id;
-        $emailTriesKey = 'mfa_email_tries_' . $user->id; // We'll use session for sync with PIN
+        $pinTriesKey = 'mfa_pin_tries_' . $user->id . '_' . $gateId;
+        $emailTriesKey = 'mfa_email_tries_' . $user->id . '_' . $gateId;
 
         if ($type === 'pin') {
             if ($user->transaction_pin && $user->transaction_pin === $value) {

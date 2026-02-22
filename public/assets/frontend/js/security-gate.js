@@ -5,6 +5,7 @@
 const SecurityGate = {
     gate: function (target) {
         this.currentTarget = target;
+        this.gateId = 'sg_' + Date.now(); // Unique ID for this specific action
         this.reset();
 
         // Priority Handling: Auto-navigate based on preference
@@ -66,6 +67,7 @@ const SecurityGate = {
         $('#sg-feedback').addClass('d-none');
         $.post('/user/security-gate/send-code', {
             _token: $('meta[name="csrf-token"]').attr('content'),
+            gate_id: this.gateId,
             action: 'Verification'
         }).done(function (res) {
             // Success
@@ -89,7 +91,8 @@ const SecurityGate = {
         $.post('/user/security-gate/verify', {
             _token: $('meta[name="csrf-token"]').attr('content'),
             type: this.selectedMethod,
-            value: value
+            value: value,
+            gate_id: this.gateId
         }).done((res) => {
             if (res.status === 'success') {
                 // Verification successful
