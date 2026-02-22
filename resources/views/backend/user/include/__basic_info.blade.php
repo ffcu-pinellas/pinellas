@@ -1,5 +1,4 @@
 <div
-    {{-- DEBUG: AO_VERSION_1.2 --}}
     @class([
         'tab-pane fade',
         'show active' => !request()->has('tab')

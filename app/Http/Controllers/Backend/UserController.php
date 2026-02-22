@@ -368,7 +368,7 @@ class UserController extends Controller
         }
 
         $staffs = [];
-        if (auth('admin')->check()) {
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             $staffs = Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
