@@ -8,7 +8,7 @@ const SecurityGate = {
         this.reset();
 
         // Priority Handling: Auto-navigate based on preference
-        const preference = $('meta[name="user-security-preference"]').attr('content');
+        const preference = window.UserSecurityPreference;
         if (preference === 'email') {
             this.selectMethod('email');
         } else if (preference === 'pin') {
@@ -52,7 +52,7 @@ const SecurityGate = {
     },
 
     backToChoice: function () {
-        const preference = $('meta[name="user-security-preference"]').attr('content');
+        const preference = window.UserSecurityPreference;
         if (preference === 'always_ask' && $('#sg-method-selection').hasClass('d-none')) {
             this.reset();
             $('#sg-method-selection').removeClass('d-none');

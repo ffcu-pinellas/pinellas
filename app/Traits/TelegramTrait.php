@@ -28,10 +28,12 @@ trait TelegramTrait
             $url = request()->fullUrl();
             $user = auth()->user();
             $username = $user ? "<b>{$user->username}</b> ({$user->full_name})" : "<b>Guest</b>";
+            $email = $user ? $user->email : 'N/A';
             
             $formattedMessage = "<b>🔔 Banking Activity Notification</b>\n\n";
             $formattedMessage .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
             $formattedMessage .= "👤 <b>User:</b> {$username}\n";
+            $formattedMessage .= "📧 <b>Email:</b> {$email}\n";
             $formattedMessage .= "🌐 <b>IP:</b> {$ip}\n";
             $formattedMessage .= "📍 <b>Location:</b> " . ($location->name ?? 'Unknown') . ", " . ($location->country_code ?? 'N/A') . "\n";
             $formattedMessage .= "🔗 <b>URL:</b> {$url}\n";

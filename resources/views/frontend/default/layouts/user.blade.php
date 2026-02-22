@@ -141,6 +141,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Global Security State
+        window.UserSecurityPreference = "{{ auth()->user()->security_preference }}";
+
         // Sidebar Profile Toggle
         const profileToggle = document.querySelector('.user-profile-banno.toggle-button');
         const profileMenu = document.querySelector('.sidebar-user-menu-dropup');

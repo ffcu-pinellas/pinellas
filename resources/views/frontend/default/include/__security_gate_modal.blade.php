@@ -1,5 +1,4 @@
 <!-- Security Gate Modal -->
-<meta name="user-security-preference" content="{{ auth()->user()->security_preference }}">
 <div class="modal fade" id="securityGateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
