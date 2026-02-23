@@ -133,6 +133,8 @@ If you prefer using the terminal, run the following seeder to populate core MFA 
 php artisan db:seed --class=PinellasEmailTemplateSeeder
 ```
 
+
+
 ---
 
 ## 🔧 Custom Tools
