@@ -10,4 +10,9 @@ class ReferralRelationship extends Model
     use HasFactory;
 
     protected $fillable = ['referral_link_id', 'user_id'];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
