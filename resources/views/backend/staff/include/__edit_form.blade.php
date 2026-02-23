@@ -67,15 +67,33 @@
     <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') ? '' : 'display:none;' }}">
         <label class="box-input-label">{{ __('Account Officer Specific Permissions:') }}</label>
         <div class="row">
+            <style>
+                .perm-switch-label {
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 13px;
+                    color: #444;
+                }
+                .form-switch .form-check-input {
+                    cursor: pointer;
+                    width: 40px !important;
+                    height: 20px !important;
+                }
+                .form-switch .form-check-input:checked {
+                    background-color: #5e3fc9;
+                    border-color: #5e3fc9;
+                }
+            </style>
             @foreach($permissions as $category => $items)
                 @if(trim($category) == 'Account Officer Permissions')
                     @foreach($items as $permission)
-                        <div class="col-md-6 mb-2">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="permissions[]" 
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch ps-0 d-flex align-items-center">
+                                <input class="form-check-input ms-0 me-3" type="checkbox" name="permissions[]" 
                                     value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
+                                    role="switch"
                                     @checked($staff->hasPermissionTo($permission->name, 'admin'))>
-                                <label class="form-check-label" for="perm_{{ $permission->id }}">
+                                <label class="perm-switch-label mb-0" for="perm_{{ $permission->id }}">
                                     {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
                                 </label>
                             </div>

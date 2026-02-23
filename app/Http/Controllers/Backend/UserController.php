@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\UserCard;
 use App\Models\UserKyc;
 use App\Models\UserWallet;
+use App\Models\Admin;
 use App\Traits\ImageUpload;
 use App\Traits\NotifyTrait;
 use Exception;
@@ -369,7 +370,7 @@ class UserController extends Controller
 
         $staffs = [];
         if (auth('admin')->check()) {
-            $staffs = Admin::whereHas('roles', function($q) {
+            $staffs = \App\Models\Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
         }
