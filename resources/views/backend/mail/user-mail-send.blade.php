@@ -47,13 +47,7 @@
                         </div>
                         @endif
                         
-                        @if(!empty($details['banner']))
-                        <div class="banner">
-                            <img src="{{ $details['banner'] }}" alt="Banner" class="banner-img">
-                        </div>
-                        @else
-                         <div style="height: 4px; background-color: #00549b;"></div>
-                        @endif
+                        <div style="height: 4px; background-color: #00549b;"></div>
 
                         <div class="content">
                             <h1 class="title">{{ $details['title'] }}</h1>
@@ -71,10 +65,7 @@
 
                         @if($details['footer_status'])
                         <div class="footer">
-                             @if($details['site_logo'])
-                            <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="footer-logo">
-                            @endif
-                            <div style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">{!! $details['footer_body'] !!}</div>
+                            <div style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">{{ setting('site_title', 'global') }}</div>
                             <div class="disclaimer">
                                 Security Alert: Pinellas Federal Credit Union will never ask for your password, social security number, or PIN through email. If you receive a suspicious request, contact us immediately.
                                 <br><br>
