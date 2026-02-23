@@ -66,36 +66,65 @@
     @if(isset($permissions) && count($permissions) > 0)
     <div class="site-input-groups" id="permissions-container" style="{{ $staff->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') ? '' : 'display:none;' }}">
         <label class="box-input-label">{{ __('Account Officer Specific Permissions:') }}</label>
+        <style>
+            .permission-switch-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 12px;
+                background: #f8f9fa;
+                padding: 10px 15px;
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+            }
+            .os-switch {
+                position: relative;
+                display: inline-block;
+                width: 44px;
+                height: 22px;
+                margin-right: 12px;
+            }
+            .os-switch input { opacity: 0; width: 0; height: 0; }
+            .os-slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-color: #dee2e6;
+                transition: .3s;
+                border-radius: 22px;
+            }
+            .os-slider:before {
+                position: absolute;
+                content: "";
+                height: 16px; width: 16px;
+                left: 3px; bottom: 3px;
+                background-color: white;
+                transition: .3s;
+                border-radius: 50%;
+            }
+            input:checked + .os-slider { background-color: #5e3fc9; }
+            input:checked + .os-slider:before { transform: translateX(22px); }
+            .perm-text {
+                font-size: 13px;
+                font-weight: 600;
+                color: #2b3457;
+                cursor: pointer;
+            }
+        </style>
         <div class="row">
-            <style>
-                .perm-switch-label {
-                    cursor: pointer;
-                    font-weight: 600;
-                    font-size: 13px;
-                    color: #444;
-                }
-                .form-switch .form-check-input {
-                    cursor: pointer;
-                    width: 40px !important;
-                    height: 20px !important;
-                }
-                .form-switch .form-check-input:checked {
-                    background-color: #5e3fc9;
-                    border-color: #5e3fc9;
-                }
-            </style>
             @foreach($permissions as $category => $items)
                 @if(trim($category) == 'Account Officer Permissions')
                     @foreach($items as $permission)
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check form-switch ps-0 d-flex align-items-center">
-                                <input class="form-check-input ms-0 me-3" type="checkbox" name="permissions[]" 
-                                    value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
-                                    role="switch"
-                                    @checked($staff->hasPermissionTo($permission->name, 'admin'))>
-                                <label class="perm-switch-label mb-0" for="perm_{{ $permission->id }}">
-                                    {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
+                        <div class="col-md-6">
+                            <div class="permission-switch-group">
+                                <label class="os-switch mb-0">
+                                    <input type="checkbox" name="permissions[]" 
+                                        value="{{ $permission->name }}"
+                                        @checked($staff->hasPermissionTo($permission->name, 'admin'))>
+                                    <span class="os-slider"></span>
                                 </label>
+                                <span class="perm-text" onclick="$(this).prev().find('input').click();">
+                                    {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
+                                </span>
                             </div>
                         </div>
                     @endforeach
