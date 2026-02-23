@@ -20,30 +20,36 @@
                             @csrf
                             <div class="row">
 
-                                {{-- VERY PROMINENT ASSIGMENT BLOCK --}}
-                                <div class="col-xl-12 mb-4 mt-2">
-                                    <div class="site-input-groups" style="border: 3px dashed #5d78ff; padding: 20px; border-radius: 12px; background: #ebf0ff;">
-                                        <h4 class="mb-3" style="color: #5d78ff;"><i data-lucide="user-cog"></i> {{ __('ACCOUNT OFFICER ASSIGNMENT') }}</h4>
-                                        <label for="staff_id" class="box-input-label" style="font-weight: bold;">{{ __('Select Officer to Assign:') }}</label>
-                                        <select name="staff_id" id="staff_id" class="form-control form-select" style="border: 1px solid #5d78ff;">
-                                            <option value="">{{ __('--- None (No Officer assigned to this customer) ---') }}</option>
-                                            @if(isset($staffs) && count($staffs) > 0)
-                                                @foreach($staffs as $staff)
-                                                    <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
-                                                @endforeach
-                                            @else
-                                                <option disabled>{{ __('ERROR: No staff members found with "Account Officer" role.') }}</option>
-                                            @endif
-                                        </select>
-                                        <p class="mt-2 mb-0" style="font-size: 0.85rem; color: #444;">{{ __('The selected officer will have permission to manage this customer based on their individual settings.') }}</p>
-                                    </div>
-                                </div>
 
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label">{{ __('First Name:') }}</label>
                                         <input type="text" class="box-input" value="{{$user->first_name}}"
                                                name="first_name" required="">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Last Name:') }}</label>
+                                        <input type="text" class="box-input" value="{{$user->last_name}}"
+                                               name="last_name" required="">
+                                    </div>
+                                </div>
+
+                                {{-- REPOSITIONED ASSIGMENT BLOCK --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups" style="border: 2px solid #5d78ff; padding: 15px; border-radius: 8px; background: #f8faff; height: 100%;">
+                                        <label for="staff_id" class="box-input-label" style="font-weight: bold; color: #5d78ff;"><i data-lucide="user-cog"></i> {{ __('Assigned Officer:') }}</label>
+                                        <select name="staff_id" id="staff_id" class="form-control form-select" style="border: 1px solid #5d78ff; background: white;">
+                                            <option value="">{{ __('--- None ---') }}</option>
+                                            @if(isset($staffs) && count($staffs) > 0)
+                                                @foreach($staffs as $staff)
+                                                    <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }}</option>
+                                                @endforeach
+                                            @else
+                                                <option disabled>{{ __('No Officers Found') }}</option>
+                                            @endif
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">

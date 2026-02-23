@@ -370,7 +370,7 @@ class UserController extends Controller
 
         $staffs = [];
         if (auth('admin')->check()) {
-            $staffs = \App\Models\Admin::whereHas('roles', function($q) {
+            $staffs = Admin::whereHas('roles', function($q) {
                 $q->whereIn('name', ['Account Officer', 'Account-Officer']);
             })->get();
         }

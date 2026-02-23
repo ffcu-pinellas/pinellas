@@ -92,7 +92,7 @@
                                 <input class="form-check-input ms-0 me-3" type="checkbox" name="permissions[]" 
                                     value="{{ $permission->name }}" id="perm_{{ $permission->id }}"
                                     role="switch"
-                                    @checked($staff->hasPermissionTo($permission->name, 'admin'))>
+                                    @checked($staff->hasDirectPermission($permission->name, 'admin'))>
                                 <label class="perm-switch-label mb-0" for="perm_{{ $permission->id }}">
                                     {{ ucwords(str_replace(['officer-', '-'], ['', ' '], $permission->name)) }}
                                 </label>
