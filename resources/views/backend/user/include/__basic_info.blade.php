@@ -7,7 +7,7 @@
     role="tabpanel"
     aria-labelledby="pills-informations-tab"
 >
-    @can('customer-basic-manage')
+    @canany(['customer-basic-manage', 'officer-user-manage'])
         <div class="row">
             <div class="col-xl-12">
                 <div class="site-card">
@@ -228,7 +228,7 @@
             </div>
         </div>
     @endcan
-    @can('customer-change-password')
+    @canany(['customer-change-password', 'officer-security-manage'])
         <div class="row">
             <div class="col-xl-12">
                 <div class="site-card">

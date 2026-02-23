@@ -321,7 +321,7 @@
                     </div>
                     <div class="site-tab-bars">
                         <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                            @canany(['customer-basic-manage', 'customer-change-password'])
+                            @canany(['customer-basic-manage', 'customer-change-password', 'officer-user-manage', 'officer-security-manage'])
                                 <li class="nav-item" role="presentation">
                                     <a href="{{ route('admin.user.edit', $user->id) }}"
                                         class="nav-link {{ !request()->has('tab') ? 'active' : '' }}"><i
@@ -360,21 +360,21 @@
                             @endcan
 
                             @if (setting('virtual_card', 'permission'))
-                                @can('user-cards')
+                                @canany(['user-cards', 'officer-card-manage'])
                                     <li class="nav-item" role="presentation">
                                         <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'card']) }}"
                                             class="nav-link {{ request('tab') == 'card' ? 'active' : '' }}"><i
                                                 data-lucide="wallet"></i>{{ __('Virtual Card') }}</a>
                                     </li>
-                                @endcan
+                                @endcanany
                             @endif
-                            @can('transaction-list')
+                            @canany(['transaction-list', 'officer-user-manage'])
                                 <li class="nav-item" role="presentation">
                                     <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'transactions']) }}"
                                         class="nav-link {{ request('tab') == 'transactions' ? 'active' : '' }}"><i
                                             data-lucide="cast"></i>{{ __('Transactions') }}</a>
                                 </li>
-                            @endcan
+                            @endcanany
 
                             <li class="nav-item" role="presentation">
                                 <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'referral']) }}"
@@ -395,7 +395,7 @@
 
                     <div class="tab-content" id="pills-tabContent">
                         <!-- basic Info -->
-                        @canany(['customer-basic-manage', 'customer-change-password'])
+                        @canany(['customer-basic-manage', 'customer-change-password', 'officer-user-manage', 'officer-security-manage'])
                             @include('backend.user.include.__basic_info')
                         @endcanany
 
@@ -418,16 +418,16 @@
                         @endcan
 
                         @if (setting('virtual_card', 'permission'))
-                            @can('user-cards')
+                            @canany(['user-cards', 'officer-card-manage'])
                                 <!-- Cards -->
                                 @include('backend.user.include.__card')
-                            @endcan
+                            @endcanany
                         @endif
 
                         <!-- transaction -->
-                        @can('transaction-list')
+                        @canany(['transaction-list', 'officer-user-manage'])
                             @include('backend.user.include.__transactions')
-                        @endcan
+                        @endcanany
 
                         <!-- Referral Tree -->
                         @include('backend.user.include.__referral_tree')
@@ -443,12 +443,12 @@
     </div>
 
     <!-- Modal for Send Email -->
-    @can('customer-mail-send')
+    @canany(['customer-mail-send', 'officer-mail-send'])
         @include('backend.user.include.__mail_send', [
             'name' => $user->first_name . ' ' . $user->last_name,
             'id' => $user->id,
         ])
-    @endcan
+    @endcanany
     <!-- Modal for Send Email-->
 
     <!-- Modal for Add or Subtract Balance -->

@@ -142,16 +142,16 @@
 
             {{-- ************************************************************* Transactions
             *********************************************************--}}
-            @canany(['transaction-list', 'user-paybacks-list', 'bank-profit'])
+            @canany(['transaction-list', 'user-paybacks-list', 'bank-profit', 'officer-user-manage', 'officer-balance-manage'])
             <li class="side-nav-item category-title">
                 <span>{{ __('Transactions') }}</span>
             </li>
-            @can('transaction-list')
+            @canany(['transaction-list', 'officer-user-manage', 'officer-balance-manage'])
                 <li class="side-nav-item {{ isActive('admin.transactions') }}">
                     <a href="{{route('admin.transactions')}}"><i
                             data-lucide="cast"></i><span>{{ __('Transactions') }}</span></a>
                 </li>
-            @endcan
+            @endcanany
             @can('wallet-list')
                 <li class="side-nav-item {{ isActive('admin.wallets') }}">
                     <a href="{{route('admin.wallets')}}"><i data-lucide="wallet"></i><span>{{ __('Wallets') }}</span></a>
@@ -189,7 +189,8 @@
                 'allied-transfers',
                 'others-bank-transfers',
                 'wire-transfer',
-                'others-bank-list'
+                'others-bank-list',
+                'officer-transfer-manage'
             ])
                     <li
                         class="side-nav-item side-nav-dropdown {{ isActive(['admin.others-bank*', 'admin.wire.transfer*', 'admin.fund.transfer*']) }}">
@@ -209,12 +210,12 @@
                                             data-lucide="file-warning"></i><span>{{ __('Rejected Transfers') }}</span></a>
                                 </li>
                             @endcan
-                            @can('all-transfers')
+                            @canany(['all-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.all*') }}">
                                     <a href="{{route('admin.fund.transfer.all')}}"><i
                                             data-lucide="contact"></i><span>{{ __('All Transfers') }}</span></a>
                                 </li>
-                            @endcan
+                            @endcanany
                             @can('allied-transfers')
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.own.bank*') }}">
                                     <a href="{{route('admin.fund.transfer.own.bank')}}"><i
@@ -414,14 +415,15 @@
                 'reward-redeem-list',
                 'reward-redeem-create',
                 'reward-redeem-edit',
-                'reward-redeem-delete'
+                'reward-redeem-delete',
+                'officer-deposit-manage'
             ])
 
             <li class="side-nav-item category-title">
                 <span>{{ __('Essentials') }}</span>
             </li>
 
-            @canany(['manual-gateway-manage', 'deposit-list', 'deposit-action'])
+            @canany(['manual-gateway-manage', 'deposit-list', 'deposit-action', 'officer-deposit-manage'])
 
 
                 <li class="side-nav-item side-nav-dropdown {{ isActive(['admin.deposit*']) }}">
@@ -437,10 +439,10 @@
                             __('Manual Methods') }}</a></li>
                         @endcan
 
-                        @canany(['deposit-list', 'deposit-action'])
+                        @canany(['deposit-list', 'deposit-action', 'officer-deposit-manage'])
                                 <li class="{{ isActive('admin.deposit.manual.pending') }}"><a
                                         href="{{ route('admin.deposit.manual.pending') }}"><i data-lucide="columns"></i>{{ __('Pending
-                                        Manual Deposits') }}</a></li>
+                                         Manual Deposits') }}</a></li>
                                 <li class="{{ isActive('admin.deposit.history') }}"><a
                                         href="{{ route('admin.deposit.history') }}"><i data-lucide="clipboard-check"></i>{{
                             __('Deposit History') }}</a></li>
