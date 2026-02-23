@@ -118,8 +118,14 @@ class DashboardController extends Controller
         // ============================= End dashboard statistics =============================================
 
         // set cache for 1 minute
-        $loginActivities = Cache::remember('login-activities', 60, function () {
-            return LoginActivities::get();
+        $loginActivities = Cache::remember('login-activities-' . $adminUser->id, 60, function () use ($isAccountOfficer, $adminUser) {
+            $query = LoginActivities::query();
+            if ($isAccountOfficer) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            }
+            return $query->get();
         });
 
         $browser = $loginActivities->groupBy('browser')->map->count()->toArray();
@@ -183,7 +189,7 @@ class DashboardController extends Controller
             'start_date' => isset(request()->start_date) ? $startDate : $startDate->addDays(1)->format('m/d/Y'),
             'end_date' => isset(request()->end_date) ? $endDate : $endDate->subDays(1)->format('m/d/Y'),
 
-            'deposit_bonus' => $transaction->totalDepositBonus(),
+            'deposit_bonus' => $transaction->totalDepositBonus()->sum('amount'),
             'total_gateway' => 0,
             'total_ticket' => Ticket::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
                 if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);

@@ -43,4 +43,9 @@ class LoginActivities extends Model
     {
         return self::getAgent('platform');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

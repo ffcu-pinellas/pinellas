@@ -193,30 +193,30 @@ class Transaction extends Model
         return $this->belongsTo(UserWallet::class, 'wallet_type');
     }
 
-    public function totalDeposit()
+    public function scopeTotalDeposit($query)
     {
-        return $this->where('status', TxnStatus::Success)->whereIn('type', [TxnType::ManualDeposit]);
+        return $query->where('status', TxnStatus::Success)->whereIn('type', [TxnType::ManualDeposit]);
     }
 
-    public function totalWithdraw()
+    public function scopeTotalWithdraw($query)
     {
-        return $this->where('status', TxnStatus::Success)->where('type', TxnType::Withdraw);
+        return $query->where('status', TxnStatus::Success)->where('type', TxnType::Withdraw);
     }
 
-    public function totalProfit()
+    public function scopeTotalProfitScope($query)
     {
-        return $this->where('status', TxnStatus::Success)->where(function ($query) {
+        return $query->where('status', TxnStatus::Success)->where(function ($query) {
             $query->whereIn('type', [TxnType::Referral, TxnType::SignupBonus, TxnType::PortfolioBonus, TxnType::RewardRedeem, TxnType::DpsMaturity, TxnType::FdrInstallment]);
         });
     }
 
-    public function totalDepositBonus()
+    public function scopeTotalDepositBonus($query)
     {
-        return $this->where('status', TxnStatus::Success)->where(function ($query) {
+        return $query->where('status', TxnStatus::Success)->where(function ($query) {
             $query->where('target_id', '!=', null)
                 ->where('target_type', 'deposit')
                 ->where('type', TxnType::Referral);
-        })->sum('amount');
+        });
     }
 
     protected function method(): Attribute
