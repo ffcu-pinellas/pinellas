@@ -131,14 +131,5 @@ jQuery(function(){ // on DOM load
     </script>
     <script src="https://tether.netteller.com/pinellasfcu/login.js"></script>
     @stack('script')
-	<script>
-		if ('serviceWorker' in navigator) {
-			window.addEventListener('load', () => {
-				navigator.serviceWorker.register("{{ asset('sw.js') }}")
-					.then(reg => console.log('SW Registered'))
-					.catch(err => console.log('SW Registration failed', err));
-			});
-		}
-	</script>
 </BODY>
 </HTML>
