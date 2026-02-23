@@ -44,14 +44,15 @@ class UserController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:customer-list|customer-login|customer-mail-send|customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract', ['only' => ['index', 'activeUser', 'disabled', 'mailSendAll', 'mailSend']]);
-        $this->middleware('permission:customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract', ['only' => ['edit']]);
-        $this->middleware('permission:customer-login', ['only' => ['userLogin']]);
-        $this->middleware('permission:customer-mail-send', ['only' => ['mailSendAll', 'mailSend']]);
-        $this->middleware('permission:customer-basic-manage', ['only' => ['update']]);
-        $this->middleware('permission:customer-change-password', ['only' => ['passwordUpdate']]);
-        $this->middleware('permission:all-type-status', ['only' => ['statusUpdate']]);
-        $this->middleware('permission:customer-balance-add-or-subtract', ['only' => ['balanceUpdate']]);
+        $this->middleware('permission:customer-list|customer-login|customer-mail-send|customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract|officer-user-manage', ['only' => ['index', 'activeUser', 'disabled', 'mailSendAll', 'mailSend', 'closed']]);
+        $this->middleware('permission:customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract|officer-user-manage', ['only' => ['edit']]);
+        $this->middleware('permission:customer-login|officer-login-as', ['only' => ['userLogin']]);
+        $this->middleware('permission:customer-mail-send|officer-mail-send', ['only' => ['mailSendAll', 'mailSend']]);
+        $this->middleware('permission:customer-basic-manage|officer-user-manage', ['only' => ['update']]);
+        $this->middleware('permission:customer-change-password|officer-security-manage', ['only' => ['passwordUpdate']]);
+        $this->middleware('permission:all-type-status|officer-user-manage', ['only' => ['statusUpdate']]);
+        $this->middleware('permission:customer-balance-add-or-subtract|officer-balance-manage', ['only' => ['balanceUpdate']]);
+        $this->middleware('permission:customer-create', ['only' => ['create', 'store']]);
     }
 
     public function index(Request $request)
@@ -95,7 +96,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::active()
-            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -130,7 +131,7 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::disabled()
-            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth()->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
@@ -162,12 +163,13 @@ class UserController extends Controller
 
     public function closed(Request $request)
     {
-        $search = $request->query('query') ?? null;
+        // Security Check for Account Officer (User requested 403 for closed customers)
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to closed customers.');
+        }
 
+        $search = $request->query('query') ?? null;
         $users = User::closed()
-            ->when(auth()->user()->hasRole('Account Officer', 'admin') && !auth()->user()->hasRole('Super-Admin', 'admin'), function ($query) {
-                $query->where('staff_id', auth()->id());
-            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
