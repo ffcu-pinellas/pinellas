@@ -40,6 +40,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $credentials['status'] = 1;
         if ($this->guard()->attempt($credentials)) {
             $request->session()->regenerate();
 

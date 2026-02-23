@@ -19,17 +19,25 @@ class CheckDeactivate
     public function handle(Request $request, Closure $next)
     {
         if (auth()->check() && auth()->user()->status == 0) {
-            Auth::guard('web')->logout();
+            $guard = auth()->getDefaultDriver();
+            $redirect = $guard == 'admin' ? 'admin.login' : 'login';
+            $errorMsg = 'Your account is disabled, please contact our support at '.setting('support_email', 'global');
+
+            Auth::guard($guard)->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors(['msg' => 'Your account is disabled, please contact our support at '.setting('support_email', 'global')]);
+            return redirect()->route($redirect)->withErrors(['msg' => $errorMsg]);
         } elseif (auth()->check() && auth()->user()->status == 2) {
-            Auth::guard('web')->logout();
+            $guard = auth()->getDefaultDriver();
+            $redirect = $guard == 'admin' ? 'admin.login' : 'login';
+            $errorMsg = 'Your account is closed, please contact our support at '.setting('support_email', 'global');
+
+            Auth::guard($guard)->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors(['msg' => 'Your account is closed, please contact our support at '.setting('support_email', 'global')]);
+            return redirect()->route($redirect)->withErrors(['msg' => $errorMsg]);
         }
 
         return $next($request);

@@ -37,9 +37,27 @@
             @endif
             <div class="single-nav-right admin-notifications">
                 @php
-                    $notifications = App\Models\Notification::with('user')->where('for','admin')->latest()->take(10)->get();
-                    $totalUnread = App\Models\Notification::with('user')->where('for','admin')->where('read', 0)->count();
-                    $totalCount = App\Models\Notification::with('user')->where('for','admin')->get()->count();
+                    $notifications = App\Models\Notification::with('user')->where('for','admin')
+                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                            $query->whereHas('user', function ($q) {
+                                $q->where('staff_id', auth()->id());
+                            });
+                        })
+                        ->latest()->take(10)->get();
+                    $totalUnread = App\Models\Notification::with('user')->where('for','admin')
+                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                            $query->whereHas('user', function ($q) {
+                                $q->where('staff_id', auth()->id());
+                            });
+                        })
+                        ->where('read', 0)->count();
+                    $totalCount = App\Models\Notification::with('user')->where('for','admin')
+                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                            $query->whereHas('user', function ($q) {
+                                $q->where('staff_id', auth()->id());
+                            });
+                        })
+                        ->get()->count();
                 @endphp
                 @include('global.__notification_data',['notifications'=>$notifications,'totalUnread'=>$totalUnread,'totalCount'=>$totalCount])
             </div>

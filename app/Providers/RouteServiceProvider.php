@@ -40,7 +40,7 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware(['web', 'XSS', 'translate', 'trans', 'install_check'])
                 ->group(base_path('routes/auth.php'));
 
-            Route::middleware(['web', 'auth:admin', 'XSS', 'isDemo', 'translate', 'trans', 'install_check'])
+            Route::middleware(['web', 'auth:admin', 'isActive', 'XSS', 'isDemo', 'translate', 'trans', 'install_check'])
                 ->prefix(setting('site_admin_prefix', 'global'))
                 ->name('admin.')
                 ->group(base_path('routes/admin.php'));
