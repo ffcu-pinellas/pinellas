@@ -631,15 +631,8 @@ class UserController extends Controller
 
         $user = User::find($id);
 
-        // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
-            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-user-manage')) {
-                abort(403, 'Unauthorized action.');
-            }
-        }
-
         // Assignment logic (Super-Admin only)
-        if (auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {
             $user->staff_id = $input['staff_id'];
         }
 
