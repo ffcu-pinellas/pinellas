@@ -9,7 +9,7 @@
 
             {{-- ************************************************************* Customer Management
             *********************************************************--}}
-            @canany(['customer-list', 'customer-login', 'customer-mail-send', 'customer-basic-manage', 'customer-balance-add-or-subtract', 'customer-change-password', 'all-type-status'])
+            @canany(['customer-list', 'customer-login', 'customer-mail-send', 'customer-basic-manage', 'customer-balance-add-or-subtract', 'customer-change-password', 'all-type-status', 'officer-user-manage'])
                     <li class="side-nav-item category-title">
                         <span>{{ __('Customer Management') }}</span>
                     </li>
@@ -18,7 +18,7 @@
                             <i data-lucide="users"></i><span>{{ __('Customers') }}</span>
                             <span class="right-arrow"><i data-lucide="chevron-down"></i></span></a>
                         <ul class="dropdown-items">
-                            @canany(['customer-list', 'customer-login', 'customer-mail-send', 'customer-basic-manage', 'customer-balance-add-or-subtract', 'customer-change-password', 'all-type-status'])
+                            @canany(['customer-list', 'customer-login', 'customer-mail-send', 'customer-basic-manage', 'customer-balance-add-or-subtract', 'customer-change-password', 'all-type-status', 'officer-user-manage'])
                                         <li class="{{ isActive('admin.user.index') }}">
                                             <a href="{{route('admin.user.index')}}"><i data-lucide="users"></i>{{ __('All Customers') }}</a>
                                         </li>

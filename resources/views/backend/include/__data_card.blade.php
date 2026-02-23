@@ -1,4 +1,4 @@
-@can('total-users')
+@canany(['total-users', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -12,7 +12,7 @@
     </div>
 </div>
 @endcan
-@can('active-users')
+@canany(['active-users', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -26,7 +26,7 @@
     </div>
 </div>
 @endcan
-@can('disabled-users')
+@canany(['disabled-users', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -54,7 +54,7 @@
     </div>
 </div>
 @endcan
-@can('total-deposits')
+@canany(['total-deposits', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -68,7 +68,7 @@
     </div>
 </div>
 @endcan
-@can('total-withdraw')
+@canany(['total-withdraw', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -82,7 +82,7 @@
     </div>
 </div>
 @endcan
-@can('total-referral')
+@canany(['total-referral', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">
@@ -95,7 +95,7 @@
     </div>
 </div>
 @endcan
-@can('total-fund-transfer')
+@canany(['total-fund-transfer', 'officer-user-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">

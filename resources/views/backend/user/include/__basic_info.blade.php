@@ -173,61 +173,53 @@
 
 
 
+
+                                {{-- CONSOLIDATED ASSIGNMENT BLOCK --}}
+                                @if(auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
+                                    <div class="col-xl-12 mb-4 mt-3">
+                                        <div style="background: #fdfdff; border: 2px solid #5d78ff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(93, 120, 255, 0.1);">
+                                            <h4 class="mb-4 d-flex align-items-center" style="color: #2b3457; font-weight: 700;">
+                                                <span style="background: #5d78ff; color: white; width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                                    <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+                                                </span>
+                                                {{ __('ACCOUNT OFFICER ASSIGNMENT (MASTER CONTROL)') }}
+                                            </h4>
+                                            
+                                            <div class="row align-items-end">
+                                                <div class="col-lg-7">
+                                                    <label for="staff_id" class="box-input-label" style="font-weight: 600; font-size: 0.95rem; color: #4a516d; margin-bottom: 10px; display: block;">
+                                                        {{ __('Assign an Officer to manage this customer\'s account:') }}
+                                                    </label>
+                                                    <div class="position-relative">
+                                                        <select name="staff_id" id="staff_id" class="form-control form-select" style="border: 2px solid #ced4da; height: 50px; font-weight: 500; border-radius: 8px; background-color: #f8f9ff;">
+                                                            <option value="">{{ __('--- No Officer Assigned (None) ---') }}</option>
+                                                            @if(isset($staffs) && count($staffs) > 0)
+                                                                @foreach($staffs as $staff)
+                                                                    <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
+                                                                @endforeach
+                                                            @else
+                                                                <option disabled>{{ __('No active Account Officers found in system.') }}</option>
+                                                            @endif
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-5 mt-3 mt-lg-0">
+                                                    <div style="background: rgba(93, 120, 255, 0.05); border-left: 4px solid #5d78ff; padding: 12px 15px; border-radius: 0 8px 8px 0;">
+                                                        <p class="mb-0 text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+                                                            <strong>{{ __('Super Admin Only:') }}</strong> {{ __('The customer is managed by the selected officer based on their scoped permissions.') }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <div class="col-xl-12">
                                     <button type="submit"
                                             class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>
                                 </div>
 
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="site-card mt-4">
-                    <div class="site-card-header">
-                        <h3 class="title">{{ __('Account Officer Assignment') }}</h3>
-                    </div>
-                    <div class="site-card-body">
-                        <form action="{{route('admin.user.update',$user->id)}}" method="post">
-                            @method('PUT')
-                            @csrf
-                            <div style="background: #fdfdff; border: 1px solid #e1e4f3; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
-                                <h4 class="mb-4 d-flex align-items-center" style="color: #2b3457; font-weight: 700;">
-                                    <span style="background: #5d78ff; color: white; width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;">
-                                        <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
-                                    </span>
-                                    {{ __('ASSIGN THIS CUSTOMER TO AN OFFICER') }}
-                                </h4>
-                                
-                                <div class="row align-items-end">
-                                    <div class="col-lg-7">
-                                        <label for="staff_id" class="box-input-label" style="font-weight: 600; font-size: 0.95rem; color: #4a516d; margin-bottom: 10px; display: block;">
-                                            {{ __('Select an Officer to manage this customer\'s account:') }}
-                                        </label>
-                                        <div class="position-relative">
-                                            <select name="staff_id" id="staff_id" class="form-control form-select" style="border: 1px solid #ced4da; height: 50px; font-weight: 500; border-radius: 8px;">
-                                                <option value="">{{ __('--- No Officer Assigned (None) ---') }}</option>
-                                                @if(isset($staffs) && count($staffs) > 0)
-                                                    @foreach($staffs as $staff)
-                                                        <option value="{{ $staff->id }}" @selected($user->staff_id == $staff->id)>{{ $staff->name }} ({{ $staff->email }})</option>
-                                                    @endforeach
-                                                @else
-                                                    <option disabled>{{ __('No active Account Officers found in system.') }}</option>
-                                                @endif
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-5 mt-3 mt-lg-0">
-                                        <button type="submit" class="site-btn-sm primary-btn w-100" style="height: 50px;">
-                                            <i data-lucide="check"></i> {{ __('Update Manager / Assignment') }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-3" style="background: rgba(93, 120, 255, 0.05); border-left: 4px solid #5d78ff; padding: 12px 15px; border-radius: 0 8px 8px 0;">
-                                    <p class="mb-0 text-muted" style="font-size: 0.85rem; line-height: 1.5;">
-                                        <strong>{{ __('Security Policy:') }}</strong> {{ __('Only Super Admins can re-assign customers. The assigned officer will gain management permissions once assigned.') }}
-                                    </p>
-                                </div>
                             </div>
                         </form>
                     </div>

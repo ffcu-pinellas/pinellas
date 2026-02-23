@@ -24,40 +24,53 @@ class DashboardController extends Controller
 {
     public function dashboard()
     {
+        $adminUser = auth('admin')->user();
+        $isAccountOfficer = $adminUser->hasRole('Account Officer', 'admin') && !$adminUser->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
+
         $transaction = new Transaction;
         $user = User::query();
         $admin = Admin::query();
 
-        $totalDeposit = Transaction::where('status', TxnStatus::Success)->where(function ($query) {
+        // Scope queries for Account Officer
+        if ($isAccountOfficer) {
+            $user->where('staff_id', $adminUser->id);
+            $transaction = $transaction->whereHas('user', function ($q) use ($adminUser) {
+                $q->where('staff_id', $adminUser->id);
+            });
+        }
+
+        $totalDeposit = (clone $transaction)->where('status', TxnStatus::Success)->where(function ($query) {
             $query->where('type', TxnType::ManualDeposit);
         });
 
-        $totalSend = Transaction::where('status', TxnStatus::Success)
+        $totalSend = (clone $transaction)->where('status', TxnStatus::Success)
             ->where('type', TxnType::FundTransfer)
             ->sum('amount');
 
-        $activeUser = User::where('status', 1)->count();
-        $disabledUser = User::where('status', 0)->count();
+        $activeUser = (clone $user)->where('status', 1)->count();
+        $disabledUser = (clone $user)->where('status', 0)->count();
 
         $totalStaff = Admin::count();
 
-        $latestUser = User::latest()->take(5)->get();
+        $latestUser = (clone $user)->latest()->take(5)->get();
 
 
 
-        $totalWithdraw = Transaction::where('type', [TxnType::Withdraw]);
+        $totalWithdraw = (clone $transaction)->where('type', [TxnType::Withdraw]);
 
-        $withdrawCount = Transaction::where('type', TxnType::Withdraw)
+        $withdrawCount = (clone $transaction)->where('type', TxnType::Withdraw)
             ->where('status', 'pending')
             ->count();
 
-        $kycCount = User::where('kyc', KYCStatus::Pending)->count();
+        $kycCount = (clone $user)->where('kyc', KYCStatus::Pending)->count();
 
-        $depositCount = Transaction::where('type', TxnType::ManualDeposit)
+        $depositCount = (clone $transaction)->where('type', TxnType::ManualDeposit)
             ->where('status', 'pending')
             ->count();
 
-        $totalReferral = ReferralRelationship::count();
+        $totalReferral = ReferralRelationship::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->count();
 
         // ============================= Start dashboard statistics =============================================
 

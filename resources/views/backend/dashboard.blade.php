@@ -101,7 +101,7 @@
                 </div>
                 @endcan
 
-                @can('latest-users')
+                @canany(['latest-users', 'officer-user-manage'])
                 <div class="col-xl-12">
                     <div class="site-card">
                         <div class="site-card-header">
