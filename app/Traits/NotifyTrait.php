@@ -26,9 +26,34 @@ trait NotifyTrait
             if ($template) {
                 $find = array_keys($shortcodes);
                 $replace = array_values($shortcodes);
+
+                // Add Standard Shortcodes if not present
+                if (!in_array('[[status]]', $find)) {
+                    $find[] = '[[status]]';
+                    $replace[] = $shortcodes['status'] ?? '';
+                }
+                if (!in_array('[[site_title]]', $find)) {
+                    $find[] = '[[site_title]]';
+                    $replace[] = setting('site_title', 'global');
+                }
+                if (!in_array('[[site_url]]', $find)) {
+                    $find[] = '[[site_url]]';
+                    $replace[] = route('home');
+                }
+
+                $siteLogo = setting('site_logo', 'global');
+                if ($siteLogo && !Str::startsWith($siteLogo, 'assets/')) {
+                    $siteLogo = 'assets/' . $siteLogo;
+                }
+
+                $banner = $template->banner;
+                if ($banner && !Str::startsWith($banner, 'assets/')) {
+                    $banner = 'assets/' . $banner;
+                }
+
                 $details = [
                     'subject' => str_replace($find, $replace, $template->subject),
-                    'banner' => asset($template->banner),
+                    'banner' => $banner ? asset($banner) : null,
                     'title' => str_replace($find, $replace, $template->title),
                     'salutation' => str_replace($find, $replace, $template->salutation),
                     'message_body' => str_replace($find, $replace, $template->message_body),
@@ -40,25 +65,50 @@ trait NotifyTrait
                     'bottom_title' => str_replace($find, $replace, $template->bottom_title),
                     'bottom_body' => str_replace($find, $replace, $template->bottom_body),
 
-                    'site_logo' => asset(setting('site_logo', 'global')),
+                    'site_logo' => $siteLogo ? asset($siteLogo) : null,
                     'site_title' => setting('site_title', 'global'),
                     'site_link' => route('home'),
                 ];
 
                 if ($code == 'email_verification') {
-                    return (new MailMessage)
-                        ->subject($details['subject'])
-                        ->markdown('backend.mail.user-mail-send', ['details' => $details]);
-                }
+                return (new MailMessage)
+                    ->subject($details['subject'])
+                    ->markdown('backend.mail.user-mail-send', ['details' => $details]);
+            }
 
+            try {
+                return Mail::to($email)->send(new MailSend($details));
+            } catch (Exception $e) {
+                \Log::error("Mail sending failed for $email: " . $e->getMessage());
+                notify()->error('SMTP connection failed. Please check your Mail Configuration in .env', 'Error');
+                return false;
+            }
+        } else {
+            \Log::warning("Email template with code '$code' not found in database.");
+            if ($code === 'user_mail') {
+                // Fallback for manual user mail if template is accidentally deleted
+                $details = [
+                    'subject' => $shortcodes['[[subject]]'] ?? 'Notification',
+                    'message_body' => $shortcodes['[[message]]'] ?? '',
+                    'site_logo' => asset('assets/' . setting('site_logo', 'global')),
+                    'site_link' => route('home'),
+                    'site_title' => setting('site_title', 'global'),
+                    'title' => 'Security Notification',
+                    'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
+                    'footer_status' => 1,
+                    'footer_body' => 'Pinellas Federal Credit Union',
+                    'button_level' => null,
+                ];
                 return Mail::to($email)->send(new MailSend($details));
             }
-        } catch (Exception $e) {
-            notify()->error('SMTP connection failed', 'Error');
-
-            return false;
         }
+    } catch (Exception $e) {
+        \Log::error("NotifyTrait mailNotify error: " . $e->getMessage());
+        notify()->error('Error preparing email: ' . $e->getMessage(), 'Error');
+
+        return false;
     }
+}
 
     // ============================= push notification template helper ===================================================
     protected function pushNotify($code, $shortcodes, $action, $userId, $for = 'User')

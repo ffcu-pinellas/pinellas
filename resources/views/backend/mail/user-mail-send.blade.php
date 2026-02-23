@@ -11,26 +11,24 @@
     <style>
         body { margin: 0; padding: 0; background-color: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         .wrapper { width: 100%; table-layout: fixed; background-color: #f0f2f5; padding-bottom: 60px; padding-top: 40px; }
-        .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 84, 155, 0.1); border: 1px solid #e1e8ed; }
-        .header { padding: 40px; background-color: #ffffff; text-align: center; border-bottom: 1px solid #f0f4f8; }
-        .logo { height: 45px; width: auto; }
-        .banner-img { width: 100%; display: block; }
-        .content { padding: 50px 45px; color: #334155; line-height: 1.7; }
-        .title { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 700; color: #00549b; margin-top: 0; margin-bottom: 28px; letter-spacing: -0.02em; }
-        .salutation { font-weight: 600; font-size: 18px; color: #1e293b; margin-bottom: 20px; }
-        .message-body { font-size: 16px; color: #475569; margin-bottom: 35px; }
-        .btn-container { text-align: center; margin-top: 40px; margin-bottom: 15px; }
-        .btn { display: inline-block; background-color: #00549b; color: #ffffff !important; padding: 16px 40px; border-radius: 50px; font-weight: 700; text-decoration: none; text-transform: uppercase; font-size: 14px; letter-spacing: 0.1em; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.25); }
-        .footer { padding: 40px; background-color: #f8fafc; border-top: 1px solid #f0f4f8; color: #64748b; font-size: 13px; text-align: center; }
-        .footer-logo { height: 25px; margin-bottom: 20px; opacity: 0.7; }
-        .bottom-section { padding: 30px 45px; background-color: #ffffff; margin-top: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e1e8ed; }
-        .bottom-title { font-family: 'Montserrat', sans-serif; font-size: 19px; font-weight: 700; color: #00549b; margin-top: 0; margin-bottom: 12px; }
-        .bottom-link { color: #da291c; font-weight: 700; text-decoration: none; border-bottom: 2px solid #fee2e2; padding-bottom: 1px; }
-        .bottom-link:hover { border-bottom-color: #da291c; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 84, 155, 0.08); border: 1px solid #e1e8ed; }
+        .header { padding: 35px 40px; background-color: #ffffff; text-align: center; border-bottom: 1px solid #f0f4f8; }
+        .logo { height: 42px; width: auto; max-width: 250px; }
+        .banner { width: 100%; background-color: #f8fafc; overflow: hidden; }
+        .banner-img { width: 100%; display: block; max-height: 250px; object-fit: cover; }
+        .content { padding: 45px 50px; color: #334155; line-height: 1.7; }
+        .title { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 700; color: #00549b; margin-top: 0; margin-bottom: 24px; letter-spacing: -0.01em; }
+        .salutation { font-weight: 600; font-size: 17px; color: #1e293b; margin-bottom: 20px; }
+        .message-body { font-size: 15px; color: #475569; margin-bottom: 30px; }
+        .btn-container { text-align: center; margin-top: 35px; margin-bottom: 10px; }
+        .btn { display: inline-block; background-color: #00549b; color: #ffffff !important; padding: 14px 35px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 15px; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); transition: all 0.3s ease; }
+        .footer { padding: 35px 20px; background-color: #f8fafc; border-top: 1px solid #edf2f7; color: #718096; font-size: 13px; text-align: center; }
+        .footer-logo { height: 22px; margin-bottom: 20px; opacity: 0.6; filter: grayscale(1); }
+        .disclaimer { font-size: 11px; color: #a0aec0; margin-top: 25px; max-width: 100%; }
         @media only screen and (max-width: 620px) {
-            .container, .bottom-section { border-radius: 0; border-left: none; border-right: none; }
-            .content, .header, .footer { padding: 40px 25px; }
-            .title { font-size: 22px; }
+            .container { border-radius: 0; border: none; }
+            .content { padding: 35px 25px; }
+            .header { padding: 30px 20px; }
         }
     </style>
 </head>
@@ -41,16 +39,20 @@
                 <div style="padding: 20px 0;">
                     <!-- Main Card -->
                     <div class="container">
+                        @if($details['site_logo'])
                         <div class="header">
                             <a href="{{ $details['site_link'] }}">
                                 <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
                             </a>
                         </div>
+                        @endif
                         
-                        @if($details['banner'])
+                        @if(!empty($details['banner']))
                         <div class="banner">
                             <img src="{{ $details['banner'] }}" alt="Banner" class="banner-img">
                         </div>
+                        @else
+                         <div style="height: 4px; background-color: #00549b;"></div>
                         @endif
 
                         <div class="content">
@@ -69,8 +71,15 @@
 
                         @if($details['footer_status'])
                         <div class="footer">
+                             @if($details['site_logo'])
                             <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="footer-logo">
-                            <div>{!! $details['footer_body'] !!}</div>
+                            @endif
+                            <div style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">{!! $details['footer_body'] !!}</div>
+                            <div class="disclaimer">
+                                Security Alert: Pinellas Federal Credit Union will never ask for your password, social security number, or PIN through email. If you receive a suspicious request, contact us immediately.
+                                <br><br>
+                                &copy; {{ date('Y') }} {{ setting('site_title', 'global') }}. All Rights Reserved.
+                            </div>
                         </div>
                         @endif
                     </div>
