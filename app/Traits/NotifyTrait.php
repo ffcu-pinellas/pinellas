@@ -62,8 +62,8 @@ trait NotifyTrait
                     'footer_status' => $template->footer_status,
                     'footer_body' => str_replace($find, $replace, $template->footer_body),
                     'bottom_status' => $template->bottom_status,
-                    'bottom_title' => str_replace($find, $replace, $template->bottom_title),
-                    'bottom_body' => str_replace($find, $replace, $template->bottom_body),
+                    'bottom_title' => str_replace($find, $replace, $template->bottom_title) ?? '',
+                    'bottom_body' => str_replace($find, $replace, $template->bottom_body) ?? '',
 
                     'site_logo' => $siteLogo ? asset($siteLogo) : null,
                     'site_title' => setting('site_title', 'global'),
@@ -85,21 +85,40 @@ trait NotifyTrait
             }
         } else {
             \Log::warning("Email template with code '$code' not found in database.");
-            if ($code === 'user_mail') {
-                // Fallback for manual user mail if template is accidentally deleted
-                $details = [
-                    'subject' => $shortcodes['[[subject]]'] ?? 'Notification',
-                    'message_body' => $shortcodes['[[message]]'] ?? '',
-                    'site_logo' => asset('assets/' . setting('site_logo', 'global')),
-                    'site_link' => route('home'),
-                    'site_title' => setting('site_title', 'global'),
-                    'title' => 'Security Notification',
-                    'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
-                    'footer_status' => 1,
-                    'footer_body' => 'Pinellas Federal Credit Union',
-                    'button_level' => null,
-                ];
+            
+            // Standard Fallback for ANY missing template to prevent failure
+            $siteLogo = setting('site_logo', 'global');
+            if ($siteLogo && !Str::startsWith($siteLogo, 'assets/')) {
+                $siteLogo = 'assets/' . $siteLogo;
+            }
+
+            // Prioritize manual inputs from the Admin Modal (Subject and Email Details)
+            $manualSubject = $shortcodes['[[subject]]'] ?? null;
+            $manualMessage = $shortcodes['[[message]]'] ?? null;
+
+            $details = [
+                'subject' => $manualSubject ?: 'Account Notification - ' . setting('site_title', 'global'),
+                'message_body' => $manualMessage ?: ($shortcodes['[[action]]'] ?? 'A notification has been triggered for your account.'),
+                'site_logo' => $siteLogo ? asset($siteLogo) : null,
+                'site_link' => route('home'),
+                'site_title' => setting('site_title', 'global'),
+                'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
+                'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
+                'footer_body' => 'Pinellas Federal Credit Union',
+                'footer_status' => 1,
+                'banner' => null,
+                'button_level' => null,
+                'button_link' => null,
+                'bottom_status' => 0,
+                'bottom_title' => '',
+                'bottom_body' => '',
+            ];
+
+            try {
                 return Mail::to($email)->send(new MailSend($details));
+            } catch (Exception $e) {
+                \Log::error("Mail fallback sending failed for $email: " . $e->getMessage());
+                return false;
             }
         }
     } catch (Exception $e) {
