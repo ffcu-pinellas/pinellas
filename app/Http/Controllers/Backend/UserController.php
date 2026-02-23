@@ -1,6 +1,6 @@
-namespace App\Http\Controllers\Backend;
+<?php
 
-// DEPLOYMENT_VER_3 - Explicitly fixing Admin class namespace issue
+namespace App\Http\Controllers\Backend;
 
 use App\Enums\KYCStatus;
 use App\Enums\TxnStatus;
