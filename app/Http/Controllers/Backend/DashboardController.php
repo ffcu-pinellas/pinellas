@@ -91,20 +91,26 @@ class DashboardController extends Controller
         })->toArray();
         $withdrawStatistics = array_replace($dateArray, $withdrawStatistics);
 
-        $dpsStatistics = Dps::whereBetween('created_at', $dateFilter)->get()->groupBy('day')->map(function ($group) {
+        $dpsStatistics = Dps::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->get()->groupBy('day')->map(function ($group) {
             return $group->sum('total_dps_amount');
         })->toArray();
 
         $dpsStatistics = array_replace($dateArray, $dpsStatistics);
 
-        $fdrStatistics = Fdr::whereBetween('created_at', $dateFilter)->get()->groupBy('day')->map(function ($group) {
+        $fdrStatistics = Fdr::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->get()->groupBy('day')->map(function ($group) {
             return $group->sum('amount');
         })->toArray();
         $fdrStatistics = array_replace($dateArray, $fdrStatistics);
 
 
 
-        $loanStatistics = Loan::whereBetween('created_at', $dateFilter)->get()->groupBy('day')->map(function ($group) {
+        $loanStatistics = Loan::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->get()->groupBy('day')->map(function ($group) {
             return $group->sum('amount');
         })->toArray();
         $loanStatistics = array_replace($dateArray, $loanStatistics);
@@ -119,7 +125,7 @@ class DashboardController extends Controller
         $browser = $loginActivities->groupBy('browser')->map->count()->toArray();
         $platform = $loginActivities->groupBy('platform')->map->count()->toArray();
 
-        $country = User::all()->groupBy('country')->map(function ($country) {
+        $country = (clone $user)->get()->groupBy('country')->map(function ($country) {
             return $country->count();
         })->toArray();
 
@@ -127,9 +133,15 @@ class DashboardController extends Controller
         $country = array_slice($country, 0, 5);
 
         $symbol = setting('currency_symbol', 'global');
-        $total_dps = Dps::get()->sum('total_dps_amount');
-        $total_fdr = Fdr::sum('amount');
-        $total_loan = Loan::sum('amount');
+        $total_dps = Dps::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->get()->sum('total_dps_amount');
+        $total_fdr = Fdr::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->sum('amount');
+        $total_loan = Loan::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+            if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+        })->sum('amount');
         $total_bill = 0;
 
         $fund_transfer_statistics = [
@@ -154,7 +166,7 @@ class DashboardController extends Controller
             'total_fdr' => $total_fdr,
             'total_loan' => $total_loan,
             'total_bill' => $total_bill,
-            'points' => User::sum('points'),
+            'points' => (clone $user)->sum('points'),
             'total_send' => $totalSend,
             'total_withdraw' => $transaction->totalWithdraw()->sum('amount'),
             'total_referral' => $totalReferral,
@@ -173,7 +185,9 @@ class DashboardController extends Controller
 
             'deposit_bonus' => $transaction->totalDepositBonus(),
             'total_gateway' => 0,
-            'total_ticket' => Ticket::count(),
+            'total_ticket' => Ticket::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
+                if ($isAccountOfficer) $q->where('staff_id', $adminUser->id);
+            })->count(),
 
             'browser' => $browser,
             'platform' => $platform,
