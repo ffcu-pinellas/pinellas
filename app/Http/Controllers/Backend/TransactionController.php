@@ -22,7 +22,7 @@ class TransactionController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:transaction-list');
+        $this->middleware('permission:transaction-list|officer-user-manage|officer-balance-manage');
     }
 
     /**
@@ -51,6 +51,11 @@ class TransactionController extends Controller
             ->type($type)
             ->when(in_array(request('sort_field'), ['created_at', 'final_amount', 'type', 'description']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
             })
             ->when(request('sort_field') == 'user', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
@@ -82,6 +87,11 @@ class TransactionController extends Controller
         $wallets = UserWallet::with('currency', 'user')
             ->when(in_array(request('sort_field'), ['created_at', 'balance']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
             })
             ->when(request('sort_field') == 'user', function ($query) {
                 $query->whereHas('user', function ($userQuery) {

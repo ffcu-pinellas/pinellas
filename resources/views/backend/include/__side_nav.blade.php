@@ -198,42 +198,42 @@
                                 data-lucide="send"></i><span>{{ __('Fund Transfer') }}</span>
                             <span class="right-arrow"><i data-lucide="chevron-down"></i></span></a>
                         <ul class="dropdown-items">
-                            @can('pending-transfers')
+                            @canany(['pending-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.pending*') }}">
                                     <a href="{{route('admin.fund.transfer.pending')}}"><i
                                             data-lucide="wallet-2"></i><span>{{ __('Pending Transfers') }}</span></a>
                                 </li>
-                            @endcan
-                            @can('rejected-transfers')
+                            @endcanany
+                            @canany(['rejected-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.rejected*') }}">
                                     <a href="{{route('admin.fund.transfer.rejected')}}"><i
                                             data-lucide="file-warning"></i><span>{{ __('Rejected Transfers') }}</span></a>
                                 </li>
-                            @endcan
+                            @endcanany
                             @canany(['all-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.all*') }}">
                                     <a href="{{route('admin.fund.transfer.all')}}"><i
                                             data-lucide="contact"></i><span>{{ __('All Transfers') }}</span></a>
                                 </li>
                             @endcanany
-                            @can('allied-transfers')
+                            @canany(['allied-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.own.bank*') }}">
                                     <a href="{{route('admin.fund.transfer.own.bank')}}"><i
                                             data-lucide="user-check"></i><span>{{ __('Own Bank Transfer') }}</span></a>
                                 </li>
-                            @endcan
-                            @can('others-bank-transfers')
+                            @endcanany
+                            @canany(['others-bank-transfers', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.other*') }}">
                                     <a href="{{route('admin.fund.transfer.other')}}"><i
                                             data-lucide="user-minus"></i><span>{{ __('Other Bank Transfers') }}</span></a>
                                 </li>
-                            @endcan
-                            @can('wire-transfer')
+                            @endcanany
+                            @canany(['wire-transfer', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.wire*') }}">
                                     <a href="{{route('admin.fund.transfer.wire')}}"><i
                                             data-lucide="settings-2"></i><span>{{ __('Wire Transfer') }}</span></a>
                                 </li>
-                            @endcan
+                            @endcanany
                             @can('others-bank-list')
                                 <li class="side-nav-item {{ isActive('admin.others-bank*') }}">
                                     <a href="{{route('admin.others-bank.index')}}"><i

@@ -28,8 +28,8 @@ class DepositController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:deposit-list|deposit-action', ['only' => ['pending', 'history']]);
-        $this->middleware('permission:deposit-action', ['only' => ['depositAction', 'actionNow']]);
+        $this->middleware('permission:deposit-list|deposit-action|officer-deposit-manage', ['only' => ['pending', 'history']]);
+        $this->middleware('permission:deposit-action|officer-deposit-manage', ['only' => ['depositAction', 'actionNow']]);
     }
 
     // -------------------------------------------  Deposit method start ---------------------------------------------------------------
@@ -177,6 +177,11 @@ class DepositController extends Controller
             ->where('status', TxnStatus::Pending->value)
             ->where('type', TxnType::ManualDeposit->value)
             ->search($search)
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array(request('sort_field'), ['created_at', 'amount', 'charge', 'method', 'status', 'tnx']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -203,6 +208,11 @@ class DepositController extends Controller
         $deposits = Transaction::with('user')
             ->whereIn('type', [TxnType::ManualDeposit->value])
             ->search($search)
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(in_array(request('sort_field'), ['created_at', 'amount', 'charge', 'method', 'status', 'tnx']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })

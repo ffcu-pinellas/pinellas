@@ -16,13 +16,13 @@ class FundTransferController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:pending-transfers', ['only' => ['pending']]);
-        $this->middleware('permission:rejected-transfers', ['only' => ['rejected']]);
-        $this->middleware('permission:all-transfers', ['only' => ['all']]);
-        $this->middleware('permission:allied-transfers', ['only' => ['allied']]);
-        $this->middleware('permission:other-bank-transfers', ['only' => ['other']]);
-        $this->middleware('permission:wire-transfer', ['only' => ['wire']]);
-        $this->middleware('permission:fund-transfer-approval', ['only' => ['details', 'actionNow']]);
+        $this->middleware('permission:pending-transfers|officer-transfer-manage', ['only' => ['pending']]);
+        $this->middleware('permission:rejected-transfers|officer-transfer-manage', ['only' => ['rejected']]);
+        $this->middleware('permission:all-transfers|officer-transfer-manage', ['only' => ['all']]);
+        $this->middleware('permission:allied-transfers|officer-transfer-manage', ['only' => ['allied']]);
+        $this->middleware('permission:other-bank-transfers|officer-transfer-manage', ['only' => ['other']]);
+        $this->middleware('permission:wire-transfer|officer-transfer-manage', ['only' => ['wire']]);
+        $this->middleware('permission:fund-transfer-approval|officer-transfer-manage', ['only' => ['details', 'actionNow']]);
     }
 
     public function pending(Request $request)

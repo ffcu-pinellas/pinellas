@@ -18,9 +18,27 @@ class NotificationController extends Controller
 
     public function latestNotification()
     {
-        $notifications = Notification::where('for', 'admin')->latest()->take(10)->get();
-        $totalUnread = Notification::where('for', 'admin')->where('read', 0)->count();
-        $totalCount = Notification::where('for', 'admin')->get()->count();
+        $notifications = Notification::where('for', 'admin')
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->latest()->take(10)->get();
+        $totalUnread = Notification::where('for', 'admin')
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->where('read', 0)->count();
+        $totalCount = Notification::where('for', 'admin')
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->get()->count();
         $lucideCall = true;
 
         return view('global.__notification_data', compact('notifications', 'totalUnread', 'totalCount', 'lucideCall'))->render();
@@ -37,7 +55,13 @@ class NotificationController extends Controller
 
     public function all()
     {
-        $notifications = Notification::where('for', 'admin')->latest()->paginate(10);
+        $notifications = Notification::where('for', 'admin')
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->latest()->paginate(10);
 
         return view('backend.notification.index', compact('notifications'));
     }
@@ -120,7 +144,13 @@ class NotificationController extends Controller
     public function readNotification($id)
     {
         if ($id == 0) {
-            Notification::where('for', 'admin')->update(['read' => 1]);
+            Notification::where('for', 'admin')
+                ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                    $query->whereHas('user', function ($q) {
+                        $q->where('staff_id', auth()->id());
+                    });
+                })
+                ->update(['read' => 1]);
 
             return redirect()->back();
         }
