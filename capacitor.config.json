@@ -1,0 +1,11 @@
+{
+  "appId": "com.pinellasfcu.app",
+  "appName": "Pinellas FCU",
+  "webDir": "public",
+  "server": {
+    "url": "https://pinellascu.com/",
+    "allowNavigation": [
+      "pinellascu.com"
+    ]
+  }
+}

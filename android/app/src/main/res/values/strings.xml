@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pinellas FCU</string>
+    <string name="title_activity_main">Pinellas FCU</string>
+    <string name="package_name">com.pinellasfcu.app</string>
+    <string name="custom_url_scheme">com.pinellasfcu.app</string>
+</resources>
