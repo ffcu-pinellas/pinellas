@@ -6,6 +6,8 @@
 <html lang="{{ app()->getLocale() }}" @if($isRtl) dir="rtl" @endif style="overflow-x: hidden;">
 <head>
     @include('frontend::include.__head')
+    <meta name="theme-color" content="#00549b">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
 
     <!-- Pinellas Custom Styling -->
     <link rel="stylesheet" href="{{ asset('assets/frontend/css/pinellas-custom.css') }}">
@@ -239,5 +241,15 @@
 
 @stack('js')
 @yield('script')
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register("{{ asset('sw.js') }}")
+                .then(reg => console.log('SW Registered'))
+                .catch(err => console.log('SW Registration failed', err));
+        });
+    }
+</script>
 </body>
 </html>

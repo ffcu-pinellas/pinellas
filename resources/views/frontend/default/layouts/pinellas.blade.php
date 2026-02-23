@@ -12,9 +12,8 @@
 	<link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/images/apple-touch-icon.png') }}">
 	<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/favicon-32x32.png') }}">
 	<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
-	<link rel="manifest" href="{{ asset('assets/images/site.webmanifest') }}">
-	<link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
-	<meta name="theme-color" content="#00a8e3">
+	<link rel="manifest" href="{{ asset('manifest.json') }}">
+	<meta name="theme-color" content="#00549b">
 
 	<!-- jquery -->
 	<script src="https://www.pinellasfcu.org/templates/COMMON_JS/jquery-1.11.3.min.js"></script>
@@ -132,5 +131,14 @@ jQuery(function(){ // on DOM load
     </script>
     <script src="https://tether.netteller.com/pinellasfcu/login.js"></script>
     @stack('script')
+	<script>
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register("{{ asset('sw.js') }}")
+					.then(reg => console.log('SW Registered'))
+					.catch(err => console.log('SW Registration failed', err));
+			});
+		}
+	</script>
 </BODY>
 </HTML>

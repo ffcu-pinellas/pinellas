@@ -1,0 +1,23 @@
+{
+    "name": "Pinellas Federal Credit Union",
+    "short_name": "Pinellas FCU",
+    "description": "Premium Digital Banking for Pinellas FCU Members",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#00549b",
+    "icons": [
+        {
+            "src": "/assets/global/images/favicon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/global/images/favicon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
