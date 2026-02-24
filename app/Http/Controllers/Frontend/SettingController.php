@@ -33,12 +33,10 @@ class SettingController extends Controller
         $input = $request->all();
         $user = auth()->user();
 
-        // 🚨 Security Gate Check for username/email changes
-        if (($request->username && $request->username !== $user->username) || ($request->email && $request->email !== $user->email)) {
-            if (!session()->has('security_verified_' . $user->id)) {
-                notify()->error(__('Security verification required to update sensitive profile information.'));
-                return redirect()->back();
-            }
+        // 🚨 Security Gate Check for ALL profile changes (World-Class Security)
+        if (!session()->has('security_verified_' . $user->id)) {
+            notify()->error(__('Security verification required to update profile information.'));
+            return redirect()->back();
         }
 
         $validator = Validator::make($request->all(), [
@@ -293,6 +291,11 @@ class SettingController extends Controller
 
     public function deleteLoginActivity($id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to remove recognized devices.'));
+            return redirect()->back();
+        }
+
         $activity = \App\Models\LoginActivities::find($id);
         $activity->delete();
 
@@ -303,6 +306,11 @@ class SettingController extends Controller
 
     public function updatePin(Request $request)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to update Transaction PIN.'));
+            return redirect()->back();
+        }
+
         $validator = Validator::make($request->all(), [
             'pin' => 'required|numeric|digits:4',
             'current_password' => 'required'

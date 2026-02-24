@@ -182,6 +182,11 @@ class DpsController extends Controller
 
     public function cancel($dpsId)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to cancel DPS.'));
+            return redirect()->back();
+        }
+
         // Get dps data
         $dps = Dps::where('dps_id', $dpsId)->where('user_id', auth()->id())->firstOrFail();
 
@@ -249,6 +254,11 @@ class DpsController extends Controller
 
     public function increment(Request $request, $id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to increase DPS amount.'));
+            return redirect()->back();
+        }
+
         // Get Dps data
         $dps = Dps::findOrFail(decrypt($id));
         // Get plan
@@ -323,6 +333,11 @@ class DpsController extends Controller
 
     public function decrement(Request $request, $id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to decrease DPS amount.'));
+            return redirect()->back();
+        }
+
         // Get dps data
         $dps = Dps::findOrFail(decrypt($id));
         // Get plan

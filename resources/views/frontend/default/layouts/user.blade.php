@@ -12,7 +12,12 @@
     
     @stack('style')
     @yield('style')
-    <script src="{{ asset('public/assets/frontend/js/security-gate.js') }}" defer></script>
+    <script src="{{ asset('assets/frontend/js/security-gate.js') }}"></script>
+    <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
+    <script src="{{ asset('assets/frontend/js/notifications.js') }}"></script>
+    <script>
+        // Global Smart Splash Control
+    </script>
 </head>
 <body @class([
     'dark-theme' => session()->get('site-color-mode',setting('default_mode')) == 'dark',

@@ -169,6 +169,11 @@ class FdrController extends Controller
 
     public function increment(Request $request, $id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to increase FDR amount.'));
+            return redirect()->back();
+        }
+
         $validator = Validator::make($request->all(), [
             'increase_amount' => 'required|integer',
         ]);
@@ -256,6 +261,11 @@ class FdrController extends Controller
 
     public function decrement(Request $request, $id)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to decrease FDR amount.'));
+            return redirect()->back();
+        }
+
         $validator = Validator::make($request->all(), [
             'decrease_amount' => 'required|integer',
         ]);
@@ -388,6 +398,11 @@ class FdrController extends Controller
 
     public function cancel($fdrId)
     {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to cancel FDR.'));
+            return redirect()->back();
+        }
+
         // Get fdr data
         $fdr = Fdr::where('fdr_id', $fdrId)->where('user_id', auth()->id())->where('user_id', auth()->id())->firstOrFail();
 

@@ -119,31 +119,46 @@
                     
                     <div id="2fa-details" class="p-4 bg-light rounded-3 {{ $user->google2fa_secret == null ? 'd-none' : '' }}">
                              <div class="row align-items-center">
-                                <div class="col-md-auto mb-3 mb-md-0">
-                                    <div class="bg-white p-2 rounded shadow-sm">
-                                        @php
-                                            $google2fa = (new \PragmaRX\Google2FAQRCode\Google2FA());
-                                            $inlineUrl = $google2fa->getQRCodeInline(setting('site_title','global'),$user->email,$user->google2fa_secret);
-                                        @endphp
-                                        <img src="{!! $inlineUrl !!}" alt="QR Code" class="img-fluid">
+                                <form action="{{ route('user.setting.update-pin') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                                @csrf
+                                <div class="step-details-form">
+                                    <div class="row">
+                                        <div class="col-xl-6 col-lg-12 col-md-12">
+                                            <div class="inputs">
+                                                <label for="pin" class="input-label">{{ __('New 4-Digit PIN') }}<span class="required">*</span></label>
+                                                <div class="input-group">
+                                                    <input type="password" class="form-control" name="pin" id="pin" maxlength="4" pattern="\d{4}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-6 col-lg-12 col-md-12">
+                                            <div class="inputs">
+                                                <label for="current_password" class="input-label">{{ __('Current Password') }}<span class="required">*</span></label>
+                                                <div class="input-group">
+                                                    <input type="password" class="form-control" name="current_password" required>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md">
-                                    <form action="{{ route('user.setting.action-2fa') }}" method="POST">
-                                        @csrf
-                                        <div class="mb-3">
-                                            <label class="form-label small fw-bold text-uppercase">Verifier Code</label>
-                                            <input type="password" class="form-control mb-3" name="one_time_password" placeholder="000 000">
-                                            @if($user->two_fa)
-                                                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold" name="status" value="disable">Disable 2FA</button>
-                                            @else
-                                                <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" name="status" value="enable">Complete Setup</button>
-                                            @endif
-                                        </div>
-                                    </form>
+                                <div class="action-btns">
+                                    <button type="submit" class="site-btn-sm primary-btn me-2">
+                                        <i data-lucide="check"></i>
+                                        {{ __('Save PIN') }}
+                                    </button>
                                 </div>
+                            </form>
                              </div>
                         </div>
+                </div>
+
+                <!-- Biometric Login (Native Only) -->
+                <div class="mb-5 d-none" id="biometric-login-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                        <h6 class="fw-bold text-uppercase small text-muted mb-0">Biometric Login</h6>
+                        <div class="banno-switch" id="biometric-switch"></div>
+                    </div>
+                    <p class="small text-muted mb-4">Use FaceID, TouchID, or Fingerprint to sign in to your account quickly and securely.</p>
                 </div>
 
                 <!-- Recognized Devices -->
@@ -165,7 +180,7 @@
                                         <div class="small text-muted">{{ $device->ip }} • {{ $device->created_at->diffForHumans() }}</div>
                                     </div>
                                 </div>
-                                <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST">
+                                <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none small fw-bold">Remove</button>
                                 </form>
@@ -315,12 +330,45 @@
 
 @section('script')
 <script>
-    // If navigated directly from nav
-    $(document).ready(function() {
-        if (window.innerWidth < 992 && window.location.search.includes('focus=true')) {
-            showSecurityDetails();
+    // Biometric Enrollment Logic
+    const bioSection = document.getElementById('biometric-login-section');
+    const bioSwitch = document.getElementById('biometric-switch');
+    
+    async function initBiometrics() {
+        if (window.PinellasBiometrics) {
+            await window.PinellasBiometrics.init();
+            if (window.PinellasBiometrics.isAvailable) {
+                bioSection.classList.remove('d-none');
+                const isEnrolled = localStorage.getItem('biometrics_enrolled') === 'true';
+                if (isEnrolled) {
+                    bioSwitch.classList.add('active');
+                }
+            }
+        }
+    }
+
+    bioSwitch.addEventListener('click', async function() {
+        if (!this.classList.contains('active')) {
+            // Enable
+            const password = prompt("Please confirm your password to enable Biometric Login:");
+            if (password) {
+                const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
+                if (success) {
+                    this.classList.add('active');
+                    notify('Biometric login enabled successfully', 'success');
+                } else {
+                    notify('Failed to enable biometric login', 'error');
+                }
+            }
+        } else {
+            // Disable
+            await window.PinellasBiometrics.clear();
+            this.classList.remove('active');
+            notify('Biometric login disabled', 'success');
         }
     });
+
+    initBiometrics();
 </script>
 @endsection
 

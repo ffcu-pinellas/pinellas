@@ -64,11 +64,9 @@
             @endif
 
             <div class="action-row">
-                <button type="button" class="biometric-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 14 3 12.01 3c-1.98 0-3.66.42-4.57.5-3.03.3-5.32 2.62-5.32 5.65 0 .41.34.75.75.75s.75-.34.75-.75c0-2.31 1.76-4.14 4.07-4.37.75-.07 2.37-.48 4.32-.48 1.7 0 3.12.35 4.6 1.25.35.21.81.1.1.45.65.21-.24.16-.54.08-.74zm2.19 5.64c-.18 0-.36-.06-.51-.19-.32-.26-.37-.73-.11-1.05.74-.91 1.12-2.11 1.12-3.37 0-1.87-.79-3.7-2.16-5.02-.3-.29-.31-.76-.02-1.06.29-.3.77-.31 1.07-.02C21.12 1.05 22 3.13 22 5.5c0 1.63-.48 3.18-1.44 4.35-.15.18-.36.26-.56.26zM5.5 11c-.13 0-.27-.03-.4-.1-.36-.19-.5-.63-.31-.99 1-1.91 2.97-3.41 5.22-4 2.25-.59 4.74-.35 6.74.65.37.19.52.64.33 1.01-.19.37-.64.51-1.01.32-1.67-.84-3.71-1.04-5.59-.55-1.87.49-3.51 1.73-4.34 3.32-.12.22-.35.34-.64.34zM12 21c-.41 0-.75-.34-.75-.75V11c0-.41.34-.75.75-.75s.75.34.75.75v9.25c0 .41-.34.75-.75.75zM12 10c-.41 0-.75-.34-.75-.75s.34-.75.75-.75 2.5.9 2.5 4.5v1.25c0 .41-.34.75-.75.75s-.75-.34-.75-.75V13c0-2.43-1-3-1-3z"/>
-                    </svg>
-                    Sign in with a passkey
+                <button type="button" class="biometric-btn d-none" id="btn-biometric-login">
+                    <i class="fas fa-fingerprint me-2"></i>
+                    Sign in with Biometrics
                 </button>
                 <button type="submit" class="primary-btn">Sign in</button>
             </div>
@@ -135,6 +133,39 @@
                     eyeHide.style.display = 'none';
                 }
             });
+
+            // Biometric Login Logic
+            const bioBtn = document.getElementById('btn-biometric-login');
+            
+            async function checkBiometrics() {
+                if (window.PinellasBiometrics) {
+                    await window.PinellasBiometrics.init();
+                    const enrolled = localStorage.getItem('biometrics_enrolled');
+                    if (window.PinellasBiometrics.isAvailable && enrolled === 'true') {
+                        bioBtn.classList.remove('d-none');
+                    }
+                }
+            }
+
+            bioBtn.addEventListener('click', async function() {
+                const credentials = await window.PinellasBiometrics.authenticate();
+                if (credentials) {
+                    usernameField.value = credentials.username;
+                    displayUsername.textContent = credentials.username;
+                    finalEmail.value = credentials.username;
+                    passwordField.value = credentials.password;
+                    
+                    // Show password step briefly or just submit
+                    stepUsername.hidden = true;
+                    stepPassword.hidden = false;
+                    
+                    setTimeout(() => {
+                        document.querySelector('form[action="{{ route('login') }}"]').submit();
+                    }, 500);
+                }
+            });
+
+            checkBiometrics();
         });
     </script>
 @endpush

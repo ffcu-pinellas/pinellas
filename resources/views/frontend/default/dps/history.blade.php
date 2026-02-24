@@ -231,7 +231,8 @@
 
                 var url = "{{ route('user.dps.cancel', ['id' => ':id']) }}";
                 url = url.replace(':id', id);
-                $('.confirm_btn').attr('href', url);
+                $('.confirm_btn').attr('onclick', `event.preventDefault(); SecurityGate.gate('${url}');`);
+                $('.confirm_btn').attr('href', 'javascript:void(0)');
             });
 
             // Initialize datepicker

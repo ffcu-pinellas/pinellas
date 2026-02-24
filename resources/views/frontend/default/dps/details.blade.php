@@ -168,7 +168,7 @@
                                     data-lucide="x"></i></button>
                             <div class="popup-body-text">
                                 <div class="title">{{ __('DPS Increase') }}</div>
-                                <form action="{{ route('user.dps.increment',encrypt($dps->id)) }}" method="POST">
+                                <form action="{{ route('user.dps.increment',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <div class="step-details-form">
                                         <div class="alert alert-info">
@@ -212,7 +212,7 @@
                                     data-lucide="x"></i></button>
                             <div class="popup-body-text">
                                 <div class="title">{{ __('DPS Decrease') }}</div>
-                                <form action="{{ route('user.dps.decrement',encrypt($dps->id)) }}" method="POST">
+                                <form action="{{ route('user.dps.decrement',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <div class="step-details-form">
                                         <div class="alert alert-info">

@@ -147,7 +147,7 @@
                 
                  <!-- Hidden Edit Form -->
                 <div id="edit_profile_form" style="display: none;" class="p-4 border-top bg-light">
-                    <form action="{{ route('user.setting.profile-update') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('user.setting.profile-update') }}" method="post" enctype="multipart/form-data" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                         @csrf
                         <input type="file" name="avatar" id="avatar_input" style="display: none;" accept=".jpg,.png,.jpeg">
                         <div class="row g-3">
