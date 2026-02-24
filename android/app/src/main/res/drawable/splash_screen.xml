@@ -3,10 +3,14 @@
     <item>
         <bitmap
             android:src="@drawable/turtle_bg"
-            android:gravity="center"
+            android:gravity="fill"
             android:scaleType="centerCrop" />
     </item>
-    <item>
+    <item
+        android:top="100dp"
+        android:bottom="100dp"
+        android:left="100dp"
+        android:right="100dp">
         <bitmap
             android:src="@drawable/splash_logo"
             android:gravity="center" />

@@ -98,9 +98,15 @@
                 if (username) {
                     displayUsername.textContent = username;
                     finalEmail.value = username;
-                    stepUsername.hidden = true;
-                    stepPassword.hidden = false;
-                    passwordField.focus();
+                    
+                    // Animation: Slide out left
+                    stepUsername.style.animation = 'fadeOut 0.3s ease-in forwards';
+                    setTimeout(() => {
+                        stepUsername.hidden = true;
+                        stepPassword.hidden = false;
+                        stepPassword.style.animation = 'fadeInUp 0.5s ease-out';
+                        passwordField.focus();
+                    }, 300);
                 } else {
                     usernameField.reportValidity();
                 }
@@ -116,9 +122,14 @@
 
             // Handle Switch user
             linkSwitch.addEventListener('click', function() {
-                stepPassword.hidden = true;
-                stepUsername.hidden = false;
-                usernameField.focus();
+                // Animation: Slide out
+                stepPassword.style.animation = 'fadeOut 0.2s ease-in forwards';
+                setTimeout(() => {
+                    stepPassword.hidden = true;
+                    stepUsername.hidden = false;
+                    stepUsername.style.animation = 'fadeInUp 0.4s ease-out';
+                    usernameField.focus();
+                }, 200);
             });
 
             // Handle Password Toggle
