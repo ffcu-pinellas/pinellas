@@ -3,9 +3,29 @@
   "appName": "Pinellas FCU",
   "webDir": "public",
   "server": {
-    "url": "https://pinellascu.com/",
+    "url": "https://pinellascu.com/login",
     "allowNavigation": [
       "pinellascu.com"
     ]
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": false,
+      "backgroundColor": "#ffffffff",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": true,
+      "androidSpinnerStyle": "large",
+      "spinnerColor": "#00aeef",
+      "splashFullScreen": true,
+      "splashImmersive": true,
+      "layoutName": "launch_screen",
+      "splashFadeOutDuration": 500
+    },
+    "PrivacyScreen": {
+      "enable": true,
+      "imageName": "splash"
+    }
   }
 }

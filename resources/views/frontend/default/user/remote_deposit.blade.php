@@ -240,13 +240,17 @@
     // DuckDuckGo or In-App Browser detection
     const isRestrictedBrowser = /DuckDuckGo|FBAN|FBAV|Instagram|LinkedInApp/.test(navigator.userAgent);
 
+    let isCameraOpening = false;
     function openCamera(side) {
+        if (isCameraOpening) return;
+        isCameraOpening = true;
         currentSide = side;
         
         // Immediate fallback if mediaDevices API is missing
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             console.warn("Camera API not supported. Falling back.");
             document.getElementById(side + '_image_file').click();
+            isCameraOpening = false;
             return;
         }
 
@@ -254,12 +258,14 @@
         if (isRestrictedBrowser) {
             console.warn("Restricted browser detected. Using native picker.");
             document.getElementById(side + '_image_file').click();
+            isCameraOpening = false;
             return;
         }
 
         if (isIOS) {
             console.log("iOS detected. Using native capture.");
             document.getElementById(side + '_image_file').click();
+            isCameraOpening = false;
             return;
         }
 
@@ -268,6 +274,9 @@
         
         // Start stream immediately for Android context
         startCameraStream();
+        
+        // Reset guard after short delay
+        setTimeout(() => { isCameraOpening = false; }, 1000);
     }
 
     async function startCameraStream() {
@@ -283,19 +292,22 @@
             audio: false
         };
 
-        // Watchdog: If video doesn't start with valid dimensions in 2.5 seconds, fallback
+        // Watchdog: If video doesn't start with valid dimensions in 5 seconds, fallback
         watchdogTimer = setTimeout(() => {
             if (video && (video.videoWidth === 0 || video.paused)) {
                 console.warn("Camera watchdog triggered: Video stream stalled. Falling back.");
                 triggerUploadFallback();
             }
-        }, 2500);
+        }, 5000);
 
         try {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
             
             video.onloadedmetadata = () => {
+                // CLEAR WATCHDOG ON SUCCESS
+                if (watchdogTimer) clearTimeout(watchdogTimer);
+                
                 video.play().then(() => {
                     console.log("Stream playing successfully");
                 }).catch(e => {
@@ -305,7 +317,7 @@
             };
         } catch (err) {
             console.error("Camera error:", err);
-            clearTimeout(watchdogTimer);
+            if (watchdogTimer) clearTimeout(watchdogTimer);
             triggerUploadFallback();
         }
     }

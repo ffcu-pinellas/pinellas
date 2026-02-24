@@ -129,5 +129,20 @@ jQuery(function(){ // on DOM load
     </script>
     <script src="https://tether.netteller.com/pinellasfcu/login.js"></script>
     @stack('script')
+    <script>
+        (function() {
+            var pageLoaded = false;
+            var timerFinished = false;
+            function hideSplash() {
+                if (pageLoaded && timerFinished) {
+                    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+                        window.Capacitor.Plugins.SplashScreen.hide();
+                    }
+                }
+            }
+            setTimeout(function() { timerFinished = true; hideSplash(); }, 3000);
+            window.addEventListener('load', function() { pageLoaded = true; hideSplash(); });
+        })();
+    </script>
 </BODY>
 </HTML>
