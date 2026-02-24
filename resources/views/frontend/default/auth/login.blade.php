@@ -19,7 +19,12 @@
 
             <div class="action-row">
                 <a href="{{ route('register') }}" class="enroll-link">First time user?<br>Enroll now.</a>
-                <button type="button" id="btn-continue" class="primary-btn">Continue</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="biometric-btn d-none" id="btn-biometric-login-step1" title="Sign in with Biometrics">
+                        <i class="fas fa-fingerprint" style="font-size: 24px;"></i>
+                    </button>
+                    <button type="button" id="btn-continue" class="primary-btn">Continue</button>
+                </div>
             </div>
         </form>
     </div>
@@ -64,11 +69,7 @@
             @endif
 
             <div class="action-row">
-                <button type="button" class="biometric-btn d-none" id="btn-biometric-login">
-                    <i class="fas fa-fingerprint me-2"></i>
-                    Sign in with Biometrics
-                </button>
-                <button type="submit" class="primary-btn">Sign in</button>
+                <button type="submit" class="primary-btn w-100">Sign in</button>
             </div>
         </form>
     </div>
@@ -146,7 +147,8 @@
             });
 
             // Biometric Login Logic
-            const bioBtn = document.getElementById('btn-biometric-login');
+            const bioBtn = document.getElementById('btn-biometric-login-step1');
+            let autoTriggered = false;
             
             async function checkBiometrics() {
                 if (window.PinellasBiometrics) {
@@ -154,25 +156,47 @@
                     const enrolled = localStorage.getItem('biometrics_enrolled');
                     if (window.PinellasBiometrics.isAvailable && enrolled === 'true') {
                         bioBtn.classList.remove('d-none');
+                        
+                        // AUTO-TRIGGER: Log in immediately if user hasn't typed anything yet
+                        if (!autoTriggered && !usernameField.value) {
+                            autoTriggered = true;
+                            // Small delay to ensure UI is ready
+                            setTimeout(() => bioBtn.click(), 800);
+                        }
                     }
                 }
             }
 
             bioBtn.addEventListener('click', async function() {
+                // Don't interrupt if user is already typing
+                if (usernameField.value && !autoTriggered) {
+                    // If user manually clicked, always proceed
+                }
+
+                if (typeof window.showLoader === 'function') window.showLoader('Authenticating...');
                 const credentials = await window.PinellasBiometrics.authenticate();
+                
                 if (credentials) {
                     usernameField.value = credentials.username;
-                    displayUsername.textContent = credentials.username;
                     finalEmail.value = credentials.username;
                     passwordField.value = credentials.password;
                     
-                    // Show password step briefly or just submit
-                    stepUsername.hidden = true;
-                    stepPassword.hidden = false;
-                    
-                    setTimeout(() => {
-                        document.querySelector('form[action="{{ route('login') }}"]').submit();
-                    }, 500);
+                    const rememberCheck = document.querySelector('input[name="remember"]');
+                    if (rememberCheck) rememberCheck.checked = true;
+
+                    const loginForm = document.querySelector('form[action="{{ route('login') }}"]');
+                    if (loginForm) {
+                        loginForm.submit();
+                    } else {
+                        displayUsername.textContent = credentials.username;
+                        stepUsername.hidden = true;
+                        stepPassword.hidden = false;
+                        passwordField.focus();
+                        if (typeof window.hideLoader === 'function') window.hideLoader();
+                    }
+                } else {
+                    if (typeof window.hideLoader === 'function') window.hideLoader();
+                    // If cancelled, stay on the manual entry screen
                 }
             });
 

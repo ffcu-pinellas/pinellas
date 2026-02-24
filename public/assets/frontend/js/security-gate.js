@@ -97,6 +97,7 @@ const SecurityGate = {
             return;
         }
 
+        if (typeof window.showLoader === 'function') window.showLoader('Verifying...');
         const btn = $('#sg-verify-btn');
         btn.prop('disabled', true).find('.spinner-border').removeClass('d-none');
         $('#sg-feedback').addClass('d-none');
@@ -133,8 +134,14 @@ const SecurityGate = {
                 }, 4000);
             }
         }).fail((xhr) => {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
             const res = xhr.responseJSON;
+
+            if (xhr.status === 419 || xhr.status === 401) {
+                window.location.reload(); // Likely session timed out
+                return;
+            }
 
             if (res?.status === 'fallback') {
                 $('#sg-feedback').text(res.message).removeClass('d-none').addClass('alert-warning');

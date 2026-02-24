@@ -267,9 +267,77 @@
         }
 
         @stack('style')
+
+        /* Loading Overlay */
+        #global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--body-text-theme-color);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            margin-top: 15px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--body-text-theme-color);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Button Loading States */
+        .primary-btn.btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .primary-btn.btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-top: -10px;
+            margin-left: -10px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-right-color: transparent;
+            animation: rotation 1s linear infinite;
+        }
     </style>
 </head>
 <body>
+    <div id="global-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Securing your session...</div>
+    </div>
     @include('global._notify')
     <div class="auth-wrapper">
         <div class="login-card">
@@ -313,6 +381,47 @@
     </footer>
 
     @stack('script')
+    <script>
+        // Global Loading Logic
+        window.showLoader = function(text = 'Securing your session...') {
+            document.querySelector('.loader-text').textContent = text;
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        };
+
+        window.hideLoader = function() {
+            const loader = document.getElementById('global-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 300);
+        };
+
+        // Form Submission Safeguard
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Avoid double-submit
+            if (form.getAttribute('data-submitting') === 'true') {
+                e.preventDefault();
+                return;
+            }
+            
+            form.setAttribute('data-submitting', 'true');
+            showLoader();
+            
+            if (submitBtn && submitBtn.classList.contains('primary-btn')) {
+                submitBtn.classList.add('btn-loading');
+            }
+        });
+
+        // Handle browser back button/cache
+        window.addEventListener('pageshow', function(event) {
+            hideLoader();
+            document.querySelectorAll('form').forEach(f => f.removeAttribute('data-submitting'));
+            document.querySelectorAll('.btn-loading').forEach(b => b.classList.remove('btn-loading'));
+        });
+    </script>
     <script type="text/javascript">!function(){var b=function(){window.__AudioEyeSiteHash = "a0766210036659e0a1e317dafb330ab7"; var a=document.createElement("script");a.src="https://wsmcdn.audioeye.com/aem.js";a.type="text/javascript";a.setAttribute("async","");document.getElementsByTagName("body")[0].appendChild(a)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",b):window.attachEvent&&window.attachEvent("onload",b):b()}();</script>
 </body>
 </html>

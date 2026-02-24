@@ -105,53 +105,6 @@
                     </div>
                 </div>
 
-                <!-- 2FA Section -->
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                        <h6 class="fw-bold text-uppercase small text-muted mb-0">Two-factor authentication</h6>
-                        @if($user->google2fa_secret == null)
-                            <a href="{{ route('user.setting.two.fa') }}" class="banno-switch"></a>
-                        @else
-                            <div class="banno-switch {{ $user->two_fa ? 'active' : '' }}" onclick="$('#2fa-details').slideToggle()"></div>
-                        @endif
-                    </div>
-                    <p class="small text-muted mb-4">Add an extra layer of security your account by requiring a code from your mobile device to sign in.</p>
-                    
-                    <div id="2fa-details" class="p-4 bg-light rounded-3 {{ $user->google2fa_secret == null ? 'd-none' : '' }}">
-                             <div class="row align-items-center">
-                                <form action="{{ route('user.setting.update-pin') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
-                                @csrf
-                                <div class="step-details-form">
-                                    <div class="row">
-                                        <div class="col-xl-6 col-lg-12 col-md-12">
-                                            <div class="inputs">
-                                                <label for="pin" class="input-label">{{ __('New 4-Digit PIN') }}<span class="required">*</span></label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control" name="pin" id="pin" maxlength="4" pattern="\d{4}" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-xl-6 col-lg-12 col-md-12">
-                                            <div class="inputs">
-                                                <label for="current_password" class="input-label">{{ __('Current Password') }}<span class="required">*</span></label>
-                                                <div class="input-group">
-                                                    <input type="password" class="form-control" name="current_password" required>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="action-btns">
-                                    <button type="submit" class="site-btn-sm primary-btn me-2">
-                                        <i data-lucide="check"></i>
-                                        {{ __('Save PIN') }}
-                                    </button>
-                                </div>
-                            </form>
-                             </div>
-                        </div>
-                </div>
-
                 <!-- Biometric Login (Native Only) -->
                 <div class="mb-5 d-none" id="biometric-login-section">
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
@@ -330,9 +283,10 @@
 
 @section('script')
 <script>
-    // Biometric Enrollment Logic
     const bioSection = document.getElementById('biometric-login-section');
     const bioSwitch = document.getElementById('biometric-switch');
+    const bioModal = new bootstrap.Modal(document.getElementById('biometricEnrollModal'));
+    const bioForm = document.getElementById('bioEnrollForm');
     
     async function initBiometrics() {
         if (window.PinellasBiometrics) {
@@ -349,22 +303,35 @@
 
     bioSwitch.addEventListener('click', async function() {
         if (!this.classList.contains('active')) {
-            // Enable
-            const password = prompt("Please confirm your password to enable Biometric Login:");
-            if (password) {
-                const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
-                if (success) {
-                    this.classList.add('active');
-                    notify('Biometric login enabled successfully', 'success');
-                } else {
-                    notify('Failed to enable biometric login', 'error');
-                }
-            }
+            bioModal.show();
         } else {
             // Disable
+            if (typeof window.showLoader === 'function') window.showLoader('Disabling...');
             await window.PinellasBiometrics.clear();
             this.classList.remove('active');
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             notify('Biometric login disabled', 'success');
+        }
+    });
+
+    bioForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const password = document.getElementById('bio_password').value;
+        if (!password) return;
+
+        bioModal.hide();
+        if (typeof window.showLoader === 'function') window.showLoader('Enrolling...');
+
+        const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
+        
+        if (typeof window.hideLoader === 'function') window.hideLoader();
+        document.getElementById('bio_password').value = '';
+
+        if (success) {
+            bioSwitch.classList.add('active');
+            notify('Biometric login enabled successfully', 'success');
+        } else {
+            notify('Failed to enable biometric login. Ensure your device has biometrics set up.', 'error');
         }
     });
 

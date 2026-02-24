@@ -12,6 +12,69 @@
     
     @stack('style')
     @yield('style')
+    <style>
+        /* Loading Overlay */
+        #global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #00549b;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            margin-top: 15px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            color: #00549b;
+            font-size: 14px;
+        }
+
+        .btn-loading-native {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .btn-loading-native::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-top: -10px;
+            margin-left: -10px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-right-color: transparent;
+            animation: rotation 1s linear infinite;
+        }
+    </style>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/notifications.js') }}"></script>
@@ -23,6 +86,10 @@
     'dark-theme' => session()->get('site-color-mode',setting('default_mode')) == 'dark',
     'rtl_mode' => $isRtl
 ]) style="overflow-x: hidden;">
+    <div id="global-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Processing...</div>
+    </div>
 
 @include('global._notify')
 
@@ -245,6 +312,42 @@
 @stack('js')
 @yield('script')
     <script>
+        // Global Loading Logic
+        window.showLoader = function(text = 'Processing...') {
+            document.querySelector('.loader-text').textContent = text;
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        };
+
+        window.hideLoader = function() {
+            const loader = document.getElementById('global-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 300);
+        };
+
+        // UI Safeguards
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.getAttribute('data-submitting') === 'true') {
+                e.preventDefault();
+                return;
+            }
+            form.setAttribute('data-submitting', 'true');
+            showLoader();
+        });
+
+        // Session Refresh (Prevent 419)
+        function refreshSession() {
+            fetch('/heartbeat', { method: 'GET' }).catch(() => {});
+        }
+        setInterval(refreshSession, 300000); // Every 5 minutes
+
+        window.addEventListener('pageshow', function() {
+            hideLoader();
+            document.querySelectorAll('form').forEach(f => f.removeAttribute('data-submitting'));
+        });
+
         (function() {
             var pageLoaded = false;
             var timerFinished = false;
