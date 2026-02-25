@@ -150,11 +150,15 @@ trait NotifyTrait
 
                 Notification::create($data);
 
-                // Internal Socket Event
-                $pusher_credentials = config('broadcasting.connections.pusher');
-                if ($pusher_credentials) {
-                    $uID = $template->for == 'Admin' ? '' : $userId;
-                    event(new NotificationEvent($template->for, $data, $uID));
+                // Internal Socket Event (Pusher)
+                try {
+                    $pusher_credentials = config('broadcasting.connections.pusher');
+                    if ($pusher_credentials) {
+                        $uID = $template->for == 'Admin' ? '' : $userId;
+                        event(new NotificationEvent($template->for, $data, $uID));
+                    }
+                } catch (Exception $e) {
+                    \Log::warning("Pusher broadcast failed (continuing to FCM): " . $e->getMessage());
                 }
 
                 // Native Push via FCM
@@ -172,6 +176,7 @@ trait NotifyTrait
      */
     protected function sendFcmPush($token, $title, $body, $action = null)
     {
+        \Log::info("FCM: Attempting to send push to token: " . substr($token, 0, 10) . "...");
         $accessToken = $this->getFcmAccessToken();
         if (!$accessToken) {
             \Log::error("FCM: Failed to get access token");
