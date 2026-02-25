@@ -38,11 +38,11 @@ const PinellasNotifications = {
     setupListeners() {
         this.plugin.addListener('registration', (token) => {
             console.log('Push Registration Success. Token:', token.value);
-            const oldToken = localStorage.getItem('push_token');
-            if (oldToken !== token.value) {
-                localStorage.setItem('push_token', token.value);
-                this.sendTokenToServer(token.value);
-            }
+
+            // Always sync to server to ensure database is up-to-date
+            // We still store in localStorage for local reference
+            localStorage.setItem('push_token', token.value);
+            this.sendTokenToServer(token.value);
         });
 
         this.plugin.addListener('registrationError', (error) => {
