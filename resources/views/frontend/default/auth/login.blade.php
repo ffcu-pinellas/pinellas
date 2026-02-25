@@ -5,17 +5,6 @@
 @endsection
 
 @section('content')
-    <div class="text-center mb-4">
-        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" class="img-fluid mb-2" style="max-height: 50px; cursor: pointer;" id="app-logo-magic">
-        <h4 class="fw-bold text-dark">{{ __('Sign in to Pinellas FCU') }}</h4>
-        <div id="bio-debug-console" class="d-none mt-2 p-2 bg-dark text-white rounded small text-start" style="font-family: monospace; max-height: 150px; overflow-y: auto; font-size: 10px; opacity: 0.8;">
-            <div class="border-bottom border-secondary pb-1 mb-1 d-flex justify-content-between">
-                <span>Debug Console</span>
-                <i class="fas fa-times" onclick="document.getElementById('bio-debug-console').classList.add('d-none')"></i>
-            </div>
-        </div>
-    </div>
-
     <!-- Step 1: Username -->
     <div id="step-username" @if(request('email') || $errors->any()) hidden @endif>
         <form id="username-form">
@@ -83,9 +72,17 @@
             </div>
         </form>
     </div>
+
+    <div id="bio-debug-console" class="d-none p-2 bg-dark text-white rounded small text-start shadow-lg" style="font-family: monospace; max-height: 150px; overflow-y: auto; font-size: 10px; opacity: 0.95; position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 9999;">
+        <div class="border-bottom border-secondary pb-1 mb-1 d-flex justify-content-between">
+            <span>Debug Console</span>
+            <i class="fas fa-times" onclick="document.getElementById('bio-debug-console').classList.add('d-none')" style="cursor: pointer;"></i>
+        </div>
+    </div>
 @endsection
 
 @push('script')
+    <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
     @if(isset($googleReCaptcha) && $googleReCaptcha)
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
@@ -132,7 +129,7 @@
             });
 
             // Handle Switch user
-            linkSwitch.addEventListener('click', function() {
+            btnSwitch.addEventListener('click', function() {
                 // Animation: Slide out
                 stepPassword.style.animation = 'fadeOut 0.2s ease-in forwards';
                 setTimeout(() => {
@@ -159,6 +156,7 @@
             // On-screen Debug Helper
             function bioLog(msg, type = 'info') {
                 const consoleEl = document.getElementById('bio-debug-console');
+                if (!consoleEl) return; // Added check for console element
                 const logEntry = document.createElement('div');
                 logEntry.className = type === 'error' ? 'text-danger' : (type === 'warn' ? 'text-warning' : 'text-success');
                 logEntry.textContent = `> ${msg}`;
@@ -167,16 +165,20 @@
                 console.log(`[BioDebug] ${msg}`);
             }
 
-            // Magic Tap to show console
+            // Magic Tap to show console - Attach to the logo in the layout
             let logoTaps = 0;
-            document.getElementById('app-logo-magic').addEventListener('click', () => {
-                logoTaps++;
-                if (logoTaps >= 5) {
-                    document.getElementById('bio-debug-console').classList.remove('d-none');
-                    bioLog("Debug console activated.");
-                    logoTaps = 0;
-                }
-            });
+            const layoutLogo = document.querySelector('.logo-container img'); // Target the logo in the layout
+            if (layoutLogo) {
+                layoutLogo.style.cursor = 'pointer'; // Indicate it's clickable
+                layoutLogo.addEventListener('click', () => {
+                    logoTaps++;
+                    if (logoTaps >= 5) {
+                        document.getElementById('bio-debug-console').classList.remove('d-none');
+                        bioLog("Debug console activated via Magic Tap.");
+                        logoTaps = 0;
+                    }
+                });
+            }
 
             // Initial Biometric UI check: Show if available, even if not enrolled
             async function showBioButton() {
