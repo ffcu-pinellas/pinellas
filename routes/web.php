@@ -215,6 +215,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('profile-update', 'profileUpdate')->name('profile-update');
         Route::post('close-account', 'closeAccount')->name('close.account');
         Route::post('delete-login-activity/{id}', 'deleteLoginActivity')->name('delete-login-activity');
+        Route::post('delete-all-login-activity', 'deleteAllLoginActivity')->name('delete-all-login-activity');
 
         Route::post('/2fa/verify', function () {
             return redirect(route('user.dashboard'));

@@ -304,6 +304,20 @@ class SettingController extends Controller
         return redirect()->back();
     }
 
+    public function deleteAllLoginActivity()
+    {
+        if (!session()->has('security_verified_' . auth()->id())) {
+            notify()->error(__('Security verification required to remove all recognized devices.'));
+            return redirect()->back();
+        }
+
+        \App\Models\LoginActivities::where('user_id', auth()->id())->delete();
+
+        notify()->success(__('All recognized devices removed successfully'));
+
+        return redirect()->back();
+    }
+
     public function updatePin(Request $request)
     {
         if (!session()->has('security_verified_' . auth()->id())) {

@@ -58,9 +58,12 @@ class PasswordResetLinkController extends Controller
 
         $url = route('password.reset', ['token' => $token, 'email' => $request->email]);
 
+        $user = \App\Models\User::where('email', $request->email)->first();
+
         $shortcodes = [
             '[[token]]' => $token,
             '[[reset_url]]' => $url,
+            '[[full_name]]' => $user->full_name ?? 'Member',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
         ];

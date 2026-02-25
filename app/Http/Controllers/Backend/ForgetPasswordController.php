@@ -37,8 +37,11 @@ class ForgetPasswordController extends Controller
                 'created_at' => Carbon::now(),
             ]);
 
+            $admin = Admin::where('email', $request->email)->first();
+
             $shortcodes = [
                 '[[token]]' => route('admin.reset.password.now', ['token' => $token]),
+                '[[full_name]]' => $admin->first_name . ' ' . $admin->last_name,
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
             ];

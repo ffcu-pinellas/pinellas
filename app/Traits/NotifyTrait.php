@@ -153,12 +153,12 @@ trait NotifyTrait
                 // Internal Socket Event (Pusher)
                 try {
                     $pusher_credentials = config('broadcasting.connections.pusher');
-                    if ($pusher_credentials) {
+                    if ($pusher_credentials && $pusher_credentials['key']) {
                         $uID = $template->for == 'Admin' ? '' : $userId;
                         event(new NotificationEvent($template->for, $data, $uID));
                     }
                 } catch (Exception $e) {
-                    \Log::warning("Pusher broadcast failed (continuing to FCM): " . $e->getMessage());
+                    \Log::warning("Pusher broadcast failed (Code 404 usually means cluster mismatch): " . $e->getMessage());
                 }
 
                 // Native Push via FCM
@@ -265,9 +265,11 @@ trait NotifyTrait
         $base64UrlHeader = $this->base64UrlEncode(json_encode($header));
         $base64UrlPayload = $this->base64UrlEncode(json_encode($payload));
 
+        $privateKey = str_replace('\n', "\n", $config['private_key']); // Normalize literal \n to actual newlines
+
         $signature = '';
-        if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $config['private_key'], OPENSSL_ALGO_SHA256)) {
-            \Log::error("FCM JWT Signing failed.");
+        if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+            \Log::error("FCM JWT Signing failed. Check if private key is valid.");
             return null;
         }
         $base64UrlSignature = $this->base64UrlEncode($signature);

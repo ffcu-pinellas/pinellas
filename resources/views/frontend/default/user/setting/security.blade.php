@@ -108,7 +108,15 @@
 
                 <!-- Recognized Devices -->
                 <div>
-                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Recognized devices</h6>
+                     <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                        <h6 class="fw-bold text-uppercase small text-muted mb-0">Recognized devices</h6>
+                        @if($recentDevices->count() > 1)
+                            <form action="{{ route('user.setting.delete-all-login-activity') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                                @csrf
+                                <button type="submit" class="btn btn-link text-danger text-decoration-none p-0 small fw-bold" style="font-size: 11px;">Remove all Devices</button>
+                            </form>
+                        @endif
+                     </div>
                      <div class="device-list">
                         @forelse($recentDevices as $device)
                             <div class="d-flex justify-content-between align-items-center mb-4">
