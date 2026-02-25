@@ -278,25 +278,33 @@ trait NotifyTrait
         $header = ['alg' => 'RS256', 'typ' => 'JWT'];
         $payload = [
             'iss' => $config['client_email'],
-            'scope' => 'https://www.googleapis.com/auth/cloud-platform',
-            'aud' => 'https://oauth2.googleapis.com/token',
+            // Official FCM specific scope
+            'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+            // Using v4 token endpoint for broader account compatibility
+            'aud' => 'https://www.googleapis.com/oauth2/v4/token',
             'iat' => $iat,
             'exp' => $exp,
         ];
 
-        $base64UrlHeader = $this->base64UrlEncode(json_encode($header, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
-        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $jsonOptions = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+        $base64UrlHeader = $this->base64UrlEncode(json_encode($header, $jsonOptions));
+        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, $jsonOptions));
 
-        \Log::debug("FCM JWT Debug - Time: " . time() . " | IAT: " . $iat . " | EXP: " . $exp);
+        \Log::debug("FCM JWT V4 Debug - Time: " . time() . " | IAT: " . $iat . " | EXP: " . $exp);
 
+        // Aggressive Private Key Scrubbing
         $privateKeyContent = $config['private_key'];
-        // Comprehensive normalization for diverse environments
-        $privateKeyContent = str_replace(['\\n', '\n', '\r'], ["\n", "\n", ""], $privateKeyContent);
+        // Remove literal \n text
+        $privateKeyContent = str_replace(['\\n', '\n', '\r'], "\n", $privateKeyContent);
+        // Extract content between BEGIN and END tags if they exist (standardizing PEM)
+        if (preg_match('/(-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----)/s', $privateKeyContent, $matches)) {
+            $privateKeyContent = $matches[1];
+        }
         $privateKeyContent = trim($privateKeyContent);
 
         $privateKey = openssl_get_privatekey($privateKeyContent);
         if (!$privateKey) {
-            \Log::error("FCM: Failed to parse private key. Ensure it is a valid RSA private key.");
+            \Log::error("FCM: Failed to parse private key. PEM format may be corrupted.");
             return null;
         }
 
@@ -306,7 +314,6 @@ trait NotifyTrait
             return null;
         }
         
-        // Free the key resource
         if (is_resource($privateKey) || (PHP_VERSION_ID >= 80000 && $privateKey instanceof \OpenSSLAsymmetricKey)) {
             openssl_free_key($privateKey);
         }
@@ -315,7 +322,7 @@ trait NotifyTrait
         $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+        curl_setopt($ch, CURLOPT_URL, 'https://www.googleapis.com/oauth2/v4/token');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
