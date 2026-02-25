@@ -173,7 +173,10 @@ trait NotifyTrait
     protected function sendFcmPush($token, $title, $body, $action = null)
     {
         $accessToken = $this->getFcmAccessToken();
-        if (!$accessToken) return;
+        if (!$accessToken) {
+            \Log::error("FCM: Failed to get access token");
+            return;
+        }
 
         $path = storage_path('app/fcm_service_account.json');
         $config = json_decode(file_get_contents($path), true);
@@ -221,7 +224,10 @@ trait NotifyTrait
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
         $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        \Log::info("FCM V1 Send Result (HTTP $httpCode): " . $result);
     }
 
     /**
@@ -270,10 +276,16 @@ trait NotifyTrait
             'assertion' => $jwt,
         ]));
         $result = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         $resData = json_decode($result, true);
-        return $resData['access_token'] ?? null;
+        if (isset($resData['access_token'])) {
+            return $resData['access_token'];
+        }
+
+        \Log::error("FCM: OAuth Token Exchange Failed (HTTP $httpCode): " . $result);
+        return null;
     }
 
     protected function base64UrlEncode($data)
