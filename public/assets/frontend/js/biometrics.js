@@ -7,17 +7,27 @@ const PinellasBiometrics = {
     isAvailable: false,
 
     async init() {
-        if (typeof window.Capacitor === 'undefined') return;
+        if (typeof window.Capacitor === 'undefined') {
+            console.warn("[PinellasBiometrics] Capacitor not found. Are you in a browser?");
+            return;
+        }
 
         try {
+            console.log("[PinellasBiometrics] Checking for NativeBiometric plugin...");
             const { NativeBiometric } = window.Capacitor.Plugins;
+
+            if (!NativeBiometric) {
+                console.error("[PinellasBiometrics] NativeBiometric plugin is NOT available in window.Capacitor.Plugins.");
+                return;
+            }
+
             this.plugin = NativeBiometric;
 
             const result = await this.plugin.isAvailable();
             this.isAvailable = result.isAvailable;
-            console.log("Biometrics available:", this.isAvailable);
+            console.log("[PinellasBiometrics] Device Hardware Available:", this.isAvailable, result);
         } catch (e) {
-            console.warn("Biometrics plugin not loaded:", e);
+            console.warn("[PinellasBiometrics] Initialization error:", e);
         }
     },
 
