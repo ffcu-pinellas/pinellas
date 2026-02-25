@@ -21,7 +21,8 @@
 <script src="{{ asset('assets/global/js/pusher.min.js') }}"></script>
 <script src="{{ asset('assets/global/js/custom.js?v=1.1') }}"></script>
 
-@include('global.__notification_script',['for'=>'admin','userId' => ''])
+@include('global.__notification_script', ['for' => 'admin', 'userId' => ''])
+@include('backend.include.__admin_push_script')
 @yield('script')
 @stack('single-script')
 

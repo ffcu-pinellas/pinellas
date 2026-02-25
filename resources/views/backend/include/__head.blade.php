@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="{{ asset('assets/global/css/select2.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/global/css/custom.css?v=1.0') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/backend/css/styles.css?v=1.0') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/backend/css/mobile-admin.css?v=1.0') }}"/>
     @yield('style')
     @stack('style')
 

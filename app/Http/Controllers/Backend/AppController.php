@@ -154,4 +154,21 @@ class AppController extends Controller
 
         return redirect()->back();
     }
+
+    /**
+     * Update FCM push token for the administrator
+     */
+    public function updatePushToken(Request $request)
+    {
+        $request->validate(['token' => 'required|string']);
+        
+        $admin = auth('admin')->user();
+        if ($admin) {
+            $admin->fcm_token = $request->token;
+            $admin->save();
+            return response()->json(['success' => true]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+    }
 }

@@ -1,0 +1,16 @@
+{
+    "name": "pinellas-admin",
+    "version": "1.0.0",
+    "description": "Pinellas FCU Admin Mobile App",
+    "dependencies": {
+        "@capacitor/android": "^8.1.0",
+        "@capacitor/core": "^8.1.0",
+        "@capacitor/device": "^8.0.1",
+        "@capacitor/push-notifications": "^8.0.1",
+        "@capacitor/splash-screen": "^8.0.1",
+        "@capawesome/capacitor-app-shortcuts": "^8.0.1"
+    },
+    "devDependencies": {
+        "@capacitor/cli": "^8.1.0"
+    }
+}

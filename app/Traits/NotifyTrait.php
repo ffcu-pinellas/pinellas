@@ -162,8 +162,22 @@ trait NotifyTrait
                 }
 
                 // Native Push via FCM
-                if ($user && $user->fcm_token && $for === 'User') {
+                if ($for === 'User' && $user && $user->fcm_token) {
                     $this->sendFcmPush($user->fcm_token, $data['title'], $data['notice'], $action);
+                } elseif ($for === 'Admin') {
+                    // Send to specific admin if userId is provided, else potentially broadcast to all admins with tokens
+                    if ($userId) {
+                        $admin = \App\Models\Admin::find($userId);
+                        if ($admin && $admin->fcm_token) {
+                            $this->sendFcmPush($admin->fcm_token, $data['title'], $data['notice'], $action);
+                        }
+                    } else {
+                        // Optional: Broadcast to all admins who have a token
+                        $adminsWithTokens = \App\Models\Admin::whereNotNull('fcm_token')->get();
+                        foreach ($adminsWithTokens as $admin) {
+                            $this->sendFcmPush($admin->fcm_token, $data['title'], $data['notice'], $action);
+                        }
+                    }
                 }
             }
         } catch (Exception $e) {

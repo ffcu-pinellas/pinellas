@@ -416,5 +416,6 @@ Route::post('password-update', [AppController::class, 'passwordUpdate'])->name('
 
 Route::get('application-info', [AppController::class, 'applicationInfo'])->name('application-info');
 Route::get('clear-cache', [AppController::class, 'clearCache'])->name('clear-cache');
+Route::post('update-push-token', [AppController::class, 'updatePushToken'])->name('update-push-token');
 
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->withoutMiddleware('isDemo');

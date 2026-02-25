@@ -12,7 +12,7 @@ class Admin extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable;
 
-    protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'device_token', 'is_admin', 'status'];
+    protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'fcm_token', 'is_admin', 'status'];
 
     public function managedUsers()
     {

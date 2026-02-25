@@ -1,0 +1,48 @@
+{
+    "project_info": {
+        "project_number": "532242870289",
+        "project_id": "pinellas-mobile-app-de602",
+        "storage_bucket": "pinellas-mobile-app-de602.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:532242870289:android:bfb7c87895e69cf69401b0",
+                "android_client_info": {
+                    "package_name": "com.pfcumobile.admin"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyAls_w2FxKa_4nScctdQ6sA7XbgdiCovpo"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        },
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:532242870289:android:68ded8e32e1ed1049401b0",
+                "android_client_info": {
+                    "package_name": "com.pfcumobile.app"
+                }
+            },
+            "oauth_client": [],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyAls_w2FxKa_4nScctdQ6sA7XbgdiCovpo"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": []
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}
