@@ -266,8 +266,6 @@
             font-weight: 700;
         }
 
-        @stack('style')
-
         /* Loading Overlay */
         #global-loader {
             position: fixed;
@@ -332,6 +330,7 @@
             animation: rotation 1s linear infinite;
         }
     </style>
+    @stack('style')
 </head>
 <body>
     <div id="global-loader">

@@ -55,25 +55,32 @@ const PinellasBiometrics = {
         if (!this.isAvailable) return;
 
         try {
-            if (typeof window.bioLog === 'function') window.bioLog("Starting secure auth flow...");
+            if (typeof window.bioLog === 'function') window.bioLog("Securing identity...");
 
-            // For v8+ of Capgo plugin: getCredentials handles the prompt itself 
-            // if credentials were set with requireAuthentication: true.
-            const credentials = await this.plugin.getCredentials({
-                server: "pinellascu.com",
-                reason: "Sign in to Pinellas Federal Credit Union",
+            // Step 1: Explicit Verify Identity (triggers the OS dialog)
+            await this.plugin.verifyIdentity({
+                reason: "Identify yourself to sign in securely.",
                 title: "Biometric Login",
+                subtitle: "Pinellas FCU Security",
             });
 
-            if (typeof window.bioLog === 'function') window.bioLog("Credentials retrieved successfully.");
+            if (typeof window.bioLog === 'function') window.bioLog("Identity confirmed. Accessing vault...");
+
+            // Step 2: Retrieve Credentials
+            const credentials = await this.plugin.getCredentials({
+                server: "pinellascu.com",
+            });
+
+            if (typeof window.bioLog === 'function') window.bioLog("Access granted.");
             return credentials;
         } catch (e) {
-            console.warn("[PinellasBiometrics] Authentication error:", e);
+            console.warn("[PinellasBiometrics] Auth Error:", e);
+            const errMsg = e.message || "User cancelled";
+
             if (typeof window.bioLog === 'function') {
-                const errMsg = e.message || "Unknown Error";
-                window.bioLog("Auth error: " + errMsg, "warn");
-                if (errMsg.includes("crypto")) {
-                    window.bioLog("TIP: Please re-enroll biometrics after rebuilding app.", "info");
+                window.bioLog("Auth Status: " + errMsg, "warn");
+                if (errMsg.toLowerCase().includes("crypto") || errMsg.toLowerCase().includes("keystore")) {
+                    window.bioLog("ACTION REQUIRED: Go to Settings -> Turn Biometrics OFF then ON to refresh security keys.", "error");
                 }
             }
             return null;

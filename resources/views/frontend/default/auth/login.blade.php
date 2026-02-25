@@ -13,26 +13,28 @@
         gap: 5px;
     }
     .biometric-btn {
-        width: 48px;
-        height: 48px;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 12px;
+        width: 52px;
+        height: 52px;
+        background-color: var(--secondary-page-background-color);
+        border: 2px solid var(--body-text-theme-color);
+        border-radius: 14px;
         display: none; /* Controlled by JS showBioButton */
         align-items: center;
         justify-content: center;
         color: var(--body-text-theme-color);
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         padding: 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .biometric-btn:hover {
-        background-color: #e9ecef;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        background-color: var(--body-text-theme-color);
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 84, 155, 0.3);
     }
     .biometric-btn i {
-        font-size: 24px;
+        font-size: 26px;
     }
     .biometric-label {
         font-size: 10px;
@@ -65,9 +67,9 @@
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <div class="biometric-btn-container" id="bio-container-step1" style="display: none;">
                         <button type="button" class="biometric-btn" id="btn-biometric-login-step1" title="Sign in with Biometrics">
-                            <i class="fas fa-fingerprint"></i>
+                            <i class="fa-solid fa-fingerprint"></i>
                         </button>
-                        <span class="biometric-label">Bio Sign-in</span>
+                        <span class="biometric-label">FaceID/Fingerprint</span>
                     </div>
                     <button type="button" id="btn-continue" class="primary-btn">Continue</button>
                 </div>
