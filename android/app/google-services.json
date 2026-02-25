@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "238078273572",
-    "project_id": "pinellas-mobile-app",
-    "storage_bucket": "pinellas-mobile-app.firebasestorage.app"
+    "project_number": "532242870289",
+    "project_id": "pinellas-mobile-app-de602",
+    "storage_bucket": "pinellas-mobile-app-de602.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:238078273572:android:c099ed29260ba2f2ad10b1",
+        "mobilesdk_app_id": "1:532242870289:android:68ded8e32e1ed1049401b0",
         "android_client_info": {
-          "package_name": "com.pinellasfcu.app"
+          "package_name": "com.pfcumobile.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCRzQvm8PuqBUL86Wauwz0nL7Ktv_sl0W0"
+          "current_key": "AIzaSyAls_w2FxKa_4nScctdQ6sA7XbgdiCovpo"
         }
       ],
       "services": {

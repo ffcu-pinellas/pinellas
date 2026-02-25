@@ -168,29 +168,48 @@ trait NotifyTrait
     }
 
     /**
-     * Send Native FCM Push
+     * Send Native FCM Push (V1)
      */
     protected function sendFcmPush($token, $title, $body, $action = null)
     {
-        $fcmKey = env('FCM_SERVER_KEY'); // Legacy Server Key if using legacy API
-        if (!$fcmKey) return;
+        $accessToken = $this->getFcmAccessToken();
+        if (!$accessToken) return;
 
-        $url = 'https://fcm.googleapis.com/fcm/send';
+        $path = storage_path('app/fcm_service_account.json');
+        $config = json_decode(file_get_contents($path), true);
+        $projectId = $config['project_id'];
+
+        $url = "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
+
         $fields = [
-            'to' => $token,
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-                'sound' => 'default',
-                'click_action' => $action ?: 'FCM_PLUGIN_ACTIVITY',
-            ],
-            'data' => [
-                'action_url' => $action,
+            'message' => [
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => [
+                    'action_url' => (string)$action,
+                    'click_action' => 'FCM_PLUGIN_ACTIVITY',
+                ],
+                'android' => [
+                   'notification' => [
+                       'click_action' => 'FCM_PLUGIN_ACTIVITY',
+                       'sound' => 'default'
+                   ]
+                ],
+                'apns' => [
+                    'payload' => [
+                        'aps' => [
+                            'sound' => 'default'
+                        ]
+                    ]
+                ]
             ]
         ];
 
         $headers = [
-            'Authorization: key=' . $fcmKey,
+            'Authorization: Bearer ' . $accessToken,
             'Content-Type: application/json'
         ];
 
@@ -203,6 +222,63 @@ trait NotifyTrait
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
         $result = curl_exec($ch);
         curl_close($ch);
+    }
+
+    /**
+     * Generate OAuth 2.0 Access Token for FCM V1
+     */
+    protected function getFcmAccessToken()
+    {
+        $path = storage_path('app/fcm_service_account.json');
+        if (!file_exists($path)) {
+            \Log::error("FCM Service Account JSON not found at: $path");
+            return null;
+        }
+
+        $config = json_decode(file_get_contents($path), true);
+        $now = time();
+        
+        $header = ['alg' => 'RS256', 'typ' => 'JWT'];
+        $payload = [
+            'iss' => $config['client_email'],
+            'scope' => 'https://www.googleapis.com/auth/cloud-platform',
+            'aud' => 'https://oauth2.googleapis.com/token',
+            'iat' => $now,
+            'exp' => $now + 3600,
+        ];
+
+        $base64UrlHeader = $this->base64UrlEncode(json_encode($header));
+        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload));
+
+        $signature = '';
+        if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $config['private_key'], OPENSSL_ALGO_SHA256)) {
+            \Log::error("FCM JWT Signing failed.");
+            return null;
+        }
+        $base64UrlSignature = $this->base64UrlEncode($signature);
+
+        $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion' => $jwt,
+        ]));
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        $resData = json_decode($result, true);
+        return $resData['access_token'] ?? null;
+    }
+
+    protected function base64UrlEncode($data)
+    {
+        return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
     }
 
     // ============================= sms notification template helper ===================================================
