@@ -183,7 +183,11 @@ trait NotifyTrait
             return;
         }
 
-        $path = storage_path('app/fcm_service_account.json');
+        $path = base_path('fcm_config/fcm_service_account.json');
+        if (!file_exists($path)) {
+            \Log::error("FCM: Service Account JSON missing at base path: $path");
+            return;
+        }
         $config = json_decode(file_get_contents($path), true);
         $projectId = $config['project_id'];
 
@@ -240,9 +244,9 @@ trait NotifyTrait
      */
     protected function getFcmAccessToken()
     {
-        $path = storage_path('app/fcm_service_account.json');
+        $path = base_path('fcm_config/fcm_service_account.json');
         if (!file_exists($path)) {
-            \Log::error("FCM Service Account JSON not found at: $path");
+            \Log::error("FCM Service Account JSON not found at BASE: $path");
             return null;
         }
 
