@@ -101,32 +101,74 @@
         </form>
     </div>
 
-    <!-- Camera Modal -->
+    <!-- Professional Scanner Modal -->
     <div class="modal fade" id="cameraModal" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content overflow-hidden" style="background: #000; border: none;">
-                <div class="modal-header border-0 position-absolute top-0 start-0 w-100 d-flex justify-content-between align-items-center" style="z-index: 10;">
-                    <h5 class="modal-title text-white">Capture Check</h5>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="triggerUploadFallback()" style="font-size: 11px; background: rgba(0,0,0,0.3);">
-                            Camera won't start?
+            <div class="modal-content overflow-hidden border-0" style="background: #000;">
+                <!-- Header Overlay -->
+                <div class="scanner-header position-absolute top-0 start-0 w-100 d-flex justify-content-between align-items-center p-3" style="z-index: 101;">
+                    <div class="text-white">
+                        <h6 class="mb-0 fw-bold" id="scanner-title">Front of Check</h6>
+                        <small class="opacity-75" id="scanner-subtitle">Align within brackets</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+                </div>
+
+                <!-- Scanner Viewport -->
+                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 80vh;">
+                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-cover"></video>
+                    
+                    <!-- Scanner Overlay -->
+                    <div class="scanner-overlay position-absolute top-0 start-0 w-100 h-100 pointer-events-none">
+                        <!-- Dark Edges (Hole punched for center) -->
+                        <div class="scanner-mask"></div>
+                        
+                        <!-- Alignment Brackets -->
+                        <div class="scanner-lens">
+                            <div class="bracket top-left"></div>
+                            <div class="bracket top-right"></div>
+                            <div class="bracket bottom-left"></div>
+                            <div class="bracket bottom-right"></div>
+                            
+                            <!-- Scanning Line -->
+                            <div class="scanner-line"></div>
+                        </div>
+
+                        <!-- Real-time Instruction -->
+                        <div class="scanner-instruction position-absolute w-100 text-center" style="bottom: 20%;">
+                            <div class="d-inline-block px-4 py-2 rounded-pill bg-dark bg-opacity-75 text-white shadow-lg border border-light border-opacity-10" id="scanner-feedback">
+                                <i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shutter Flash -->
+                    <div id="shutter-flash" class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="z-index: 110; display: none;"></div>
+                </div>
+
+                <!-- Controls -->
+                <div class="modal-footer border-0 justify-content-center bg-dark p-4 position-relative" style="z-index: 105;">
+                    <div class="d-flex align-items-center gap-5">
+                        <button type="button" class="btn btn-link text-white text-decoration-none" onclick="triggerUploadFallback()">
+                            <i class="fas fa-file-upload fa-lg"></i><br>
+                            <small class="opacity-75">Upload</small>
                         </button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+
+                        <div class="shutter-container">
+                            <button type="button" class="btn btn-light rounded-circle shutter-btn shadow-lg" id="btn-snapshot" onclick="takeSnapshot()">
+                                <div class="shutter-inner"></div>
+                            </button>
+                            <!-- Countdown Spinner -->
+                            <svg class="countdown-svg d-none" viewBox="0 0 80 80">
+                                <circle cx="40" cy="40" r="36" />
+                            </svg>
+                        </div>
+
+                        <button type="button" class="btn btn-link text-white text-decoration-none" onclick="toggleFlash()">
+                            <i class="fas fa-bolt fa-lg" id="flash-icon"></i><br>
+                            <small class="opacity-75">Flash</small>
+                        </button>
                     </div>
-                </div>
-                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 50vh;">
-                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-contain"></video>
-                    <div class="camera-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none">
-                         <div class="check-guide" style="width: 85%; height: 50%; border: 2px dashed rgba(255,255,255,0.6); border-radius: 15px;"></div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 justify-content-center bg-dark p-4">
-                    <button type="button" class="btn btn-light rounded-circle p-3 shadow-lg" onclick="takeSnapshot()" style="width: 70px; height: 70px;">
-                        <i class="fas fa-camera fa-2x"></i>
-                    </button>
-                    <button type="button" class="btn btn-link text-white text-decoration-none position-absolute start-0 ms-3" onclick="triggerUploadFallback()">
-                        <i class="fas fa-upload me-1"></i> Upload
-                    </button>
                 </div>
             </div>
         </div>
@@ -194,27 +236,98 @@
 
 @section('style')
 <style>
-    .fw-600 { font-weight: 600; }
-    .deposit-capture-box { cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-    .deposit-capture-box:active { transform: scale(0.97); }
-    .deposit-capture-box:hover {
-        border-color: #00549b !important;
-        background-color: #f0f7ff !important;
-    }
-    .check-guide {
-        box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
-    }
-    .native-capture-fallback {
+    .scanner-mask {
         position: absolute;
-        width: 1px;
-        height: 1px;
+        width: 100%;
+        height: 100%;
+        box-shadow: inset 0 0 0 2000px rgba(0,0,0,0.6);
+        z-index: 100;
+    }
+    .scanner-lens {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%;
+        height: 50%;
+        z-index: 101;
+        pointer-events: none;
+    }
+    .bracket {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border: 4px solid #fff;
+        border-radius: 4px;
+    }
+    .top-left { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+    .top-right { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+    .bottom-left { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+    .bottom-right { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+
+    .scanner-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: rgba(0, 174, 239, 0.5);
+        box-shadow: 0 0 15px #00aeef;
+        top: 0;
+        animation: scan 3s linear infinite;
+    }
+    @keyframes scan {
+        0% { top: 0; }
+        50% { top: 100%; }
+        100% { top: 0; }
+    }
+
+    .shutter-btn {
+        width: 75px;
+        height: 75px;
         padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-        opacity: 0;
+        border: 4px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    .shutter-btn:active { transform: scale(0.9); }
+    .shutter-inner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid #000;
+    }
+
+    .countdown-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 75px;
+        height: 75px;
+        transform: rotate(-90deg);
+        pointer-events: none;
+    }
+    .countdown-svg circle {
+        fill: none;
+        stroke: #00aeef;
+        stroke-width: 4;
+        stroke-dasharray: 226;
+        stroke-dashoffset: 226;
+        transition: stroke-dashoffset 3s linear;
+    }
+    .counting .countdown-svg circle {
+        stroke-dashoffset: 0;
+    }
+
+    @keyframes flash {
+        0% { opacity: 0; }
+        50% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    .flash-animate {
+        display: block !important;
+        animation: flash 0.2s ease-out;
     }
 </style>
 @endsection
@@ -223,135 +336,101 @@
 <script>
     let currentSide = null;
     let stream = null;
+    let autoSnapTimer = null;
     const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
     
-    // Robust iOS/iPadOS detection
-    const isIOS = [
-        'iPad Simulator',
-        'iPhone Simulator',
-        'iPod Simulator',
-        'iPad',
-        'iPhone',
-        'iPod'
-    ].includes(navigator.platform)
-    // iPad on iOS 13 detection
-    || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
+    // Robust context detection
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
+    const isNativeApp = !!window.Capacitor;
 
-    // DuckDuckGo or In-App Browser detection
-    const isRestrictedBrowser = /DuckDuckGo|FBAN|FBAV|Instagram|LinkedInApp/.test(navigator.userAgent);
-
-    let isCameraOpening = false;
     function openCamera(side) {
-        if (isCameraOpening) return;
-        isCameraOpening = true;
         currentSide = side;
         
-        // Immediate fallback if mediaDevices API is missing
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.warn("Camera API not supported. Falling back.");
+        // Update labels
+        document.getElementById('scanner-title').textContent = (side === 'front' ? 'Front of Check' : 'Back of Check');
+        document.getElementById('scanner-subtitle').textContent = (side === 'front' ? 'Place on dark, flat surface' : 'Ensure endorsement is visible');
+        document.getElementById('scanner-feedback').innerHTML = '<i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady';
+
+        // Fallback for non-supported or iOS (native picker is better for iOS Safari)
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || (isIOS && !isNativeApp)) {
             document.getElementById(side + '_image_file').click();
-            isCameraOpening = false;
             return;
         }
 
-        // Force fallback for restricted browsers (DuckDuckGo, FB, etc)
-        if (isRestrictedBrowser) {
-            console.warn("Restricted browser detected. Using native picker.");
-            document.getElementById(side + '_image_file').click();
-            isCameraOpening = false;
-            return;
-        }
-
-        if (isIOS) {
-            console.log("iOS detected. Using native capture.");
-            document.getElementById(side + '_image_file').click();
-            isCameraOpening = false;
-            return;
-        }
-
-        stopCamera();
         cameraModal.show();
-        
-        // Start stream immediately for Android context
         startCameraStream();
-        
-        // Reset guard after short delay
-        setTimeout(() => { isCameraOpening = false; }, 1000);
     }
 
     async function startCameraStream() {
         const video = document.getElementById('videoStream');
-        let watchdogTimer = null;
         
         const constraints = {
             video: { 
                 facingMode: 'environment',
                 width: { ideal: 1920 },
                 height: { ideal: 1080 }
-            },
-            audio: false
-        };
-
-        // Watchdog: If video doesn't start with valid dimensions in 5 seconds, fallback
-        watchdogTimer = setTimeout(() => {
-            if (video && (video.videoWidth === 0 || video.paused)) {
-                console.warn("Camera watchdog triggered: Video stream stalled. Falling back.");
-                triggerUploadFallback();
             }
-        }, 5000);
+        };
 
         try {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = stream;
             
             video.onloadedmetadata = () => {
-                // CLEAR WATCHDOG ON SUCCESS
-                if (watchdogTimer) clearTimeout(watchdogTimer);
-                
-                video.play().then(() => {
-                    console.log("Stream playing successfully");
-                }).catch(e => {
-                    console.warn("Video play error:", e);
-                    triggerUploadFallback();
-                });
+                video.play();
+                // Start Auto-Snap logic after a short settlement delay
+                clearTimeout(autoSnapTimer);
+                autoSnapTimer = setTimeout(startAutoSnapCountdown, 1500);
             };
         } catch (err) {
-            console.error("Camera error:", err);
-            if (watchdogTimer) clearTimeout(watchdogTimer);
+            console.error("Camera access denied:", err);
             triggerUploadFallback();
         }
     }
 
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => {
-                track.stop();
-                console.log("Track stopped:", track.label);
-            });
-            stream = null;
-        }
-        const video = document.getElementById('videoStream');
-        if (video) video.srcObject = null;
+    function startAutoSnapCountdown() {
+        const feedback = document.getElementById('scanner-feedback');
+        const container = document.querySelector('.shutter-container');
+        
+        feedback.innerHTML = '<i class="fas fa-hourglass-half me-2 text-warning border-0"></i> Capturing in 3s... Hold Steady';
+        container.classList.add('counting');
+        
+        setTimeout(() => {
+            if (cameraModal._isShown) takeSnapshot();
+        }, 3000);
     }
 
-    // Modal hide event to ensure camera stops
-    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', stopCamera);
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        clearTimeout(autoSnapTimer);
+        document.querySelector('.shutter-container').classList.remove('counting');
+    }
 
     function takeSnapshot() {
         const video = document.getElementById('videoStream');
         const canvas = document.getElementById('snapshotCanvas');
-        const context = canvas.getContext('2d');
+        const flash = document.getElementById('shutter-flash');
+        
+        // Shutter effect
+        flash.classList.add('flash-animate');
+        setTimeout(() => flash.classList.remove('flash-animate'), 200);
 
-        // Capture at high resolution
+        // Haptic feedback (If native)
+        if (window.Capacitor && window.Capacitor.isPluginAvailable('Haptics')) {
+            window.Capacitor.Plugins.Haptics.impact({ style: 'heavy' });
+        }
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.getContext('2d').drawImage(video, 0, 0);
 
-        // Compress and Convert to Base64
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         document.getElementById(currentSide + '_image_base64').value = dataUrl;
         
-        // Update UI Preview
+        // Update UI
         const previewImg = document.getElementById(currentSide + '_preview');
         const previewContainer = document.getElementById(currentSide + '_preview_container');
         previewImg.src = dataUrl;
@@ -369,6 +448,21 @@
         stopCamera();
     }
 
+    function toggleFlash() {
+        const icon = document.getElementById('flash-icon');
+        if (stream) {
+            const track = stream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            if (capabilities.torch) {
+                const isFlashOn = track.getSettings().torch;
+                track.applyConstraints({ advanced: [{ torch: !isFlashOn }] });
+                icon.className = !isFlashOn ? 'fas fa-bolt fa-lg text-warning' : 'fas fa-bolt fa-lg';
+            } else {
+                notify('Flash not supported on this lens', 'info');
+            }
+        }
+    }
+
     function triggerUploadFallback() {
         const side = currentSide || 'front';
         cameraModal.hide();
@@ -376,27 +470,25 @@
         document.getElementById(side + '_image_file').click();
     }
 
-    // Manual Upload Preview Logic
-    ['front', 'back'].forEach(side => {
-        document.getElementById(side + '_image_file').addEventListener('change', function(e) {
-            if (this.files && this.files[0]) {
-                // Clear any base64 if user switches to manual upload
-                document.getElementById(side + '_image_base64').value = '';
+    // Modal hide safety
+    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', stopCamera);
 
+    // Manual Upload logic maintained
+    ['front', 'back'].forEach(side => {
+        document.getElementById(side + '_image_file').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(event) {
+                reader.onload = (e) => {
+                    document.getElementById(side + '_image_base64').value = '';
                     const previewImg = document.getElementById(side + '_preview');
                     const previewContainer = document.getElementById(side + '_preview_container');
-                    previewImg.src = event.target.result;
+                    previewImg.src = e.target.result;
                     previewContainer.classList.remove('d-none');
-                    
                     const box = previewContainer.closest('.deposit-capture-box');
                     box.style.borderColor = '#28a745';
-                    box.style.background = '#f8fff9';
-                    
-                    const statusText = box.querySelector('.status-text');
-                    statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Uploaded <a href="javascript:void(0)" onclick="event.stopPropagation(); triggerUploadFallback()" class="ms-2 small text-decoration-underline text-success">Retake</a>';
-                    statusText.classList.replace('text-muted', 'text-success');
+                    const st = box.querySelector('.status-text');
+                    st.innerHTML = '<i class="fas fa-check-circle me-1"></i> Uploaded <a href="javascript:void(0)" onclick="event.stopPropagation(); triggerUploadFallback()" class="ms-2 small text-decoration-underline text-success">Retake</a>';
+                    st.classList.replace('text-muted', 'text-success');
                 };
                 reader.readAsDataURL(this.files[0]);
             }

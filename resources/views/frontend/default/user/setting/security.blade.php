@@ -250,6 +250,38 @@
         </div>
     </div>
 </div>
+
+<!-- Biometric Enrollment Modal -->
+<div class="modal fade" id="biometricEnrollModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0">
+                <div class="w-100 text-center pt-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                        <i class="fas fa-fingerprint fa-2x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark px-3">Enable Face ID/Fingerprint Login</h5>
+                </div>
+                <button type="button" class="btn-close me-2 mt-2 position-absolute" style="top: 15px; right: 15px;" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="bioEnrollForm">
+                @csrf
+                <div class="modal-body p-4 text-center">
+                    <p class="small text-muted mb-4">Please enter your account password to confirm your identity and enable biometric authentication on this device.</p>
+                    
+                    <div class="mb-3 text-start">
+                        <label class="form-label small fw-bold text-uppercase">Password</label>
+                        <input type="password" class="form-control" id="bio_password" placeholder="Confirm your password" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">Confirm & Enable</button>
+                    <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Maybe Later</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('style')

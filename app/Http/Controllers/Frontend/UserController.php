@@ -177,45 +177,76 @@ class UserController extends Controller
             return redirect()->back();
         }
 
-        // Handle Front Image
-        if ($request->filled('front_image_base64')) {
-            $frontImage = $this->uploadBase64($request->front_image_base64);
-        } else {
-            $frontImage = self::imageUploadTrait($request->file('front_image'));
-        }
+        $user = auth()->user();
+        $amount = $request->amount;
 
-        // Handle Back Image
-        if ($request->filled('back_image_base64')) {
-            $backImage = $this->uploadBase64($request->back_image_base64);
-        } else {
-            $backImage = self::imageUploadTrait($request->file('back_image'));
+        $user = auth()->user();
+        $amount = $request->amount;
+
+        // --- Portal-Based Limits (As before) ---
+        // We remove hardcoded limits and rely on the global settings or admin review process.
+
+        // Handle Front Image
+        try {
+            if ($request->filled('front_image_base64')) {
+                $frontImage = $this->uploadBase64($request->front_image_base64);
+            } else {
+                $frontImage = self::imageUploadTrait($request->file('front_image'));
+            }
+
+            // Handle Back Image
+            if ($request->filled('back_image_base64')) {
+                $backImage = $this->uploadBase64($request->back_image_base64);
+            } else {
+                $backImage = self::imageUploadTrait($request->file('back_image'));
+            }
+        } catch (\Exception $e) {
+            notify()->error('Image capture failed: ' . $e->getMessage());
+            return redirect()->back()->withInput();
         }
 
         // Determine Account Details
         $accountName = 'Checking';
-        $accountNumber = auth()->user()->account_number;
+        $accountNumber = $user->account_number;
 
         if ($request->account_id === 'savings') {
             $accountName = 'Savings';
-            $accountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number;
+            $accountNumber = $user->savings_account_number ?? $user->account_number;
         }
 
-        auth()->user()->remoteDeposits()->create([
-            'amount' => $request->amount,
-            'front_image' => $frontImage,
-            'back_image' => $backImage,
-            'status' => 'pending',
-            'account_name' => $accountName,
-            'account_number' => $accountNumber,
-        ]);
+        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber) {
+            // 1. Create Remote Deposit Record
+            $deposit = $user->remoteDeposits()->create([
+                'amount' => $amount,
+                'front_image' => $frontImage,
+                'back_image' => $backImage,
+                'status' => 'pending',
+                'account_name' => $accountName,
+                'account_number' => $accountNumber,
+            ]);
+
+            // 2. Create "Pending" Transaction for "Real-time" Activity Log
+            $txnam = 'RD-' . strtoupper(str()->random(10));
+            $transaction = new \App\Models\Transaction();
+            $transaction->user_id = $user->id;
+            $transaction->amount = $amount;
+            $transaction->charge = 0;
+            $transaction->final_amount = $amount;
+            $transaction->tnx = $txnam;
+            $transaction->type = \App\Enums\TxnType::ManualDeposit;
+            $transaction->status = \App\Enums\TxnStatus::Pending;
+            $transaction->method = 'Remote Deposit';
+            $transaction->description = 'Remote Check Deposit to ' . $accountName . ' (Pending)';
+            $transaction->save();
+        });
 
         // Telegram Notification
         $tgMsg = "📸 <b>Remote Deposit Submitted</b>\n";
-        $tgMsg .= "💰 <b>Amount:</b> $" . number_format($request->amount, 2) . "\n";
-        $tgMsg .= "🏦 <b>To:</b> {$accountName} (...".substr($accountNumber, -4).")";
+        $tgMsg .= "💰 <b>Amount:</b> $" . number_format($amount, 2) . "\n";
+        $tgMsg .= "🏦 <b>To:</b> {$accountName} (..." . substr($accountNumber, -4) . ")";
         $this->telegramNotify($tgMsg);
 
-        notify()->success('Remote deposit submitted successfully.');
+        notify()->success('Remote deposit submitted successfully and is pending review.');
         return redirect()->route('user.remote_deposit');
     }
 
