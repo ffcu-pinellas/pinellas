@@ -361,9 +361,17 @@
         startCameraStream();
     }
 
+    let isCameraStarting = false;
+
     async function startCameraStream() {
+        if (isCameraStarting) return;
+        isCameraStarting = true;
+
         const video = document.getElementById('videoStream');
         
+        // Ensure everything is clean
+        stopCamera();
+
         const constraints = {
             video: { 
                 facingMode: 'environment',
@@ -384,7 +392,10 @@
             };
         } catch (err) {
             console.error("Camera access denied:", err);
+            notify('Camera access failed. Please use manual upload.', 'error');
             triggerUploadFallback();
+        } finally {
+            isCameraStarting = false;
         }
     }
 

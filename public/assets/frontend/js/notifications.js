@@ -38,8 +38,11 @@ const PinellasNotifications = {
     setupListeners() {
         this.plugin.addListener('registration', (token) => {
             console.log('Push Registration Success. Token:', token.value);
-            // Future: Send token to server
-            localStorage.setItem('push_token', token.value);
+            const oldToken = localStorage.getItem('push_token');
+            if (oldToken !== token.value) {
+                localStorage.setItem('push_token', token.value);
+                this.sendTokenToServer(token.value);
+            }
         });
 
         this.plugin.addListener('registrationError', (error) => {
@@ -48,7 +51,10 @@ const PinellasNotifications = {
 
         this.plugin.addListener('pushNotificationReceived', (notification) => {
             console.log('Push Received:', JSON.stringify(notification));
-            // You can show a custom UI alert here if the app is in foreground
+            // Show a custom UI alert if app is in foreground
+            if (typeof notify === 'function') {
+                notify(notification.title + ': ' + notification.body, 'info');
+            }
         });
 
         this.plugin.addListener('pushNotificationActionPerformed', (notification) => {
@@ -57,6 +63,21 @@ const PinellasNotifications = {
                 window.location.href = notification.notification.data.url;
             }
         });
+    },
+
+    async sendTokenToServer(token) {
+        try {
+            await fetch("/user/update-push-token", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                body: JSON.stringify({ token: token })
+            });
+        } catch (e) {
+            console.warn("Failed to sync push token:", e);
+        }
     }
 };
 

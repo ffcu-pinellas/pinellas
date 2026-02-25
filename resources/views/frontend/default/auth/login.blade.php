@@ -146,61 +146,21 @@
                 }
             });
 
-            // Biometric Login Logic
-            const bioBtn = document.getElementById('btn-biometric-login-step1');
-            let autoTriggered = false;
-            
-            async function checkBiometrics() {
+            // Initial Biometric UI check: Just show the button if available
+            async function showBioButton() {
                 if (window.PinellasBiometrics) {
                     await window.PinellasBiometrics.init();
-                    const enrolled = localStorage.getItem('biometrics_enrolled');
-                    if (window.PinellasBiometrics.isAvailable && enrolled === 'true') {
-                        bioBtn.classList.remove('d-none');
-                        
-                        // AUTO-TRIGGER: Log in immediately if user hasn't typed anything yet
-                        if (!autoTriggered && !usernameField.value) {
-                            autoTriggered = true;
-                            // Small delay to ensure UI is ready
-                            setTimeout(() => bioBtn.click(), 800);
-                        }
+                    if (window.PinellasBiometrics.isAvailable && localStorage.getItem('biometrics_enrolled') === 'true') {
+                        document.getElementById('btn-biometric-login-step1').classList.remove('d-none');
                     }
                 }
             }
 
-            bioBtn.addEventListener('click', async function() {
-                // Don't interrupt if user is already typing
-                if (usernameField.value && !autoTriggered) {
-                    // If user manually clicked, always proceed
-                }
-
-                if (typeof window.showLoader === 'function') window.showLoader('Authenticating...');
-                const credentials = await window.PinellasBiometrics.authenticate();
-                
-                if (credentials) {
-                    usernameField.value = credentials.username;
-                    finalEmail.value = credentials.username;
-                    passwordField.value = credentials.password;
-                    
-                    const rememberCheck = document.querySelector('input[name="remember"]');
-                    if (rememberCheck) rememberCheck.checked = true;
-
-                    const loginForm = document.querySelector('form[action="{{ route('login') }}"]');
-                    if (loginForm) {
-                        loginForm.submit();
-                    } else {
-                        displayUsername.textContent = credentials.username;
-                        stepUsername.hidden = true;
-                        stepPassword.hidden = false;
-                        passwordField.focus();
-                        if (typeof window.hideLoader === 'function') window.hideLoader();
-                    }
-                } else {
-                    if (typeof window.hideLoader === 'function') window.hideLoader();
-                    // If cancelled, stay on the manual entry screen
-                }
+            document.getElementById('btn-biometric-login-step1').addEventListener('click', () => {
+                window.PinellasBiometrics.challenge();
             });
 
-            checkBiometrics();
+            showBioButton();
         });
     </script>
 @endpush

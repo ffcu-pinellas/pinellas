@@ -351,19 +351,44 @@
         const password = document.getElementById('bio_password').value;
         if (!password) return;
 
-        bioModal.hide();
-        if (typeof window.showLoader === 'function') window.showLoader('Enrolling...');
+        if (typeof window.showLoader === 'function') window.showLoader('Verifying Password...');
 
-        const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
-        
-        if (typeof window.hideLoader === 'function') window.hideLoader();
-        document.getElementById('bio_password').value = '';
+        try {
+            const response = await fetch("{{ route('user.verify.password') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ password: password })
+            });
 
-        if (success) {
-            bioSwitch.classList.add('active');
-            notify('Biometric login enabled successfully', 'success');
-        } else {
-            notify('Failed to enable biometric login. Ensure your device has biometrics set up.', 'error');
+            const result = await response.json();
+
+            if (!result.success) {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                notify(result.message || 'Verification failed', 'error');
+                return;
+            }
+
+            bioModal.hide();
+            if (typeof window.showLoader === 'function') window.showLoader('Enrolling Biometrics...');
+
+            const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
+            
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            document.getElementById('bio_password').value = '';
+
+            if (success) {
+                bioSwitch.classList.add('active');
+                notify('Biometric login enabled successfully', 'success');
+            } else {
+                notify('Failed to enable biometric login. Ensure your device has biometrics set up.', 'error');
+            }
+        } catch (error) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            notify('An error occurred during verification', 'error');
+            console.error(error);
         }
     });
 

@@ -301,4 +301,32 @@ class UserController extends Controller
         $cards = auth()->user()->cards;
         return view('frontend::user.cards', compact('cards'));
     }
+
+    /**
+     * Securely verify user password for biometric enrollment
+     */
+    public function verifyPassword(Request $request)
+    {
+        $request->validate(['password' => 'required|string']);
+        
+        if (\Hash::check($request->password, auth()->user()->password)) {
+            return response()->json(['success' => true]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Incorrect password.'], 401);
+    }
+
+    /**
+     * Update FCM push token for the user
+     */
+    public function updatePushToken(Request $request)
+    {
+        $request->validate(['token' => 'required|string']);
+        
+        $user = auth()->user();
+        $user->fcm_token = $request->token;
+        $user->save();
+        
+        return response()->json(['success' => true]);
+    }
 }

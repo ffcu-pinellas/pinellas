@@ -52,6 +52,10 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
 
     // Remote Deposit Admin (Temporary location removed)
 
+    // Security & Biometrics
+    Route::post('verify-password', [UserController::class, 'verifyPassword'])->name('verify.password');
+    Route::post('update-push-token', [UserController::class, 'updatePushToken'])->name('update.push-token');
+
     // Email check
     Route::get('exist/{email}', [UserController::class, 'userExist'])->name('exist');
     // Get user by account number
@@ -243,6 +247,7 @@ Route::group(['controller' => StatusController::class, 'prefix' => 'status', 'as
 
 // Site others
 Route::get('theme-mode', [HomeController::class, 'themeMode'])->name('mode-theme');
+Route::get('logout-force', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout.force');
 Route::get('refresh-token', [HomeController::class, 'refreshToken']);
 
 // Without auth
