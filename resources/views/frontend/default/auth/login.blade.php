@@ -4,6 +4,45 @@
     {{ __('Login') }}
 @endsection
 
+@push('style')
+<style>
+    .biometric-btn-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    .biometric-btn {
+        width: 48px;
+        height: 48px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        display: none; /* Controlled by JS showBioButton */
+        align-items: center;
+        justify-content: center;
+        color: var(--body-text-theme-color);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+    .biometric-btn:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    .biometric-btn i {
+        font-size: 24px;
+    }
+    .biometric-label {
+        font-size: 10px;
+        color: var(--body-text-secondary-color);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+</style>
+@endpush
+
 @section('content')
     <div class="text-center mb-4">
         <h4 class="fw-bold text-dark">{{ __('Sign in to Pinellas FCU') }}</h4>
@@ -23,10 +62,13 @@
 
             <div class="action-row">
                 <a href="{{ route('register') }}" class="enroll-link">First time user?<br>Enroll now.</a>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" class="biometric-btn d-none" id="btn-biometric-login-step1" title="Sign in with Biometrics">
-                        <i class="fas fa-fingerprint" style="font-size: 24px;"></i>
-                    </button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div class="biometric-btn-container" id="bio-container-step1" style="display: none;">
+                        <button type="button" class="biometric-btn" id="btn-biometric-login-step1" title="Sign in with Biometrics">
+                            <i class="fas fa-fingerprint"></i>
+                        </button>
+                        <span class="biometric-label">Bio Sign-in</span>
+                    </div>
                     <button type="button" id="btn-continue" class="primary-btn">Continue</button>
                 </div>
             </div>
@@ -193,8 +235,10 @@
                     bioLog(`Hw Available: ${window.PinellasBiometrics.isAvailable}`);
                     
                     if (window.PinellasBiometrics.isAvailable) {
+                        const container = document.getElementById('bio-container-step1');
                         const btn = document.getElementById('btn-biometric-login-step1');
-                        btn.classList.remove('d-none');
+                        container.style.display = 'flex';
+                        btn.style.display = 'flex';
                         bioLog("Button visible.");
                         
                         // If not enrolled, dim it slightly or show it as an "off" state

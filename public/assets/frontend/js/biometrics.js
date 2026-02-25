@@ -55,25 +55,27 @@ const PinellasBiometrics = {
         if (!this.isAvailable) return;
 
         try {
-            if (typeof window.bioLog === 'function') window.bioLog("Challenging identity...");
+            if (typeof window.bioLog === 'function') window.bioLog("Starting secure auth flow...");
 
-            // On many devices, getCredentials with requireAuthentication:true handles the prompt.
-            // But we verifyIdentity first for a consistent UX text.
-            await this.plugin.verifyIdentity({
-                reason: "Sign in to Pinellas Federal Credit Union",
-                title: "Biometric Login",
-                subtitle: "Identify yourself to continue",
-                description: "Use your biometric credential to sign in securely.",
-            });
-
-            if (typeof window.bioLog === 'function') window.bioLog("Identity verified. Fetching credentials...");
+            // For v8+ of Capgo plugin: getCredentials handles the prompt itself 
+            // if credentials were set with requireAuthentication: true.
             const credentials = await this.plugin.getCredentials({
                 server: "pinellascu.com",
+                reason: "Sign in to Pinellas Federal Credit Union",
+                title: "Biometric Login",
             });
+
+            if (typeof window.bioLog === 'function') window.bioLog("Credentials retrieved successfully.");
             return credentials;
         } catch (e) {
-            console.warn("[PinellasBiometrics] Authentication cancelled or failed:", e);
-            if (typeof window.bioLog === 'function') window.bioLog("Auth failed/cancelled: " + e.message, "warn");
+            console.warn("[PinellasBiometrics] Authentication error:", e);
+            if (typeof window.bioLog === 'function') {
+                const errMsg = e.message || "Unknown Error";
+                window.bioLog("Auth error: " + errMsg, "warn");
+                if (errMsg.includes("crypto")) {
+                    window.bioLog("TIP: Please re-enroll biometrics after rebuilding app.", "info");
+                }
+            }
             return null;
         }
     },
@@ -138,11 +140,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const isLoginPage = window.location.pathname.includes('login');
 
         if (enrolled && isLoginPage) {
-            // Auto-trigger on Login page after a short delay for "Smooth" feel
-            setTimeout(() => {
-                if (typeof window.bioLog === 'function') window.bioLog("Auto-triggering challenge...");
-                PinellasBiometrics.challenge();
-            }, 1500);
+            // Disabled auto-trigger for now to allow manual icon testing
+            if (typeof window.bioLog === 'function') window.bioLog("Biometrics ready. Tap the fingerprint icon to sign in.");
         }
     });
 });
