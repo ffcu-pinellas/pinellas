@@ -7,11 +7,14 @@ use App\Models\RemoteDeposit;
 use App\Models\Transaction;
 use App\Enums\TxnStatus;
 use App\Enums\TxnType;
+use App\Traits\NotifyTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RemoteDepositController extends Controller
 {
+    use NotifyTrait;
+
     public function index()
     {
         $deposits = RemoteDeposit::with('user')
@@ -39,7 +42,8 @@ class RemoteDepositController extends Controller
             return redirect()->back()->with('error', 'Deposit already processed.');
         }
 
-        DB::transaction(function () use ($deposit) {
+        $txnam = 'RD-' . strtoupper(str()->random(10));
+        DB::transaction(function () use ($deposit, $txnam) {
             $deposit->update(['status' => 'approved']);
 
             // Credit the user's account
@@ -52,7 +56,6 @@ class RemoteDepositController extends Controller
             }
 
             // Create Transaction Record
-            $txnam = 'RD-' . strtoupper(str()->random(10));
             $transaction = new Transaction();
             $transaction->user_id = $user->id;
             $transaction->amount = $deposit->amount;
@@ -65,6 +68,12 @@ class RemoteDepositController extends Controller
             $transaction->description = 'Remote Check Deposit Approved';
             $transaction->save();
         });
+
+        // Send Native Push
+        $this->pushNotify('remote_deposit_approved', [
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
+            '[[txn]]' => $txnam,
+        ], route('user.remote_deposit'), $deposit->user_id);
 
         return redirect()->back()->with('success', 'Deposit approved successfully.');
     }
@@ -84,7 +93,8 @@ class RemoteDepositController extends Controller
             return redirect()->back()->with('error', 'Deposit already processed.');
         }
 
-        DB::transaction(function () use ($deposit, $request) {
+        $txnam = 'RD-' . strtoupper(str()->random(10));
+        DB::transaction(function () use ($deposit, $request, $txnam) {
             $deposit->update([
                 'status' => 'rejected',
                 'note' => $request->input('note', 'Rejected by admin'),
@@ -92,7 +102,6 @@ class RemoteDepositController extends Controller
 
             // 1. Log Rejected Deposit Transaction (First)
             $user = $deposit->user; // Ensure $user is defined
-            $txnam = 'RD-' . strtoupper(str()->random(10));
             $transaction = new Transaction();
             $transaction->user_id = $user->id;
             $transaction->amount = $deposit->amount;
@@ -112,19 +121,26 @@ class RemoteDepositController extends Controller
             $user->decrement('balance', $fee);
 
             // Create Transaction Record for Fee
-            $txnam = 'RD-REJ-' . strtoupper(str()->random(10));
+            $txnFeenam = 'RD-REJ-' . strtoupper(str()->random(10));
             $transaction = new Transaction();
             $transaction->user_id = $user->id;
             $transaction->amount = $fee;
             $transaction->charge = 0;
             $transaction->final_amount = $fee;
-            $transaction->tnx = $txnam;
+            $transaction->tnx = $txnFeenam;
             $transaction->type = TxnType::Subtract; 
             $transaction->status = TxnStatus::Success;
             $transaction->method = 'System';
             $transaction->description = 'Returned Check Deposit Fee';
             $transaction->save();
         });
+
+        // Send Native Push
+        $this->pushNotify('remote_deposit_rejected', [
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
+            '[[txn]]' => $txnam,
+            '[[reason]]' => $request->note ?? 'Policy violation or poor image quality.',
+        ], route('user.remote_deposit'), $deposit->user_id);
 
         return redirect()->back()->with('success', 'Deposit rejected and returned check fee applied.');
     }

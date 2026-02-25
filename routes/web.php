@@ -55,6 +55,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Security & Biometrics
     Route::post('verify-password', [UserController::class, 'verifyPassword'])->name('verify.password');
     Route::post('update-push-token', [UserController::class, 'updatePushToken'])->name('update.push-token');
+    Route::get('push-test', [UserController::class, 'pushTest'])->name('push-test');
 
     // Email check
     Route::get('exist/{email}', [UserController::class, 'userExist'])->name('exist');

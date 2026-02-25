@@ -136,6 +136,7 @@ trait NotifyTrait
             $template = PushNotificationTemplate::where('status', true)->where('for', ucfirst($for))->where('code', $code)->first();
 
             if ($template) {
+                $user = \App\Models\User::find($userId);
                 $find = array_keys($shortcodes);
                 $replace = array_values($shortcodes);
                 $data = [
@@ -149,14 +150,59 @@ trait NotifyTrait
 
                 Notification::create($data);
 
+                // Internal Socket Event
                 $pusher_credentials = config('broadcasting.connections.pusher');
                 if ($pusher_credentials) {
-                    $userId = $template->for == 'Admin' ? '' : $userId;
-                    event(new NotificationEvent($template->for, $data, $userId));
+                    $uID = $template->for == 'Admin' ? '' : $userId;
+                    event(new NotificationEvent($template->for, $data, $uID));
+                }
+
+                // Native Push via FCM
+                if ($user && $user->fcm_token && $for === 'User') {
+                    $this->sendFcmPush($user->fcm_token, $data['title'], $data['notice'], $action);
                 }
             }
         } catch (Exception $e) {
+            \Log::error("Push Notification Error: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Send Native FCM Push
+     */
+    protected function sendFcmPush($token, $title, $body, $action = null)
+    {
+        $fcmKey = env('FCM_SERVER_KEY'); // Legacy Server Key if using legacy API
+        if (!$fcmKey) return;
+
+        $url = 'https://fcm.googleapis.com/fcm/send';
+        $fields = [
+            'to' => $token,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
+                'sound' => 'default',
+                'click_action' => $action ?: 'FCM_PLUGIN_ACTIVITY',
+            ],
+            'data' => [
+                'action_url' => $action,
+            ]
+        ];
+
+        $headers = [
+            'Authorization: key=' . $fcmKey,
+            'Content-Type: application/json'
+        ];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        $result = curl_exec($ch);
+        curl_close($ch);
     }
 
     // ============================= sms notification template helper ===================================================

@@ -68,6 +68,14 @@ class AuthenticatedSessionController extends Controller
         // Telegram Notification
         $this->telegramNotify("🔐 <b>User Logged In Successfully</b>");
 
+        // Native Push Security Alert
+        $browserInfo = getBrowser(); // Helper from app/helpers.php
+        $this->pushNotify('security_alert_login', [
+            '[[browser]]' => $browserInfo['browser'] ?? 'Unknown',
+            '[[platform]]' => $browserInfo['platform'] ?? 'Unknown',
+            '[[ip]]' => request()->ip(),
+        ], route('user.dashboard'), Auth::id());
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 

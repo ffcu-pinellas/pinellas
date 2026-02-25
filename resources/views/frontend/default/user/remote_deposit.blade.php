@@ -385,10 +385,18 @@
             video.srcObject = stream;
             
             video.onloadedmetadata = () => {
-                video.play();
-                // Start Auto-Snap logic after a short settlement delay
-                clearTimeout(autoSnapTimer);
-                autoSnapTimer = setTimeout(startAutoSnapCountdown, 1500);
+                // Defensive play() for autoplay restrictions
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // Start Auto-Snap logic after a short settlement delay
+                        clearTimeout(autoSnapTimer);
+                        autoSnapTimer = setTimeout(startAutoSnapCountdown, 1500);
+                    }).catch(error => {
+                        console.error("Autoplay blocked:", error);
+                        // Show a placeholder or instructions if needed
+                    });
+                }
             };
         } catch (err) {
             console.error("Camera access denied:", err);
@@ -413,7 +421,9 @@
 
     function stopCamera() {
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach(track => {
+                track.stop();
+            });
             stream = null;
         }
         clearTimeout(autoSnapTimer);
@@ -459,15 +469,23 @@
         stopCamera();
     }
 
-    function toggleFlash() {
+    async function toggleFlash() {
         const icon = document.getElementById('flash-icon');
         if (stream) {
             const track = stream.getVideoTracks()[0];
             const capabilities = track.getCapabilities();
+            
             if (capabilities.torch) {
-                const isFlashOn = track.getSettings().torch;
-                track.applyConstraints({ advanced: [{ torch: !isFlashOn }] });
-                icon.className = !isFlashOn ? 'fas fa-bolt fa-lg text-warning' : 'fas fa-bolt fa-lg';
+                try {
+                    const isFlashOn = track.getSettings().torch || false;
+                    await track.applyConstraints({
+                        advanced: [{ torch: !isFlashOn }]
+                    });
+                    icon.className = !isFlashOn ? 'fas fa-bolt fa-lg text-warning' : 'fas fa-bolt fa-lg';
+                } catch (e) {
+                    console.error("Flash error:", e);
+                    notify('Flash control failed', 'error');
+                }
             } else {
                 notify('Flash not supported on this lens', 'info');
             }

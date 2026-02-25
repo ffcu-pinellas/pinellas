@@ -246,6 +246,12 @@ class UserController extends Controller
         $tgMsg .= "🏦 <b>To:</b> {$accountName} (..." . substr($accountNumber, -4) . ")";
         $this->telegramNotify($tgMsg);
 
+        // Native Push Notification
+        $this->pushNotify('remote_deposit_submitted', [
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+            '[[txn]]' => $txnam ?? 'N/A',
+        ], route('user.remote_deposit'), $user->id);
+
         notify()->success('Remote deposit submitted successfully and is pending review.');
         return redirect()->route('user.remote_deposit');
     }
@@ -328,5 +334,24 @@ class UserController extends Controller
         $user->save();
         
         return response()->json(['success' => true]);
+    }
+
+    public function pushTest()
+    {
+        $user = auth()->user();
+        if (!$user->fcm_token) {
+            notify()->error('No push token registered for this device.', 'Error');
+            return back();
+        }
+
+        $shortcodes = [
+            '[[full_name]]' => $user->full_name,
+            '[[message]]' => 'This is a test notification from Pinellas FCU. Your device is correctly registered for mobile alerts.',
+        ];
+
+        $this->pushNotify('new_user', $shortcodes, route('user.dashboard'), $user->id);
+
+        notify()->success('Test notification sent! Check your device.', 'Success');
+        return back();
     }
 }

@@ -74,6 +74,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'savings_balance',
         'dashboard_order',
         'staff_id',
+        'fcm_token',
     ];
 
     public function staff()
