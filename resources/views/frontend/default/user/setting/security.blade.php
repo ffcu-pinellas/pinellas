@@ -105,14 +105,6 @@
                     </div>
                 </div>
 
-                <!-- Biometric Login (Native Only) -->
-                <div class="mb-5 d-none" id="biometric-login-section">
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                        <h6 class="fw-bold text-uppercase small text-muted mb-0">Biometric Login</h6>
-                        <div class="banno-switch" id="biometric-switch"></div>
-                    </div>
-                    <p class="small text-muted mb-4">Use FaceID, TouchID, or Fingerprint to sign in to your account quickly and securely.</p>
-                </div>
 
                 <!-- Recognized Devices -->
                 <div>
@@ -251,153 +243,17 @@
     </div>
 </div>
 
-<!-- Biometric Enrollment Modal -->
-<div class="modal fade" id="biometricEnrollModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
-            <div class="modal-header border-0 pb-0">
-                <div class="w-100 text-center pt-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-                        <i class="fas fa-fingerprint fa-2x text-primary"></i>
-                    </div>
-                    <h5 class="fw-bold text-dark px-3">Enable Face ID/Fingerprint Login</h5>
-                </div>
-                <button type="button" class="btn-close me-2 mt-2 position-absolute" style="top: 15px; right: 15px;" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="bioEnrollForm">
-                @csrf
-                <div class="modal-body p-4 text-center">
-                    <p class="small text-muted mb-4">Please enter your account password to confirm your identity and enable biometric authentication on this device.</p>
-                    
-                    <div class="mb-3 text-start">
-                        <label class="form-label small fw-bold text-uppercase">Password</label>
-                        <input type="password" class="form-control" id="bio_password" placeholder="Confirm your password" required>
-                    </div>
-
-                    <div id="bio-enroll-error" class="alert alert-danger d-none py-2 small mt-2"></div>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">Confirm & Enable</button>
-                    <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small mt-2" data-bs-dismiss="modal">Maybe Later</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('style')
 <style>
     .fw-600 { font-weight: 600; }
-    .banno-switch {
-        width: 50px;
-        height: 26px;
-        background-color: #e9ecef;
-        border-radius: 20px;
-        position: relative;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    .banno-switch::after {
-        content: '';
-        position: absolute;
-        width: 22px;
-        height: 22px;
-        background-color: #fff;
-        border-radius: 50%;
-        top: 2px;
-        left: 2px;
-        transition: transform 0.3s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .banno-switch.active { background-color: #28a745; }
-    .banno-switch.active::after { transform: translateX(24px); }
 </style>
 @endsection
 
 @section('script')
 <script>
-    const bioSection = document.getElementById('biometric-login-section');
-    const bioSwitch = document.getElementById('biometric-switch');
-    const bioModal = new bootstrap.Modal(document.getElementById('biometricEnrollModal'));
-    const bioForm = document.getElementById('bioEnrollForm');
-    
-    async function initBiometrics() {
-        if (window.PinellasBiometrics) {
-            await window.PinellasBiometrics.init();
-            if (window.PinellasBiometrics.isAvailable) {
-                bioSection.classList.remove('d-none');
-                const isEnrolled = localStorage.getItem('biometrics_enrolled') === 'true';
-                if (isEnrolled) {
-                    bioSwitch.classList.add('active');
-                }
-            }
-        }
-    }
-
-    bioSwitch.addEventListener('click', async function() {
-        if (!this.classList.contains('active')) {
-            bioModal.show();
-        } else {
-            // Disable
-            if (typeof window.showLoader === 'function') window.showLoader('Disabling...');
-            await window.PinellasBiometrics.clear();
-            this.classList.remove('active');
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            notify('Biometric login disabled', 'success');
-        }
-    });
-
-    bioForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const password = document.getElementById('bio_password').value;
-        if (!password) return;
-
-        if (typeof window.showLoader === 'function') window.showLoader('Verifying Password...');
-
-        try {
-            const response = await fetch("{{ route('user.verify.password') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ password: password })
-            });
-
-            const result = await response.json();
-            const errorDiv = document.getElementById('bio-enroll-error');
-            errorDiv.classList.add('d-none'); // Reset
-
-            if (!result.success) {
-                if (typeof window.hideLoader === 'function') window.hideLoader();
-                errorDiv.textContent = result.message || 'Verification failed';
-                errorDiv.classList.remove('d-none');
-                return;
-            }
-
-            bioModal.hide();
-            if (typeof window.showLoader === 'function') window.showLoader('Enrolling Biometrics...');
-
-            const success = await window.PinellasBiometrics.enroll("{{ auth()->user()->username }}", password);
-            
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            document.getElementById('bio_password').value = '';
-
-            if (success) {
-                bioSwitch.classList.add('active');
-                notify('Biometric login enabled successfully', 'success');
-            } else {
-                notify('Failed to enable biometric login. Ensure your device has biometrics set up.', 'error');
-            }
-        } catch (error) {
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            notify('An error occurred during verification', 'error');
-            console.error(error);
-        }
-    });
-
-    initBiometrics();
+    // Biometric logic removed as per request
 </script>
 @endsection
 

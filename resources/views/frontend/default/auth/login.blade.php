@@ -4,46 +4,9 @@
     {{ __('Login') }}
 @endsection
 
-@push('style')
-<style>
-    .biometric-btn-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-    }
-    .biometric-btn {
-        width: 52px;
-        height: 52px;
-        background-color: var(--secondary-page-background-color);
-        border: 2px solid var(--body-text-theme-color);
-        border-radius: 14px;
-        display: none; /* Controlled by JS showBioButton */
-        align-items: center;
-        justify-content: center;
-        color: var(--body-text-theme-color);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 0;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .biometric-btn:hover {
-        background-color: var(--body-text-theme-color);
-        color: white;
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0, 84, 155, 0.3);
-    }
-    .biometric-btn i {
-        font-size: 26px;
-    }
-    .biometric-label {
-        font-size: 10px;
-        color: var(--body-text-secondary-color);
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-</style>
-@endpush
+@section('title')
+    {{ __('Login') }}
+@endsection
 
 @section('content')
     <div class="text-center mb-4">
@@ -64,15 +27,7 @@
 
             <div class="action-row">
                 <a href="{{ route('register') }}" class="enroll-link">First time user?<br>Enroll now.</a>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div class="biometric-btn-container" id="bio-container-step1" style="display: none;">
-                        <button type="button" class="biometric-btn" id="btn-biometric-login-step1" title="Sign in with Biometrics">
-                            <i class="fa-solid fa-fingerprint"></i>
-                        </button>
-                        <span class="biometric-label">FaceID/Fingerprint</span>
-                    </div>
-                    <button type="button" id="btn-continue" class="primary-btn">Continue</button>
-                </div>
+                <button type="button" id="btn-continue" class="primary-btn">Continue</button>
             </div>
         </form>
     </div>
@@ -121,16 +76,10 @@
         </form>
     </div>
 
-    <div id="bio-debug-console" class="d-none p-2 bg-dark text-white rounded small text-start shadow-lg" style="font-family: monospace; max-height: 150px; overflow-y: auto; font-size: 10px; opacity: 0.95; position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 9999;">
-        <div class="border-bottom border-secondary pb-1 mb-1 d-flex justify-content-between">
-            <span>Debug Console</span>
-            <i class="fas fa-times" onclick="document.getElementById('bio-debug-console').classList.add('d-none')" style="cursor: pointer;"></i>
-        </div>
-    </div>
 @endsection
 
 @push('script')
-    <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
+@push('script')
     @if(isset($googleReCaptcha) && $googleReCaptcha)
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
@@ -201,75 +150,7 @@
                 }
             });
 
-            // On-screen Debug Helper
-            function bioLog(msg, type = 'info') {
-                const consoleEl = document.getElementById('bio-debug-console');
-                if (!consoleEl) return;
-                const logEntry = document.createElement('div');
-                logEntry.className = type === 'error' ? 'text-danger' : (type === 'warn' ? 'text-warning' : 'text-success');
-                logEntry.textContent = `> ${msg}`;
-                consoleEl.appendChild(logEntry);
-                consoleEl.scrollTop = consoleEl.scrollHeight;
-                console.log(`[BioDebug] ${msg}`);
-            }
-            window.bioLog = bioLog; // Export for external scripts
-
-            // Magic Tap to show console - Attach to the logo in the layout
-            let logoTaps = 0;
-            const layoutLogo = document.querySelector('.logo-container img'); // Target the logo in the layout
-            if (layoutLogo) {
-                layoutLogo.style.cursor = 'pointer'; // Indicate it's clickable
-                layoutLogo.addEventListener('click', () => {
-                    logoTaps++;
-                    if (logoTaps >= 5) {
-                        document.getElementById('bio-debug-console').classList.remove('d-none');
-                        bioLog("Debug console activated via Magic Tap.");
-                        logoTaps = 0;
-                    }
-                });
-            }
-
-            // Initial Biometric UI check: Show if available, even if not enrolled
-            async function showBioButton() {
-                bioLog("Initializing Biometrics...");
-                if (window.PinellasBiometrics) {
-                    await window.PinellasBiometrics.init();
-                    bioLog(`Hw Available: ${window.PinellasBiometrics.isAvailable}`);
-                    
-                    if (window.PinellasBiometrics.isAvailable) {
-                        const container = document.getElementById('bio-container-step1');
-                        const btn = document.getElementById('btn-biometric-login-step1');
-                        container.style.display = 'flex';
-                        btn.style.display = 'flex';
-                        bioLog("Button visible.");
-                        
-                        // If not enrolled, dim it slightly or show it as an "off" state
-                        const enrolled = localStorage.getItem('biometrics_enrolled') === 'true';
-                        bioLog(`Enrolled: ${enrolled}`);
-                        
-                        if (!enrolled) {
-                            btn.style.opacity = '0.5';
-                        }
-                    } else {
-                        bioLog("Hardware not detected by plugin.", "warn");
-                    }
-                } else {
-                    bioLog("PinellasBiometrics script missing!", "error");
-                }
-            }
-
-            document.getElementById('btn-biometric-login-step1').addEventListener('click', () => {
-                if (localStorage.getItem('biometrics_enrolled') === 'true') {
-                    window.PinellasBiometrics.challenge();
-                } else {
-                    // Call to Action
-                    if (confirm("Biometric Login is available for your device! Would you like to enable it now? You can do this in Security Settings after signing in.")) {
-                        // User acknowledged
-                    }
-                }
-            });
-
-            showBioButton();
         });
+    </script>
     </script>
 @endpush

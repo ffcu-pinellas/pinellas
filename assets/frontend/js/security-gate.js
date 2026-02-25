@@ -37,6 +37,7 @@ const SecurityGate = {
 
         // Show modal if not already shown (for priority auto-entry)
         if (!$('#securityGateModal').hasClass('show')) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             $('#securityGateModal').modal('show');
         }
 

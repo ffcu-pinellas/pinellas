@@ -336,6 +336,20 @@
         // UI Safeguards
         document.addEventListener('submit', function(e) {
             const form = e.target;
+            
+            // 1. If this submission was already triggered by SecurityGate, just let it pass.
+            if (form.querySelector('input[name="security_verified"]')) {
+                return;
+            }
+
+            // 2. If this form is protected by SecurityGate, don't show the global loader here.
+            // SecurityGate will handle its own loading states/modals.
+            const onsubmit = form.getAttribute('onsubmit') || '';
+            if (onsubmit.includes('SecurityGate.gate')) {
+                return;
+            }
+
+            // 3. Standard double-submit prevention
             if (form.getAttribute('data-submitting') === 'true') {
                 e.preventDefault();
                 return;
