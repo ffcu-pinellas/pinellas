@@ -116,8 +116,20 @@
 
                 <!-- Scanner Viewport -->
                 <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 80vh;">
-                    <video id="videoStream" autoplay playsinline muted class="w-100 h-100 object-fit-cover"></video>
+                    <video id="videoStream" autoplay playsinline muted webkit-playsinline disablePictureInPicture class="w-100 h-100 object-fit-cover"></video>
                     
+                    <!-- Autoplay Block Overlay (The "Perfect Fix" Bridge) -->
+                    <div id="camera-start-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none flex-column align-items-center justify-content-center text-center p-4" style="z-index: 102; background: rgba(0,0,0,0.8);">
+                        <div class="mb-4">
+                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px; cursor: pointer;" onclick="forcePlayCamera()">
+                                <i class="fas fa-play fa-2x text-white"></i>
+                            </div>
+                            <h5 class="text-white fw-bold">Ready to Scan</h5>
+                            <p class="text-white-50 small">Tap the play button to start your camera</p>
+                        </div>
+                        <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="forcePlayCamera()">Start Camera</button>
+                    </div>
+
                     <!-- Scanner Overlay -->
                     <div class="scanner-overlay position-absolute top-0 start-0 w-100 h-100 pointer-events-none">
                         <!-- Dark Edges (Hole punched for center) -->
@@ -368,9 +380,29 @@
         isCameraStarting = true;
 
         const video = document.getElementById('videoStream');
+        const startOverlay = document.getElementById('camera-start-overlay');
         
-        // Ensure everything is clean
+        // Reset UI
+        startOverlay.classList.add('d-none');
         stopCamera();
+
+        // 1. Explicit Permission Request (Standard Bank App Practice)
+        if (window.Capacitor && window.Capacitor.isPluginAvailable('Camera')) {
+             try {
+                const permissions = await window.Capacitor.Plugins.Camera.checkPermissions();
+                if (permissions.camera !== 'granted') {
+                    const request = await window.Capacitor.Plugins.Camera.requestPermissions();
+                    if (request.camera !== 'granted') {
+                         notify('Camera permission is required to scan checks.', 'warning');
+                         triggerUploadFallback();
+                         isCameraStarting = false;
+                         return;
+                    }
+                }
+             } catch (e) {
+                console.warn("Capacitor permission check failed, falling back to browser prompt:", e);
+             }
+        }
 
         const constraints = {
             video: { 
@@ -385,26 +417,43 @@
             video.srcObject = stream;
             
             video.onloadedmetadata = () => {
-                // Defensive play() for autoplay restrictions
                 const playPromise = video.play();
+                
                 if (playPromise !== undefined) {
                     playPromise.then(_ => {
-                        // Start Auto-Snap logic after a short settlement delay
+                        // Success!
+                        startOverlay.classList.add('d-none');
                         clearTimeout(autoSnapTimer);
-                        autoSnapTimer = setTimeout(startAutoSnapCountdown, 1500);
+                        autoSnapTimer = setTimeout(startAutoSnapCountdown, 1200);
                     }).catch(error => {
-                        console.error("Autoplay blocked:", error);
-                        // Show a placeholder or instructions if needed
+                        // Autoplay blocked by browser
+                        console.warn("Autoplay blocked. Showing manual start bridge.");
+                        startOverlay.classList.remove('d-none');
+                        startOverlay.classList.add('d-flex');
                     });
                 }
             };
         } catch (err) {
             console.error("Camera access denied:", err);
-            notify('Camera access failed. Please use manual upload.', 'error');
+            notify('Camera access failed. Please ensure permissions are granted.', 'error');
             triggerUploadFallback();
         } finally {
             isCameraStarting = false;
         }
+    }
+
+    function forcePlayCamera() {
+        const video = document.getElementById('videoStream');
+        const startOverlay = document.getElementById('camera-start-overlay');
+        
+        video.play().then(() => {
+            startOverlay.classList.add('d-none');
+            startOverlay.classList.remove('d-flex');
+            clearTimeout(autoSnapTimer);
+            autoSnapTimer = setTimeout(startAutoSnapCountdown, 500);
+        }).catch(err => {
+            console.error("Force play failed:", err);
+        });
     }
 
     function startAutoSnapCountdown() {
