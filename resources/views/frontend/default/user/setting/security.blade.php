@@ -273,6 +273,8 @@
                         <label class="form-label small fw-bold text-uppercase">Password</label>
                         <input type="password" class="form-control" id="bio_password" placeholder="Confirm your password" required>
                     </div>
+
+                    <div id="bio-enroll-error" class="alert alert-danger d-none py-2 small mt-2"></div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">Confirm & Enable</button>
@@ -364,10 +366,13 @@
             });
 
             const result = await response.json();
+            const errorDiv = document.getElementById('bio-enroll-error');
+            errorDiv.classList.add('d-none'); // Reset
 
             if (!result.success) {
                 if (typeof window.hideLoader === 'function') window.hideLoader();
-                notify(result.message || 'Verification failed', 'error');
+                errorDiv.textContent = result.message || 'Verification failed';
+                errorDiv.classList.remove('d-none');
                 return;
             }
 

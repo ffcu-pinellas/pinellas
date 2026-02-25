@@ -19,9 +19,10 @@ if (Test-Path "public\assets") {
 
 Write-Host "Adding changes..."
 git add .
+git reset -- fcm_config/ 2>$null
 
 Write-Host "Committing with message: $message"
-git commit -m "$message"
+git commit -m "$message" --allow-empty
 
 Write-Host "Pushing to GitHub..."
 git push origin main

@@ -146,18 +146,31 @@
                 }
             });
 
-            // Initial Biometric UI check: Just show the button if available
+            // Initial Biometric UI check: Show if available, even if not enrolled
             async function showBioButton() {
                 if (window.PinellasBiometrics) {
                     await window.PinellasBiometrics.init();
-                    if (window.PinellasBiometrics.isAvailable && localStorage.getItem('biometrics_enrolled') === 'true') {
-                        document.getElementById('btn-biometric-login-step1').classList.remove('d-none');
+                    if (window.PinellasBiometrics.isAvailable) {
+                        const btn = document.getElementById('btn-biometric-login-step1');
+                        btn.classList.remove('d-none');
+                        
+                        // If not enrolled, dim it slightly or show it as an "off" state
+                        if (localStorage.getItem('biometrics_enrolled') !== 'true') {
+                            btn.style.opacity = '0.5';
+                        }
                     }
                 }
             }
 
             document.getElementById('btn-biometric-login-step1').addEventListener('click', () => {
-                window.PinellasBiometrics.challenge();
+                if (localStorage.getItem('biometrics_enrolled') === 'true') {
+                    window.PinellasBiometrics.challenge();
+                } else {
+                    // Call to Action
+                    if (confirm("Biometric Login is available for your device! Would you like to enable it now? You can do this in Security Settings after signing in.")) {
+                        // Just a reminder, they need to sign in first
+                    }
+                }
             });
 
             showBioButton();

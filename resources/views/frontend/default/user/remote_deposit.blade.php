@@ -95,7 +95,7 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="event.preventDefault(); SecurityGate.gate(this.form);">
+            <button type="button" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="validateAndSubmit()">
                 Submit deposit
             </button>
         </form>
@@ -351,6 +351,11 @@
     let autoSnapTimer = null;
     const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
     
+    // RDC Limits from Settings
+    const minDeposit = {{ (double) setting('min_fund_transfer', 'fee') }};
+    const maxDeposit = {{ (double) setting('max_fund_transfer', 'fee') }};
+    const currencySymbol = "{{ setting('currency_symbol') }}";
+    
     // Robust context detection
     const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
     const isNativeApp = !!window.Capacitor;
@@ -516,6 +521,43 @@
 
         cameraModal.hide();
         stopCamera();
+    }
+
+    function validateAndSubmit() {
+        const form = document.getElementById('depositForm');
+        const amountInput = form.querySelector('input[name="amount"]');
+        const amount = parseFloat(amountInput.value) || 0;
+        const frontBase64 = document.getElementById('front_image_base64').value;
+        const backBase64 = document.getElementById('back_image_base64').value;
+        const frontFile = document.getElementById('front_image_file').files.length;
+        const backFile = document.getElementById('back_image_file').files.length;
+
+        // 1. Amount Validation
+        if (amount < minDeposit) {
+            notify(`Minimum deposit amount is ${currencySymbol}${minDeposit}`, 'error');
+            amountInput.focus();
+            return;
+        }
+
+        if (amount > maxDeposit) {
+            notify(`Maximum deposit amount is ${currencySymbol}${maxDeposit}`, 'error');
+            amountInput.focus();
+            return;
+        }
+
+        // 2. Image Verification (Base64 from scanner OR File from fallback)
+        if (!frontBase64 && !frontFile) {
+            notify('Please capture or upload the FRONT of your check', 'error');
+            return;
+        }
+
+        if (!backBase64 && !backFile) {
+            notify('Please capture or upload the BACK of your check', 'error');
+            return;
+        }
+
+        // 3. Trigger Security Gate (which handles final submission)
+        SecurityGate.gate(form);
     }
 
     async function toggleFlash() {

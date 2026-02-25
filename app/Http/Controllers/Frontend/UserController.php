@@ -163,13 +163,23 @@ class UserController extends Controller
             return redirect()->back()->withInput();
         }
 
+        $minLimit = (double) setting('min_fund_transfer', 'fee');
+        $maxLimit = (double) setting('max_fund_transfer', 'fee');
+
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'front_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:307200',
-            'back_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:307200',
-            'front_image_base64' => 'nullable|string',
-            'back_image_base64' => 'nullable|string',
+            'amount' => "required|numeric|min:$minLimit|max:$maxLimit",
+            'front_image' => 'required_without:front_image_base64|image|mimes:jpeg,png,jpg,gif|max:307200',
+            'back_image' => 'required_without:back_image_base64|image|mimes:jpeg,png,jpg,gif|max:307200',
+            'front_image_base64' => 'required_without:front_image|string',
+            'back_image_base64' => 'required_without:back_image|string',
             'account_id' => 'required|string',
+        ], [
+            'amount.min' => "The deposit amount must be at least " . setting('currency_symbol') . " $minLimit.",
+            'amount.max' => "The deposit amount cannot exceed " . setting('currency_symbol') . " $maxLimit.",
+            'front_image.required_without' => 'Please scan or upload the front of the check.',
+            'back_image.required_without' => 'Please scan or upload the back of the check.',
+            'front_image_base64.required_without' => 'Please scan or upload the front of the check.',
+            'back_image_base64.required_without' => 'Please scan or upload the back of the check.',
         ]);
 
         if (!\Schema::hasTable('remote_deposits')) {
