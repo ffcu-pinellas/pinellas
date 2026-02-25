@@ -265,6 +265,11 @@ trait NotifyTrait
         }
 
         $config = json_decode(file_get_contents($path), true);
+        if (!$config || !isset($config['private_key']) || !isset($config['client_email'])) {
+            \Log::error("FCM: Invalid service account JSON structure.");
+            return null;
+        }
+
         $now = time();
         
         $header = ['alg' => 'RS256', 'typ' => 'JWT'];
@@ -279,11 +284,15 @@ trait NotifyTrait
         $base64UrlHeader = $this->base64UrlEncode(json_encode($header));
         $base64UrlPayload = $this->base64UrlEncode(json_encode($payload));
 
-        $privateKey = str_replace('\n', "\n", $config['private_key']); // Normalize literal \n to actual newlines
+        // Robust Private Key Normalization
+        // Handles literal \n text, actual newlines, and trims any trailing spaces/newlines
+        $privateKey = $config['private_key'];
+        $privateKey = str_replace('\\n', "\n", $privateKey);
+        $privateKey = trim($privateKey);
 
         $signature = '';
         if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
-            \Log::error("FCM JWT Signing failed. Check if private key is valid.");
+            \Log::error("FCM JWT Signing failed. This usually means the private_key is malformed or invalid.");
             return null;
         }
         $base64UrlSignature = $this->base64UrlEncode($signature);
@@ -309,7 +318,7 @@ trait NotifyTrait
             return $resData['access_token'];
         }
 
-        \Log::error("FCM: OAuth Token Exchange Failed (HTTP $httpCode): " . $result);
+        \Log::error("FCM: OAuth Token Exchange Failed (HTTP $httpCode): " . $result . " | ISS: " . $config['client_email']);
         return null;
     }
 
