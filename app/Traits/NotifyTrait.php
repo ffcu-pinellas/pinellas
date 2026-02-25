@@ -286,10 +286,9 @@ trait NotifyTrait
         $base64UrlHeader = $this->base64UrlEncode(json_encode($header, JSON_UNESCAPED_SLASHES));
         $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, JSON_UNESCAPED_SLASHES));
 
-        // Ultra-Robust Private Key Normalization
+        // Standard Private Key Normalization
         $privateKey = $config['private_key'];
-        // Handle literal \n text, escaped \\n, and actual newlines
-        $privateKey = str_replace(['\\n', '\n'], "\n", $privateKey);
+        $privateKey = str_replace('\n', "\n", $privateKey);
         $privateKey = trim($privateKey);
 
         $signature = '';
