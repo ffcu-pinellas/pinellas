@@ -30,9 +30,12 @@ class ForgotPasswordController extends Controller
 
         $url = route('password.reset', ['token' => $token, 'email' => $request->email]);
 
+        $user = User::where('email', $request->email)->first();
+
         $shortcodes = [
-            '[[token]]' => $token,
+            '[[token]]' => $url,
             '[[reset_url]]' => $url,
+            '[[full_name]]' => $user->full_name ?? 'Member',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
         ];
