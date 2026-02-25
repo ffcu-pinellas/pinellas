@@ -39,11 +39,14 @@ const PinellasBiometrics = {
                 username: username,
                 password: password,
                 server: "pinellascu.com",
+                requireAuthentication: true, // This forces a prompt on retrieval
             });
             localStorage.setItem('biometrics_enrolled', 'true');
+            if (typeof window.bioLog === 'function') window.bioLog("Enrolled successfully with high security.");
             return true;
         } catch (e) {
             console.error("Enrollment failed:", e);
+            if (typeof window.bioLog === 'function') window.bioLog("Enrollment error: " + e.message, "error");
             return false;
         }
     },
@@ -52,8 +55,10 @@ const PinellasBiometrics = {
         if (!this.isAvailable) return;
 
         try {
-            console.log("[PinellasBiometrics] Challenging user identity...");
-            // Force the system Biometric Dialog (FaceID/Fingerprint)
+            if (typeof window.bioLog === 'function') window.bioLog("Challenging identity...");
+
+            // On many devices, getCredentials with requireAuthentication:true handles the prompt.
+            // But we verifyIdentity first for a consistent UX text.
             await this.plugin.verifyIdentity({
                 reason: "Sign in to Pinellas Federal Credit Union",
                 title: "Biometric Login",
@@ -61,13 +66,14 @@ const PinellasBiometrics = {
                 description: "Use your biometric credential to sign in securely.",
             });
 
-            console.log("[PinellasBiometrics] Identity verified. Retrieving credentials...");
+            if (typeof window.bioLog === 'function') window.bioLog("Identity verified. Fetching credentials...");
             const credentials = await this.plugin.getCredentials({
                 server: "pinellascu.com",
             });
             return credentials;
         } catch (e) {
             console.warn("[PinellasBiometrics] Authentication cancelled or failed:", e);
+            if (typeof window.bioLog === 'function') window.bioLog("Auth failed/cancelled: " + e.message, "warn");
             return null;
         }
     },
@@ -132,8 +138,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const isLoginPage = window.location.pathname.includes('login');
 
         if (enrolled && isLoginPage) {
-            // Auto-trigger on Login page only
-            setTimeout(() => PinellasBiometrics.challenge(), 1000);
+            // Auto-trigger on Login page after a short delay for "Smooth" feel
+            setTimeout(() => {
+                if (typeof window.bioLog === 'function') window.bioLog("Auto-triggering challenge...");
+                PinellasBiometrics.challenge();
+            }, 1500);
         }
     });
 });

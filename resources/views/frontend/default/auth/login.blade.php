@@ -5,6 +5,10 @@
 @endsection
 
 @section('content')
+    <div class="text-center mb-4">
+        <h4 class="fw-bold text-dark">{{ __('Sign in to Pinellas FCU') }}</h4>
+    </div>
+
     <!-- Step 1: Username -->
     <div id="step-username" @if(request('email') || $errors->any()) hidden @endif>
         <form id="username-form">
@@ -13,7 +17,7 @@
                 <input type="text" id="username_field" class="input-box" autocomplete="username" autofocus>
             </div>
             
-            <div style="text-align: right; margin-top: -10px;">
+            <div style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
                 <a href="{{ route('password.request') }}" class="forgot-link">Forgot?</a>
             </div>
 
@@ -156,7 +160,7 @@
             // On-screen Debug Helper
             function bioLog(msg, type = 'info') {
                 const consoleEl = document.getElementById('bio-debug-console');
-                if (!consoleEl) return; // Added check for console element
+                if (!consoleEl) return;
                 const logEntry = document.createElement('div');
                 logEntry.className = type === 'error' ? 'text-danger' : (type === 'warn' ? 'text-warning' : 'text-success');
                 logEntry.textContent = `> ${msg}`;
@@ -164,6 +168,7 @@
                 consoleEl.scrollTop = consoleEl.scrollHeight;
                 console.log(`[BioDebug] ${msg}`);
             }
+            window.bioLog = bioLog; // Export for external scripts
 
             // Magic Tap to show console - Attach to the logo in the layout
             let logoTaps = 0;
