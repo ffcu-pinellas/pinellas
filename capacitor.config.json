@@ -21,10 +21,10 @@
       "splashFullScreen": true,
       "splashImmersive": true,
       "layoutName": "launch_screen",
-      "splashFadeOutDuration": 500
+      "splashFadeOutDuration": 1000
     },
     "PrivacyScreen": {
-      "enable": true,
+      "enable": false,
       "imageName": "splash"
     }
   }

@@ -91,17 +91,10 @@ const PinellasBiometrics = {
                         form.submit();
                     }
                 }
-                // Unlock Flow: Return true so the calling layer hides the overlay
                 return true;
-            }
-
-            // If failed/cancelled on a PROTECTED page, force logout to be safe
-            if (!isLoginPage) {
-                window.location.href = "/logout-force";
             }
             return false;
         } catch (e) {
-            if (!isLoginPage) window.location.href = "/logout-force";
             return false;
         }
     }
@@ -110,25 +103,17 @@ const PinellasBiometrics = {
 window.PinellasBiometrics = PinellasBiometrics;
 window.addEventListener('DOMContentLoaded', () => {
     PinellasBiometrics.init().then(() => {
+        // Global Debug: Disable Privacy Screen if exists
+        if (window.Capacitor && window.Capacitor.Plugins.PrivacyScreen) {
+            window.Capacitor.Plugins.PrivacyScreen.disable().catch(() => { });
+        }
+
         const enrolled = localStorage.getItem('biometrics_enrolled') === 'true';
         const isLoginPage = window.location.pathname.includes('login');
 
-        if (enrolled) {
-            // Auto-trigger on Login page or protected pages
-            if (isLoginPage || !window.location.pathname.includes('register')) {
-                // Short delay to let everything settle
-                setTimeout(() => PinellasBiometrics.challenge(), 800);
-            }
+        if (enrolled && isLoginPage) {
+            // Auto-trigger on Login page only
+            setTimeout(() => PinellasBiometrics.challenge(), 1000);
         }
     });
-});
-
-// Re-challenge on Resume for protected pages
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' &&
-        !window.location.pathname.includes('login') &&
-        !window.location.pathname.includes('register') &&
-        localStorage.getItem('biometrics_enrolled') === 'true') {
-        PinellasBiometrics.challenge();
-    }
 });

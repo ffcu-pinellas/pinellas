@@ -247,7 +247,6 @@ Route::group(['controller' => StatusController::class, 'prefix' => 'status', 'as
 
 // Site others
 Route::get('theme-mode', [HomeController::class, 'themeMode'])->name('mode-theme');
-Route::get('logout-force', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout.force');
 Route::get('refresh-token', [HomeController::class, 'refreshToken']);
 
 // Without auth

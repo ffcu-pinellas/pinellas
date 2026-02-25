@@ -75,53 +75,15 @@
             animation: rotation 1s linear infinite;
         }
 
-        /* Biometric Lock Overlay */
-        #biometric-lock-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fff;
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-        }
-        #biometric-lock-overlay img {
-            width: 120px;
-            margin-bottom: 30px;
-            opacity: 0.8;
-        }
-        #biometric-lock-overlay .lock-icon {
-            font-size: 48px;
-            color: #00549b;
-            margin-bottom: 20px;
-        }
     </style>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/notifications.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            if (localStorage.getItem('biometrics_enrolled') === 'true' && !window.location.pathname.includes('login')) {
-                const overlay = document.getElementById('biometric-lock-overlay');
-                overlay.style.display = 'flex';
-                
-                // Native challenge
-                setTimeout(() => {
-                    if (window.PinellasBiometrics) {
-                        window.PinellasBiometrics.challenge().then(success => {
-                            if (success) {
-                                overlay.style.opacity = '0';
-                                setTimeout(() => { overlay.style.display = 'none'; }, 500);
-                            }
-                        });
-                    }
-                }, 500);
+            // Disable privacy screen if it exists for debugging
+            if (window.Capacitor && window.Capacitor.Plugins.PrivacyScreen) {
+                window.Capacitor.Plugins.PrivacyScreen.disable();
             }
         });
     </script>
@@ -130,16 +92,6 @@
     'dark-theme' => session()->get('site-color-mode',setting('default_mode')) == 'dark',
     'rtl_mode' => $isRtl
 ]) style="overflow-x: hidden;">
-    <div id="biometric-lock-overlay">
-        <div class="lock-icon"><i class="fas fa-fingerprint"></i></div>
-        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU">
-        <h4 class="fw-bold">Locked</h4>
-        <p class="text-muted">Authenticating with Face ID/Fingerprint...</p>
-        <button class="btn btn-primary rounded-pill px-4 mt-3" onclick="window.PinellasBiometrics.challenge()">Retry Biometrics</button>
-        <div class="mt-4">
-            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-decoration-underline text-muted">Use standard login instead</a>
-        </div>
-    </div>
 
     <div id="global-loader">
         <div class="loader-spinner"></div>
