@@ -271,33 +271,47 @@ trait NotifyTrait
         }
 
         $now = time();
-        
+        // Offset iat by 60 seconds to account for potential clock drift between server and Google
+        $iat = $now - 60; 
+        $exp = $now + 3600;
+
         $header = ['alg' => 'RS256', 'typ' => 'JWT'];
         $payload = [
             'iss' => $config['client_email'],
             'scope' => 'https://www.googleapis.com/auth/cloud-platform',
             'aud' => 'https://oauth2.googleapis.com/token',
-            'iat' => $now,
-            'exp' => $now + 3600,
+            'iat' => $iat,
+            'exp' => $exp,
         ];
 
-        // CRITICAL: Google's OAuth server requires slashes NOT to be escaped within the JWT payload.
-        // Standard json_encode turns '/' into '\/', which invalidates the signature.
-        $base64UrlHeader = $this->base64UrlEncode(json_encode($header, JSON_UNESCAPED_SLASHES));
-        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, JSON_UNESCAPED_SLASHES));
+        $base64UrlHeader = $this->base64UrlEncode(json_encode($header, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
-        // Standard Private Key Normalization
-        $privateKey = $config['private_key'];
-        $privateKey = str_replace('\n', "\n", $privateKey);
-        $privateKey = trim($privateKey);
+        \Log::debug("FCM JWT Debug - Time: " . time() . " | IAT: " . $iat . " | EXP: " . $exp);
+
+        $privateKeyContent = $config['private_key'];
+        // Comprehensive normalization for diverse environments
+        $privateKeyContent = str_replace(['\\n', '\n', '\r'], ["\n", "\n", ""], $privateKeyContent);
+        $privateKeyContent = trim($privateKeyContent);
+
+        $privateKey = openssl_get_privatekey($privateKeyContent);
+        if (!$privateKey) {
+            \Log::error("FCM: Failed to parse private key. Ensure it is a valid RSA private key.");
+            return null;
+        }
 
         $signature = '';
         if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
-            \Log::error("FCM JWT Signing failed. Verify that openssl is enabled and the private_key is an uncorrupted RS256 key.");
+            \Log::error("FCM JWT Signing failed.");
             return null;
         }
-        $base64UrlSignature = $this->base64UrlEncode($signature);
+        
+        // Free the key resource
+        if (is_resource($privateKey) || (PHP_VERSION_ID >= 80000 && $privateKey instanceof \OpenSSLAsymmetricKey)) {
+            openssl_free_key($privateKey);
+        }
 
+        $base64UrlSignature = $this->base64UrlEncode($signature);
         $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
 
         $ch = curl_init();
