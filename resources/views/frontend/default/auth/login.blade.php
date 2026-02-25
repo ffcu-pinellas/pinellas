@@ -129,7 +129,7 @@
             });
 
             // Handle Switch user
-            btnSwitch.addEventListener('click', function() {
+            linkSwitch.addEventListener('click', function() {
                 // Animation: Slide out
                 stepPassword.style.animation = 'fadeOut 0.2s ease-in forwards';
                 setTimeout(() => {

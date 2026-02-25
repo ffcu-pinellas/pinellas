@@ -52,12 +52,22 @@ const PinellasBiometrics = {
         if (!this.isAvailable) return;
 
         try {
+            console.log("[PinellasBiometrics] Challenging user identity...");
+            // Force the system Biometric Dialog (FaceID/Fingerprint)
+            await this.plugin.verifyIdentity({
+                reason: "Sign in to Pinellas Federal Credit Union",
+                title: "Biometric Login",
+                subtitle: "Identify yourself to continue",
+                description: "Use your biometric credential to sign in securely.",
+            });
+
+            console.log("[PinellasBiometrics] Identity verified. Retrieving credentials...");
             const credentials = await this.plugin.getCredentials({
                 server: "pinellascu.com",
             });
             return credentials;
         } catch (e) {
-            console.warn("Authentication cancelled or failed:", e);
+            console.warn("[PinellasBiometrics] Authentication cancelled or failed:", e);
             return null;
         }
     },
