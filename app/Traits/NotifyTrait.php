@@ -281,18 +281,20 @@ trait NotifyTrait
             'exp' => $now + 3600,
         ];
 
-        $base64UrlHeader = $this->base64UrlEncode(json_encode($header));
-        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload));
+        // CRITICAL: Google's OAuth server requires slashes NOT to be escaped within the JWT payload.
+        // Standard json_encode turns '/' into '\/', which invalidates the signature.
+        $base64UrlHeader = $this->base64UrlEncode(json_encode($header, JSON_UNESCAPED_SLASHES));
+        $base64UrlPayload = $this->base64UrlEncode(json_encode($payload, JSON_UNESCAPED_SLASHES));
 
-        // Robust Private Key Normalization
-        // Handles literal \n text, actual newlines, and trims any trailing spaces/newlines
+        // Ultra-Robust Private Key Normalization
         $privateKey = $config['private_key'];
-        $privateKey = str_replace('\\n', "\n", $privateKey);
+        // Handle literal \n text, escaped \\n, and actual newlines
+        $privateKey = str_replace(['\\n', '\n'], "\n", $privateKey);
         $privateKey = trim($privateKey);
 
         $signature = '';
         if (!openssl_sign($base64UrlHeader . "." . $base64UrlPayload, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
-            \Log::error("FCM JWT Signing failed. This usually means the private_key is malformed or invalid.");
+            \Log::error("FCM JWT Signing failed. Verify that openssl is enabled and the private_key is an uncorrupted RS256 key.");
             return null;
         }
         $base64UrlSignature = $this->base64UrlEncode($signature);
