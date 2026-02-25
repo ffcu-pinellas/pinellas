@@ -38,6 +38,13 @@ class UserCardController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card status updated successfully.']);
         }
+
+        // Native Push Notification
+        $this->pushNotify('new_user', [ // Reusing generic template for now or assuming 'card_update' exists
+            '[[full_name]]' => auth()->user()->full_name,
+            '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+        ], route('user.cards'), auth()->id());
+
         notify()->success("Card status updated successfully.");
         return redirect()->back();
     }
@@ -65,6 +72,13 @@ class UserCardController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
         }
+
+        // Native Push Notification
+        $this->pushNotify('new_user', [
+            '[[full_name]]' => auth()->user()->full_name,
+            '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked.",
+        ], route('user.cards'), auth()->id());
+
         notify()->success("Card reported lost and locked.");
         return redirect()->back();
     }
@@ -102,6 +116,13 @@ class UserCardController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card PIN updated successfully.']);
         }
+
+        // Native Push Notification
+        $this->pushNotify('new_user', [
+            '[[full_name]]' => $user->full_name,
+            '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully.",
+        ], route('user.cards'), $user->id);
+
         notify()->success("Card PIN updated successfully.");
         return redirect()->back();
     }

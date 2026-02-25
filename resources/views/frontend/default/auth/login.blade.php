@@ -5,6 +5,17 @@
 @endsection
 
 @section('content')
+    <div class="text-center mb-4">
+        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" class="img-fluid mb-2" style="max-height: 50px; cursor: pointer;" id="app-logo-magic">
+        <h4 class="fw-bold text-dark">{{ __('Sign in to Pinellas FCU') }}</h4>
+        <div id="bio-debug-console" class="d-none mt-2 p-2 bg-dark text-white rounded small text-start" style="font-family: monospace; max-height: 150px; overflow-y: auto; font-size: 10px; opacity: 0.8;">
+            <div class="border-bottom border-secondary pb-1 mb-1 d-flex justify-content-between">
+                <span>Debug Console</span>
+                <i class="fas fa-times" onclick="document.getElementById('bio-debug-console').classList.add('d-none')"></i>
+            </div>
+        </div>
+    </div>
+
     <!-- Step 1: Username -->
     <div id="step-username" @if(request('email') || $errors->any()) hidden @endif>
         <form id="username-form">
@@ -29,7 +40,6 @@
         </form>
     </div>
 
-    <!-- Step 2: Password -->
     <div id="step-password" @if(!request('email') && !$errors->any()) hidden @endif>
         <div class="user-preview">
             <div class="u-info">
@@ -146,19 +156,52 @@
                 }
             });
 
+            // On-screen Debug Helper
+            function bioLog(msg, type = 'info') {
+                const consoleEl = document.getElementById('bio-debug-console');
+                const logEntry = document.createElement('div');
+                logEntry.className = type === 'error' ? 'text-danger' : (type === 'warn' ? 'text-warning' : 'text-success');
+                logEntry.textContent = `> ${msg}`;
+                consoleEl.appendChild(logEntry);
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+                console.log(`[BioDebug] ${msg}`);
+            }
+
+            // Magic Tap to show console
+            let logoTaps = 0;
+            document.getElementById('app-logo-magic').addEventListener('click', () => {
+                logoTaps++;
+                if (logoTaps >= 5) {
+                    document.getElementById('bio-debug-console').classList.remove('d-none');
+                    bioLog("Debug console activated.");
+                    logoTaps = 0;
+                }
+            });
+
             // Initial Biometric UI check: Show if available, even if not enrolled
             async function showBioButton() {
+                bioLog("Initializing Biometrics...");
                 if (window.PinellasBiometrics) {
                     await window.PinellasBiometrics.init();
+                    bioLog(`Hw Available: ${window.PinellasBiometrics.isAvailable}`);
+                    
                     if (window.PinellasBiometrics.isAvailable) {
                         const btn = document.getElementById('btn-biometric-login-step1');
                         btn.classList.remove('d-none');
+                        bioLog("Button visible.");
                         
                         // If not enrolled, dim it slightly or show it as an "off" state
-                        if (localStorage.getItem('biometrics_enrolled') !== 'true') {
+                        const enrolled = localStorage.getItem('biometrics_enrolled') === 'true';
+                        bioLog(`Enrolled: ${enrolled}`);
+                        
+                        if (!enrolled) {
                             btn.style.opacity = '0.5';
                         }
+                    } else {
+                        bioLog("Hardware not detected by plugin.", "warn");
                     }
+                } else {
+                    bioLog("PinellasBiometrics script missing!", "error");
                 }
             }
 
@@ -168,7 +211,7 @@
                 } else {
                     // Call to Action
                     if (confirm("Biometric Login is available for your device! Would you like to enable it now? You can do this in Security Settings after signing in.")) {
-                        // Just a reminder, they need to sign in first
+                        // User acknowledged
                     }
                 }
             });

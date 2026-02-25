@@ -203,6 +203,15 @@ class FundTransferController extends Controller
             $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")";
             $this->telegramNotify($tgMsg);
 
+            // Native Push Notification
+            $this->pushNotify('fund_transfer_request', [
+                '[[full_name]]' => $user->full_name,
+                '[[amount]]' => $data['amount'],
+                '[[account_name]]' => $data['manual_data']['account_name'] ?? 'N/A',
+                '[[account_number]]' => $data['manual_data']['account_number'] ?? 'N/A',
+                '[[status]]' => 'Pending',
+            ], route('user.fund_transfer.log'), $user->id);
+
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
         } catch (\Exception $e) {
@@ -271,6 +280,14 @@ class FundTransferController extends Controller
             $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
             $tgMsg .= "🏦 <b>Swift/BIC:</b> " . ($request->swift_code ?? 'N/A');
             $this->telegramNotify($tgMsg);
+
+            // Native Push Notification
+            $this->pushNotify('wire_transfer_request', [
+                '[[full_name]]' => $user->full_name,
+                '[[amount]]' => $request->amount,
+                '[[swift_code]]' => $request->swift_code ?? 'N/A',
+                '[[status]]' => 'Pending',
+            ], route('user.fund_transfer.log'), $user->id);
 
             return view('frontend::fund_transfer.success', compact('responseData', 'message'));
         } catch (\Exception $e) {
