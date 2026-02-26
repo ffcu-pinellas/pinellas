@@ -5,7 +5,9 @@
     'use strict';
 
     // Lucide Icons Activation
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 
     // Side Nav Collapse
     $(".sidebar-toggle").on('click', function () {

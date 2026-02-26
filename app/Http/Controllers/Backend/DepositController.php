@@ -232,10 +232,10 @@ class DepositController extends Controller
 
     public function depositAction($id)
     {
-
         $data = Transaction::with('userWallet.currency')->find($id);
+        $currency = setting('site_currency', 'global');
 
-        return view('backend.deposit.include.__deposit_action', compact('data', 'id'))->render();
+        return view('backend.deposit.include.__deposit_action', compact('data', 'id', 'currency'))->render();
     }
 
     public function actionNow(Request $request)

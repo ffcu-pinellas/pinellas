@@ -1,4 +1,4 @@
-/node_mo
+node_modules/
 /assets/hot
 /assets/storage
 /storage/*.key
@@ -14,5 +14,5 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
-/node_modules
+# /node_modules (redundant)
 /fcm_config/

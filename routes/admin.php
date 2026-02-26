@@ -383,6 +383,7 @@ Route::group(['prefix' => 'template', 'as' => 'template.'], function () {
 
 // ===============================  Others ==================================
 Route::group(['controller' => AppController::class], function () {
+    Route::get('push-test', 'pushTest')->name('push.test');
     Route::get('subscribers', 'subscribers')->name('subscriber');
     Route::get('mail-send-subscriber', 'mailSendSubscriber')->name('mail.send.subscriber');
     Route::post('mail-send-subscriber-now', 'mailSendSubscriberNow')->name('mail.send.subscriber.now');

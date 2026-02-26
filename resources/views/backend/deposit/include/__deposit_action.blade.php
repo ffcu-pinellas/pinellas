@@ -22,22 +22,46 @@
 
 </ul>
 
-<ul class="list-group mb-4">
+@php
+    $manualData = json_decode($data->manual_field_data, true);
+@endphp
 
-    @foreach( json_decode($data->manual_field_data) as $key => $value)
-        <li class="list-group-item">
-            {{ $key }}:
+@if(is_array($manualData))
+    <ul class="list-group mb-4">
+        @foreach($manualData as $key => $value)
+        <li class="list-group-item d-flex flex-column align-items-start">
+            <span class="mb-2 text-muted fw-bold">{{ str_replace('_', ' ', $key) }}:</span>
 
             @if($value != new stdClass())
-                @if( file_exists('assets/'.$value))
-                    <img src="{{ asset($value) }}" alt=""/>
+                @php
+                    $isImage = false;
+                    $cleanPath = ltrim($value, '/');
+                    // Check multiple possible paths for robustness
+                    if (file_exists(public_path($cleanPath))) {
+                        $isImage = true;
+                    } elseif (file_exists(public_path('assets/' . $cleanPath))) {
+                        $value = 'assets/' . $cleanPath;
+                        $isImage = true;
+                    }
+                @endphp
+
+                @if($isImage)
+                    <div class="check-image-container border rounded overflow-hidden">
+                        <img src="{{ asset($value) }}" alt="{{ $key }}" class="img-fluid" style="max-height: 250px; width: 100%; object-fit: contain;"/>
+                    </div>
                 @else
-                    <strong>{{ $value }}</strong>
+                    <strong class="text-dark">{{ $value }}</strong>
                 @endif
+            @else
+                <i class="text-muted small">N/A</i>
             @endif
         </li>
     @endforeach
 </ul>
+<style>
+    .check-image-container { background: #f8f9fa; display: flex; align-items: center; justify-content: center; width: 100%; }
+</style>
+@endif
 
 <form action="{{ route('admin.deposit.action.now') }}" method="post">
     @csrf
@@ -62,7 +86,9 @@
 </form>
 <script>
     'use strict';
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 </script>
 
 

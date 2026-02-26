@@ -6,6 +6,8 @@
                 data-lucide="eye"></i></button></span>
     <script>
         'use strict';
-        lucide.createIcons();
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     </script>
 @endcan

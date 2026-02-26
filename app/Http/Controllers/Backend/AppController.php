@@ -155,6 +155,27 @@ class AppController extends Controller
         return redirect()->back();
     }
 
+    public function pushTest()
+    {
+        $admin = auth('admin')->user();
+        if (!$admin || !$admin->fcm_token) {
+            notify()->error(__('Admin FCM token not found. Please login to the Admin App first.'), 'Error');
+            return redirect()->back();
+        }
+
+        $shortcodes = [
+            '[[full_name]]' => $admin->name,
+            '[[message]]' => 'This is a test notification for the Pinellas Admin App.',
+        ];
+
+        // Using card_activity_alert as it's a generic message-based template
+        $this->pushNotify('card_activity_alert', $shortcodes, route('admin.dashboard'), null, 'Admin');
+
+        notify()->success(__('Test push notification sent successfully!'), 'Success');
+
+        return redirect()->back();
+    }
+
     /**
      * Update FCM push token for the administrator
      */

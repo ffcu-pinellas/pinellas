@@ -247,6 +247,13 @@ class UserController extends Controller
             $transaction->status = \App\Enums\TxnStatus::Pending;
             $transaction->method = 'Remote Deposit';
             $transaction->description = 'Remote Check Deposit to ' . $accountName . ' (Pending)';
+            
+            // Link Images for Admin Review Modal
+            $transaction->manual_field_data = json_encode([
+                'Check Front' => $frontImage,
+                'Check Back' => $backImage,
+            ]);
+            
             $transaction->save();
         });
 
@@ -256,11 +263,18 @@ class UserController extends Controller
         $tgMsg .= "🏦 <b>To:</b> {$accountName} (..." . substr($accountNumber, -4) . ")";
         $this->telegramNotify($tgMsg);
 
-        // Native Push Notification
+        // Native Push Notification (User)
         $this->pushNotify('remote_deposit_submitted', [
             '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
             '[[txn]]' => $txnam ?? 'N/A',
         ], route('user.remote_deposit'), $user->id);
+
+        // Admin Push Notification
+        $this->pushNotify('remote_deposit_submitted', [
+            '[[full_name]]' => $user->full_name,
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+            '[[account_number]]' => $accountNumber,
+        ], route('admin.remote.deposit.index'), null, 'Admin');
 
         notify()->success('Remote deposit submitted successfully and is pending review.');
         return redirect()->route('user.remote_deposit');
