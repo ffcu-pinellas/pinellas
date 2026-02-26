@@ -38,21 +38,23 @@
                                                         <span class="text-white fs-5 tracking-widest card-num-masked" id="masked_{{ $card->id }}">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
                                                         <span class="text-white fs-5 tracking-widest card-num-full d-none" id="full_{{ $card->id }}">{{ chunk_split($card->card_number, 4, ' ') }}</span>
                                                     </div>
-                                                    <div class="d-flex justify-content-between align-items-end">
-                                                        <div>
-                                                            <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 8px;">Card Holder</div>
+                                                    <div class="d-flex justify-content-between align-items-end mt-auto">
+                                                        <div class="card-holder-info">
+                                                            <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Card Holder</div>
                                                             <div class="text-white text-uppercase small fw-bold">{{ $card->card_holder_name ?? $user->full_name }}</div>
                                                         </div>
-                                                        <div class="text-end">
-                                                            <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 8px;">Expires</div>
-                                                            <div class="text-white small fw-bold">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
-                                                        </div>
-                                                        <div class="card-brand">
-                                                            @if(strtolower($card->type) == 'mastercard')
-                                                                <i class="fab fa-cc-mastercard text-white fs-2 opacity-75"></i>
-                                                            @else
-                                                                <i class="fab fa-cc-visa text-white fs-2 opacity-75"></i>
-                                                            @endif
+                                                        <div class="d-flex align-items-end gap-3 position-relative" style="min-width: 100px; justify-content: flex-end;">
+                                                            <div class="text-end me-1">
+                                                                <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Expires</div>
+                                                                <div class="text-white small fw-bold">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
+                                                            </div>
+                                                            <div class="card-brand-static">
+                                                                @if(strtolower($card->type) == 'mastercard')
+                                                                    <i class="fab fa-cc-mastercard text-white fs-1 opacity-75"></i>
+                                                                @else
+                                                                    <i class="fab fa-cc-visa text-white fs-1 opacity-75"></i>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -109,7 +111,7 @@
                                                         <input type="hidden" name="status" value="blocked">
                                                         <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
                                                         <button type="submit" class="site-btn-sm red-btn w-100 justify-content-center">
-                                                            <i data-lucide="not-allowed"></i> {{ __('Block') }}
+                                                            <i data-lucide="ban"></i> {{ __('Block') }}
                                                         </button>
                                                     </form>
                                                 @endif
@@ -241,6 +243,7 @@
         margin-left: auto;
         margin-right: auto;
     }
+    }
     .credit-card-inner {
         position: relative;
         width: 100%;
@@ -309,14 +312,20 @@
         position: absolute;
         right: 1.5rem;
         bottom: 1rem;
+        display: none; /* Hidden by default in favor of card-brand-static */
+    }
+    .card-brand-static i {
+        line-height: 1;
+        vertical-align: bottom;
     }
 </style>
 @endpush
 
-@push('script')
+@push('single-script')
 <script>
     $(document).ready(function() {
-        $('.show-details-check').off('change').on('change', function() {
+        // Use delegated event to ensure it works even if content reloads
+        $(document).on('change', '.show-details-check', function() {
             const cardId = $(this).data('card-id');
             const isChecked = $(this).is(':checked');
             
@@ -330,7 +339,7 @@
         });
 
         // Stop propagation on controls so clicking buttons doesn't flip the card
-        $('.card-container .bg-white').on('click', function(e) {
+        $(document).on('click', '.card-container .bg-white', function(e) {
             e.stopPropagation();
         });
     });

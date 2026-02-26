@@ -96,27 +96,24 @@
                                                     <div class="wallet-name">
                                                         <div class="name">{{ $wallet['name'] }}</div>
                                                         <div class="chip-icon">
-                                                            <img class="chip"
-                                                                src="{{ asset('backend/materials/chip.png') }}"
-                                                                alt="" />
-                                                        </div>
-                                                    </div>
-                                                    <div class="wallet-info">
-                                                        <div class="wallet-id">{{ $wallet['code'] }}</div>
-                                                        <div class="balance">{{ $wallet['symbol'] . $wallet['balance'] }}
-                                                        </div>
+                                                        <i class="fas fa-microchip text-warning fs-3"></i>
                                                     </div>
                                                 </div>
-                                            @endforeach
-                                        @else
-                                            <div class="admin-user-balance-card">
-                                                <div class="wallet-name">
-                                                    <div class="name">{{ __('Account Balance') }}</div>
-                                                    <div class="chip-icon">
-                                                        <img class="chip" src="{{ asset('backend/materials/chip.png') }}"
-                                                            alt="" />
+                                                <div class="wallet-info">
+                                                    <div class="wallet-id">{{ $wallet['code'] }}</div>
+                                                    <div class="balance">{{ $wallet['symbol'] . $wallet['balance'] }}
                                                     </div>
                                                 </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="admin-user-balance-card">
+                                            <div class="wallet-name">
+                                                <div class="name">{{ __('Account Balance') }}</div>
+                                                <div class="chip-icon">
+                                                    <i class="fas fa-microchip text-warning fs-3"></i>
+                                                </div>
+                                            </div>
                                                 <div class="wallet-info">
                                                     <div class="wallet-id">{{ setting('site_currency', 'global') }}</div>
                                                     <div class="balance">
