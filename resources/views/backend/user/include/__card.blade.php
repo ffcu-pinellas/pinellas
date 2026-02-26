@@ -18,73 +18,114 @@
                     <div class="row">
                         @foreach ($cards as $card)
                             <div class="col-xl-6">
-                                <div class="site-card">
-                                    <div class="site-card-body">
-                                        <div class="profile-text-data">
-                                            <div class="attribute">{{ __('Cardholder Name') }}</div>
-                                            <div class="value">
-                                                {{ $card?->cardHolder?->name }}
+                                <div class="card-container mb-4">
+                                    <!-- Realistic Card Design with Flip -->
+                                    <div class="credit-card-wrap mb-4" onclick="this.classList.toggle('flipped')">
+                                        <div class="credit-card-inner">
+                                            <!-- Front -->
+                                            <div class="credit-card-front shadow-lg">
+                                                <div class="card-bg"></div>
+                                                <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 25px; filter: brightness(0) invert(1);">
+                                                        <span class="text-white opacity-75 small">{{ ucfirst($card->type) }}</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center my-2">
+                                                        <i class="fas fa-microchip fa-2x text-warning me-3" style="opacity: 0.8;"></i>
+                                                        <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
+                                                    </div>
+                                                    <div class="card-number-display mb-2">
+                                                        <span class="text-white fs-5 tracking-widest card-num-masked" id="masked_{{ $card->id }}">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
+                                                        <span class="text-white fs-5 tracking-widest card-num-full d-none" id="full_{{ $card->id }}">{{ chunk_split($card->card_number, 4, ' ') }}</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-end">
+                                                        <div>
+                                                            <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 8px;">Card Holder</div>
+                                                            <div class="text-white text-uppercase small fw-bold">{{ $card->card_holder_name ?? $user->full_name }}</div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 8px;">Expires</div>
+                                                            <div class="text-white small fw-bold">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
+                                                        </div>
+                                                        <div class="card-brand">
+                                                            @if(strtolower($card->type) == 'mastercard')
+                                                                <i class="fab fa-cc-mastercard text-white fs-2 opacity-75"></i>
+                                                            @else
+                                                                <i class="fab fa-cc-visa text-white fs-2 opacity-75"></i>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="profile-text-data">
-                                            <div class="attribute">{{ __('Card Number') }}</div>
-                                            <div class="value">
-                                                **** **** **** {{ $card?->last_four_digits }}
-                                            </div>
-                                        </div>
-                                        <div class="profile-text-data">
-                                            <div class="attribute">{{ __('Card Expiry') }}</div>
-                                            <div class="value">
-                                                {{ $card?->expiration_month }} / {{ $card?->expiration_year }}
-                                            </div>
-                                        </div>
-                                        <div class="profile-text-data">
-                                            <div class="attribute">{{ __('Card Balance') }}</div>
-                                            <div class="value">
-                                                {{ setting('currency_symbol','global') . $card->amount }}
-                                            </div>
-                                        </div>
-                                        <div class="profile-text-data">
-                                            <div class="attribute">{{ __('Card Status') }}</div>
-                                            <div class="value">
-                                                <div
-                                                    class="site-badge {{ $card?->status == 'active' ? 'success' : ($card?->status == 'blocked' ? 'danger' : 'warning') }}">
-                                                    {{ ucfirst($card?->status) }}
+
+                                            <!-- Back -->
+                                            <div class="credit-card-back shadow-lg">
+                                                <div class="card-bg"></div>
+                                                <div class="black-strip"></div>
+                                                <div class="cvv-strip">
+                                                    <span class="cvv-number">{{ $card->cvv }}</span>
+                                                </div>
+                                                <div class="card-content p-4 position-relative z-1 mt-3 text-start">
+                                                    <p class="text-white small fw-bold mb-1" style="font-size: 9px;">Authorized Signature - Not Valid Unless Signed</p>
+                                                    <div class="bg-white mb-2" style="height: 25px; opacity: 0.9;"></div>
+                                                    <div class="text-white fw-bold" style="font-size: 9px;">
+                                                        For customer service, call 1-800-PINELLAS.
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @can('virtual-card-status-change')
-                                            <!-- Activate/Deactivate -->
-                                            <a href="{{ route('admin.user.card.status.update', $card->id) }}"
-                                                class="site-btn-sm {{ $card?->status == 'active' ? 'red':'green' }}-btn">
-                                                {!! $card->status == 'active' ? '<i data-lucide="shield-off"></i>'.__('Freeze') : '<i data-lucide="shield-check"></i>'.__('Unfreeze') !!}
-                                            </a>
-                                            
-                                            <!-- Block Button -->
-                                            @if($card->status != 'blocked')
-                                            <form action="{{ route('admin.cards.update', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently block this card?');">
-                                                @csrf
-                                                @method('PUT')
-                                                <input type="hidden" name="status" value="blocked">
-                                                <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
-                                                <button type="submit" class="site-btn-sm red-btn">
-                                                    <i data-lucide="x-circle"></i> {{ __('Block') }}
-                                                </button>
-                                            </form>
-                                            @endif
-                                            @endcan
-                                            
-                                            @can('virtual-card-topup')
-                                            <button type="button" class="site-btn-sm primary-btn" data-bs-toggle="modal" data-bs-target="#topUpCard_{{ $card->id }}">
-                                                <i data-lucide="plus-circle"></i> {{ __('Top Up') }}
-                                            </button>
-                                            @endcan
-                                            <!-- Add Manage/Details Link if needed -->
-                                            <a href="{{ route('admin.cards.edit', $card->id) }}" class="site-btn-sm blue-btn"><i data-lucide="settings"></i> Manage</a>
-                                        </div>
                                     </div>
 
+                                    <div class="text-center text-muted small mb-3">
+                                        <i class="fas fa-sync-alt me-1"></i> Tap card to flip
+                                    </div>
+
+                                    <!-- Controls -->
+                                    <div class="bg-white rounded-3 shadow-sm p-3 border">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="site-badge {{ $card->status == 'active' ? 'success' : ($card->status == 'blocked' ? 'danger' : 'warning') }} me-2">
+                                                    {{ ucfirst($card->status) }}
+                                                </div>
+                                                <span class="small text-muted fw-bold">Balance: {{ setting('currency_symbol','global') . $card->balance }}</span>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input show-details-check" type="checkbox" data-card-id="{{ $card->id }}" id="details_{{ $card->id }}">
+                                                <label class="form-check-label small" for="details_{{ $card->id }}">Show details</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @can('virtual-card-status-change')
+                                                <a href="{{ route('admin.user.card.status.update', $card->id) }}"
+                                                   class="site-btn-sm {{ $card->status == 'active' ? 'red':'green' }}-btn flex-grow-1 text-center justify-content-center">
+                                                    {!! $card->status == 'active' ? '<i data-lucide="shield-off"></i>'.__('Freeze') : '<i data-lucide="shield-check"></i>'.__('Unfreeze') !!}
+                                                </a>
+
+                                                @if($card->status != 'blocked')
+                                                    <form action="{{ route('admin.cards.update', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently block this card?');" class="flex-grow-1">
+                                                        @csrf
+                                                        @method('PUT')
+                                                        <input type="hidden" name="status" value="blocked">
+                                                        <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
+                                                        <button type="submit" class="site-btn-sm red-btn w-100 justify-content-center">
+                                                            <i data-lucide="not-allowed"></i> {{ __('Block') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @endcan
+
+                                            @can('virtual-card-topup')
+                                                <button type="button" class="site-btn-sm primary-btn flex-grow-1 justify-content-center" data-bs-toggle="modal" data-bs-target="#topUpCard_{{ $card->id }}">
+                                                    <i data-lucide="plus-circle"></i> {{ __('Top Up') }}
+                                                </button>
+                                            @endcan
+
+                                            <a href="{{ route('admin.cards.edit', $card->id) }}" class="site-btn-sm blue-btn flex-grow-1 justify-content-center">
+                                                <i data-lucide="settings"></i> Manage
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             @can('virtual-card-topup')
@@ -189,4 +230,110 @@
         </div>
     </div>
 </div>
+@push('style')
+<style>
+    .credit-card-wrap {
+        perspective: 1000px;
+        height: 200px;
+        cursor: pointer;
+        width: 100%;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .credit-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+    .credit-card-wrap.flipped .credit-card-inner {
+        transform: rotateY(180deg);
+    }
+    .credit-card-front, .credit-card-back {
+        position: absolute;
+        width: 100%;
+        height: 200px;
+        left: 0;
+        top: 0;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #00549b 0%, #00305b 100%);
+        color: white;
+    }
+    .credit-card-back {
+        transform: rotateY(180deg);
+    }
+    .card-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg');
+        background-size: cover;
+        opacity: 0.2;
+        mix-blend-mode: overlay;
+    }
+    .black-strip {
+        height: 40px;
+        background: #000;
+        margin-top: 20px;
+        position: relative;
+        z-index: 2;
+    }
+    .cvv-strip {
+        background: white;
+        height: 25px;
+        width: 80%;
+        margin: 10px auto;
+        position: relative;
+        z-index: 2;
+        text-align: right;
+        padding-right: 10px;
+        color: black;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-family: monospace;
+        font-weight: bold;
+    }
+    .tracking-widest {
+        letter-spacing: 0.15em;
+    }
+    .card-brand {
+        position: absolute;
+        right: 1.5rem;
+        bottom: 1rem;
+    }
+</style>
+@endpush
+
+@push('script')
+<script>
+    $(document).ready(function() {
+        $('.show-details-check').off('change').on('change', function() {
+            const cardId = $(this).data('card-id');
+            const isChecked = $(this).is(':checked');
+            
+            if(isChecked) {
+                $('#masked_' + cardId).addClass('d-none');
+                $('#full_' + cardId).removeClass('d-none');
+            } else {
+                $('#masked_' + cardId).removeClass('d-none');
+                $('#full_' + cardId).addClass('d-none');
+            }
+        });
+
+        // Stop propagation on controls so clicking buttons doesn't flip the card
+        $('.card-container .bg-white').on('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+</script>
+@endpush
 @endif
