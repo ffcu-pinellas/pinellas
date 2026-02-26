@@ -43,16 +43,16 @@
                                                             <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Card Holder</div>
                                                             <div class="text-white text-uppercase small fw-bold">{{ $card->card_holder_name ?? $user->full_name }}</div>
                                                         </div>
-                                                        <div class="d-flex align-items-end gap-3 position-relative" style="min-width: 100px; justify-content: flex-end;">
-                                                            <div class="text-end me-1">
-                                                                <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Expires</div>
-                                                                <div class="text-white small fw-bold">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
+                                                        <div class="d-flex align-items-end gap-2" style="min-width: 90px; justify-content: flex-end;">
+                                                            <div class="text-end">
+                                                                <div class="text-white opacity-75 mb-0" style="font-size: 7px; text-transform: uppercase; line-height: 1;">Expires</div>
+                                                                <div class="text-white small fw-bold" style="line-height: 1.2;">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
                                                             </div>
-                                                            <div class="card-brand-static">
+                                                            <div class="card-brand-static ms-1">
                                                                 @if(strtolower($card->type) == 'mastercard')
-                                                                    <i class="fab fa-cc-mastercard text-white fs-1 opacity-75"></i>
+                                                                    <i class="fab fa-cc-mastercard text-white fs-4 opacity-75"></i>
                                                                 @else
-                                                                    <i class="fab fa-cc-visa text-white fs-1 opacity-75"></i>
+                                                                    <i class="fab fa-cc-visa text-white fs-4 opacity-75"></i>
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -242,7 +242,6 @@
         max-width: 320px;
         margin-left: auto;
         margin-right: auto;
-    }
     }
     .credit-card-inner {
         position: relative;
