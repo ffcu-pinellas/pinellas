@@ -75,12 +75,12 @@
             <input class="inputotp" name="otp[]" type="number" maxlength="1" disabled required/>
         </div>
 
-        <div class="action-row">
-            <div style="font-size: 14px; color: var(--body-text-secondary-color);">
-                {{ __('Don\'t receive code?') }}<br>
+        <div class="action-row" style="flex-direction: column; gap: 15px;">
+            <button type="submit" id="btn-verify" class="primary-btn w-100">{{ __('Verify & Proceed') }}</button>
+            <div style="font-size: 14px; color: var(--body-text-secondary-color); text-align: center; width: 100%;">
+                {{ __('Don\'t receive code?') }}
                 <a href="{{ route('otp.resend') }}" class="btn-resend">{{ __('Resend again') }}</a>
             </div>
-            <button type="submit" id="btn-verify" class="primary-btn">{{ __('Verify & Proceed') }}</button>
         </div>
     </form>
 @endsection

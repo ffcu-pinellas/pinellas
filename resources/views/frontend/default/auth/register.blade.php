@@ -128,9 +128,9 @@
             </div>
         </div>
 
-        <div class="action-row">
-            <a href="{{ route('login') }}" class="enroll-link">{{ __('Already have an account?') }}<br>{{ __('Sign in here') }}</a>
-            <button type="submit" class="primary-btn">{{ __('Next Step') }}</button>
+        <div class="action-row" style="flex-direction: column; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="primary-btn w-100">{{ __('Next Step') }}</button>
+            <a href="{{ route('login') }}" class="enroll-link" style="text-align: center; width: 100%;">{{ __('Already have an account? Sign in here') }}</a>
         </div>
     </form>
 @endsection

@@ -19,9 +19,9 @@
                    placeholder="Enter your email or username" required autofocus>
         </div>
 
-        <div class="action-row" style="margin-top: 30px;">
-            <a href="{{ route('login') }}" class="enroll-link">{{ __('Remember your password?') }}<br>{{ __('Sign in here') }}</a>
-            <button type="submit" class="primary-btn">{{ __('Send Reset Link') }}</button>
+        <div class="action-row" style="flex-direction: column; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="primary-btn w-100">{{ __('Send Reset Link') }}</button>
+            <a href="{{ route('login') }}" class="enroll-link" style="text-align: center; width: 100%;">{{ __('Remember your password? Sign in here') }}</a>
         </div>
     </form>
 @endsection

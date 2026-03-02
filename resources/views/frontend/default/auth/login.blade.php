@@ -25,9 +25,9 @@
                 <a href="{{ route('password.request') }}" class="forgot-link">Forgot?</a>
             </div>
 
-            <div class="action-row">
-                <a href="{{ route('register') }}" class="enroll-link">First time user?<br>Enroll now.</a>
-                <button type="button" id="btn-continue" class="primary-btn">Continue</button>
+            <div class="action-row" style="flex-direction: column; gap: 15px;">
+                <button type="button" id="btn-continue" class="primary-btn w-100">Continue</button>
+                <a href="{{ route('register') }}" class="enroll-link" style="text-align: center; width: 100%;">First time user? Enroll now.</a>
             </div>
         </form>
     </div>
