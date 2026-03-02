@@ -70,7 +70,7 @@
                 </div>
             @endif
 
-            <div class="action-row">
+            <div class="action-row" style="flex-direction: column; gap: 15px;">
                 <button type="submit" class="primary-btn w-100">Sign in</button>
             </div>
         </form>

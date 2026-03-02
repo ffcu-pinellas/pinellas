@@ -1,23 +1,34 @@
 @extends('frontend::layouts.user')
 @section('title')
-    {{ __('My Ticket List') }}
+    {{ __('Secure Messages') }}
 @endsection
 @push('style')
 <link rel="stylesheet" href="{{ asset('front/css/daterangepicker.css') }}">
 @endpush
 @section('content')
-    <div class="row">
-        <div class="col-xl-12">
-            <div class="site-card">
-                <div class="site-card-header">
-                    <h3 class="title">{{ __('My Ticket List') }}</h3>
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Bank Header Style -->
+            <div class="text-center mb-5">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="h2 fw-bold mb-0">{{ __('Secure Message Center') }}</h1>
+                </div>
+                <p class="text-muted">{{ __('Communicate securely with Pinellas FCU member services.') }}</p>
+            </div>
+
+            <div class="site-card border-0 shadow-sm">
+                <div class="site-card-header bg-white border-bottom py-3">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-inbox me-2 text-primary"></i>{{ __('Inbox') }}</h5>
                     <div class="card-header-links">
-                        <a href="#"
-                            class="card-header-link"
+                        <a href="javascript:void(0)"
+                            class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
                             data-bs-toggle="modal"
                             data-bs-target="#openTicket"
                             >
-                            <i data-lucide='plus-circle'></i> {{ __('Create Ticket') }}
+                            <i class="fas fa-edit me-1"></i> {{ __('Compose') }}
                         </a>
                     </div>
                 </div>
@@ -57,12 +68,12 @@
                     </form>
                     <div class="site-custom-table">
                         <div class="contents">
-                            <div class="site-table-list site-table-head">
-                                <div class="site-table-col">{{ __('Ticket') }}</div>
-                                <div class="site-table-col">{{ __('Precedence') }}</div>
-                                <div class="site-table-col">{{ __('Last Open') }}</div>
-                                <div class="site-table-col">{{ __('Status') }}</div>
-                                <div class="site-table-col">{{ __('Action') }}</div>
+                            <div class="site-table-list site-table-head bg-light">
+                                <div class="site-table-col fw-bold">{{ __('Subject / Message ID') }}</div>
+                                <div class="site-table-col fw-bold text-center">{{ __('Priority') }}</div>
+                                <div class="site-table-col fw-bold text-center">{{ __('Last Activity') }}</div>
+                                <div class="site-table-col fw-bold text-center">{{ __('Status') }}</div>
+                                <div class="site-table-col fw-bold text-end">{{ __('Action') }}</div>
                             </div>
                             @foreach ($tickets as $ticket)
                             <div class="site-table-list">
@@ -72,9 +83,9 @@
                                             <i data-lucide="message-circle"></i> 
                                         </div>
                                         <div class="content">
-                                            <div class="title">
-                                                <a href="{{ route('user.ticket.show',$ticket->uuid) }}">
-                                                    [{{ __('Ticket') }} - {{ $ticket->uuid }}] {{ $ticket->title }}
+                                            <div class="title fw-bold">
+                                                <a href="{{ route('user.ticket.show',$ticket->uuid) }}" class="text-dark text-decoration-none">
+                                                    {{ $ticket->title }} <span class="text-muted small ms-1">#{{ $ticket->uuid }}</span>
                                                 </a>
                                             </div>
                                             <div class="date">{{ $ticket->created_at }}</div>
@@ -121,33 +132,33 @@
                             <div class="modal-content site-table-modal">
                                 <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
                                     <div class="popup-body-text">
-                                        <div class="title">{{ __('Open a New Ticket') }}</div>
+                                        <div class="title fw-bold text-primary mb-3"><i class="fas fa-edit me-2"></i>{{ __('New Support Request') }}</div>
 
                                         <form action="{{ route('user.ticket.store') }}" method="post" enctype="multipart/form-data">
                                             @csrf
                                             <div class="step-details-form">
                                                 <div class="row">
                                                     <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs">
-                                                            <label for="" class="input-label">{{ __('Subject') }}<span class="required">*</span></label>
-                                                            <input type="text" class="box-input" name="title" />
+                                                        <div class="inputs mb-3">
+                                                            <label for="" class="input-label fw-bold">{{ __('Subject') }}<span class="text-danger">*</span></label>
+                                                            <input type="text" class="input-box" name="title" placeholder="Brief description of your request" required />
                                                         </div>
                                                     </div>
                                                     <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs">
-                                                            <label for="" class="input-label">{{ __('Precedence') }}<span class="required">*</span></label>
-                                                            <select class="add-priority box-input page-count" name="priority">
-                                                                <option selected disabled value="">{{ __('Select Precedence') }}</option>
-                                                                <option value="low">{{ __('Low') }}</option>
-                                                                <option value="medium">{{ __('Medium') }}</option>
-                                                                <option value="high">{{ __('High') }}</option>
+                                                        <div class="inputs mb-3">
+                                                            <label for="" class="input-label fw-bold">{{ __('Inquiry Category') }}<span class="text-danger">*</span></label>
+                                                            <select class="input-box" name="priority" required>
+                                                                <option selected disabled value="">{{ __('Select Category') }}</option>
+                                                                <option value="low">{{ __('General Inquiry') }}</option>
+                                                                <option value="medium">{{ __('Account Support') }}</option>
+                                                                <option value="high">{{ __('Urgent / Fraud Report') }}</option>
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs">
-                                                            <label for="">{{ __('Your Message') }}<span class="required">*</span></label>
-                                                            <textarea class="box-textarea" name="message" rows="6"></textarea>
+                                                        <div class="inputs mb-3">
+                                                            <label for="" class="input-label fw-bold">{{ __('How can we help you?') }}<span class="text-danger">*</span></label>
+                                                            <textarea class="input-box" name="message" rows="5" placeholder="Please provide details about your request..." required></textarea>
                                                         </div>
                                                     </div>
                                                     <div class="mb-3">
@@ -171,13 +182,13 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="action-btns">
-                                                <button type="submit" class="site-btn-sm primary-btn me-2">
-                                                    <i data-lucide="check"></i> {{ __('Create Ticket') }}
+                                            <div class="action-btns mt-4 d-flex gap-2">
+                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                                    <i class="fas fa-paper-plane me-1"></i> {{ __('Send Message') }}
                                                 </button>
 
-                                                <button type="button" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                                    <i data-lucide="x"></i> {{ __('Close') }}
+                                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-toggle="modal" aria-label="Close">
+                                                    {{ __('Cancel') }}
                                                 </button>
                                             </div>
                                         </form>
