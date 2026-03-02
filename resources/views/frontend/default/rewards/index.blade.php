@@ -6,6 +6,12 @@
     <div class="row">
         {{-- Navigation Sidebar --}}
         <div class="col-xl-3 col-lg-4 col-md-12 col-12">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h4 class="mb-0 fw-bold">Rewards</h4>
+            </div>
             <div class="site-card profile-nav mb-4">
                 <div class="site-card-body p-0">
                     <div class="settings-nav-group">

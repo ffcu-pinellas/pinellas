@@ -6,7 +6,6 @@
 @endsection
 
 @push('style')
-    <link rel="stylesheet" href="{{ asset('front/css/daterangepicker.css') }}">
     <style>
         .filter-chip {
             border-radius: 50px;
@@ -50,7 +49,12 @@
     <div class="col-12">
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 fw-bold mb-0">Activity</h1>
+            <div class="d-flex align-items-center">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h3 fw-bold mb-0">Activity</h1>
+            </div>
             <div class="d-flex gap-2">
                 <a href="{{ route('user.transactions.export.csv', $queries) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                     <i class="fas fa-file-export me-1"></i> Export
@@ -143,7 +147,9 @@
                 </div>
                 @empty
                 <div class="text-center py-5">
-                    <i class="fas fa-info-circle fa-3x text-light mb-3"></i>
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-search fa-2x text-muted opacity-50"></i>
+                    </div>
                     <p class="text-muted">No activity match your filters.</p>
                 </div>
                 @endforelse
@@ -195,8 +201,6 @@
 </div>
 
 @push('js')
-    <script src="{{ asset('front/js/moment.min.js') }}"></script>
-    <script src="{{ asset('front/js/daterangepicker.min.js') }}"></script>
     <script>
         $(function() {
             $('input[name="daterange"]').daterangepicker({

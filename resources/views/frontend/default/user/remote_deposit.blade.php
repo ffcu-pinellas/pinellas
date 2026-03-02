@@ -9,7 +9,12 @@
     <div class="col-lg-7">
         <!-- Banno Header -->
         <div class="text-center mb-5">
-            <h1 class="h2 fw-bold mb-3">Deposit a check</h1>
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h2 fw-bold mb-0">Deposit a check</h1>
+            </div>
             <p class="text-muted">Quickly deposit checks from anywhere using your device's camera.</p>
             <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#historyModal">
                 <i class="fas fa-history me-1"></i> View History

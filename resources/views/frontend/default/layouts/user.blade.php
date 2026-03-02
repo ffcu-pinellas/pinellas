@@ -75,6 +75,29 @@
             animation: rotation 1s linear infinite;
         }
 
+        /* Global Back Button Style */
+        .back-nav-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--body-text-primary-color);
+            margin-right: 12px;
+            transition: all 0.2s;
+            text-decoration: none !important;
+        }
+        .back-nav-link:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: translateX(-2px);
+        }
+        .dark-theme .back-nav-link {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
     </style>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
@@ -248,6 +271,22 @@
 
         if(toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
         if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+        // Capacitor Android Back Button Handling
+        if (window.Capacitor && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('backButton', (data) => {
+                if (sidebar && sidebar.classList.contains('show')) {
+                    toggleSidebar();
+                } else if ($('.modal.show').length > 0) {
+                    $('.modal.show').modal('hide');
+                } else if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    // Minify/Exit app if at root
+                    window.Capacitor.Plugins.App.exitApp();
+                }
+            });
+        }
     });
 
     // Global Settings Navigation Helpers

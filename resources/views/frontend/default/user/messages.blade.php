@@ -9,7 +9,12 @@
     <div class="col-lg-8">
         <!-- Banno Support Header -->
         <div class="text-center mb-5">
-            <h1 class="h2 fw-bold mb-3">Support</h1>
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h2 fw-bold mb-0">Support</h1>
+            </div>
             <p class="text-muted">Need help? Start a conversation with one of our member service representatives.</p>
         </div>
 

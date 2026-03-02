@@ -1,6 +1,12 @@
 <div class="col-xl-3 col-lg-4 col-md-12 col-12 mb-4 mb-lg-0" id="settings-nav-col">
     <div class="site-card settings-sidebar border-0 shadow-sm" style="background: #fff; border-radius: 8px;">
         <div class="site-card-body p-0">
+            <div class="d-flex align-items-center p-3 border-bottom">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h5 class="mb-0 fw-bold">Settings</h5>
+            </div>
             <div class="settings-group">
                 <h6 class="settings-group-title text-muted fw-bold mb-2 px-3 pt-3" style="font-size: 11px; letter-spacing: 0.5px;">PERSONAL</h6>
                 <ul class="settings-nav-list list-unstyled m-0 p-0">

@@ -8,7 +8,12 @@
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
         <div class="text-center mb-5">
-            <h1 class="h2 fw-bold mb-3">Pay a bill</h1>
+            <div class="d-flex align-items-center justify-content-center mb-3">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="h2 fw-bold mb-0">Pay a bill</h1>
+            </div>
             <p class="text-muted">Fast, secure payments to your favorite companies and people.</p>
         </div>
 

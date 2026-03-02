@@ -6,8 +6,11 @@
     <div class="row">
         <div class="col-xl-12 col-lg-12 col-md-12 col-12">
             <div class="site-card">
-                <div class="site-card-header">
-                    <div class="title">{{ __('Referral Program') }}</div>
+                <div class="site-card-header d-flex align-items-center">
+                    <a href="{{ route('user.dashboard') }}" class="back-nav-link">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="title mb-0">{{ __('Referral Program') }}</div>
                 </div>
                 <div class="site-card-body">
                     <div class="referral-card">

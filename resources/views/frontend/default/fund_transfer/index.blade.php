@@ -8,7 +8,12 @@
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
         <div class="text-center mb-4">
-            <h2 class="mb-2">Transfer Funds</h2>
+            <div class="d-flex align-items-center justify-content-center mb-2">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="mb-0">Transfer Funds</h2>
+            </div>
             <p class="text-muted small">Send money to other banks or between your accounts.</p>
         </div>
 
