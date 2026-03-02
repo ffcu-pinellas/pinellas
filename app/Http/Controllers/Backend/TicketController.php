@@ -21,8 +21,8 @@ class TicketController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:support-ticket-list|support-ticket-action', ['only' => ['index']]);
-        $this->middleware('permission:support-ticket-action', ['only' => ['closeNow', 'reply', 'show']]);
+        $this->middleware('permission:support-ticket-list|support-ticket-action|support-ticket-manage-assigned', ['only' => ['index']]);
+        $this->middleware('permission:support-ticket-action|support-ticket-manage-assigned', ['only' => ['closeNow', 'reply', 'show']]);
 
     }
 
@@ -33,6 +33,11 @@ class TicketController extends Controller
         $status = $request->status ?? 'all';
         $tickets = Ticket::search($search)
             ->status($status)
+            ->when(!auth()->user()->can('support-ticket-list') && auth()->user()->can('support-ticket-manage-assigned'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
             ->when(request('query') != null, function ($query) {
                 $query->where('title', 'LIKE', '%'.request('query').'%');
             })
@@ -51,12 +56,26 @@ class TicketController extends Controller
     {
         $ticket = Ticket::uuid($uuid);
 
+        if (!auth()->user()->can('support-ticket-list') && auth()->user()->can('support-ticket-manage-assigned')) {
+            if ($ticket->user->staff_id != auth()->id()) {
+                abort(403, 'Unauthorized access to this ticket.');
+            }
+        }
+
         return view('backend.ticket.show', compact('ticket'));
     }
 
     public function closeNow($uuid)
     {
-        Ticket::uuid($uuid)->close();
+        $ticket = Ticket::uuid($uuid);
+
+        if (!auth()->user()->can('support-ticket-action') && auth()->user()->can('support-ticket-manage-assigned')) {
+            if ($ticket->user->staff_id != auth()->id()) {
+                abort(403, 'Unauthorized access to this ticket.');
+            }
+        }
+
+        $ticket->close();
         notify()->success('Ticket Closed successfully', 'success');
 
         return Redirect::route('admin.ticket.index');
@@ -93,6 +112,12 @@ class TicketController extends Controller
         ];
 
         $ticket = Ticket::uuid($input['uuid']);
+
+        if (!auth()->user()->can('support-ticket-action') && auth()->user()->can('support-ticket-manage-assigned')) {
+            if ($ticket->user->staff_id != auth()->id()) {
+                abort(403, 'Unauthorized access to this ticket.');
+            }
+        }
 
         $ticket->messages()->create($data);
 

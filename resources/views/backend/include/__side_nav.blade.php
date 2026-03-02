@@ -732,7 +732,7 @@
                     </li>
                 @endcanany
 
-                @canany(['subscriber-list', 'subscriber-mail-send', 'support-ticket-list', 'support-ticket-action'])
+                @canany(['subscriber-list', 'subscriber-mail-send', 'support-ticket-list', 'support-ticket-action', 'support-ticket-manage-assigned'])
                     <li class="side-nav-item side-nav-dropdown {{ isActive(['admin.subscriber', 'admin.ticket*']) }}">
                         <a href="javascript:void(0);" class="dropdown-link">
                             <i data-lucide="wrench"></i><span>{{ __('Subscriber & Support') }}</span>
@@ -745,7 +745,7 @@
                                             }}</span></a>
                                 </li>
                             @endcanany
-                            @canany(['support-ticket-list', 'support-ticket-action'])
+                            @canany(['support-ticket-list', 'support-ticket-action', 'support-ticket-manage-assigned'])
                                 <li class="{{ isActive('admin.ticket*') }}">
                                     <a href="{{ route('admin.ticket.index') }}"><i data-lucide="wrench"></i><span>{{ __('Support Tickets')
                                             }}</span></a>
