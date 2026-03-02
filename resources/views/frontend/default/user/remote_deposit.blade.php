@@ -7,14 +7,15 @@
 @section('content')
 <div class="row justify-content-center mb-5">
     <div class="col-lg-7">
-        <!-- Banno Header -->
-        <div class="text-center mb-5">
-            <h1 class="h2 fw-bold mb-3">Deposit a check</h1>
-            <p class="text-muted">Quickly deposit checks from anywhere using your device's camera.</p>
-            <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#historyModal">
+        <!-- Header with Back Button -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light rounded-circle me-3"><i class="fas fa-arrow-left"></i></a>
+            <h2 class="mb-0">Deposit a check</h2>
+        
+        <p class="text-muted mb-4 mt-n2 ms-1">Quickly deposit checks from anywhere using your device's camera.</p>
+                    <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#historyModal">
                 <i class="fas fa-history me-1"></i> View History
             </button>
-        </div>
 
         <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
             @csrf

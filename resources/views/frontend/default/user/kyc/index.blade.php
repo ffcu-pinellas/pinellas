@@ -3,16 +3,20 @@
     {{ __('ID Verification') }}
 @endsection
 @section('content')
-<div class="row">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light rounded-circle me-3"><i class="fas fa-arrow-left"></i></a>
+        <h2 class="mb-0">{{ __('ID Verification') }}</h2>
+    </div>
+    <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
     
     <div class="col-xl-9 col-lg-8 col-md-12 col-12">
         <div class="site-card profile-details-view">
             <div class="site-card-body">
-                <div class="section-title mb-4">
-                    <h3 style="font-weight: 700; color: var(--body-text-primary-color); margin: 0;">{{ __('ID Verification') }}</h3>
-                    <p style="color: var(--body-text-secondary-color); font-size: 0.9rem;">{{ __('Upload your documents to verify your identity and unlock more features.') }}</p>
-                </div>
+                    <div class="section-title mb-4">
+                        <h3 style="font-weight: 700; color: var(--body-text-primary-color); margin: 0;">{{ __('ID Verification') }}</h3>
+                        <p style="color: var(--body-text-secondary-color); font-size: 0.9rem;">{{ __('Upload your documents to verify your identity and unlock more features.') }}</p>
+                    </div>
 
                 @if($user->kyc == \App\Enums\KYCStatus::Verified->value)
                 <div class="identity-alert approved mb-4">

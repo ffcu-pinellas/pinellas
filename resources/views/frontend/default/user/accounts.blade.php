@@ -8,7 +8,12 @@
 <!-- Banno Accounts Header (Blue Water Theme) -->
 <div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
     <div class="position-relative z-1">
-        <h1 class="text-white display-5 fw-bold mb-2">Accounts</h1>
+        <div class="d-flex align-items-center mb-3">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light bg-opacity-25 border-0 rounded-circle me-3 text-white">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-white display-5 fw-bold mb-0">Accounts</h1>
+        </div>
         <div class="text-white opacity-75 small fw-600">PINELLAS FEDERAL CREDIT UNION</div>
     </div>
     <!-- Water ripple decoration -->

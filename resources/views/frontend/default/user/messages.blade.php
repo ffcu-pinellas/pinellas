@@ -7,11 +7,12 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <!-- Banno Support Header -->
-        <div class="text-center mb-5">
-            <h1 class="h2 fw-bold mb-3">Support</h1>
-            <p class="text-muted">Need help? Start a conversation with one of our member service representatives.</p>
+        <!-- Header with Back Button -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light rounded-circle me-3"><i class="fas fa-arrow-left"></i></a>
+            <h2 class="mb-0">Support</h2>
         </div>
+        <p class="text-muted mb-4 mt-n2 ms-1">Need help? Start a conversation with one of our member service representatives.</p>
 
         <div class="site-card overflow-hidden">
             <!-- Team Presence -->

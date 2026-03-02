@@ -3,6 +3,10 @@
 {{ __('Account Closing') }}
 @endsection
 @section('content')
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ route('user.dashboard') }}" class="btn btn-icon btn-light rounded-circle me-3"><i class="fas fa-arrow-left"></i></a>
+        <h2 class="mb-0">{{ __('Account Closing') }}</h2>
+    </div>
 <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
 
