@@ -70,67 +70,77 @@
                         </div>
                         @endif
                     </div>
-                    <div class="site-card overflow-hidden">
-                        <div class="site-card-body message-container">
+                    <div class="site-card border-0 shadow-sm overflow-hidden">
+                        <div class="site-card-body message-container d-flex flex-column gap-3">
                             
                             <!-- Initial Message -->
-                            <div class="message-balloon balloon-user">
-                                <div class="message-text">{{ $ticket->message }}</div>
-                                <div class="message-meta">
+                            <div class="d-flex flex-column align-items-end mb-2">
+                                <div class="message-balloon balloon-user">
+                                    <div class="message-text">{{ $ticket->message }}</div>
+                                    @if($ticket->attachments && count($ticket->attachments) > 0)
+                                        <div class="mt-2 pt-2 border-top border-white border-opacity-20 d-flex flex-wrap gap-2">
+                                            @foreach ($ticket->attachments as $attachment)
+                                                <a href="{{ asset($attachment) }}" target="_blank" class="attachment-card">
+                                                    <i class="fas fa-image me-1"></i> {{ __('View Attachment') }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="message-meta text-muted px-2">
                                     {{ $ticket->created_at->format('M d, Y h:i A') }}
                                 </div>
-                                @if($ticket->attachments && count($ticket->attachments) > 0)
-                                    @foreach ($ticket->attachments as $attachment)
-                                        <a href="{{ asset($attachment) }}" target="_blank" class="attachment-card">
-                                            <i class="fas fa-image me-2"></i> {{ __('View Image') }}
-                                        </a>
-                                    @endforeach
-                                @endif
                             </div>
 
                             @foreach($ticket->messages as $message )
-                                <div class="message-balloon @if($message->model == 'admin') balloon-admin @else balloon-user @endif">
-                                    @if($message->model == 'admin')
-                                        <span class="admin-label">Pinellas FCU Support</span>
-                                    @endif
-                                    <div class="message-text">
+                                <div class="d-flex flex-column @if($message->model == 'admin') align-items-start @else align-items-end @endif mb-2">
+                                    <div class="message-balloon @if($message->model == 'admin') balloon-admin @else balloon-user @endif">
                                         @if($message->model == 'admin')
-                                            {{ __('Hi') }} {{ $user->first_name }},<br><br>
+                                            <span class="admin-label d-flex align-items-center mb-1">
+                                                <i class="fas fa-university me-1 small"></i> Pinellas FCU Support
+                                            </span>
+                                            <div class="message-text mb-2 border-bottom border-light pb-2">
+                                                {{ __('Hi') }} {{ $user->first_name }},
+                                            </div>
                                         @endif
-                                        {{ $message->message }}
+                                        <div class="message-text">{{ $message->message }}</div>
+                                        
+                                        @php $attachments = json_decode($message->attachments); @endphp
+                                        @if(is_array($attachments) && count($attachments) > 0)
+                                            <div class="mt-2 pt-2 border-top @if($message->model == 'admin') border-light @else border-white border-opacity-20 @endif d-flex flex-wrap gap-2">
+                                                @foreach ($attachments as $attachment)
+                                                    <a href="{{ asset($attachment) }}" target="_blank" class="attachment-card">
+                                                        <i class="fas fa-paperclip me-1"></i> {{ __('Attachment') }}
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
-                                    <div class="message-meta">
+                                    <div class="message-meta text-muted px-2">
                                         {{ $message->created_at->format('M d, Y h:i A') }}
                                     </div>
-                                    @php
-                                        $attachments = json_decode($message->attachments);
-                                    @endphp
-                                    @if(is_array($attachments) && count($attachments) > 0)
-                                        @foreach ($attachments as $attachment)
-                                            <a href="{{ asset($attachment) }}" target="_blank" class="attachment-card">
-                                                <i class="fas fa-image me-2"></i> {{ __('View Image') }}
-                                            </a>
-                                        @endforeach
-                                    @endif
                                 </div>
                             @endforeach
-                            
-                            <div style="clear: both;"></div>
                         </div>
                     </div>
 
                             <!-- Modal for Close Ticket -->
                             <div class="modal fade" id="closeTicket" tabindex="-1" aria-labelledby="closeTicketModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-md modal-dialog-centered">
-                                    <div class="modal-content site-table-modal">
-                                        <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
-                                            <div class="popup-body-text centered">
-                                                <div class="info-icon"> <i data-lucide="alert-triangle"></i> </div>
-                                                <div class="title">
-                                                    <h4>{{ __('Are you sure?') }}</h4>
-                                                </div>
-                                                <p>{{ __('You want to Close this Ticket?') }}</p>
-                                                <div class="action-btns"> <a href="{{ route('user.ticket.close.now',$ticket->uuid) }}" class="site-btn-sm primary-btn me-2"> <i data-lucide="check"></i> Confirm </a> <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> Cancel </a> </div>
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-body p-5 text-center">
+                                            <div class="mb-4">
+                                                <i class="fas fa-check-circle text-success" style="font-size: 64px;"></i>
+                                            </div>
+                                            <h4 class="fw-bold mb-3">{{ __('Mark as Resolved?') }}</h4>
+                                            <p class="text-muted mb-4">{{ __('Are you sure you want to mark this secure message as resolved? This will archive the conversation.') }}</p>
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ route('user.ticket.close.now',$ticket->uuid) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
+                                                    {{ __('Confirm Resolution') }}
+                                                </a>
+                                                <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
+                                                    {{ __('Cancel') }}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -140,16 +150,21 @@
 
                             <!-- Modal for Reopen Ticket -->
                             <div class="modal fade" id="reopenTicket" tabindex="-1" aria-labelledby="reopenTicketModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-md modal-dialog-centered">
-                                    <div class="modal-content site-table-modal">
-                                        <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
-                                            <div class="popup-body-text centered">
-                                                <div class="info-icon"> <i data-lucide="alert-triangle"></i> </div>
-                                                <div class="title">
-                                                    <h4>{{ __('Are you sure?') }}</h4>
-                                                </div>
-                                                <p>{{ __('You want to reopen this Ticket?') }}</p>
-                                                <div class="action-btns"> <a href="{{ route('user.ticket.show',['uuid' => $ticket->uuid,'action' => 'reopen']) }}" class="site-btn-sm primary-btn me-2"> <i data-lucide="check"></i> Confirm </a> <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> Cancel </a> </div>
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-body p-5 text-center">
+                                            <div class="mb-4">
+                                                <i class="fas fa-undo text-primary" style="font-size: 64px;"></i>
+                                            </div>
+                                            <h4 class="fw-bold mb-3">{{ __('Re-open Case?') }}</h4>
+                                            <p class="text-muted mb-4">{{ __('Would you like to re-open this conversation to send additional messages?') }}</p>
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ route('user.ticket.show',['uuid' => $ticket->uuid,'action' => 'reopen']) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
+                                                    {{ __('Re-open Secure Message') }}
+                                                </a>
+                                                <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
+                                                    {{ __('Cancel') }}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -165,25 +180,29 @@
     </div>
 @push('style')
 <style>
-    .message-container { padding: 20px; background: #f9fbfd; }
-    .message-balloon { max-width: 80%; margin-bottom: 20px; padding: 15px 20px; border-radius: 20px; position: relative; clear: both; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .message-container { padding: 30px 20px; background: #f9fbfd; }
+    .message-balloon { max-width: 75%; padding: 15px 20px; border-radius: 18px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: transform 0.2s; }
+    .message-balloon:hover { transform: scale(1.01); }
     
-    /* User Message (Right) */
-    .balloon-user { float: right; background: #00549b; color: white; border-bottom-right-radius: 4px; }
-    .balloon-user .message-meta { color: rgba(255,255,255,0.8); text-align: right; }
+    /* User Message Style */
+    .balloon-user { background: #00549b; color: white; border-bottom-right-radius: 4px; }
     
-    /* Admin/Bank Message (Left) */
-    .balloon-admin { float: left; background: white; color: #334155; border-bottom-left-radius: 4px; border: 1px solid #e2e8f0; }
-    .balloon-admin .message-meta { color: #64748b; }
+    /* Bank Message Style */
+    .balloon-admin { background: white; color: #334155; border-bottom-left-radius: 4px; border: 1px solid #eef2f6; }
     
-    .message-meta { font-size: 11px; margin-top: 5px; }
-    .message-text { font-size: 15px; line-height: 1.5; }
+    .message-meta { font-size: 11px; margin-top: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
+    .message-text { font-size: 15px; line-height: 1.6; }
     
-    .avatar-sm { width: 32px; height: 32px; border-radius: 50%; margin-bottom: 5px; }
-    .admin-label { font-weight: 700; font-size: 12px; display: block; margin-bottom: 4px; color: #00549b; }
+    .admin-label { font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #00549b; opacity: 0.9; }
     
-    .attachment-card { display: inline-flex; align-items: center; background: rgba(0,0,0,0.05); padding: 5px 12px; border-radius: 8px; margin-top: 10px; font-size: 13px; color: inherit; text-decoration: none; }
-    .balloon-user .attachment-card { background: rgba(255,255,255,0.1); color: white; }
+    .attachment-card { display: inline-flex; align-items: center; background: rgba(0,0,0,0.04); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: inherit !important; text-decoration: none !important; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
+    .balloon-user .attachment-card { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1); }
+    .attachment-card:hover { background: rgba(0,0,0,0.08); }
+    .balloon-user .attachment-card:hover { background: rgba(255,255,255,0.2); }
+
+    @media (max-width: 768px) {
+        .message-balloon { max-width: 90%; }
+    }
 </style>
 @endpush
 

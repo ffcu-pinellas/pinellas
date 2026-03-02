@@ -33,39 +33,28 @@
                     </div>
                 </div>
                 <div class="site-card-body p-0 overflow-x-auto">
-                    <form id="filter-form">
-                        <div class="table-filter">
-                            <div class="filter">
-                                <div class="single-f-box">
-                                    <label for="">{{ __('Subject') }}</label>
-                                    <input class="search" type="text" name="subject" value="{{ request('subject') }}" autocomplete="off"/>
+                    <div class="px-4 py-3 bg-light border-bottom">
+                        <form id="filter-form" class="row g-2 align-items-center">
+                            <div class="col-md-5">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" name="subject" class="form-control border-start-0" placeholder="Search by subject..." value="{{ request('subject') }}">
                                 </div>
-                                <div class="single-f-box">
-                                    <label for="">{{ __('Date') }}</label>
-                                    <input type="text" name="daterange" value="{{ request('daterange') }}" autocomplete="off" />
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                    <input type="text" name="daterange" class="form-control border-start-0" placeholder="Filter by date..." value="{{ request('daterange') }}">
                                 </div>
-                                <button class="apply-btn me-2" name="filter">
-                                    <i data-lucide="filter"></i>{{ __('Filter') }}
-                                </button>
-                                @if(request()->has('filter'))
-                                <button type="button" class="apply-btn bg-danger reset-filter">
-                                    <i data-lucide="x"></i>{{ __('Reset Filter') }}
-                                </button>
+                            </div>
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1 fw-bold">{{ __('Filter') }}</button>
+                                @if(request()->has('subject') || request()->has('daterange'))
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill reset-filter"><i class="fas fa-undo"></i></button>
                                 @endif
                             </div>
-                            <div class="filter">
-                                <div class="single-f-box w-auto ms-4 me-0">
-                                    <label for="">{{ __('Entries') }}</label>
-                                    <select name="limit" class="nice-select page-count" onchange="$('#filter-form').submit()">
-                                        <option value="15" @selected(request('limit',15) == '15')>15</option>
-                                        <option value="30" @selected(request('limit') == '30')>30</option>
-                                        <option value="50" @selected(request('limit') == '50')>50</option>
-                                        <option value="100" @selected(request('limit') == '100')>100</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                     <div class="site-custom-table">
                         <div class="contents">
                             <div class="site-table-list site-table-head bg-light">
@@ -76,45 +65,41 @@
                                 <div class="site-table-col fw-bold text-end">{{ __('Action') }}</div>
                             </div>
                             @foreach ($tickets as $ticket)
-                            <div class="site-table-list">
+                            <div class="site-table-list py-3 border-bottom hover-bg-light transition-all" style="cursor: pointer;" onclick="window.location.href='{{ route('user.ticket.show',$ticket->uuid) }}'">
                                 <div class="site-table-col">
-                                    <div class="description">
-                                        <div class="event-icon">
-                                            <i data-lucide="message-circle"></i> 
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                            <i class="fas fa-comment-alt"></i>
                                         </div>
                                         <div class="content">
-                                            <div class="title fw-bold">
-                                                <a href="{{ route('user.ticket.show',$ticket->uuid) }}" class="text-dark text-decoration-none">
-                                                    {{ $ticket->title }} <span class="text-muted small ms-1">#{{ $ticket->uuid }}</span>
-                                                </a>
+                                            <div class="title fw-bold text-dark mb-0">
+                                                {{ $ticket->title }}
                                             </div>
-                                            <div class="date">{{ $ticket->created_at }}</div>
+                                            <div class="small text-muted">ID: #{{ $ticket->uuid }} • {{ $ticket->created_at->format('M d, Y') }}</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="site-table-col">
+                                <div class="site-table-col text-center">
                                     @if($ticket->priority == 'low')
-                                    <div class="type site-badge badge-pending">{{ $ticket->priority }}</div>
+                                        <span class="badge bg-info bg-opacity-10 text-info fw-normal rounded-pill px-3">{{ __('General') }}</span>
                                     @elseif($ticket->priority == 'high')
-                                    <div class="type site-badge badge-primary">{{ $ticket->priority }}</div>
+                                        <span class="badge bg-danger bg-opacity-10 text-danger fw-normal rounded-pill px-3">{{ __('Urgent') }}</span>
                                     @else
-                                    <div class="type site-badge badge-success">{{ $ticket->priority }}</div>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-normal rounded-pill px-3">{{ __('Support') }}</span>
                                     @endif
                                 </div>
-                                <div class="site-table-col">
-                                    <div class="trx fw-bold">{{ $ticket->messages->last()?->created_at->diffForHumans() ?? '--' }}</div>
+                                <div class="site-table-col text-center">
+                                    <div class="small fw-bold text-dark">{{ $ticket->messages->last()?->created_at->diffForHumans() ?? '--' }}</div>
                                 </div>
-                                <div class="site-table-col">
+                                <div class="site-table-col text-center">
                                     @if($ticket->isOpen())
-                                        <span class="ms-2 status site-badge badge-primary">{{ __('Opened') }}</span>
+                                        <span class="badge bg-success rounded-pill fw-normal px-3">{{ __('Open') }}</span>
                                     @elseif($ticket->isClosed())
-                                        <span class="ms-2 status site-badge badge-failed">{{ __('Closed') }}</span>
+                                        <span class="badge bg-secondary rounded-pill fw-normal px-3">{{ __('Resolved') }}</span>
                                     @endif
                                 </div>
-                                <div class="site-table-col">
-                                    <div class="action">
-                                        <a href="{{ route('user.ticket.show',$ticket->uuid) }}" class="icon-btn"><i data-lucide="eye"></i>{{ __('View') }}</a>
-                                    </div>
+                                <div class="site-table-col text-end">
+                                    <a href="{{ route('user.ticket.show',$ticket->uuid) }}" class="btn btn-light btn-sm rounded-circle"><i class="fas fa-chevron-right text-muted"></i></a>
                                 </div>
                             </div>
                             @endforeach
@@ -128,71 +113,61 @@
 
                     <!-- Modal for open Ticket-->
                     <div class="modal fade" id="openTicket" tabindex="-1" aria-labelledby="openTicketModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-md modal-dialog-centered">
-                            <div class="modal-content site-table-modal">
-                                <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
-                                    <div class="popup-body-text">
-                                        <div class="title fw-bold text-primary mb-3"><i class="fas fa-edit me-2"></i>{{ __('New Support Request') }}</div>
-
-                                        <form action="{{ route('user.ticket.store') }}" method="post" enctype="multipart/form-data">
-                                            @csrf
-                                            <div class="step-details-form">
-                                                <div class="row">
-                                                    <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs mb-3">
-                                                            <label for="" class="input-label fw-bold">{{ __('Subject') }}<span class="text-danger">*</span></label>
-                                                            <input type="text" class="input-box" name="title" placeholder="Brief description of your request" required />
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs mb-3">
-                                                            <label for="" class="input-label fw-bold">{{ __('Inquiry Category') }}<span class="text-danger">*</span></label>
-                                                            <select class="input-box" name="priority" required>
-                                                                <option selected disabled value="">{{ __('Select Category') }}</option>
-                                                                <option value="low">{{ __('General Inquiry') }}</option>
-                                                                <option value="medium">{{ __('Account Support') }}</option>
-                                                                <option value="high">{{ __('Urgent / Fraud Report') }}</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-xl-12 col-lg-12 col-md-12">
-                                                        <div class="inputs mb-3">
-                                                            <label for="" class="input-label fw-bold">{{ __('How can we help you?') }}<span class="text-danger">*</span></label>
-                                                            <textarea class="input-box" name="message" rows="5" placeholder="Please provide details about your request..." required></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="mb-3">
-
-                                                        <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12">
-                                                            <div class="add-attachment"> <a href="javascript:void(0)" onclick="addNewAttachment()">
-                                                                <i data-lucide="plus-circle"></i>{{ __('Add') }}</a>
-                                                            </div>
-                                                        </div>
-
-                                                        <div id="attachments">
-                                                            <div class="wrap-custom-file">
-                                                                <input type="file" name="attachments[]" id="attach" accept=".jpeg, .jpg, .png" />
-                                                                <label for="attach">
-                                                                    <img class="upload-icon" src="{{ asset('front/images/icons/upload.svg') }}" alt="" />
-                                                                    <span>{{ __('Attach Image') }}</span>
-                                                                </label>
-                                                            </div>
-                                                        </div>
-
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg">
+                                <div class="modal-header bg-primary text-white border-0 py-3">
+                                    <h5 class="modal-title fw-bold" id="openTicketModalLabel">
+                                        <i class="fas fa-edit me-2"></i>{{ __('New Support Request') }}
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <form action="{{ route('user.ticket.store') }}" method="post" enctype="multipart/form-data">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Subject') }}<span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="title" placeholder="Brief description of your request" required />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Inquiry Category') }}<span class="text-danger">*</span></label>
+                                            <select class="form-select" name="priority" required>
+                                                <option selected disabled value="">{{ __('Select Category') }}</option>
+                                                <option value="low">{{ __('General Inquiry') }}</option>
+                                                <option value="medium">{{ __('Account Support') }}</option>
+                                                <option value="high">{{ __('Urgent / Fraud Report') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('How can we help you?') }}<span class="text-danger">*</span></label>
+                                            <textarea class="form-control" name="message" rows="5" placeholder="Please provide details about your request..." required></textarea>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small text-muted text-uppercase mb-2">{{ __('Attachments') }} <span class="fw-normal text-muted">(Optional)</span></label>
+                                            <div id="attachments" class="row g-2">
+                                                <div class="col-6 mb-2">
+                                                    <div class="wrap-custom-file">
+                                                        <input type="file" name="attachments[]" id="attach-0" accept=".jpeg, .jpg, .png" onchange="previewImage(this)"/>
+                                                        <label for="attach-0" class="border p-2 rounded text-center d-block bg-white small mb-0" style="cursor:pointer">
+                                                            <i class="fas fa-image me-1 text-primary"></i> <span>{{ __('Attach Image') }}</span>
+                                                        </label>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="action-btns mt-4 d-flex gap-2">
-                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                                                    <i class="fas fa-paper-plane me-1"></i> {{ __('Send Message') }}
-                                                </button>
+                                            <a href="javascript:void(0)" onclick="addNewAttachment()" class="text-decoration-none small fw-bold">
+                                                <i class="fas fa-plus-circle me-1"></i>{{ __('Add another image') }}
+                                            </a>
+                                        </div>
 
-                                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-toggle="modal" aria-label="Close">
-                                                    {{ __('Cancel') }}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                        <div class="pt-2">
+                                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm mb-2">
+                                                <i class="fas fa-paper-plane me-1"></i> {{ __('Send Message') }}
+                                            </button>
+                                            <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small" data-bs-dismiss="modal">
+                                                {{ __('Discard and Close') }}
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
