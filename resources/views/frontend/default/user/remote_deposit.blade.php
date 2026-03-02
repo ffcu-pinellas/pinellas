@@ -16,6 +16,7 @@
                     <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#historyModal">
                 <i class="fas fa-history me-1"></i> View History
             </button>
+        </div>
 
         <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
             @csrf
