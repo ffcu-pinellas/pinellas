@@ -33,18 +33,23 @@
                                 <span class="text-white fs-4 tracking-widest card-num-masked">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
                                 <span class="text-white fs-4 tracking-widest card-num-full d-none">{{ chunk_split($card->card_number, 4, ' ') }}</span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-end">
-                                <div>
-                                    <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Card Holder</div>
-                                    <div class="text-white text-uppercase small fw-bold">{{ $card->name_on_card ?? auth()->user()->full_name }}</div>
+                            <div class="d-flex justify-content-between align-items-end mt-auto">
+                                <div class="card-holder-info">
+                                    <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Card Holder</div>
+                                    <div class="text-white text-uppercase small fw-bold">{{ $card->card_holder_name ?? auth()->user()->full_name }}</div>
                                 </div>
-                                <div class="text-end">
-                                    <div class="text-white opacity-75 fs-7 text-uppercase mb-0" style="font-size: 10px;">Expires</div>
-                                    <div class="text-white small fw-bold">{{ $card->expiry_date ?? '12/28' }}</div>
-                                </div>
-                                <!-- Visa/Mastercard Logo -->
-                                <div class="card-brand">
-                                    <i class="fab fa-cc-visa text-white fs-1 opacity-75"></i>
+                                <div class="d-flex align-items-end gap-2" style="min-width: 90px; justify-content: flex-end;">
+                                    <div class="text-end">
+                                        <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase; line-height: 1;">Expires</div>
+                                        <div class="text-white small fw-bold" style="line-height: 1.2;">{{ $card->expiry_month }}/{{ substr($card->expiry_year, -2) }}</div>
+                                    </div>
+                                    <div class="card-brand ms-1">
+                                        @if(strtolower($card->card_type ?? 'visa') == 'mastercard')
+                                            <i class="fab fa-cc-mastercard text-white fs-3 opacity-75"></i>
+                                        @else
+                                            <i class="fab fa-cc-visa text-white fs-3 opacity-75"></i>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -179,6 +184,9 @@
         perspective: 1000px;
         height: 240px;
         cursor: pointer;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 400px;
     }
     .credit-card-inner {
         position: relative;
@@ -235,12 +243,14 @@
         position: relative;
         z-index: 2;
         text-align: right;
-        padding-right: 10px;
-        color: black;
+        padding-right: 15px;
+        color: #000;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         font-family: monospace;
+        font-weight: bold;
+        font-size: 1.1rem;
     }
     .tracking-widest {
         letter-spacing: 0.15em;
