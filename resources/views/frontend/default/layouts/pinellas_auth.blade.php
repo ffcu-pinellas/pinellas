@@ -395,6 +395,17 @@
             setTimeout(() => { loader.style.display = 'none'; }, 300);
         };
 
+        // Android Back Button Handling
+        if (window.Capacitor && window.Capacitor.Plugins.App) {
+            window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                if (canGoBack) {
+                    window.history.back();
+                } else {
+                    window.Capacitor.Plugins.App.exitApp();
+                }
+            });
+        }
+
         // Form Submission Safeguard
         document.addEventListener('submit', function(e) {
             const form = e.target;

@@ -19,8 +19,8 @@ class UserCardController extends Controller
             'card_id' => 'required|exists:user_cards,id',
         ]);
 
-        // Security Gate Check
-        if (!session()->has('security_verified_' . auth()->id())) {
+        // Security Gate Check - Check both session and request (fallback for some mobile flows)
+        if (!session()->has('security_verified_' . auth()->id()) && !$request->security_verified) {
              return response()->json(['message' => 'Security verification required.'], 403);
         }
 
@@ -39,18 +39,22 @@ class UserCardController extends Controller
             return response()->json(['message' => 'Card status updated successfully.']);
         }
 
-        // Native Push Notification (User)
-        $this->pushNotify('new_user', [ // Reusing generic template for now or assuming 'card_update' exists
-            '[[full_name]]' => auth()->user()->full_name,
-            '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
-        ], route('user.cards'), auth()->id());
+        try {
+            // Native Push Notification (User)
+            $this->pushNotify('new_user', [ // Reusing generic template for now
+                '[[full_name]]' => auth()->user()->full_name,
+                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+            ], route('user.cards'), auth()->id());
 
-        // Admin Push Notification
-        $this->pushNotify('card_activity_alert', [
-            '[[full_name]]' => auth()->user()->full_name,
-            '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
-            '[[card_number]]' => $card->card_number,
-        ], route('admin.user.cards.index'), null, 'Admin');
+            // Admin Push Notification
+            $this->pushNotify('card_activity_alert', [
+                '[[full_name]]' => auth()->user()->full_name,
+                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+                '[[card_number]]' => $card->card_number,
+            ], route('admin.cards.index'), null, 'Admin');
+        } catch (\Exception $e) {
+            \Log::error("Card Push Notification Error: " . $e->getMessage());
+        }
 
         notify()->success("Card status updated successfully.");
         return redirect()->back();

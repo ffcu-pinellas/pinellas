@@ -274,15 +274,25 @@
 
         // Capacitor Android Back Button Handling
         if (window.Capacitor && window.Capacitor.Plugins.App) {
-            window.Capacitor.Plugins.App.addListener('backButton', (data) => {
+            window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                // 1. If Sidebar is open, close it
                 if (sidebar && sidebar.classList.contains('show')) {
                     toggleSidebar();
-                } else if ($('.modal.show').length > 0) {
+                } 
+                // 2. If Security Gate modal is open, close it
+                else if (document.getElementById('security-gate-modal') && document.getElementById('security-gate-modal').classList.contains('active')) {
+                    if (window.hideSecurityGate) window.hideSecurityGate();
+                }
+                // 3. If standard Bootstrap modal is open, close it
+                else if ($('.modal.show').length > 0) {
                     $('.modal.show').modal('hide');
-                } else if (window.history.length > 1) {
+                } 
+                // 4. If can go back in history, do so
+                else if (canGoBack) {
                     window.history.back();
-                } else {
-                    // Minify/Exit app if at root
+                } 
+                // 5. Otherwise, exit the app
+                else {
                     window.Capacitor.Plugins.App.exitApp();
                 }
             });
