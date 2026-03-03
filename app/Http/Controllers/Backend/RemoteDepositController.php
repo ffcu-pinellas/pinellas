@@ -43,30 +43,13 @@ class RemoteDepositController extends Controller
         }
 
         $txnam = 'RD-' . strtoupper(str()->random(10));
-        DB::transaction(function () use ($deposit, $txnam) {
+        DB::transaction(function () use ($deposit) {
             $deposit->update(['status' => 'approved']);
 
-            // Credit the user's account
-            $user = $deposit->user;
-            
-            if (str_contains(strtolower($deposit->account_name), 'saving')) {
-                 $user->increment('savings_balance', $deposit->amount);
-            } else {
-                 $user->increment('balance', $deposit->amount);
+            // Update the linked transaction (handles balance addition automatically)
+            if ($deposit->transaction_tnx) {
+                \Txn::update($deposit->transaction_tnx, TxnStatus::Success, $deposit->user_id, 'Remote Deposit Approved');
             }
-
-            // Create Transaction Record
-            $transaction = new Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->amount = $deposit->amount;
-            $transaction->charge = 0;
-            $transaction->final_amount = $deposit->amount;
-            $transaction->tnx = $txnam;
-            $transaction->type = TxnType::ManualDeposit; // Or create a new Enum for RemoteDeposit
-            $transaction->status = TxnStatus::Success;
-            $transaction->method = 'Remote Deposit';
-            $transaction->description = 'Remote Check Deposit Approved';
-            $transaction->save();
         });
 
         // Send Native Push
@@ -94,29 +77,19 @@ class RemoteDepositController extends Controller
         }
 
         $txnam = 'RD-' . strtoupper(str()->random(10));
-        DB::transaction(function () use ($deposit, $request, $txnam) {
+        DB::transaction(function () use ($deposit, $request) {
             $deposit->update([
                 'status' => 'rejected',
                 'note' => $request->input('note', 'Rejected by admin'),
             ]);
 
-            // 1. Log Rejected Deposit Transaction (First)
-            $user = $deposit->user; // Ensure $user is defined
-            $transaction = new Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->amount = $deposit->amount;
-            $transaction->charge = 0;
-            $transaction->final_amount = $deposit->amount;
-            $transaction->tnx = $txnam;
-            $transaction->type = TxnType::ManualDeposit; 
-            $transaction->status = TxnStatus::Failed;
-            $transaction->method = 'Remote Deposit';
-            $transaction->description = 'Remote Check Deposit (Rejected)';
-            $transaction->save();
+            // Update linked transaction to Failed
+            if ($deposit->transaction_tnx) {
+                \Txn::update($deposit->transaction_tnx, TxnStatus::Failed, $deposit->user_id, $request->input('note', 'Rejected by admin'));
+            }
             
-            sleep(1); // Ensure timestamp difference so it appears earlier
-
-            // 2. Deduct Returned Check Fee (Second)
+            // Deduct Returned Check Fee (Second)
+            $user = $deposit->user;
             $fee = 25.00;
             $user->decrement('balance', $fee);
 

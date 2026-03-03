@@ -265,6 +265,15 @@ class DepositController extends Controller
             notify()->success('Rejected successfully');
         }
 
+        // Sync with Remote Deposit record if linked
+        $remoteDeposit = \App\Models\RemoteDeposit::where('transaction_tnx', $transaction->tnx)->first();
+        if ($remoteDeposit) {
+            $remoteDeposit->update([
+                'status' => isset($input['approve']) ? 'approved' : 'rejected',
+                'note' => $approvalCause
+            ]);
+        }
+
         $shortcodes = [
             '[[full_name]]' => $transaction->user->full_name,
             '[[txn]]' => $transaction->tnx,

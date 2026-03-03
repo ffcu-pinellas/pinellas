@@ -225,6 +225,9 @@ class UserController extends Controller
         }
 
         \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber) {
+            // 0. Pre-generate Transaction Ref
+            $txnam = 'TRX' . strtoupper(str()->random(10));
+
             // 1. Create Remote Deposit Record
             $deposit = $user->remoteDeposits()->create([
                 'amount' => $amount,
@@ -233,10 +236,10 @@ class UserController extends Controller
                 'status' => 'pending',
                 'account_name' => $accountName,
                 'account_number' => $accountNumber,
+                'transaction_tnx' => $txnam, // Link to transaction
             ]);
 
             // 2. Create "Pending" Transaction for "Real-time" Activity Log
-            $txnam = 'RD-' . strtoupper(str()->random(10));
             $transaction = new \App\Models\Transaction();
             $transaction->user_id = $user->id;
             $transaction->amount = $amount;
@@ -246,7 +249,8 @@ class UserController extends Controller
             $transaction->type = \App\Enums\TxnType::ManualDeposit;
             $transaction->status = \App\Enums\TxnStatus::Pending;
             $transaction->method = 'Remote Deposit';
-            $transaction->description = 'Remote Check Deposit to ' . $accountName . ' (Pending)';
+            $transaction->wallet_type = ($accountName === 'Savings') ? 'primary_savings' : 'default';
+            $transaction->description = 'Remote Check Deposit to ' . $accountName;
             
             // Link Images for Admin Review Modal
             $transaction->manual_field_data = json_encode([

@@ -262,6 +262,15 @@ Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.j
 // Web-Based Migration Runner (Temporary)
 Route::get('deploy/run-migration', function () {
     try {
+        // 0. Remote Deposit Link
+        if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
+            \Illuminate\Support\Facades\Schema::table('remote_deposits', function (\Illuminate\Database\Schema\Blueprint $table) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('remote_deposits', 'transaction_tnx')) {
+                    $table->string('transaction_tnx')->nullable()->after('status');
+                }
+            });
+        }
+
         // 1. Savings Accounts
         \Illuminate\Support\Facades\Schema::table('users', function (\Illuminate\Database\Schema\Blueprint $table) {
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'savings_account_number')) {
