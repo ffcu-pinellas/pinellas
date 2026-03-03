@@ -9,6 +9,11 @@ use Illuminate\Foundation\Auth\User;
 class Message extends \Coderflex\LaravelTicket\Models\Message
 {
     use HasFactory;
+    
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {

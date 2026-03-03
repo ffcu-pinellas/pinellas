@@ -12,12 +12,10 @@ class Ticket extends \Coderflex\LaravelTicket\Models\Ticket
 
     protected $casts = [
         'attachments' => 'array',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    public function getCreatedAtAttribute()
-    {
-        return Carbon::parse($this->attributes['created_at'])->format('d M Y h:i A');
-    }
 
     public function scopeUuid($query, $uuid)
     {

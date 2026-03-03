@@ -88,7 +88,7 @@
                                     @endif
                                 </div>
                                 <div class="message-meta text-muted px-2">
-                                    {{ $ticket->created_at->format('M d, Y h:i A') }}
+                                    {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y h:i A') }}
                                 </div>
                             </div>
 
@@ -117,7 +117,7 @@
                                         @endif
                                     </div>
                                     <div class="message-meta text-muted px-2">
-                                        {{ $message->created_at->format('M d, Y h:i A') }}
+                                        {{ \Carbon\Carbon::parse($message->created_at)->format('M d, Y h:i A') }}
                                     </div>
                                 </div>
                             @endforeach

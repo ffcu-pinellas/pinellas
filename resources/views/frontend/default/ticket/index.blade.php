@@ -75,7 +75,7 @@
                                             <div class="title fw-bold text-dark mb-0">
                                                 {{ $ticket->title }}
                                             </div>
-                                            <div class="small text-muted">ID: #{{ $ticket->uuid }} • {{ $ticket->created_at->format('M d, Y') }}</div>
+                                            <div class="small text-muted">ID: #{{ $ticket->uuid }} • {{ \Carbon\Carbon::parse($ticket->created_at)->format('M d, Y') }}</div>
                                         </div>
                                     </div>
                                 </div>
