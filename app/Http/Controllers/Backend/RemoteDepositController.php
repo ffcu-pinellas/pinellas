@@ -55,7 +55,7 @@ class RemoteDepositController extends Controller
         // Send Native Push
         $this->pushNotify('remote_deposit_approved', [
             '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
-            '[[txn]]' => $txnam,
+            '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
         ], route('user.remote_deposit'), $deposit->user_id);
 
         return redirect()->back()->with('success', 'Deposit approved successfully.');
@@ -111,7 +111,7 @@ class RemoteDepositController extends Controller
         // Send Native Push
         $this->pushNotify('remote_deposit_rejected', [
             '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
-            '[[txn]]' => $txnam,
+            '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
             '[[reason]]' => $request->note ?? 'Policy violation or poor image quality.',
         ], route('user.remote_deposit'), $deposit->user_id);
 
