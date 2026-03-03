@@ -45,6 +45,12 @@ class Handler extends ExceptionHandler
     {
         $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
             notify()->error(__('Your session has expired. Please sign in again.'), __('Page Expired'));
+            
+            $adminPrefix = setting('site_admin_prefix', 'global', 'admin');
+            if ($request->is($adminPrefix) || $request->is($adminPrefix . '/*')) {
+                return redirect()->route('admin.login-view');
+            }
+            
             return redirect()->route('login');
         });
 
