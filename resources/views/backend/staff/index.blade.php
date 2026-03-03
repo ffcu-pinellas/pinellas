@@ -105,7 +105,7 @@
 
 @section('script')
     <script>
-        let loader = '<div class="text-center"><img src="{{ asset('front/images/loader.gif') }}" width="100"><h5>{{ __('Please wait') }}...</h5></div>';
+        let loader = '<div class="text-center"><img src="{{ asset('assets/front/images/loader.gif') }}" width="100"><h5>{{ __('Please wait') }}...</h5></div>';
 
         $('body').on('click', '#edit', function (event) {
             "use strict";

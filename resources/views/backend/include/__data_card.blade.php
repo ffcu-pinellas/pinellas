@@ -175,7 +175,7 @@
 </div>
 @endcan
 
-@can('total-ticket')
+@canany(['total-ticket', 'officer-support-ticket-manage'])
 <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
     <div class="data-card">
         <div class="icon">

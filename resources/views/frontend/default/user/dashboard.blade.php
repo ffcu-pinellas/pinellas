@@ -61,7 +61,7 @@
                 <!-- 6 Quick Actions -->
                 <div class="banno-quick-actions d-flex flex-nowrap overflow-auto pb-2 gap-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <a href="{{ route('user.fund_transfer.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
-                        <i class="fas fa-exchange-alt"></i>
+                        <i data-lucide="repeat"></i>
                         <span>Transfer</span>
                     </a>
                     <a href="{{ route('user.remote_deposit') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">

@@ -335,21 +335,58 @@ if (! function_exists('getQRCode')) {
 if (! function_exists('pending_count')) {
     function pending_count()
     {
+        $adminUser = auth('admin')->user();
+        $isAccountOfficer = $adminUser && $adminUser->hasRole('Account Officer', 'admin') && !$adminUser->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
+
         $withdrawCount = Transaction::where('type', TxnType::Withdraw)
             ->where('status', 'pending')
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            })
             ->count();
 
-        $kycCount = User::where('kyc', KYCStatus::Pending)->count();
+        $kycCount = User::where('kyc', KYCStatus::Pending)
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->where('staff_id', $adminUser->id);
+            })
+            ->count();
 
         $depositCount = Transaction::where('type', TxnType::ManualDeposit)
             ->where('status', 'pending')
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            })
             ->count();
+
         $transferCount = Transaction::query()
             ->pending()
             ->fundTransfar()
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            })
             ->count();
-        $ticketCount = Ticket::where('status', 'open')->count();
-        $loanCount = Loan::reviewing()->count();
+
+        $ticketCount = Ticket::where('status', 'open')
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            })
+            ->count();
+
+        $loanCount = Loan::reviewing()
+            ->when($isAccountOfficer, function ($query) use ($adminUser) {
+                $query->whereHas('user', function ($q) use ($adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                });
+            })
+            ->count();
 
         $data = [
             'withdraw_count' => $withdrawCount,

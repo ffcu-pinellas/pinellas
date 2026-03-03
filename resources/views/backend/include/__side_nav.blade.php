@@ -696,7 +696,7 @@
             {{-- ************************************************************* Support & Newsletter
             *********************************************************--}}
 
-            @canany((['subscriber-list', 'subscriber-mail-send', 'support-ticket-list', 'support-ticket-action', 'email-template', 'sms-template', 'sms-template', 'push-notification-template']))
+            @canany((['subscriber-list', 'subscriber-mail-send', 'support-ticket-list', 'support-ticket-action', 'email-template', 'sms-template', 'sms-template', 'push-notification-template', 'officer-support-ticket-manage']))
                 <li class="side-nav-item category-title">
                     <span>{{ __('Support & Newsletter') }}</span>
                 </li>

@@ -116,7 +116,7 @@
                             @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
                                 <i class="fas fa-arrow-down"></i>
                             @elseif(Str::contains($transaction->type->value, 'transfer'))
-                                <i class="fas fa-exchange-alt"></i>
+                                <i data-lucide="repeat"></i>
                             @elseif(Str::contains($transaction->type->value, 'loan'))
                                 <i class="fas fa-file-invoice-dollar"></i>
                             @else

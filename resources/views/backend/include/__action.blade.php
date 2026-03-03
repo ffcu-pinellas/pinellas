@@ -38,7 +38,7 @@
                     ({{ $pending_count['deposit_count'] }})</a>
                 @endif
                 @endcan
-                @canany(['support-ticket-list','support-ticket-action'])
+                @canany(['support-ticket-list','support-ticket-action', 'officer-support-ticket-manage'])
                 @if($pending_count['ticket_count'])
                 <a href="{{ route('admin.ticket.index') }}" class="site-btn-xs green-btn"><i data-lucide="loader"
                         class="spining-icon"></i>{{ __('Ticket') }}

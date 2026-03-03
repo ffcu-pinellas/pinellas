@@ -169,7 +169,7 @@
                 <i class="fas fa-university"></i> <span>Accounts</span>
             </a>
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
-                <i class="fas fa-exchange-alt"></i> <span>Transfers</span>
+                <i data-lucide="repeat"></i> <span>Transfers</span>
             </a>
             <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
                 <i class="fas fa-users"></i> <span>Member Transfers</span>
