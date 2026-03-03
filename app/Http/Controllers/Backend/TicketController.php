@@ -21,8 +21,8 @@ class TicketController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:support-ticket-list|support-ticket-action|support-ticket-manage-assigned', ['only' => ['index']]);
-        $this->middleware('permission:support-ticket-action|support-ticket-manage-assigned', ['only' => ['closeNow', 'reply', 'show']]);
+        $this->middleware('permission:support-ticket-list|officer-support-ticket-manage', ['only' => ['index']]);
+        $this->middleware('permission:support-ticket-action|officer-support-ticket-manage', ['only' => ['closeNow', 'reply', 'show']]);
 
     }
 
@@ -33,7 +33,7 @@ class TicketController extends Controller
         $status = $request->status ?? 'all';
         $tickets = Ticket::search($search)
             ->status($status)
-            ->when(!auth()->user()->can('support-ticket-list') && auth()->user()->can('support-ticket-manage-assigned'), function ($query) {
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth()->id());
                 });
@@ -56,7 +56,8 @@ class TicketController extends Controller
     {
         $ticket = Ticket::uuid($uuid);
 
-        if (!auth()->user()->can('support-ticket-list') && auth()->user()->can('support-ticket-manage-assigned')) {
+        // Advanced Security Check for Account Officers
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($ticket->user->staff_id != auth()->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
@@ -69,7 +70,8 @@ class TicketController extends Controller
     {
         $ticket = Ticket::uuid($uuid);
 
-        if (!auth()->user()->can('support-ticket-action') && auth()->user()->can('support-ticket-manage-assigned')) {
+        // Advanced Security Check for Account Officers
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($ticket->user->staff_id != auth()->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
@@ -113,7 +115,8 @@ class TicketController extends Controller
 
         $ticket = Ticket::uuid($input['uuid']);
 
-        if (!auth()->user()->can('support-ticket-action') && auth()->user()->can('support-ticket-manage-assigned')) {
+        // Advanced Security Check for Account Officers
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($ticket->user->staff_id != auth()->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
