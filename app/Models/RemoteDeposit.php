@@ -18,6 +18,7 @@ class RemoteDeposit extends Model
         'back_image',
         'status',
         'note',
+        'transaction_tnx',
     ];
 
     public function user()

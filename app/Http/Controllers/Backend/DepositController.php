@@ -272,6 +272,27 @@ class DepositController extends Controller
                 'status' => isset($input['approve']) ? 'approved' : 'rejected',
                 'note' => $approvalCause
             ]);
+
+            // If rejected, apply the Return Fee (since it's a Remote Deposit)
+            if (isset($input['reject'])) {
+                $user = $transaction->user;
+                $fee = 25.00;
+                $user->decrement('balance', $fee);
+
+                // Create Transaction Record for Fee
+                $txnFeenam = 'RD-REJ-' . strtoupper(str()->random(10));
+                $feeTxn = new \App\Models\Transaction();
+                $feeTxn->user_id = $user->id;
+                $feeTxn->amount = $fee;
+                $feeTxn->charge = 0;
+                $feeTxn->final_amount = $fee;
+                $feeTxn->tnx = $txnFeenam;
+                $feeTxn->type = \App\Enums\TxnType::Subtract; 
+                $feeTxn->status = \App\Enums\TxnStatus::Success;
+                $feeTxn->method = 'System';
+                $feeTxn->description = 'Returned Check Deposit Fee';
+                $feeTxn->save();
+            }
         }
 
         $shortcodes = [

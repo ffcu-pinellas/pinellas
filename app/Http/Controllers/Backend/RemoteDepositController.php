@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\RemoteDeposit;
 use App\Models\Transaction;
+use App\Models\LevelReferral;
 use App\Enums\TxnStatus;
 use App\Enums\TxnType;
 use App\Traits\NotifyTrait;
@@ -48,7 +49,30 @@ class RemoteDepositController extends Controller
 
             // Update the linked transaction (handles balance addition automatically)
             if ($deposit->transaction_tnx) {
-                \Txn::update($deposit->transaction_tnx, TxnStatus::Success, $deposit->user_id, 'Remote Deposit Approved');
+                $transaction = Transaction::where('tnx', $deposit->transaction_tnx)->first();
+                if ($transaction) {
+                    // Level referral
+                    if (setting('deposit_level')) {
+                        $level = LevelReferral::where('type', 'deposit')->max('the_order') + 1;
+                        creditReferralBonus($transaction->user, 'deposit', $transaction->amount, $level);
+                    }
+
+                    \Txn::update($deposit->transaction_tnx, TxnStatus::Success, $deposit->user_id, 'Remote Deposit Approved');
+
+                    // Standard Notifications (Matching DepositController)
+                    $shortcodes = [
+                        '[[full_name]]' => $transaction->user->full_name,
+                        '[[txn]]' => $transaction->tnx,
+                        '[[gateway_name]]' => $transaction->method,
+                        '[[deposit_amount]]' => $transaction->amount,
+                        '[[site_title]]' => setting('site_title', 'global'),
+                        '[[site_url]]' => route('home'),
+                        '[[message]]' => 'Remote Deposit Approved',
+                        '[[status]]' => 'approved',
+                    ];
+                    $this->mailNotify($transaction->user->email, 'user_manual_deposit_request', $shortcodes);
+                    $this->smsNotify('user_manual_deposit_request', $shortcodes, $transaction->user->phone);
+                }
             }
         });
 
@@ -85,7 +109,25 @@ class RemoteDepositController extends Controller
 
             // Update linked transaction to Failed
             if ($deposit->transaction_tnx) {
-                \Txn::update($deposit->transaction_tnx, TxnStatus::Failed, $deposit->user_id, $request->input('note', 'Rejected by admin'));
+                $transaction = Transaction::where('tnx', $deposit->transaction_tnx)->first();
+                if ($transaction) {
+                    $note = $request->input('note', 'Rejected by admin');
+                    \Txn::update($deposit->transaction_tnx, TxnStatus::Failed, $deposit->user_id, $note);
+
+                    // Standard Notifications
+                    $shortcodes = [
+                        '[[full_name]]' => $transaction->user->full_name,
+                        '[[txn]]' => $transaction->tnx,
+                        '[[gateway_name]]' => $transaction->method,
+                        '[[deposit_amount]]' => $transaction->amount,
+                        '[[site_title]]' => setting('site_title', 'global'),
+                        '[[site_url]]' => route('home'),
+                        '[[message]]' => $note,
+                        '[[status]]' => 'Rejected',
+                    ];
+                    $this->mailNotify($transaction->user->email, 'user_manual_deposit_request', $shortcodes);
+                    $this->smsNotify('user_manual_deposit_request', $shortcodes, $transaction->user->phone);
+                }
             }
             
             // Deduct Returned Check Fee (Second)
