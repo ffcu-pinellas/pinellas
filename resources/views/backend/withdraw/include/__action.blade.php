@@ -1,4 +1,4 @@
-@can('withdraw-action')
+@canany(['withdraw-action', 'officer-withdraw-manage'])
     <span type="button"
           data-id="{{$id}}"
           id="withdraw-action"
@@ -8,6 +8,6 @@
         'use strict';
         lucide.createIcons();
     </script>
-@endcan
+@endcanany
 
 

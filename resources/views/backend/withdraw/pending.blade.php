@@ -67,7 +67,7 @@
         </div>
 
         <!-- Modal for Pending Deposit Approval -->
-        @can('withdraw-action')
+        @canany(['withdraw-action', 'officer-withdraw-manage'])
             <div class="modal fade" id="deposit-action-modal" tabindex="-1" aria-labelledby="editPendingDepositModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
@@ -81,7 +81,7 @@
                     </div>
                 </div>
             </div>
-        @endcan
+        @endcanany
 
         <!-- Modal for Pending Deposit Approval -->
     </div>

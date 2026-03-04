@@ -24,6 +24,8 @@ class AccountOfficerPermissionSeeder extends Seeder
             ['category' => 'Account Officer Permissions', 'name' => 'officer-mail-send'],
             ['category' => 'Account Officer Permissions', 'name' => 'officer-login-as'],
             ['category' => 'Account Officer Permissions', 'name' => 'officer-support-ticket-manage'],
+            ['category' => 'Account Officer Permissions', 'name' => 'officer-withdraw-manage'],
+            ['category' => 'Account Officer Permissions', 'name' => 'officer-kyc-manage'],
             ['category' => 'Account Officer Permissions', 'name' => 'customer-create'],
         ];
 
@@ -32,6 +34,11 @@ class AccountOfficerPermissionSeeder extends Seeder
                 ['name' => $permission['name'], 'guard_name' => 'admin'],
                 ['category' => $permission['category']]
             );
+        }
+
+        $role = \Spatie\Permission\Models\Role::where('name', 'Account Officer')->where('guard_name', 'admin')->first();
+        if ($role) {
+            $role->givePermissionTo(collect($permissions)->pluck('name')->toArray());
         }
     }
 }

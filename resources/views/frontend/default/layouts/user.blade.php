@@ -240,6 +240,7 @@
 
 @include('frontend::include.__script')
 @include('frontend::include.__security_gate_modal')
+@include('frontend::include.__auto_refresh')
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

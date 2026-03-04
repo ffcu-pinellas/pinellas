@@ -15,6 +15,9 @@
             playSound();
             latestNotification();
             notifyToast(result);
+            if (typeof window.refreshUI === 'function') {
+                window.refreshUI();
+            }
         });
 
         function latestNotification() {

@@ -23,6 +23,7 @@
 
 @include('global.__notification_script', ['for' => 'admin', 'userId' => ''])
 @include('backend.include.__admin_push_script')
+@include('backend.include.__auto_refresh')
 @yield('script')
 @stack('single-script')
 

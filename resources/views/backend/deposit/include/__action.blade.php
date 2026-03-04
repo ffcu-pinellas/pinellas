@@ -1,4 +1,4 @@
-@can('deposit-action')
+@canany(['deposit-action', 'officer-deposit-manage'])
     <span type="button"
           data-id="{{$id}}"
           id="deposit-action"
@@ -10,4 +10,4 @@
             lucide.createIcons();
         }
     </script>
-@endcan
+@endcanany

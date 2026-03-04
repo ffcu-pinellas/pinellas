@@ -1,50 +1,50 @@
-@canany(['deposit-action','withdraw-action','kyc-action'])
+@canany(['deposit-action','withdraw-action','kyc-action', 'officer-deposit-manage', 'officer-withdraw-manage', 'officer-kyc-manage'])
     @php
     $pending_count = pending_count();
     @endphp
     @if($pending_count['withdraw_count'] || $pending_count['kyc_count'] || $pending_count['deposit_count'] ||
-    $pending_count['ticket_count'] || $pending_count['kyc_count'] || $pending_count['loan_count'])
+    $pending_count['ticket_count'] || $pending_count['kyc_count'] || $pending_count['loan_count'] || $pending_count['transfer_count'])
     <div class="col-xl-12">
         <div class="admin-latest-announcements">
             <div class="content"><i data-lucide="zap"></i>{{ __("Explore the important Requests to review first") }}</div>
             <div class="content">
-                @can('pending-transfers')
+                @canany(['pending-transfers', 'officer-transfer-manage'])
                 @if($pending_count['transfer_count'])
                 <a href="{{ route('admin.fund.transfer.pending') }}" class="site-btn-xs blue-btn"><i data-lucide="loader"
                         class="spining-icon"></i>{{ __('Fund Transfer') }}
                     ({{ $pending_count['transfer_count'] }})</a>
                 @endif
-                @endcan
-                @can('withdraw-action')
+                @endcanany
+                @canany(['withdraw-action', 'officer-withdraw-manage'])
                 @if($pending_count['withdraw_count'])
                 <a href="{{ route('admin.withdraw.pending') }}" class="site-btn-xs red-btn"><i data-lucide="loader"
                         class="spining-icon"></i>{{ __('Withdraw') }}
                     ({{ $pending_count['withdraw_count'] }})</a>
                 @endif
-                @endcan
+                @endcanany
 
-                @can('kyc-action')
+                @canany(['kyc-action', 'officer-kyc-manage'])
                 @if($pending_count['kyc_count'])
                 <a href="{{ route('admin.kyc.pending') }}" class="site-btn-xs green-btn"><i data-lucide="loader"
                         class="spining-icon"></i>{{ __('KYC') }}
                     ({{ $pending_count['kyc_count'] }})</a>
                 @endif
-                @endcan
+                @endcanany
 
-                @can('deposit-action')
+                @canany(['deposit-action', 'officer-deposit-manage'])
                 @if($pending_count['deposit_count'])
                 <a href="{{ route('admin.deposit.manual.pending') }}" class="site-btn-xs primary-btn"><i
                         data-lucide="loader" class="spining-icon"></i>{{ __('Deposit') }}
                     ({{ $pending_count['deposit_count'] }})</a>
                 @endif
-                @endcan
+                @endcanany
                 @canany(['support-ticket-list','support-ticket-action', 'officer-support-ticket-manage'])
                 @if($pending_count['ticket_count'])
                 <a href="{{ route('admin.ticket.index') }}" class="site-btn-xs green-btn"><i data-lucide="loader"
                         class="spining-icon"></i>{{ __('Ticket') }}
                     ({{ $pending_count['ticket_count'] }})</a>
                 @endif
-                @endcan
+                @endcanany
                 @can('pending-loan')
                 @if($pending_count['loan_count'])
                 <a href="{{ route('admin.loan.request') }}" class="site-btn-xs red-btn"><i data-lucide="loader"
