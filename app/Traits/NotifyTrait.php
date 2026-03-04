@@ -16,11 +16,40 @@ use Illuminate\Support\Str;
 trait NotifyTrait
 {
     use SmsTrait, TelegramTrait;
+    
+    /**
+     * Standardize and format shortcodes for all notifications
+     */
+    protected function formatShortcodes($shortcodes)
+    {
+        if (!is_array($shortcodes)) return $shortcodes;
+
+        $currencySymbol = setting('currency_symbol', '$');
+        
+        foreach ($shortcodes as $key => $value) {
+            // Identify amount-related fields
+            if (str_contains($key, 'amount') || str_contains($key, 'charge') || str_contains($key, 'fee')) {
+                if (is_numeric($value)) {
+                    $formattedValue = $currencySymbol . number_format($value, 2);
+                    $shortcodes[$key] = $formattedValue; // Replace original with formatted
+                    
+                    // Also add a specific formatted version if not already present
+                    $formattedKey = str_replace('[[', '[[formatted_', $key);
+                    if ($formattedKey === $key) { // If it didn't have brackets already
+                         $formattedKey = 'formatted_' . $key;
+                    }
+                    $shortcodes[$formattedKey] = $formattedValue;
+                }
+            }
+        }
+
+        return $shortcodes;
+    }
 
     // ============================= mail template helper ===================================================
     protected function mailNotify($email, $code, $shortcodes = null)
     {
-
+        $shortcodes = $this->formatShortcodes($shortcodes);
         try {
             $template = EmailTemplate::where('status', true)->where('code', $code)->first();
             if ($template) {
@@ -132,6 +161,7 @@ trait NotifyTrait
     // ============================= push notification template helper ===================================================
     protected function pushNotify($code, $shortcodes, $action, $userId, $for = 'User')
     {
+        $shortcodes = $this->formatShortcodes($shortcodes);
         try {
             $template = PushNotificationTemplate::where('status', true)->where('for', ucfirst($for))->where('code', $code)->first();
 
@@ -352,7 +382,7 @@ trait NotifyTrait
     // ============================= sms notification template helper ===================================================
     protected function smsNotify($code, $shortcodes, $phone)
     {
-
+        $shortcodes = $this->formatShortcodes($shortcodes);
         if (! config('sms.default') && ! $phone) {
             return false;
         }

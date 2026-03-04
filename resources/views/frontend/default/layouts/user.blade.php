@@ -275,26 +275,54 @@
 
         // Capacitor Android Back Button Handling
         if (window.Capacitor && window.Capacitor.Plugins.App) {
+            let lastBackPress = 0;
             window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                const now = Date.now();
+                
                 // 1. If Sidebar is open, close it
                 if (sidebar && sidebar.classList.contains('show')) {
                     toggleSidebar();
+                    return;
                 } 
+                
                 // 2. If Security Gate modal is open, close it
-                else if (document.getElementById('security-gate-modal') && document.getElementById('security-gate-modal').classList.contains('active')) {
+                if (document.getElementById('security-gate-modal') && document.getElementById('security-gate-modal').classList.contains('active')) {
                     if (window.hideSecurityGate) window.hideSecurityGate();
+                    return;
                 }
+                
                 // 3. If standard Bootstrap modal is open, close it
-                else if ($('.modal.show').length > 0) {
+                if ($('.modal.show').length > 0) {
                     $('.modal.show').modal('hide');
+                    return;
                 } 
-                // 4. If can go back in history, do so
-                else if (canGoBack) {
+
+                // 4. Navigation Logic
+                const isDashboard = window.location.pathname.includes('/user/dashboard') || window.location.pathname === '/user';
+                
+                if (canGoBack && !isDashboard) {
                     window.history.back();
-                } 
-                // 5. Otherwise, exit the app
-                else {
-                    window.Capacitor.Plugins.App.exitApp();
+                } else {
+                    // Double tap to exit logic for Dashboard or when history is empty
+                    if (now - lastBackPress < 2000) {
+                        window.Capacitor.Plugins.App.exitApp();
+                    } else {
+                        lastBackPress = now;
+                        // Use Capacitor Toast if available, else fallback to alert
+                        if (window.Capacitor.Plugins.Toast) {
+                            window.Capacitor.Plugins.Toast.show({
+                                text: 'Press back again to exit',
+                                duration: 'short'
+                            });
+                        } else {
+                            // Simple visual feedback if Toast plugin is missing
+                            const toastElem = document.createElement('div');
+                            toastElem.textContent = 'Press back again to exit';
+                            toastElem.style.cssText = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:8px 16px; border-radius:20px; z-index:10000; font-size:14px;';
+                            document.body.appendChild(toastElem);
+                            setTimeout(() => toastElem.remove(), 2000);
+                        }
+                    }
                 }
             });
         }

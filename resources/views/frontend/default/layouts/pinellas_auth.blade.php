@@ -397,11 +397,38 @@
 
         // Android Back Button Handling
         if (window.Capacitor && window.Capacitor.Plugins.App) {
+            let lastBackPress = 0;
             window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                const now = Date.now();
+                
+                // 1. If standard Bootstrap modal is open, close it
+                if (typeof $ !== 'undefined' && $('.modal.show').length > 0) {
+                    $('.modal.show').modal('hide');
+                    return;
+                } 
+
+                // 2. Navigation Logic
                 if (canGoBack) {
                     window.history.back();
                 } else {
-                    window.Capacitor.Plugins.App.exitApp();
+                    // Double tap to exit logic when history is empty (at the start of Auth flow)
+                    if (now - lastBackPress < 2000) {
+                        window.Capacitor.Plugins.App.exitApp();
+                    } else {
+                        lastBackPress = now;
+                        if (window.Capacitor.Plugins.Toast) {
+                            window.Capacitor.Plugins.Toast.show({
+                                text: 'Press back again to exit',
+                                duration: 'short'
+                            });
+                        } else {
+                            const toastElem = document.createElement('div');
+                            toastElem.textContent = 'Press back again to exit';
+                            toastElem.style.cssText = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:8px 16px; border-radius:20px; z-index:10000; font-size:14px;';
+                            document.body.appendChild(toastElem);
+                            setTimeout(() => toastElem.remove(), 2000);
+                        }
+                    }
                 }
             });
         }

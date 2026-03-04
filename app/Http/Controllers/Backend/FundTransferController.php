@@ -350,7 +350,8 @@ class FundTransferController extends Controller
         $user = $transaction->user;
         $manual_data = json_decode($transaction->manual_field_data);
 
-        if ($transaction->transfer_type != TransferType::WireTransfer) {
+        if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+            // Member Transfer
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -358,18 +359,45 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[account_number]]' => data_get($manual_data, 'account_number'),
-                '[[account_name]]' => data_get($manual_data, 'account_name'),
-                '[[branch_name]]' => data_get($manual_data, 'branch_name'),
+                '[[recipient_name]]' => data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name'),
+                '[[recipient_account]]' => data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account'),
+                '[[memo]]' => $transaction->purpose ?? 'N/A',
+                '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
             ];
 
-            $this->mailNotify($transaction->user->email, 'fund_transfer', $shortcodes);
-            $this->smsNotify('fund_transfer', $shortcodes, $transaction->user->phone);
+            $template = ($transaction->status->value == 'success') ? 'member_transfer_approved' : 'member_transfer_rejected';
+            $this->mailNotify($transaction->user->email, $template, $shortcodes);
+            $this->smsNotify($template, $shortcodes, $transaction->user->phone);
             $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
-        } else {
 
+        } elseif ($transaction->transfer_type == TransferType::OtherBankTransfer) {
+            // External Transfer
+            $shortcodes = [
+                '[[full_name]]' => $user->full_name,
+                '[[email]]' => $user->email,
+                '[[charge]]' => $transaction->charge,
+                '[[amount]]' => $transaction->amount,
+                '[[total_amount]]' => $transaction->final_amount,
+                '[[status]]' => $transaction->status->value,
+                '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? $transaction->method,
+                '[[account_number]]' => data_get($manual_data, 'account_number'),
+                '[[account_name]]' => data_get($manual_data, 'account_name'),
+                '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
+                '[[memo]]' => $transaction->purpose ?? 'N/A',
+                '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
+                '[[site_title]]' => setting('site_title', 'global'),
+                '[[site_url]]' => route('home'),
+            ];
+
+            $template = ($transaction->status->value == 'success') ? 'external_transfer_approved' : 'external_transfer_rejected';
+            $this->mailNotify($transaction->user->email, $template, $shortcodes);
+            $this->smsNotify($template, $shortcodes, $transaction->user->phone);
+            $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
+
+        } else {
+            // Wire Transfer
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -380,7 +408,11 @@ class FundTransferController extends Controller
                 '[[account_number]]' => data_get($manual_data, 'account_number'),
                 '[[name_of_account]]' => data_get($manual_data, 'name_of_account'),
                 '[[swift_code]]' => data_get($manual_data, 'swift_code'),
+                '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? 'N/A',
+                '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? 'N/A',
                 '[[phone_number]]' => data_get($manual_data, 'phone_number'),
+                '[[memo]]' => $transaction->purpose ?? 'N/A',
+                '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
             ];

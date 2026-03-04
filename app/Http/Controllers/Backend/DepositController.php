@@ -295,20 +295,34 @@ class DepositController extends Controller
             }
         }
 
+        $remoteDeposit = \App\Models\RemoteDeposit::where('transaction_tnx', $transaction->tnx)->first();
+
         $shortcodes = [
             '[[full_name]]' => $transaction->user->full_name,
             '[[txn]]' => $transaction->tnx,
             '[[gateway_name]]' => $transaction->method,
             '[[deposit_amount]]' => $transaction->amount,
+            '[[amount]]' => $transaction->amount,
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
-            '[[message]]' => $transaction->approval_cause,
-            '[[status]]' => isset($input['approve']) ? 'approved' : 'Rejected',
+            '[[message]]' => $approvalCause,
+            '[[status]]' => isset($input['approve']) ? 'Approved' : 'Rejected',
+            '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
         ];
 
-        $this->mailNotify($transaction->user->email, 'user_manual_deposit_request', $shortcodes);
-        $this->pushNotify('user_manual_deposit_request', $shortcodes, route('user.deposit.log'), $transaction->user->id);
-        $this->smsNotify('user_manual_deposit_request', $shortcodes, $transaction->user->phone);
+        if ($remoteDeposit) {
+            $shortcodes['[[check_amount]]'] = $remoteDeposit->amount;
+            $shortcodes['[[capture_date]]'] = $remoteDeposit->created_at->format('M d, Y');
+            $shortcodes['[[note]]'] = $approvalCause;
+            
+            $template = isset($input['approve']) ? 'remote_deposit_approved' : 'remote_deposit_rejected';
+        } else {
+            $template = 'user_manual_deposit_request';
+        }
+
+        $this->mailNotify($transaction->user->email, $template, $shortcodes);
+        $this->pushNotify($template, $shortcodes, route('user.deposit.log'), $transaction->user->id);
+        $this->smsNotify($template, $shortcodes, $transaction->user->phone);
 
         return redirect()->back();
     }
