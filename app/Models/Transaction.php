@@ -156,6 +156,11 @@ class Transaction extends Model
         return $this->belongsTo(Beneficiary::class, 'beneficiery_id');
     }
 
+    public function bank()
+    {
+        return $this->belongsTo(OthersBank::class, 'bank_id');
+    }
+
     public function referral()
     {
         return $this->referrals()->where('type', '=', $this->target_type);

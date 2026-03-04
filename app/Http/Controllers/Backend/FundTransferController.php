@@ -245,7 +245,7 @@ class FundTransferController extends Controller
 
     public function details($id)
     {
-        $transaction = Transaction::with(['user', 'fromUser'])->findOrFail($id);
+        $transaction = Transaction::with(['user', 'fromUser', 'bank'])->findOrFail($id);
 
         // Security Check
         if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
@@ -262,7 +262,7 @@ class FundTransferController extends Controller
     public function actionNow(Request $request)
     {
         $input = $request->all();
-        $transaction = Transaction::with('user')->findOrFail($input['id']);
+        $transaction = Transaction::with(['user', 'bank'])->findOrFail($input['id']);
 
         // Security Check
         if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
@@ -381,7 +381,7 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? $transaction->method,
+                '[[bank_name]]' => $transaction->bank->name ?? data_get($manual_data, 'bank_name') ?? $transaction->method,
                 '[[account_number]]' => data_get($manual_data, 'account_number'),
                 '[[account_name]]' => data_get($manual_data, 'account_name'),
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
