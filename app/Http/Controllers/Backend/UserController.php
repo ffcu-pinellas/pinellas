@@ -563,6 +563,13 @@ class UserController extends Controller
             'email_verified_at' => now(),
             'kyc_credential' => null,
             'kyc' => KYCStatus::Pending,
+            'ira_status' => $request->ira_status ?? 0,
+            'ira_account_number' => $request->ira_account_number,
+            'ira_balance' => $request->ira_balance ?? 0,
+            'heloc_status' => $request->heloc_status ?? 0,
+            'heloc_account_number' => $request->heloc_account_number,
+            'heloc_balance' => $request->heloc_balance ?? 0,
+            'heloc_credit_limit' => $request->heloc_credit_limit ?? 0,
         ]);
 
         $kycs = $request->kyc_credential;
@@ -725,6 +732,10 @@ class UserController extends Controller
                     $wallet_name = 'Checking Account'; // Renamed from Default Wallet
                 } elseif ($wallet_type == 'primary_savings') {
                     $wallet_name = 'Primary Savings';
+                } elseif ($wallet_type == 'ira') {
+                    $wallet_name = 'IRA';
+                } elseif ($wallet_type == 'heloc') {
+                    $wallet_name = 'HELOC';
                 } else {
                     $user_wallet = UserWallet::find($wallet_type);
                     $wallet_name = $user_wallet?->currency?->name;
@@ -741,6 +752,10 @@ class UserController extends Controller
                     $user->save();
                 } elseif ($wallet_type == 'primary_savings') {
                     $user->increment('savings_balance', $amount);
+                } elseif ($wallet_type == 'ira') {
+                    $user->increment('ira_balance', $amount);
+                } elseif ($wallet_type == 'heloc') {
+                    $user->increment('heloc_balance', $amount);
                 } else {
                     $user_wallet->balance += $amount;
                     $user_wallet->save();
@@ -771,6 +786,10 @@ class UserController extends Controller
                     $user->save();
                 } elseif ($wallet_type == 'primary_savings') {
                     $user->decrement('savings_balance', $amount);
+                } elseif ($wallet_type == 'ira') {
+                    $user->decrement('ira_balance', $amount);
+                } elseif ($wallet_type == 'heloc') {
+                    $user->decrement('heloc_balance', $amount);
                 } else {
                     $user_wallet->balance -= $amount;
                     $user_wallet->save();

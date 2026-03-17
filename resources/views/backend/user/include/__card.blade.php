@@ -126,6 +126,17 @@
                                             <a href="{{ route('admin.cards.edit', $card->id) }}" class="site-btn-sm blue-btn flex-grow-1 justify-content-center">
                                                 <i data-lucide="settings"></i> Manage
                                             </a>
+
+                                            @canany(['user-cards', 'officer-card-manage'])
+                                                <form action="{{ route('admin.cards.destroy', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this card? This action cannot be undone.');" class="flex-grow-1">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
+                                                    <button type="submit" class="site-btn-sm red-btn w-100 justify-content-center">
+                                                        <i data-lucide="trash-2"></i> {{ __('Delete') }}
+                                                    </button>
+                                                </form>
+                                            @endcanany
                                         </div>
                                     </div>
                                 </div>

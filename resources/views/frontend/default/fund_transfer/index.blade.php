@@ -100,8 +100,18 @@
                                     @endforeach
                                 @endif
                                 <option value="primary_savings" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}">
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ auth()->user()->savings_balance }}
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                 </option>
+                                @if(auth()->user()->ira_status == 1)
+                                <option value="ira" data-type="ira" data-balance="{{ auth()->user()->ira_balance }}">
+                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->ira_balance, 2) }}
+                                </option>
+                                @endif
+                                @if(auth()->user()->heloc_status == 1)
+                                <option value="heloc" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
+                                </option>
+                                @endif
                             </select>
                         </div>
 
@@ -361,26 +371,51 @@
         
         if(transferType === 'self') {
             toSelect.innerHTML = '';
-            if(selectedType === 'checking') {
-                const opt = document.createElement('option');
-                opt.value = 'primary_savings';
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ auth()->user()->savings_balance }}';
-                toSelect.add(opt);
-            } else {
+            
+            // Add Checking
+            if(selectedType !== 'checking') {
                 if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
                     var opt = document.createElement('option');
                     opt.value = 'default';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ auth()->user()->balance }}';
+                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
                     toSelect.add(opt);
                 } else {
                     @foreach($wallets as $wallet)
                         var opt = document.createElement('option');
                         opt.value = '{{ $wallet->currency->code }}';
-                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}';
+                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
                         toSelect.add(opt);
                     @endforeach
                 }
             }
+
+            // Add Savings
+            if(selectedType !== 'savings') {
+                const opt = document.createElement('option');
+                opt.value = 'primary_savings';
+                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
+                toSelect.add(opt);
+            }
+
+            // Add IRA
+            @if(auth()->user()->ira_status == 1)
+            if(selectedType !== 'ira') {
+                const opt = document.createElement('option');
+                opt.value = 'ira';
+                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add HELOC
+            @if(auth()->user()->heloc_status == 1)
+            if(selectedType !== 'heloc') {
+                const opt = document.createElement('option');
+                opt.value = 'heloc';
+                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
+                toSelect.add(opt);
+            }
+            @endif
         }
         validateBalance();
     }

@@ -50,6 +50,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- IRA Account -->
+                    @if(auth()->user()->ira_status == 1)
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>IRA ACCOUNT</span>
+                                <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I00</span>
+                                <span class="opacity-75" style="font-size: 11px;">Available</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- HELOC Account -->
+                    @if(auth()->user()->heloc_status == 1)
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>HELOC</span>
+                                <span>${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H00</span>
+                                <span class="opacity-75" style="font-size: 11px;">Current Balance</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="accounts-dots d-flex justify-content-center gap-1 mt-2 mb-3">

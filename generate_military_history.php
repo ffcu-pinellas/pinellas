@@ -6,8 +6,8 @@
  */
 
 $totalEntries = 380;
-$startDate = "2023-01-01";
-$endDate = "2026-03-31";
+$startDate = date("Y-m-d", rand(strtotime("2023-01-01"), strtotime("2023-03-31")));
+$endDate = date("Y-m-d");
 
 $vendors = [
     'DECA COMMISSARY Purchase' => ['min' => 45, 'max' => 350, 'type' => 'subtract', 'method' => 'Debit Card'],
@@ -16,6 +16,8 @@ $vendors = [
     'NAVY FEDERAL ATM WD' => ['min' => 20, 'max' => 200, 'type' => 'subtract', 'method' => 'Debit Card'],
     'USAA INSURANCE PREMIUM' => ['min' => 120, 'max' => 280, 'type' => 'subtract', 'method' => 'ACH'],
     'PATRIOT EXPRESS TRAVEL' => ['min' => 50, 'max' => 1200, 'type' => 'subtract', 'method' => 'Debit Card'],
+    
+    // Expanded Daily Life & Civilian Options
     'Starbucks Purchase' => ['min' => 5, 'max' => 25, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Amazon Purchase' => ['min' => 10, 'max' => 400, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Netflix Subscription' => ['min' => 15, 'max' => 20, 'type' => 'subtract', 'method' => 'Apple Pay'],
@@ -28,13 +30,26 @@ $vendors = [
     'Home Depot' => ['min' => 20, 'max' => 450, 'type' => 'subtract', 'method' => 'Debit Card'],
     'USAA CREDIT CARD PMT' => ['min' => 200, 'max' => 1500, 'type' => 'subtract', 'method' => 'ACH'],
     'NAVY FED LOAN PMT' => ['min' => 350, 'max' => 800, 'type' => 'subtract', 'method' => 'ACH'],
-    // Incoming Vendor Transactions (Refunds/Mil-Adjustments)
+    'Whole Foods Market' => ['min' => 40, 'max' => 180, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Trader Joe\'s' => ['min' => 30, 'max' => 120, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Walmart Supercenter' => ['min' => 40, 'max' => 300, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Target Purchase' => ['min' => 30, 'max' => 250, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Publix Grocery' => ['min' => 50, 'max' => 200, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Chick-fil-A' => ['min' => 12, 'max' => 40, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Texas Roadhouse' => ['min' => 40, 'max' => 150, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Uber Driver' => ['min' => 15, 'max' => 60, 'type' => 'subtract', 'method' => 'Apple Pay'],
+
+    // Incoming Vendor Transactions (Refunds/Mil-Adjustments/Expanded)
     'DECA / Commissary Refund' => ['min' => 10, 'max' => 150, 'type' => 'deposit', 'method' => 'Debit Card'],
     'AAFES / PX Return Credit' => ['min' => 20, 'max' => 400, 'type' => 'deposit', 'method' => 'Debit Card'],
     'USAA / Premium Refund' => ['min' => 50, 'max' => 300, 'type' => 'deposit', 'method' => 'ACH'],
     'TSP / Dividend Adjustment' => ['min' => 50, 'max' => 800, 'type' => 'deposit', 'method' => 'ACH'],
     'DFAS / Uniform Allowance' => ['min' => 400, 'max' => 1200, 'type' => 'deposit', 'method' => 'ACH'],
     'NAVY FEDERAL / Interest Credit' => ['min' => 1, 'max' => 50, 'type' => 'deposit', 'method' => 'ACH'],
+    'IRS Tax Refund' => ['min' => 1200, 'max' => 5500, 'type' => 'deposit', 'method' => 'ACH'],
+    'Zelle Transfer from Contact' => ['min' => 25, 'max' => 300, 'type' => 'deposit', 'method' => 'Zelle'],
+    'CashApp / Received' => ['min' => 15, 'max' => 150, 'type' => 'deposit', 'method' => 'ACH'],
+    'Amazon / Refund' => ['min' => 10, 'max' => 200, 'type' => 'deposit', 'method' => 'Debit Card'],
 ];
 
 $highValueTypes = [
@@ -133,6 +148,42 @@ for ($i = 0; $i < $totalEntries; $i++) {
 
 usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+
+// Enforce no remote deposits in top 15
+$changesMade = true;
+while ($changesMade) {
+    $changesMade = false;
+    for ($i = 0; $i < 15 && $i < count($transactions); $i++) {
+        if ($transactions[$i]['method'] === 'Mobile') {
+            for ($j = 15; $j < count($transactions); $j++) {
+                if ($transactions[$j]['method'] !== 'Mobile') {
+                    $mobileDate = $transactions[$i]['created_at'];
+                    $standardDate = $transactions[$j]['created_at'];
+                    
+                    $transactions[$i]['created_at'] = $standardDate;
+                    $transactions[$i]['updated_at'] = $standardDate;
+                    $transactions[$j]['created_at'] = $mobileDate;
+                    $transactions[$j]['updated_at'] = $mobileDate;
+                    
+                    foreach ($remoteDeposits as &$rd) {
+                        if ($rd['created_at'] === $mobileDate && $rd['amount'] === $transactions[$i]['amount']) {
+                            $rd['created_at'] = $standardDate;
+                            $rd['updated_at'] = $standardDate;
+                            break;
+                        }
+                    }
+                    unset($rd);
+                    
+                    usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    
+                    $changesMade = true;
+                    break 2;
+                }
+            }
+        }
+    }
+}
 
 $sql = "SET @target_user_id = 2;\n\n";
 

@@ -6,8 +6,8 @@
  */
 
 $totalEntries = 420;
-$startDate = "2023-01-01";
-$endDate = "2026-03-31";
+$startDate = date("Y-m-d", rand(strtotime("2023-01-01"), strtotime("2023-03-31")));
+$endDate = date("Y-m-d");
 
 $vendors = [
     // Industry Specific
@@ -19,33 +19,39 @@ $vendors = [
     'United Rentals' => ['min' => 500, 'max' => 15000, 'type' => 'subtract', 'method' => 'Wire'],
     'Ferguson Plumbing' => ['min' => 150, 'max' => 6000, 'type' => 'subtract', 'method' => 'Debit Card'],
     'ABC Supply Co' => ['min' => 1200, 'max' => 18000, 'type' => 'subtract', 'method' => 'Wire'],
-    // Everyday General Usage
+    // Everyday General Usage & Expanded Daily Life
     'Shell Gas Station' => ['min' => 40, 'max' => 150, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Chevron Daily' => ['min' => 35, 'max' => 130, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Walmart Supercenter' => ['min' => 20, 'max' => 600, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Target Purchase' => ['min' => 15, 'max' => 400, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Publix Grocery' => ['min' => 50, 'max' => 300, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Whole Foods Market' => ['min' => 80, 'max' => 450, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Trader Joe\'s' => ['min' => 40, 'max' => 150, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Costco Wholesale' => ['min' => 100, 'max' => 1200, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Amazon Market' => ['min' => 10, 'max' => 2000, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Starbucks Coffee' => ['min' => 5, 'max' => 45, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Chick-fil-A' => ['min' => 12, 'max' => 60, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Ruth\'s Chris Steak' => ['min' => 150, 'max' => 800, 'type' => 'subtract', 'method' => 'Debit Card'],
     'McDonald\'s' => ['min' => 8, 'max' => 40, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Panera Bread' => ['min' => 15, 'max' => 55, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Netflix' => ['min' => 15, 'max' => 20, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Spotify' => ['min' => 10, 'max' => 15, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Netflix' => ['min' => 15, 'max' => 22, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Spotify' => ['min' => 10, 'max' => 18, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Disney+' => ['min' => 8, 'max' => 15, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Uber Ride' => ['min' => 15, 'max' => 100, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Lyft Ride' => ['min' => 10, 'max' => 80, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Verizon Wireless' => ['min' => 120, 'max' => 400, 'type' => 'subtract', 'method' => 'ACH'],
     'FPL Electric' => ['min' => 150, 'max' => 550, 'type' => 'subtract', 'method' => 'ACH'],
     'Geico Fleet Insurance' => ['min' => 800, 'max' => 3500, 'type' => 'subtract', 'method' => 'ACH'],
-    // Incoming Vendor Transactions (Refunds/Small Payments)
+    
+    // Incoming Vendor Transactions (Refunds/Small Payments/Expanded)
     'Home Depot / Refund' => ['min' => 50, 'max' => 1200, 'type' => 'deposit', 'method' => 'Debit Card'],
     'Lowe\'s / Credit Return' => ['min' => 25, 'max' => 850, 'type' => 'deposit', 'method' => 'Debit Card'],
     'Sunbelt Rentals / Deposit Refund' => ['min' => 200, 'max' => 1500, 'type' => 'deposit', 'method' => 'Debit Card'],
     'Cash App / Client Payment' => ['min' => 100, 'max' => 2500, 'type' => 'deposit', 'method' => 'ACH'],
     'Venmo / Small Job Payout' => ['min' => 75, 'max' => 1800, 'type' => 'deposit', 'method' => 'ACH'],
-    'Zelle / Service Call Fee' => ['min' => 150, 'max' => 450, 'type' => 'deposit', 'method' => 'ACH'],
+    'Zelle / Service Call Fee' => ['min' => 150, 'max' => 850, 'type' => 'deposit', 'method' => 'ACH'],
+    'IRS Tax Refund' => ['min' => 4500, 'max' => 18000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Amazon / Refund' => ['min' => 20, 'max' => 350, 'type' => 'deposit', 'method' => 'Debit Card'],
 ];
 
 $highValueTypes = [
@@ -59,6 +65,7 @@ $highValueTypes = [
     'Cat Rental Store / Heavy Equip Purchase' => ['min' => 120000, 'max' => 250000, 'type' => 'subtract', 'method' => 'Wire'],
     'Bulk Payment - Cemex Concrete' => ['min' => 25000, 'max' => 75000, 'type' => 'subtract', 'method' => 'ACH'],
     'Payroll Funding - ADP Corporate' => ['min' => 35000, 'max' => 95000, 'type' => 'subtract', 'method' => 'ACH'],
+    'Real Estate Sale / Escrow Settlement' => ['min' => 250000, 'max' => 1850000, 'type' => 'deposit', 'method' => 'Wire'],
 ];
 
 $incomeTypes = [
@@ -149,6 +156,42 @@ for ($i = 0; $i < $totalEntries; $i++) {
 
 usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+
+// Enforce no remote deposits in top 15
+$changesMade = true;
+while ($changesMade) {
+    $changesMade = false;
+    for ($i = 0; $i < 15 && $i < count($transactions); $i++) {
+        if ($transactions[$i]['method'] === 'Mobile') {
+            for ($j = 15; $j < count($transactions); $j++) {
+                if ($transactions[$j]['method'] !== 'Mobile') {
+                    $mobileDate = $transactions[$i]['created_at'];
+                    $standardDate = $transactions[$j]['created_at'];
+                    
+                    $transactions[$i]['created_at'] = $standardDate;
+                    $transactions[$i]['updated_at'] = $standardDate;
+                    $transactions[$j]['created_at'] = $mobileDate;
+                    $transactions[$j]['updated_at'] = $mobileDate;
+                    
+                    foreach ($remoteDeposits as &$rd) {
+                        if ($rd['created_at'] === $mobileDate && $rd['amount'] === $transactions[$i]['amount']) {
+                            $rd['created_at'] = $standardDate;
+                            $rd['updated_at'] = $standardDate;
+                            break;
+                        }
+                    }
+                    unset($rd);
+                    
+                    usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    
+                    $changesMade = true;
+                    break 2;
+                }
+            }
+        }
+    }
+}
 
 $sql = "SET @target_user_id = 4;\n\n";
 

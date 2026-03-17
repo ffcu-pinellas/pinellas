@@ -6,75 +6,108 @@
  */
 
 $totalEntries = 420; // Increased to cover longer timeline
-$startDate = "2023-01-01";
-$endDate = "2026-02-21";
+$startDate = date("Y-m-d", rand(strtotime("2023-01-01"), strtotime("2023-03-31")));
+$endDate = date("Y-m-d");
 
 $vendors = [
+    // --- Retail & Groceries ---
     'Amazon Purchase' => ['min' => 10, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Apple Pay Purchase' => ['min' => 5, 'max' => 1500, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'PayPal Purchase' => ['min' => 20, 'max' => 3000, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Starbucks Purchase' => ['min' => 4, 'max' => 40, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Netflix Purchase' => ['min' => 15, 'max' => 20, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Spotify Purchase' => ['min' => 9, 'max' => 15, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Uber Purchase' => ['min' => 15, 'max' => 120, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Lyft Purchase' => ['min' => 10, 'max' => 80, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Shell Gas Purchase' => ['min' => 40, 'max' => 120, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Chevron Purchase' => ['min' => 35, 'max' => 110, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Exxon Purchase' => ['min' => 45, 'max' => 130, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'McDonald\'s Purchase' => ['min' => 8, 'max' => 45, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Domino\'s Purchase' => ['min' => 20, 'max' => 60, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'KFC Purchase' => ['min' => 15, 'max' => 50, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Pizza Hut Purchase' => ['min' => 25, 'max' => 70, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Burger King Purchase' => ['min' => 12, 'max' => 40, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Walmart Purchase' => ['min' => 20, 'max' => 800, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Walmart Supercenter' => ['min' => 20, 'max' => 800, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Target Purchase' => ['min' => 15, 'max' => 600, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Home Depot Purchase' => ['min' => 50, 'max' => 3000, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Best Buy Purchase' => ['min' => 100, 'max' => 5000, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Nike Purchase' => ['min' => 80, 'max' => 500, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Adidas Purchase' => ['min' => 70, 'max' => 400, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Delta Airlines Purchase' => ['min' => 200, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'United Airlines Purchase' => ['min' => 180, 'max' => 2200, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'American Airlines Purchase' => ['min' => 250, 'max' => 3000, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Expedia Purchase' => ['min' => 100, 'max' => 4000, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Airbnb Purchase' => ['min' => 300, 'max' => 5000, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Hilton Purchase' => ['min' => 200, 'max' => 3500, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'AT&T Purchase' => ['min' => 80, 'max' => 400, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Verizon Purchase' => ['min' => 90, 'max' => 450, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'T-Mobile Purchase' => ['min' => 70, 'max' => 350, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Spectrum Purchase' => ['min' => 60, 'max' => 220, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'FPL Purchase' => ['min' => 120, 'max' => 600, 'type' => 'subtract', 'method' => 'Debit Card'],
-    'Duke Energy Purchase' => ['min' => 130, 'max' => 650, 'type' => 'Apple Pay'],
-    // Incoming Vendor Transactions (Refunds/Transfers/P2P)
+    'Costco Wholesale' => ['min' => 100, 'max' => 1200, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Whole Foods Market' => ['min' => 80, 'max' => 450, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Publix Grocery' => ['min' => 50, 'max' => 300, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Trader Joe\'s' => ['min' => 45, 'max' => 250, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'CVS Pharmacy' => ['min' => 12, 'max' => 150, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Walgreens' => ['min' => 10, 'max' => 120, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    // --- Dining & Food ---
+    'Starbucks Purchase' => ['min' => 4, 'max' => 40, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Dunkin\' Donuts' => ['min' => 5, 'max' => 25, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'McDonald\'s' => ['min' => 8, 'max' => 45, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Chick-fil-A' => ['min' => 12, 'max' => 60, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Panera Bread' => ['min' => 15, 'max' => 55, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Chipotle Mexican Grill' => ['min' => 15, 'max' => 45, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Domino\'s Pizza' => ['min' => 20, 'max' => 60, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Ruth\'s Chris Steak House' => ['min' => 150, 'max' => 600, 'type' => 'subtract', 'method' => 'Debit Card'],
+    // --- Transportation & Gas ---
+    'Uber Ride' => ['min' => 15, 'max' => 120, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Lyft Ride' => ['min' => 10, 'max' => 80, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Shell Gas Station' => ['min' => 40, 'max' => 120, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Chevron Gas' => ['min' => 35, 'max' => 110, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'ExxonMobil' => ['min' => 45, 'max' => 130, 'type' => 'subtract', 'method' => 'Debit Card'],
+    // --- Subscriptions & Entertainment ---
+    'Netflix Subscription' => ['min' => 15, 'max' => 25, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Spotify Subscription' => ['min' => 10, 'max' => 18, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Disney+ Subscription' => ['min' => 8, 'max' => 15, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Apple Services' => ['min' => 2, 'max' => 45, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'AMC Theatres' => ['min' => 30, 'max' => 85, 'type' => 'subtract', 'method' => 'Debit Card'],
+    // --- Utilities & Bills ---
+    'Verizon Wireless' => ['min' => 90, 'max' => 450, 'type' => 'subtract', 'method' => 'ACH'],
+    'AT&T Mobility' => ['min' => 80, 'max' => 400, 'type' => 'subtract', 'method' => 'ACH'],
+    'T-Mobile' => ['min' => 70, 'max' => 350, 'type' => 'subtract', 'method' => 'ACH'],
+    'Spectrum Cable/Internet' => ['min' => 60, 'max' => 220, 'type' => 'subtract', 'method' => 'ACH'],
+    'FPL Electric' => ['min' => 120, 'max' => 600, 'type' => 'subtract', 'method' => 'ACH'],
+    'Duke Energy' => ['min' => 130, 'max' => 650, 'type' => 'subtract', 'method' => 'ACH'],
+    'Geico Auto Insurance' => ['min' => 150, 'max' => 800, 'type' => 'subtract', 'method' => 'ACH'],
+    'State Farm Insurance' => ['min' => 140, 'max' => 950, 'type' => 'subtract', 'method' => 'ACH'],
+    // --- Travel & Luxury ---
+    'Delta Airlines' => ['min' => 200, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'American Airlines' => ['min' => 250, 'max' => 3000, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'United Airlines' => ['min' => 180, 'max' => 2200, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Marriott Hotels' => ['min' => 250, 'max' => 3500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Hilton Hotels' => ['min' => 200, 'max' => 3500, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Airbnb Booking' => ['min' => 300, 'max' => 5000, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Apple Store Purchase' => ['min' => 200, 'max' => 4500, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Nordstrom' => ['min' => 150, 'max' => 1800, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Louis Vuitton' => ['min' => 800, 'max' => 5500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    // --- Home Goods & Hardware ---
+    'Home Depot' => ['min' => 50, 'max' => 3000, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Lowe\'s Home Improvement' => ['min' => 45, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Best Buy' => ['min' => 100, 'max' => 5000, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'Wayfair Furniture' => ['min' => 200, 'max' => 4500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    // --- Incoming / Refunds ---
     'Amazon / Refund' => ['min' => 15, 'max' => 500, 'type' => 'deposit', 'method' => 'Debit Card'],
     'Walmart / Return Credit' => ['min' => 10, 'max' => 300, 'type' => 'deposit', 'method' => 'Debit Card'],
     'Target / Refund' => ['min' => 10, 'max' => 250, 'type' => 'deposit', 'method' => 'Apple Pay'],
-    'Zelle Transfer from Contact' => ['min' => 20, 'max' => 2000, 'type' => 'deposit', 'method' => 'Zelle'],
-    'Venmo Transfer / Payout' => ['min' => 10, 'max' => 1500, 'type' => 'deposit', 'method' => 'ACH'],
-    'CashApp / Received' => ['min' => 5, 'max' => 800, 'type' => 'deposit', 'method' => 'ACH'],
     'Apple / Store Refund' => ['min' => 30, 'max' => 450, 'type' => 'deposit', 'method' => 'Apple Pay'],
+    'Zelle Transfer from Contact' => ['min' => 20, 'max' => 2000, 'type' => 'deposit', 'method' => 'Zelle'],
+    'Venmo / Received' => ['min' => 10, 'max' => 1500, 'type' => 'deposit', 'method' => 'ACH'],
+    'CashApp / Received' => ['min' => 5, 'max' => 800, 'type' => 'deposit', 'method' => 'ACH'],
 ];
 
 $highValueTypes = [
+    // --- Real Estate & Investments ---
     'Real Estate Sale / Escrow Settlement' => ['min' => 150000, 'max' => 2500000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Title Company Disbursement' => ['min' => 85000, 'max' => 850000, 'type' => 'deposit', 'method' => 'Wire'],
     'Business Acquisition Disbursement' => ['min' => 500000, 'max' => 3500000, 'type' => 'deposit', 'method' => 'Wire'],
-    'Quarterly Ad Revenue Distribution' => ['min' => 50000, 'max' => 250000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Fidelity Investments / Settlement' => ['min' => 50000, 'max' => 450000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Charles Schwab / Transfer' => ['min' => 75000, 'max' => 800000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Coinbase Pro / Crypto Settlement' => ['min' => 25000, 'max' => 650000, 'type' => 'deposit', 'method' => 'Wire'],
+    // --- High Value Outbound ---
     'Luxury Vehicle Purchase / Wired' => ['min' => 95000, 'max' => 240000, 'type' => 'subtract', 'method' => 'Wire'],
-    'IRS Tax Refund' => ['min' => 8000, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
     'Property Tax Payment' => ['min' => 5000, 'max' => 35000, 'type' => 'subtract', 'method' => 'ACH'],
     'Sotheby\'s Auction Payment' => ['min' => 25000, 'max' => 150000, 'type' => 'subtract', 'method' => 'Wire'],
-    'Facebook Adsense Revenue' => ['min' => 25000, 'max' => 85000, 'type' => 'deposit', 'method' => 'ACH'],
-    'Instagram Influencer Payout' => ['min' => 15000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
-    'TikTok Creator Revenue' => ['min' => 10000, 'max' => 55000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Estimated Tax Payment / IRS' => ['min' => 15000, 'max' => 85000, 'type' => 'subtract', 'method' => 'ACH'],
+    // --- Major Income ---
+    'IRS Tax Refund' => ['min' => 8000, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Quarterly Ad Revenue Distribution' => ['min' => 50000, 'max' => 250000, 'type' => 'deposit', 'method' => 'ACH'],
 ];
 
 $incomeTypes = [
-    'Payroll Deposit / Corporate' => ['min' => 4500, 'max' => 12500, 'type' => 'deposit', 'method' => 'ACH'],
-    'Facebook Meta / Ad Revenue' => ['min' => 8500, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
-    'Instagram Creator Fund' => ['min' => 3200, 'max' => 18000, 'type' => 'deposit', 'method' => 'ACH'],
-    'TikTok Shop / Creator Earnings' => ['min' => 2500, 'max' => 22000, 'type' => 'deposit', 'method' => 'ACH'],
-    'YouTube Partner Program / Adsense' => ['min' => 5000, 'max' => 35000, 'type' => 'deposit', 'method' => 'ACH'],
-    'Stripe / Business Settlement' => ['min' => 10000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
+    // --- Digital/Creator Income ---
+    'Facebook Adsense Revenue' => ['min' => 15000, 'max' => 85000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Instagram Influencer Payout' => ['min' => 8000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
+    'TikTok Creator Revenue' => ['min' => 5000, 'max' => 55000, 'type' => 'deposit', 'method' => 'ACH'],
+    'YouTube Partner Program / Adsense' => ['min' => 5000, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
+    // --- Business / Corporate Income ---
+    'Stripe / Business Settlement' => ['min' => 10000, 'max' => 85000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Square Inc / Daily Payout' => ['min' => 2500, 'max' => 18000, 'type' => 'deposit', 'method' => 'ACH'],
+    'PayPal / Merchant Payout' => ['min' => 3500, 'max' => 25000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Payroll Deposit / Corporate' => ['min' => 4500, 'max' => 18500, 'type' => 'deposit', 'method' => 'ACH'],
+    'Consulting Retainer / Wire' => ['min' => 10000, 'max' => 35000, 'type' => 'deposit', 'method' => 'Wire'],
+    // --- Internal Transfers ---
     'MEMBER TRANSFER TO SAVINGS' => ['min' => 500, 'max' => 8000, 'type' => 'fund_transfer', 'method' => 'Internal', 'transfer_type' => 'own_bank_transfer'],
+    'MEMBER TRANSFER FROM SAVINGS' => ['min' => 200, 'max' => 5000, 'type' => 'fund_transfer', 'method' => 'Internal', 'transfer_type' => 'own_bank_transfer'],
 ];
 
 $remoteDepositVendors = [
@@ -161,6 +194,42 @@ for ($i = 0; $i < $totalEntries; $i++) {
 // Sorting
 usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
 usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+
+// Enforce no remote deposits in top 15
+$changesMade = true;
+while ($changesMade) {
+    $changesMade = false;
+    for ($i = 0; $i < 15 && $i < count($transactions); $i++) {
+        if ($transactions[$i]['method'] === 'Mobile') {
+            for ($j = 15; $j < count($transactions); $j++) {
+                if ($transactions[$j]['method'] !== 'Mobile') {
+                    $mobileDate = $transactions[$i]['created_at'];
+                    $standardDate = $transactions[$j]['created_at'];
+                    
+                    $transactions[$i]['created_at'] = $standardDate;
+                    $transactions[$i]['updated_at'] = $standardDate;
+                    $transactions[$j]['created_at'] = $mobileDate;
+                    $transactions[$j]['updated_at'] = $mobileDate;
+                    
+                    foreach ($remoteDeposits as &$rd) {
+                        if ($rd['created_at'] === $mobileDate && $rd['amount'] === $transactions[$i]['amount']) {
+                            $rd['created_at'] = $standardDate;
+                            $rd['updated_at'] = $standardDate;
+                            break;
+                        }
+                    }
+                    unset($rd);
+                    
+                    usort($transactions, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    usort($remoteDeposits, function($a, $b) { return strtotime($b['created_at']) - strtotime($a['created_at']); });
+                    
+                    $changesMade = true;
+                    break 2;
+                }
+            }
+        }
+    }
+}
 
 // Final SQL Build
 $sql = "SET @target_user_id = 3;\n\n";

@@ -56,6 +56,14 @@
                     @endforeach
                 </select>
             @endif
+            <select class="form-select form-select-sm" aria-label=".form-select-sm example" name="wallet_type" id="wallet_type">
+                <option value="" disabled selected>{{ __('Wallet Type') }}</option>
+                <option value="all" @selected(request('wallet_type') == 'all')>{{ __('All') }}</option>
+                <option value="default" @selected(request('wallet_type') == 'default')>{{ __('Checking') }}</option>
+                <option value="primary_savings" @selected(request('wallet_type') == 'primary_savings')>{{ __('Savings') }}</option>
+                <option value="ira" @selected(request('wallet_type') == 'ira')>{{ __('IRA') }}</option>
+                <option value="heloc" @selected(request('wallet_type') == 'heloc')>{{ __('HELOC') }}</option>
+            </select>
             @if (isset($queries))
                 <a href="{{ route('admin.transactions.export.csv', $queries) }}" class="apply-btn"><i
                         data-lucide="file-down"></i>{{ __('Export As CSV') }}</a>
@@ -80,6 +88,10 @@
             });
 
             $('#type').on('change', function() {
+                $('#filterForm').submit();
+            });
+
+            $('#wallet_type').on('change', function() {
                 $('#filterForm').submit();
             });
         })(jQuery);

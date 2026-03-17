@@ -59,6 +59,16 @@
                                     <option data-curr-name="Primary Savings" value="primary_savings">
                                         Primary Savings ({{ $user->savings_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->savings_balance }}
                                     </option>
+                                    @if($user->ira_status)
+                                        <option data-curr-name="IRA" value="ira">
+                                            IRA Account ({{ $user->ira_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->ira_balance }}
+                                        </option>
+                                    @endif
+                                    @if($user->heloc_status)
+                                        <option data-curr-name="HELOC" value="heloc">
+                                            HELOC Account ({{ $user->heloc_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->heloc_balance }}
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
                         </div>

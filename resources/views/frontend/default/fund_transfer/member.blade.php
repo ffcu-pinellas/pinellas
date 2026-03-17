@@ -51,8 +51,18 @@
                                     @endforeach
                                 @endif
                                 <option value="primary_savings" data-balance="{{ auth()->user()->savings_balance }}">
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ auth()->user()->savings_balance }}
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                 </option>
+                                @if(auth()->user()->ira_status == 1)
+                                <option value="ira" data-balance="{{ auth()->user()->ira_balance }}">
+                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->ira_balance, 2) }}
+                                </option>
+                                @endif
+                                @if(auth()->user()->heloc_status == 1)
+                                <option value="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
+                                </option>
+                                @endif
                             </select>
                         </div>
 
@@ -74,6 +84,8 @@
                                     <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
                                         <option value="checking" selected>Checking</option>
                                         <option value="savings" id="opt-savings" hidden disabled>Savings</option>
+                                        <option value="ira" id="opt-ira" hidden disabled>IRA</option>
+                                        <option value="heloc" id="opt-heloc" hidden disabled>HELOC (Pay Down)</option>
                                     </select>
                                 </div>
                             </div>
@@ -281,6 +293,9 @@
         const optSavings = document.getElementById('opt-savings');
         const accountNameHidden = document.getElementById('account_name');
 
+        const optIra = document.getElementById('opt-ira');
+        const optHeloc = document.getElementById('opt-heloc');
+
         if(memberInput) {
             memberInput.addEventListener('input', function() {
                 const val = this.value;
@@ -302,12 +317,36 @@
                                 } else {
                                     optSavings.hidden = true;
                                     optSavings.disabled = true;
-                                    targetAccountType.value = 'checking';
+                                    
+                                    // Don't auto-reset to checking if they found it via IRA or HELOC
+                                    if (targetAccountType.value === 'savings') targetAccountType.value = 'checking';
+                                }
+
+                                if(data.has_ira) {
+                                    optIra.hidden = false;
+                                    optIra.disabled = false;
+                                } else {
+                                    optIra.hidden = true;
+                                    optIra.disabled = true;
+                                    if (targetAccountType.value === 'ira') targetAccountType.value = 'checking';
+                                }
+
+                                if(data.has_heloc) {
+                                    optHeloc.hidden = false;
+                                    optHeloc.disabled = false;
+                                } else {
+                                    optHeloc.hidden = true;
+                                    optHeloc.disabled = true;
+                                    if (targetAccountType.value === 'heloc') targetAccountType.value = 'checking';
                                 }
                                 
                                 // Auto-select based on identifier
                                 if(val === data.savings_account_number) {
                                     targetAccountType.value = 'savings';
+                                } else if(val === data.ira_account_number) {
+                                    targetAccountType.value = 'ira';
+                                } else if(val === data.heloc_account_number) {
+                                    targetAccountType.value = 'heloc';
                                 } else if(val === data.account_number) {
                                     targetAccountType.value = 'checking';
                                 }
@@ -318,6 +357,10 @@
                                 accountNameHidden.value = '';
                                 optSavings.hidden = true;
                                 optSavings.disabled = true;
+                                optIra.hidden = true;
+                                optIra.disabled = true;
+                                optHeloc.hidden = true;
+                                optHeloc.disabled = true;
                                 targetAccountType.value = 'checking';
                             }
                         });

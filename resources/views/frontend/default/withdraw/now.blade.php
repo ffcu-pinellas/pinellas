@@ -29,10 +29,32 @@
                         <div class="step-details-form mb-4">
 
                             <div class="row">
-                                <div class="col-xl-6 col-lg-6 col-md-6">
+                                <div class="col-xl-4 col-lg-4 col-md-4">
                                     <div class="inputs">
                                         <label for="" class="input-label">
-                                            {{ __('Select') }}
+                                            {{ __('From Account') }}
+                                            <span class="required">*</span>
+                                        </label>
+                                        <select
+                                            name="wallet_type"
+                                            class="box-input select2-basic-active"
+                                            id="walletSelect"
+                                        >
+                                            <option value="default">{{ __('Checking Account') }}</option>
+                                            <option value="primary_savings">{{ __('Primary Savings') }}</option>
+                                            @if(auth()->user()->ira_status)
+                                            <option value="ira">{{ __('IRA Account') }}</option>
+                                            @endif
+                                            @if(auth()->user()->heloc_status)
+                                            <option value="heloc">{{ __('HELOC Account (Credit)') }}</option>
+                                            @endif
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-4">
+                                    <div class="inputs">
+                                        <label for="" class="input-label">
+                                            {{ __('Withdraw To') }}
                                             <span class="required">*</span>
                                         </label>
                                         <select
@@ -50,7 +72,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xl-6 col-lg-6 col-md-6">
+                                <div class="col-xl-4 col-lg-4 col-md-4">
                                     <div class="inputs">
                                         <label for="" class="input-label">
                                             {{ __('Enter Amount') }}

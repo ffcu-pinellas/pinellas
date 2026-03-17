@@ -298,13 +298,35 @@ class WithdrawController extends Controller
         $totalAmount = $amount + (float) $charge;
 
         $user = Auth::user();
-        if ($user->balance < $totalAmount) {
+        $walletType = $request->get('wallet_type', 'default');
+        
+        if ($walletType == 'primary_savings') {
+            $balance = $user->savings_balance;
+        } elseif ($walletType == 'ira') {
+            $balance = $user->ira_balance;
+        } elseif ($walletType == 'heloc') {
+            // Available credit remains limit - drawn balance
+            $balance = $user->heloc_credit_limit - $user->heloc_balance;
+        } else {
+            $balance = $user->balance;
+        }
+
+        if ($balance < $totalAmount) {
             notify()->error(__('Insufficient Balance'), 'Error');
 
             return redirect()->back();
         }
 
-        $user->decrement('balance', $totalAmount);
+        if ($walletType == 'primary_savings') {
+            $user->decrement('savings_balance', $totalAmount);
+        } elseif ($walletType == 'ira') {
+            $user->decrement('ira_balance', $totalAmount);
+        } elseif ($walletType == 'heloc') {
+            // Withdrawing from HELOC increases the drawn balance
+            $user->increment('heloc_balance', $totalAmount);
+        } else {
+            $user->decrement('balance', $totalAmount);
+        }
 
         $payAmount = $amount * $withdrawMethod->rate;
 
@@ -323,7 +345,8 @@ class WithdrawController extends Controller
             $user->id,
             null,
             'User',
-            json_decode($withdrawAccount->credentials, true)
+            json_decode($withdrawAccount->credentials, true),
+            $walletType
         );
 
         if ($withdrawMethod->type == 'auto') {

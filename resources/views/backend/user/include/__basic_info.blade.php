@@ -151,6 +151,80 @@
                                                required="" disabled>
                                     </div>
                                 </div>
+                                
+                                <div class="col-xl-12 mt-3 mb-2">
+                                    <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Specialized Accounts (IRA & HELOC)') }}</h5>
+                                </div>
+
+                                @if(setting('ira_management', 'permission'))
+                                    {{-- IRA Section --}}
+                                    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Enable IRA Account:') }}</label>
+                                            <div class="switch-field" style="margin-top: 5px;">
+                                                <input type="radio" id="ira_status_yes" name="ira_status" value="1" @checked($user->ira_status == 1) />
+                                                <label for="ira_status_yes">{{ __('Enable') }}</label>
+                                                <input type="radio" id="ira_status_no" name="ira_status" value="0" @checked($user->ira_status == 0) />
+                                                <label for="ira_status_no">{{ __('Disable') }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('IRA Account Number:') }}</label>
+                                            <input type="text" class="box-input" name="ira_account_number" value="{{ $user->ira_account_number }}" placeholder="Optional custom number">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('IRA Balance:') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="ira_balance" value="{{ $user->ira_balance }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(setting('heloc_management', 'permission'))
+                                    {{-- HELOC Section --}}
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Enable HELOC Account:') }}</label>
+                                            <div class="switch-field" style="margin-top: 5px;">
+                                                <input type="radio" id="heloc_status_yes" name="heloc_status" value="1" @checked($user->heloc_status == 1) />
+                                                <label for="heloc_status_yes">{{ __('Enable') }}</label>
+                                                <input type="radio" id="heloc_status_no" name="heloc_status" value="0" @checked($user->heloc_status == 0) />
+                                                <label for="heloc_status_no">{{ __('Disable') }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('HELOC Account Number:') }}</label>
+                                            <input type="text" class="box-input" name="heloc_account_number" value="{{ $user->heloc_account_number }}" placeholder="Optional">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('HELOC Current Balance (Drawn):') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="heloc_balance" value="{{ $user->heloc_balance }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('HELOC Credit Limit:') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="heloc_credit_limit" value="{{ $user->heloc_credit_limit }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
 
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">

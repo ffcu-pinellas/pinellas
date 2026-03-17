@@ -671,6 +671,14 @@ if (! function_exists('getAccountName')) {
             return 'SAVINGS';
         }
 
+        if ($walletType === 'ira') {
+            return 'IRA';
+        }
+
+        if ($walletType === 'heloc') {
+            return 'HELOC';
+        }
+
         if (is_numeric($walletType)) {
             $wallet = \App\Models\UserWallet::with('currency')->find($walletType);
             return $wallet ? $wallet->currency->code . ' WALLET' : 'WALLET';

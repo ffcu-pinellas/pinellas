@@ -86,6 +86,15 @@ class Transaction extends Model
         return $query;
     }
 
+    public function scopeWalletType($query, $walletType)
+    {
+        if ($walletType && $walletType != 'all') {
+            return $query->where('wallet_type', $walletType);
+        }
+
+        return $query;
+    }
+
     public function scopeFundTransfar($query)
     {
         return $query->where('type', TxnType::FundTransfer->value);

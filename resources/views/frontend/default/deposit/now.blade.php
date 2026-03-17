@@ -24,7 +24,14 @@
                                     <label for="" class="input-label">{{ __('Select Wallet') }}<span class="required">*</span></label>
                                     <select name="wallet_type" class="box-input" id="walletSelect">
                                         <option value="" disabled selected>--{{ __('Select Wallet') }}--</option>
-                                        <option value="default" data-currency="{{ setting('site_currency') }}">{{ __('Default Wallet') }}</option>
+                                        <option value="default" data-currency="{{ setting('site_currency') }}">{{ __('Checking Account') }}</option>
+                                        <option value="primary_savings" data-currency="{{ setting('site_currency') }}">{{ __('Primary Savings') }}</option>
+                                        @if(auth()->user()->ira_status)
+                                        <option value="ira" data-currency="{{ setting('site_currency') }}">{{ __('IRA Account') }}</option>
+                                        @endif
+                                        @if(auth()->user()->heloc_status)
+                                        <option value="heloc" data-currency="{{ setting('site_currency') }}">{{ __('HELOC Account') }}</option>
+                                        @endif
                                         @foreach ($wallets as $wallet)
                                         <option value="{{ $wallet->id }}" @selected($code==$wallet->currency?->code) data-currency="{{ $wallet->currency?->code }}">{{ $wallet?->currency?->name }} ({{ $wallet?->currency?->code }})</option>
                                         @endforeach

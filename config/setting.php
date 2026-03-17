@@ -373,6 +373,22 @@ return [
                 'rules' => 'required', // validation rule of laravel
                 'value' => 0, // default value if you want
             ],
+            [
+                'type' => 'checkbox',
+                'data' => 'boolean',
+                'name' => 'ira_management',
+                'label' => 'IRA Management',
+                'rules' => 'required',
+                'value' => 1,
+            ],
+            [
+                'type' => 'checkbox',
+                'data' => 'boolean',
+                'name' => 'heloc_management',
+                'label' => 'HELOC Management',
+                'rules' => 'required',
+                'value' => 1,
+            ],
         ],
     ],
 

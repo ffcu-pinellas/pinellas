@@ -45,10 +45,13 @@ class TransactionController extends Controller
         $status = $request->status ?? 'all';
         $search = $request->search ?? null;
         $type = $request->type ?? 'all';
+        $walletType = $request->wallet_type ?? 'all';
+
         $transactions = Transaction::with('user')
             ->search($search)
             ->status($status)
             ->type($type)
+            ->walletType($walletType)
             ->when(in_array(request('sort_field'), ['created_at', 'final_amount', 'type', 'description']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })

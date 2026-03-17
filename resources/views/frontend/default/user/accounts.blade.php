@@ -108,6 +108,65 @@
             </div>
             @endforeach
 
+            <!-- IRA Account -->
+            @if(auth()->user()->ira_status == 1)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">IRA Account</h5>
+                                <div class="text-muted small">{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Available balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','$').number_format(auth()->user()->ira_balance, 2) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <!-- HELOC Account -->
+            @if(auth()->user()->heloc_status == 1)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">HELOC Account</h5>
+                                <div class="text-muted small">{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Current Balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','$').number_format(auth()->user()->heloc_balance, 2) }}
+                            </div>
+                            <div class="text-muted small mt-1">Available Credit: {{ setting('currency_symbol','$').number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Add New Account -->
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 border-0" style="border-radius: 12px; border: 2px dashed #ddd !important; background: transparent !important; box-shadow: none !important;">

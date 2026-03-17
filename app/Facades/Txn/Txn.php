@@ -27,7 +27,7 @@ class Txn
     public static function new($amount, $charge, $final_amount, $method, $description, string|TxnType $type, string|TxnStatus $status = TxnStatus::Pending, $payCurrency = null, $payAmount = null, $userID = null, $relatedUserID = null, $relatedModel = 'User', array $manualFieldData = [], $walletType = 'default', $card_id = null, string $approvalCause = 'none', $targetId = null, $targetType = null, $isLevel = false): Transaction
     {
         if ($type === 'withdraw') {
-            self::withdrawBalance($amount);
+            self::withdrawBalance($amount, $walletType);
         }
         $transaction = new Transaction;
         $transaction->user_id = $userID ?? Auth::user()->id;
@@ -89,9 +89,18 @@ class Txn
         return $transaction;
     }
 
-    private static function withdrawBalance($amount): void
+    private static function withdrawBalance($amount, $walletType = 'default'): void
     {
-        User::find(auth()->user()->id)->decrement('balance', $amount);
+        $user = User::find(auth()->user()->id);
+        if ($walletType == 'default') {
+            $user->decrement('balance', $amount);
+        } elseif ($walletType == 'primary_savings') {
+            $user->decrement('savings_balance', $amount);
+        } elseif ($walletType == 'ira') {
+            $user->decrement('ira_balance', $amount);
+        } elseif ($walletType == 'heloc') {
+            $user->decrement('heloc_balance', $amount);
+        }
     }
 
     public static function update($tnx, $status, $userId = null, $approvalCause = 'none')
@@ -108,6 +117,10 @@ class Txn
                 $user->increment('balance', $transaction->amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $user->increment('savings_balance', $transaction->amount);
+            } elseif ($transaction->wallet_type == 'ira') {
+                $user->increment('ira_balance', $transaction->amount);
+            } elseif ($transaction->wallet_type == 'heloc') {
+                $user->increment('heloc_balance', $transaction->amount);
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 
@@ -123,6 +136,10 @@ class Txn
                 $user->increment('balance', $transaction->final_amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $user->increment('savings_balance', $transaction->final_amount);
+            } elseif ($transaction->wallet_type == 'ira') {
+                $user->increment('ira_balance', $transaction->final_amount);
+            } elseif ($transaction->wallet_type == 'heloc') {
+                $user->increment('heloc_balance', $transaction->final_amount);
             }
         }
 

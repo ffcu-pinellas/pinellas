@@ -36,7 +36,7 @@ class TransferService
         \Log::info("TransferService::validate - Amount: $amount, BankID: $bankId, Wallet: $walletType");
 
         $bankInfo = OthersBank::find($bankId);
-        $currencyCode = ($walletType == 'default' || $walletType == 'primary_savings') ? setting('site_currency', 'global') : $walletType;
+        $currencyCode = in_array($walletType, ['default', 'primary_savings', 'ira', 'heloc']) ? setting('site_currency', 'global') : $walletType;
 
         if ($bankId != 0) {
             $query = Transaction::where('user_id', $user->id)
@@ -134,6 +134,13 @@ class TransferService
         if ($walletType == 'primary_savings') {
              $wallet = null;
              $balance = $user->savings_balance;
+        } elseif ($walletType == 'ira') {
+             $wallet = null;
+             $balance = $user->ira_balance;
+        } elseif ($walletType == 'heloc') {
+             $wallet = null;
+             // HELOC available credit is limit minus drawn balance
+             $balance = $user->heloc_credit_limit - $user->heloc_balance;
         } elseif ($walletType !== 'default') {
             $wallet = $user->wallets()->whereRelation('currency', 'code', $walletType)->first();
             $walletType = $wallet?->id;
@@ -159,7 +166,12 @@ class TransferService
         $descriptionSuffix = $isSelfTransfer ? 'INTRA-ACCOUNT TRANSFER' : ($bankId == 0 ? 'MEMBER TRANSFER' : 'EXTERNAL TRANSFER');
         $description = $descriptionSuffix . ' TO ' . $accountNumber;
 
-        $txnWalletType = ($walletType == 'primary_savings') ? 'primary_savings' : ($wallet->id ?? 'default');
+        // Ensure wallet type is stored properly in the transaction
+        if (in_array($walletType, ['primary_savings', 'ira', 'heloc'])) {
+            $txnWalletType = $walletType;
+        } else {
+            $txnWalletType = $wallet->id ?? 'default';
+        }
 
         $txnInfo = Txn::transfer(
             $amount, 
@@ -196,17 +208,31 @@ class TransferService
                 if ($receiver->savings_account_number == $sanitizedNumber) {
                     $receiver->increment('savings_balance', $amount);
                     $receiverWalletType = 'primary_savings';
+                } elseif ($receiver->ira_account_number == $sanitizedNumber) {
+                    $receiver->increment('ira_balance', $amount);
+                    $receiverWalletType = 'ira';
+                } elseif ($receiver->heloc_account_number == $sanitizedNumber) {
+                    // Transfer to HELOC reduces the drawn balance (paying it down)
+                    $receiver->decrement('heloc_balance', $amount);
+                    $receiverWalletType = 'heloc';
                 } else {
                     $receiver->increment('balance', $amount);
                     $receiverWalletType = 'default';
                 }
+
+                $sourceName = match($walletType) {
+                    'primary_savings' => 'SAVINGS',
+                    'ira' => 'IRA',
+                    'heloc' => 'HELOC',
+                    default => 'CHECKING'
+                };
 
                 (new Txn)->new(
                     $amount, 
                     0, 
                     $amount, 
                     'System', 
-                    'INTRA-ACCOUNT TRANSFER FROM ' . ($walletType == 'primary_savings' ? 'SAVINGS' : 'CHECKING'), 
+                    'INTRA-ACCOUNT TRANSFER FROM ' . $sourceName, 
                     TxnType::ReceiveMoney, 
                     TxnStatus::Success, 
                     $currency, 
@@ -224,6 +250,11 @@ class TransferService
 
         if ($walletType == 'primary_savings') {
             $user->decrement('savings_balance', $finalAmount);
+        } elseif ($walletType == 'ira') {
+            $user->decrement('ira_balance', $finalAmount);
+        } elseif ($walletType == 'heloc') {
+            // Transferring OUT of HELOC increases the drawn balance
+            $user->increment('heloc_balance', $finalAmount);
         } else {
             $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
         }
