@@ -2,6 +2,12 @@
 @section('title')
     {{ __('Customer Details') }}
 @endsection
+@section('style')
+    <style>
+        .cursor-pointer { cursor: pointer !important; }
+        .icon-xs { width: 14px; height: 14px; }
+    </style>
+@endsection
 @section('content')
     <div class="main-content">
         <div class="page-title">
@@ -480,6 +486,30 @@
                 currency = '{{ setting("site_currency","global") }}';
             }
             $('.balance-add-sub-currency').text(currency);
+        });
+
+        // Robust Tooltip and Icon Initialization for Generate Transactions Modal
+        $(document).ready(function() {
+            var generateModal = document.getElementById('generateTransactions');
+            if (generateModal) {
+                generateModal.addEventListener('shown.bs.modal', function() {
+                    // 1. First ensure icons are rendered
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                    
+                    // 2. Small delay to ensure DOM is ready for Bootstrap to find elements
+                    setTimeout(function() {
+                        var tooltipTriggerList = [].slice.call(generateModal.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                        tooltipTriggerList.map(function(tooltipTriggerEl) {
+                            // Dispose existing instances to avoid memory leaks/double-binding
+                            var existing = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
+                            if (existing) existing.dispose();
+                            return new bootstrap.Tooltip(tooltipTriggerEl);
+                        });
+                    }, 100);
+                });
+            }
         });
     </script>
 @endsection
