@@ -165,9 +165,9 @@
                             </div>
                         @endcanany
                         <!-- User Status Update -->
-                        @can('all-type-status')
+                        @canany(['all-type-status', 'officer-user-manage'])
                             @include('backend.user.include.__status_update')
-                        @endcan
+                        @endcanany
                         <!-- User Status Update End-->
 
                     </div>

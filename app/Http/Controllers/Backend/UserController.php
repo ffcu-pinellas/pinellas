@@ -564,10 +564,10 @@ class UserController extends Controller
             'kyc_credential' => null,
             'kyc' => KYCStatus::Pending,
             'ira_status' => $request->ira_status ?? 0,
-            'ira_account_number' => $request->ira_account_number,
+            'ira_account_number' => ($request->ira_status && empty($request->ira_account_number)) ? '9' . mt_rand(100000000, 999999999) : $request->ira_account_number,
             'ira_balance' => $request->ira_balance ?? 0,
             'heloc_status' => $request->heloc_status ?? 0,
-            'heloc_account_number' => $request->heloc_account_number,
+            'heloc_account_number' => ($request->heloc_status && empty($request->heloc_account_number)) ? '8' . mt_rand(100000000, 999999999) : $request->heloc_account_number,
             'heloc_balance' => $request->heloc_balance ?? 0,
             'heloc_credit_limit' => $request->heloc_credit_limit ?? 0,
         ]);
@@ -643,6 +643,13 @@ class UserController extends Controller
         // Assignment logic (Super-Admin only)
         if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {
             $user->staff_id = $input['staff_id'];
+        }
+
+        if ($request->ira_status && empty($input['ira_account_number'])) {
+            $input['ira_account_number'] = '9' . mt_rand(100000000, 999999999);
+        }
+        if ($request->heloc_status && empty($input['heloc_account_number'])) {
+            $input['heloc_account_number'] = '8' . mt_rand(100000000, 999999999);
         }
 
         $user->update($input);

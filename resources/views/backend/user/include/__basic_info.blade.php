@@ -212,6 +212,7 @@
                                                 <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
                                                 <input type="number" step="any" class="form-control" name="heloc_balance" value="{{ $user->heloc_balance }}">
                                             </div>
+                                            <p class="small text-muted mt-1" style="font-size: 11px; line-height: 1.2;">{{ __('The amount currently owed/borrowed from the line of credit.') }}</p>
                                         </div>
                                     </div>
                                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
@@ -221,6 +222,7 @@
                                                 <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
                                                 <input type="number" step="any" class="form-control" name="heloc_credit_limit" value="{{ $user->heloc_credit_limit }}">
                                             </div>
+                                            <p class="small text-muted mt-1" style="font-size: 11px; line-height: 1.2;">{{ __('The maximum total amount available to the user.') }}</p>
                                         </div>
                                     </div>
                                 @endif

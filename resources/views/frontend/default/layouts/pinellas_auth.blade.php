@@ -234,13 +234,25 @@
         }
 
         .error-msg {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            background-color: #fff5f5;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
             font-size: 14px;
-            text-align: center;
+            text-align: left;
+            border-left: 4px solid #fc8181;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .error-msg svg {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 1px;
         }
         
         .success-msg {
@@ -348,21 +360,21 @@
 
             @if ($errors->any())
                 <div class="error-msg">
-                    @foreach($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <div>
+                        @foreach($errors->all() as $error)
+                            <div style="margin-bottom: 4px; font-weight: 500;">{{ $error }}</div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
-            @if (session('success'))
-                <div class="success-msg">
-                    {{ session('success') }}
-                </div>
-            @endif
-            
             @if (session('error'))
                 <div class="error-msg">
-                    {{ session('error') }}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <div>
+                        <div style="font-weight: 500;">{{ session('error') }}</div>
+                    </div>
                 </div>
             @endif
 
