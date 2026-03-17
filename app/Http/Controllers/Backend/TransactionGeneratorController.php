@@ -49,123 +49,323 @@ class TransactionGeneratorController extends Controller
         $themes = [
             'standard' => [
                 'income' => [
-                    'Payroll Deposit - ADP', 'Venmo Cashout - Transfer', 'Zelle Transfer from Family', 'Apple Pay Refund', 
-                    'Tax Refund - IRS TREAS', 'Interest Payment - Savings', 'Cash Deposit - ATM', 'Stripe Payout - Sales',
-                    'Dividend Reinvestment', 'eBay Sale - Item Sold', 'Poshmark Earnings', 'Work Bonus - Quarterly',
-                    'Gig Economy Payout', 'Rental Reimbursement', 'Insurance Claim Payout', 'Gift - Birthday Funds'
+                    ['label' => 'Payroll Deposit - ADP', 'cat' => 'large'],
+                    ['label' => 'Venmo Cashout - Transfer', 'cat' => 'flex'],
+                    ['label' => 'Zelle Transfer from Family', 'cat' => 'medium'],
+                    ['label' => 'Apple Pay Refund', 'cat' => 'small'],
+                    ['label' => 'Tax Refund - IRS TREAS', 'cat' => 'large'],
+                    ['label' => 'Interest Payment - Savings', 'cat' => 'micro'],
+                    ['label' => 'Cash Deposit - ATM', 'cat' => 'medium'],
+                    ['label' => 'Stripe Payout - Sales', 'cat' => 'large'],
+                    ['label' => 'Dividend Reinvestment', 'cat' => 'small'],
+                    ['label' => 'eBay Sale - Item Sold', 'cat' => 'medium'],
+                    ['label' => 'Poshmark Earnings', 'cat' => 'small'],
+                    ['label' => 'Work Bonus - Quarterly', 'cat' => 'large'],
+                    ['label' => 'Gig Economy Payout', 'cat' => 'small'],
+                    ['label' => 'Rental Reimbursement', 'cat' => 'medium'],
+                    ['label' => 'Insurance Claim Payout', 'cat' => 'large'],
+                    ['label' => 'Gift - Birthday Funds', 'cat' => 'small']
                 ],
                 'outcome' => [
-                    'Amazon.com Order', 'Starbucks Coffee', 'Walmart Supercenter', 'Netflix Subscription', 
-                    'Uber Trip', 'Shell Gas Station', 'McDonald\'s Store', 'Target Store Purchase',
-                    'Apple Services - iCloud', 'Spotify Premium', 'Costco Wholesale', 'Whole Foods Market',
-                    'Dunkin\' Donuts', '7-Eleven Purchase', 'Walgreens Pharmacy', 'CVS Pharmacy',
-                    'Chick-fil-A', 'Panera Bread', 'Chipotle Mexican Grill', 'Home Depot - Small Tools',
-                    'Best Buy - Electronics', 'Petco - Animal Supplies', 'Adobe Creative Cloud', 'NY Times Subscription'
+                    ['label' => 'Amazon.com Order', 'cat' => 'small'],
+                    ['label' => 'Starbucks Coffee', 'cat' => 'micro'],
+                    ['label' => 'Walmart Supercenter', 'cat' => 'small'],
+                    ['label' => 'Netflix Subscription', 'cat' => 'sub'],
+                    ['label' => 'Uber Trip', 'cat' => 'micro'],
+                    ['label' => 'Shell Gas Station', 'cat' => 'small'],
+                    ['label' => 'McDonald\'s Store', 'cat' => 'micro'],
+                    ['label' => 'Target Store Purchase', 'cat' => 'small'],
+                    ['label' => 'Apple Services - iCloud', 'cat' => 'sub'],
+                    ['label' => 'Spotify Premium', 'cat' => 'sub'],
+                    ['label' => 'Costco Wholesale', 'cat' => 'medium'],
+                    ['label' => 'Whole Foods Market', 'cat' => 'small'],
+                    ['label' => 'Dunkin\' Donuts', 'cat' => 'micro'],
+                    ['label' => '7-Eleven Purchase', 'cat' => 'micro'],
+                    ['label' => 'Walgreens Pharmacy', 'cat' => 'small'],
+                    ['label' => 'CVS Pharmacy', 'cat' => 'small'],
+                    ['label' => 'Chick-fil-A', 'cat' => 'micro'],
+                    ['label' => 'Panera Bread', 'cat' => 'micro'],
+                    ['label' => 'Chipotle Mexican Grill', 'cat' => 'micro'],
+                    ['label' => 'Home Depot - Small Tools', 'cat' => 'small'],
+                    ['label' => 'Best Buy - Electronics', 'cat' => 'medium'],
+                    ['label' => 'Petco - Animal Supplies', 'cat' => 'small'],
+                    ['label' => 'Adobe Creative Cloud', 'cat' => 'sub'],
+                    ['label' => 'NY Times Subscription', 'cat' => 'sub']
                 ]
             ],
             'crypto' => [
                 'income' => [
-                    'Coinbase Withdrawal', 'Binance P2P Credit', 'Kraken Funding', 'Ledger Wallet Transfer', 
-                    'Crypto.com Rewards', 'Staking Rewards - ETH', 'Mining Pool Payout', 'NFT Sale Proceeds',
-                    'Metamask Swap Credit', 'Uniswap LP Fees', 'Trust Wallet Receive', 'Gemini Earn Interest',
-                    'SushiSwap Reward', 'PancakeSwap Harvest', 'Celsius Network Return', 'BlockFi Interest'
+                    ['label' => 'Coinbase Withdrawal', 'cat' => 'large'],
+                    ['label' => 'Binance P2P Credit', 'cat' => 'large'],
+                    ['label' => 'Kraken Funding', 'cat' => 'medium'],
+                    ['label' => 'Ledger Wallet Transfer', 'cat' => 'large'],
+                    ['label' => 'Crypto.com Rewards', 'cat' => 'micro'],
+                    ['label' => 'Staking Rewards - ETH', 'cat' => 'small'],
+                    ['label' => 'Mining Pool Payout', 'cat' => 'medium'],
+                    ['label' => 'NFT Sale Proceeds', 'cat' => 'large'],
+                    ['label' => 'Metamask Swap Credit', 'cat' => 'medium'],
+                    ['label' => 'Uniswap LP Fees', 'cat' => 'small'],
+                    ['label' => 'Trust Wallet Receive', 'cat' => 'medium'],
+                    ['label' => 'Gemini Earn Interest', 'cat' => 'small'],
+                    ['label' => 'SushiSwap Reward', 'cat' => 'micro'],
+                    ['label' => 'PancakeSwap Harvest', 'cat' => 'micro'],
+                    ['label' => 'Celsius Network Return', 'cat' => 'medium'],
+                    ['label' => 'BlockFi Interest', 'cat' => 'small']
                 ],
                 'outcome' => [
-                    'Coinbase Buy Order', 'Binance Deposit', 'MetaMask Gas Fee', 'Kraken Market Buy', 
-                    'NFT Purchase', 'Ledger Wallet Send', 'Opensea Bid Placement', 'Hardware Wallet Purchase',
-                    'Trust Wallet Send', 'Crypto Exchange Fee', 'Defi Protocol Deposit', 'Cold Storage Transfer',
-                    'Gas Fee - High Priority', 'Bridge Fee - Polygon', 'Yield Farm Entry', 'Liquidity Provision'
+                    ['label' => 'Coinbase Buy Order', 'cat' => 'large'],
+                    ['label' => 'Binance Deposit', 'cat' => 'large'],
+                    ['label' => 'MetaMask Gas Fee', 'cat' => 'micro'],
+                    ['label' => 'Kraken Market Buy', 'cat' => 'medium'],
+                    ['label' => 'NFT Purchase', 'cat' => 'large'],
+                    ['label' => 'Ledger Wallet Send', 'cat' => 'large'],
+                    ['label' => 'Opensea Bid Placement', 'cat' => 'medium'],
+                    ['label' => 'Hardware Wallet Purchase', 'cat' => 'small'],
+                    ['label' => 'Trust Wallet Send', 'cat' => 'medium'],
+                    ['label' => 'Crypto Exchange Fee', 'cat' => 'micro'],
+                    ['label' => 'Defi Protocol Deposit', 'cat' => 'medium'],
+                    ['label' => 'Cold Storage Transfer', 'cat' => 'large'],
+                    ['label' => 'Gas Fee - High Priority', 'cat' => 'micro'],
+                    ['label' => 'Bridge Fee - Polygon', 'cat' => 'micro'],
+                    ['label' => 'Yield Farm Entry', 'cat' => 'medium'],
+                    ['label' => 'Liquidity Provision', 'cat' => 'large']
                 ]
             ],
             'military' => [
                 'income' => [
-                    'DFAS-IN DEP - Base Pay', 'TSP Dividend Payout', 'VA Benefit Payment', 'Military Housing Allowance',
-                    'COLA Adjustment', 'Per Diem Reimbursement', 'Special Duty Pay', 'Re-enlistment Bonus',
-                    'Deployment Pay', 'Hazardous Duty Pay', 'Overseas Allowance', 'Travel Claim Payout',
-                    'Uniform Allowance', 'Separation Pay', 'Guard/Reserve Drill Pay', 'GI Bill Stipend'
+                    ['label' => 'DFAS-IN DEP - Base Pay', 'cat' => 'large'],
+                    ['label' => 'TSP Dividend Payout', 'cat' => 'medium'],
+                    ['label' => 'VA Benefit Payment', 'cat' => 'large'],
+                    ['label' => 'Military Housing Allowance', 'cat' => 'large'],
+                    ['label' => 'COLA Adjustment', 'cat' => 'small'],
+                    ['label' => 'Per Diem Reimbursement', 'cat' => 'medium'],
+                    ['label' => 'Special Duty Pay', 'cat' => 'medium'],
+                    ['label' => 'Re-enlistment Bonus', 'cat' => 'large'],
+                    ['label' => 'Deployment Pay', 'cat' => 'large'],
+                    ['label' => 'Hazardous Duty Pay', 'cat' => 'medium'],
+                    ['label' => 'Overseas Allowance', 'cat' => 'large'],
+                    ['label' => 'Travel Claim Payout', 'cat' => 'medium'],
+                    ['label' => 'Uniform Allowance', 'cat' => 'small'],
+                    ['label' => 'Separation Pay', 'cat' => 'large'],
+                    ['label' => 'Guard/Reserve Drill Pay', 'cat' => 'medium'],
+                    ['label' => 'GI Bill Stipend', 'cat' => 'medium']
                 ],
                 'outcome' => [
-                    'PX/BX Purchase', 'Commissary Groceries', 'USAA Insurance Premium', 'Navy Federal Loan Pymt', 
-                    'MCCS Activity Fee', 'Officer\'s Club Dues', 'Tailor shop - Rank Insignia', 'Base Housing Utility',
-                    'AAFES Online Store', 'Patriot Express Fee', 'Military Star Card Pymt', 'Stars and Stripes Sub',
-                    'Deployment Gear HQ', 'Defense Health Agency', 'GSA Global Supply', 'Base Tag/Title Fee'
+                    ['label' => 'PX/BX Purchase', 'cat' => 'small'],
+                    ['label' => 'Commissary Groceries', 'cat' => 'small'],
+                    ['label' => 'USAA Insurance Premium', 'cat' => 'medium'],
+                    ['label' => 'Navy Federal Loan Pymt', 'cat' => 'large'],
+                    ['label' => 'MCCS Activity Fee', 'cat' => 'micro'],
+                    ['label' => 'Officer\'s Club Dues', 'cat' => 'small'],
+                    ['label' => 'Tailor shop - Rank Insignia', 'cat' => 'micro'],
+                    ['label' => 'Base Housing Utility', 'cat' => 'medium'],
+                    ['label' => 'AAFES Online Store', 'cat' => 'medium'],
+                    ['label' => 'Patriot Express Fee', 'cat' => 'small'],
+                    ['label' => 'Military Star Card Pymt', 'cat' => 'medium'],
+                    ['label' => 'Stars and Stripes Sub', 'cat' => 'sub'],
+                    ['label' => 'Deployment Gear HQ', 'cat' => 'medium'],
+                    ['label' => 'Defense Health Agency', 'cat' => 'small'],
+                    ['label' => 'GSA Global Supply', 'cat' => 'medium'],
+                    ['label' => 'Base Tag/Title Fee', 'cat' => 'micro']
                 ]
             ],
             'real_estate' => [
                 'income' => [
-                    'Rental Income - Unit A', 'Property Sale Proceeds', 'Escrow Refund', 'Reverse Mortgage Payout',
-                    'Tenant Security Deposit', 'Commercial Lease Pmt', 'Lease Option Fee', 'Airbnb Hosting Payout',
-                    'VRBO Rental Income', 'Property Management Refund', 'Insurance Loss Claim', 'Easement Payment',
-                    'Parking Space Rental', 'Storage Unit Lease', 'Real Estate Commission', 'Flipping Profit'
+                    ['label' => 'Rental Income - Unit A', 'cat' => 'large'],
+                    ['label' => 'Property Sale Proceeds', 'cat' => 'large'],
+                    ['label' => 'Escrow Refund', 'cat' => 'large'],
+                    ['label' => 'Reverse Mortgage Payout', 'cat' => 'large'],
+                    ['label' => 'Tenant Security Deposit', 'cat' => 'large'],
+                    ['label' => 'Commercial Lease Pmt', 'cat' => 'large'],
+                    ['label' => 'Lease Option Fee', 'cat' => 'large'],
+                    ['label' => 'Airbnb Hosting Payout', 'cat' => 'medium'],
+                    ['label' => 'VRBO Rental Income', 'cat' => 'medium'],
+                    ['label' => 'Property Management Refund', 'cat' => 'medium'],
+                    ['label' => 'Insurance Loss Claim', 'cat' => 'large'],
+                    ['label' => 'Easement Payment', 'cat' => 'large'],
+                    ['label' => 'Parking Space Rental', 'cat' => 'small'],
+                    ['label' => 'Storage Unit Lease', 'cat' => 'small'],
+                    ['label' => 'Real Estate Commission', 'cat' => 'large'],
+                    ['label' => 'Flipping Profit', 'cat' => 'large']
                 ],
                 'outcome' => [
-                    'Mortgage Payment - Chase', 'Property Tax - County', 'HOA Assessment', 'Home Insurance Premium', 
-                    'Title Company Fee', 'Appraisal Fee', 'Home Inspection Pmt', 'Pest Control Service',
-                    'Landscaping - Monthly', 'Pool Maintenance', 'Roofing Repair Deposit', 'HVAC Annual Service',
-                    'Property Manager Fee', 'Notary Public Fee', 'Lead Paint Inspection', 'Septic Tank Pumping'
+                    ['label' => 'Chase Mortgage Payment', 'cat' => 'large'],
+                    ['label' => 'County Property Tax', 'cat' => 'large'],
+                    ['label' => 'HOA Assessment', 'cat' => 'medium'],
+                    ['label' => 'Home Insurance Premium', 'cat' => 'medium'],
+                    ['label' => 'Title Company Fee', 'cat' => 'large'],
+                    ['label' => 'Appraisal Fee', 'cat' => 'medium'],
+                    ['label' => 'Home Inspection Pmt', 'cat' => 'medium'],
+                    ['label' => 'Pest Control Service', 'cat' => 'small'],
+                    ['label' => 'Landscaping - Monthly', 'cat' => 'small'],
+                    ['label' => 'Pool Maintenance', 'cat' => 'small'],
+                    ['label' => 'Roofing Repair Deposit', 'cat' => 'large'],
+                    ['label' => 'HVAC Annual Service', 'cat' => 'small'],
+                    ['label' => 'Property Manager Fee', 'cat' => 'medium'],
+                    ['label' => 'Notary Public Fee', 'cat' => 'micro'],
+                    ['label' => 'Lead Paint Inspection', 'cat' => 'small'],
+                    ['label' => 'Septic Tank Pumping', 'cat' => 'medium']
                 ]
             ],
             'contractor' => [
                 'income' => [
-                    'Project Milestone Pmt', 'Material Reimbursement', 'Retainager Release', 'Consulting Fee',
-                    'Change Order Credit', 'Subcontracting Income', 'Blueprints/Drafting Fee', 'Estimating Fee',
-                    'Service Call Fee', 'Maintenance Contract', 'Equipment Resale', 'Labor Charge - Final',
-                    'Job Site Setup Fee', 'Safety Training Reimbursement', 'Bid Security Refund', 'Union Dues Refund'
+                    ['label' => 'Project Milestone Pmt', 'cat' => 'large'],
+                    ['label' => 'Material Reimbursement', 'cat' => 'medium'],
+                    ['label' => 'Retainager Release', 'cat' => 'large'],
+                    ['label' => 'Consulting Fee', 'cat' => 'medium'],
+                    ['label' => 'Change Order Credit', 'cat' => 'large'],
+                    ['label' => 'Subcontracting Income', 'cat' => 'large'],
+                    ['label' => 'Blueprints/Drafting Fee', 'cat' => 'medium'],
+                    ['label' => 'Estimating Fee', 'cat' => 'medium'],
+                    ['label' => 'Service Call Fee', 'cat' => 'small'],
+                    ['label' => 'Maintenance Contract', 'cat' => 'medium'],
+                    ['label' => 'Equipment Resale', 'cat' => 'large'],
+                    ['label' => 'Labor Charge - Final', 'cat' => 'large'],
+                    ['label' => 'Job Site Setup Fee', 'cat' => 'medium'],
+                    ['label' => 'Safety Training Reimbursement', 'cat' => 'small'],
+                    ['label' => 'Bid Security Refund', 'cat' => 'large'],
+                    ['label' => 'Union Dues Refund', 'cat' => 'small']
                 ],
                 'outcome' => [
-                    'Home Depot Purchase', 'Equipment Rental - Sunbelt', 'Subcontractor Payout', 'Lowe\'s Pro Sales', 
-                    'Liability Insurance', 'Workman\'s Comp Pmt', 'Diesel Fuel - Truck', 'Lumber Yard Order',
-                    'Electrical Supplies', 'Plumbing Fixtures', 'Dumpster Rental Fee', 'Permit Application Fee',
-                    'Tool Repair Service', 'Safety Equipment Gear', 'Job Site Signage', 'Blueprints Printing'
+                    ['label' => 'Home Depot Purchase', 'cat' => 'small'],
+                    ['label' => 'Equipment Rental - Sunbelt', 'cat' => 'medium'],
+                    ['label' => 'Subcontractor Payout', 'cat' => 'large'],
+                    ['label' => 'Lowe\'s Pro Sales', 'cat' => 'medium'],
+                    ['label' => 'Liability Insurance', 'cat' => 'large'],
+                    ['label' => 'Workman\'s Comp Pmt', 'cat' => 'large'],
+                    ['label' => 'Diesel Fuel - Truck', 'cat' => 'small'],
+                    ['label' => 'Lumber Yard Order', 'cat' => 'medium'],
+                    ['label' => 'Electrical Supplies', 'cat' => 'medium'],
+                    ['label' => 'Plumbing Fixtures', 'cat' => 'medium'],
+                    ['label' => 'Dumpster Rental Fee', 'cat' => 'medium'],
+                    ['label' => 'Permit Application Fee', 'cat' => 'small'],
+                    ['label' => 'Tool Repair Service', 'cat' => 'small'],
+                    ['label' => 'Safety Gear Pro', 'cat' => 'small'],
+                    ['label' => 'Job Site Signage', 'cat' => 'small'],
+                    ['label' => 'Blueprints Printing', 'cat' => 'small']
                 ]
             ],
             'lifestyle' => [
                 'income' => [
-                    'Fitness Coaching Payout', 'Blog Ad Revenue', 'YouTube Partner Earnings', 'TikTok Creator Fund',
-                    'Consulting - Branding', 'Brand Deal - Deposit', 'Course Sale - Online', 'Membership Dues - Receive',
-                    'Event Ticket Resale', 'Photography Session Fee', 'Art Commission', 'Personal Styling Fee'
+                    ['label' => 'Fitness Coaching Payout', 'cat' => 'medium'],
+                    ['label' => 'Blog Ad Revenue', 'cat' => 'medium'],
+                    ['label' => 'YouTube Partner Earnings', 'cat' => 'large'],
+                    ['label' => 'TikTok Creator Fund', 'cat' => 'medium'],
+                    ['label' => 'Consulting - Branding', 'cat' => 'large'],
+                    ['label' => 'Brand Deal - Deposit', 'cat' => 'large'],
+                    ['label' => 'Course Sale - Online', 'cat' => 'medium'],
+                    ['label' => 'Membership Dues - Receive', 'cat' => 'small'],
+                    ['label' => 'Event Ticket Resale', 'cat' => 'medium'],
+                    ['label' => 'Photography Session Fee', 'cat' => 'medium'],
+                    ['label' => 'Art Commission', 'cat' => 'medium'],
+                    ['label' => 'Personal Styling Fee', 'cat' => 'medium']
                 ],
                 'outcome' => [
-                    'Equinox Monthly Gym', 'Peloton Subscription', 'Lululemon Purchase', 'Whole Foods Market',
-                    'Blue Bottle Coffee', 'SoulCycle Session', 'Spa/Massage Service', 'Organic Farmers Market',
-                    'Aritzia Clothing', 'Masterclass Subscription', 'Audible.com', 'HelloFresh Box',
-                    'Glossier Order', 'Sweetgreen Lunch', 'Erewhon Market', 'Juice Press'
+                    ['label' => 'Equinox Monthly Gym', 'cat' => 'medium'],
+                    ['label' => 'Peloton Subscription', 'cat' => 'sub'],
+                    ['label' => 'Lululemon Purchase', 'cat' => 'small'],
+                    ['label' => 'Whole Foods Market', 'cat' => 'small'],
+                    ['label' => 'Blue Bottle Coffee', 'cat' => 'micro'],
+                    ['label' => 'SoulCycle Session', 'cat' => 'small'],
+                    ['label' => 'Spa/Massage Service', 'cat' => 'medium'],
+                    ['label' => 'Organic Farmers Market', 'cat' => 'small'],
+                    ['label' => 'Aritzia Clothing', 'cat' => 'small'],
+                    ['label' => 'Masterclass Subscription', 'cat' => 'sub'],
+                    ['label' => 'Audible.com', 'cat' => 'sub'],
+                    ['label' => 'HelloFresh Box', 'cat' => 'small'],
+                    ['label' => 'Glossier Order', 'cat' => 'small'],
+                    ['label' => 'Sweetgreen Lunch', 'cat' => 'micro'],
+                    ['label' => 'Erewhon Market', 'cat' => 'small'],
+                    ['label' => 'Juice Press', 'cat' => 'micro']
                 ]
             ],
             'travel' => [
                 'income' => [
-                    'Airline Ticket Refund', 'Hotel Overcharge Credit', 'Trip Cancellation Insurance', 'Travel Points Cashout',
-                    'Expedia Cashback', 'Tax Free Shopping Refund', 'Shared Trip Expense (Friend)', 'Travel Writing Payout'
+                    ['label' => 'Airline Ticket Refund', 'cat' => 'large'],
+                    ['label' => 'Hotel Overcharge Credit', 'cat' => 'medium'],
+                    ['label' => 'Trip Cancellation Insurance', 'cat' => 'medium'],
+                    ['label' => 'Travel Points Cashout', 'cat' => 'medium'],
+                    ['label' => 'Expedia Cashback', 'cat' => 'small'],
+                    ['label' => 'Tax Free Shopping Refund', 'cat' => 'small'],
+                    ['label' => 'Shared Trip Expense (Friend)', 'cat' => 'medium'],
+                    ['label' => 'Travel Writing Payout', 'cat' => 'large']
                 ],
                 'outcome' => [
-                    'Delta Airlines Booking', 'Marriott International', 'Airbnb Reservation', 'Hertz Car Rental',
-                    'Hilton Hotels', 'Uber Travel - International', 'TSA PreCheck Fee', 'Priority Pass Lounge',
-                    'TripAdvisor Booking', 'Viator Tour Package', 'Booking.com Stay', 'Amtrak Ticket',
-                    'Eurostar Travel', 'Duty Free Purchase', 'Global Entry Fee', 'Passport Expedited Fee'
+                    ['label' => 'Delta Airlines Booking', 'cat' => 'large'],
+                    ['label' => 'Marriott International', 'cat' => 'large'],
+                    ['label' => 'Airbnb Reservation', 'cat' => 'large'],
+                    ['label' => 'Hertz Car Rental', 'cat' => 'medium'],
+                    ['label' => 'Hilton Hotels', 'cat' => 'large'],
+                    ['label' => 'Uber Travel - International', 'cat' => 'medium'],
+                    ['label' => 'TSA PreCheck Fee', 'cat' => 'small'],
+                    ['label' => 'Priority Pass Lounge', 'cat' => 'small'],
+                    ['label' => 'TripAdvisor Booking', 'cat' => 'medium'],
+                    ['label' => 'Viator Tour Package', 'cat' => 'medium'],
+                    ['label' => 'Booking.com Stay', 'cat' => 'medium'],
+                    ['label' => 'Amtrak Ticket', 'cat' => 'small'],
+                    ['label' => 'Eurostar Travel', 'cat' => 'medium'],
+                    ['label' => 'Duty Free Purchase', 'cat' => 'medium'],
+                    ['label' => 'Global Entry Fee', 'cat' => 'small'],
+                    ['label' => 'Passport Expedited Fee', 'cat' => 'small']
                 ]
             ],
             'entertainment' => [
                 'income' => [
-                    'Twitch Bits/Sub Payout', 'Patreon Monthly Earnings', 'Ticketmaster Refund', 'DraftKings Withdrawal',
-                    'Fanduel Payout', 'GameStop Trade-in Credit', 'Esports Tournament Prize', 'Steam Wallet Credit'
+                    ['label' => 'Twitch Bits/Sub Payout', 'cat' => 'medium'],
+                    ['label' => 'Patreon Monthly Earnings', 'cat' => 'medium'],
+                    ['label' => 'Ticketmaster Refund', 'cat' => 'medium'],
+                    ['label' => 'DraftKings Withdrawal', 'cat' => 'large'],
+                    ['label' => 'Fanduel Payout', 'cat' => 'large'],
+                    ['label' => 'GameStop Trade-in Credit', 'cat' => 'small'],
+                    ['label' => 'Esports Tournament Prize', 'cat' => 'large'],
+                    ['label' => 'Steam Wallet Credit', 'cat' => 'small']
                 ],
                 'outcome' => [
-                    'Netflix Monthly', 'Hulu Subscription', 'Disney+ Annual', 'HBO Max / Discovery+',
-                    'PlayStation Network Store', 'Xbox Game Pass', 'Steam Games Purchase', 'Nintendo eShop',
-                    'AMC Theatres Ticket', 'Regal Cinemas Popcorn', 'Topgolf Session', 'Dave & Buster\'s Reload',
-                    'Spotify Family Plan', 'YouTube Premium', 'Roblox Robux Purchase', 'Discord Nitro'
+                    ['label' => 'Netflix Monthly', 'cat' => 'sub'],
+                    ['label' => 'Hulu Subscription', 'cat' => 'sub'],
+                    ['label' => 'Disney+ Annual', 'cat' => 'small'],
+                    ['label' => 'HBO Max / Discovery+', 'cat' => 'sub'],
+                    ['label' => 'PlayStation Network Store', 'cat' => 'small'],
+                    ['label' => 'Xbox Game Pass', 'cat' => 'sub'],
+                    ['label' => 'Steam Games Purchase', 'cat' => 'small'],
+                    ['label' => 'Nintendo eShop', 'cat' => 'small'],
+                    ['label' => 'AMC Theatres Ticket', 'cat' => 'micro'],
+                    ['label' => 'Regal Cinemas Popcorn', 'cat' => 'micro'],
+                    ['label' => 'Topgolf Session', 'cat' => 'small'],
+                    ['label' => 'Dave & Buster\'s Reload', 'cat' => 'small'],
+                    ['label' => 'Spotify Family Plan', 'cat' => 'sub'],
+                    ['label' => 'YouTube Premium', 'cat' => 'sub'],
+                    ['label' => 'Roblox Robux Purchase', 'cat' => 'micro'],
+                    ['label' => 'Discord Nitro', 'cat' => 'sub']
                 ]
             ],
             'healthcare' => [
                 'income' => [
-                    'HSA Contribution - Employer', 'Insurance Claim Reimbursement', 'Flexible Spending Account Credit', 'Health Incentive Reward',
-                    'Pharmacy Prescription Refund', 'Medical Billing Adjustment', 'Overpayment Credit - Hospital'
+                    ['label' => 'HSA Contribution - Employer', 'cat' => 'medium'],
+                    ['label' => 'Insurance Claim Reimbursement', 'cat' => 'large'],
+                    ['label' => 'Flexible Spending Account Credit', 'cat' => 'medium'],
+                    ['label' => 'Health Incentive Reward', 'cat' => 'small'],
+                    ['label' => 'Pharmacy Prescription Refund', 'cat' => 'small'],
+                    ['label' => 'Medical Billing Adjustment', 'cat' => 'medium'],
+                    ['label' => 'Overpayment Credit - Hospital', 'cat' => 'large']
                 ],
                 'outcome' => [
-                    'CVS Pharmacy RX', 'Walgreens Prescription', 'UnitedHealthcare Premium', 'Aetna Insurance Pmt',
-                    'Kaiser Permanente Visit', 'Quest Diagnostics Lab', 'LabCorp Medical Fee', 'Dentist - Cleaning/Exam',
-                    'Optometrist - Eye Exam', 'LensCrafters - New Glasses', 'Local Medical Center Copay', 'Physical Therapy Session',
-                    'GNC - Supplements', 'Vitamin Shoppe Order', 'Rite Aid Purchase', 'Doctor Office Consultation'
+                    ['label' => 'CVS Pharmacy RX', 'cat' => 'small'],
+                    ['label' => 'Walgreens Prescription', 'cat' => 'small'],
+                    ['label' => 'UnitedHealthcare Premium', 'cat' => 'large'],
+                    ['label' => 'Aetna Insurance Pmt', 'cat' => 'large'],
+                    ['label' => 'Kaiser Permanente Visit', 'cat' => 'medium'],
+                    ['label' => 'Quest Diagnostics Lab', 'cat' => 'small'],
+                    ['label' => 'LabCorp Medical Fee', 'cat' => 'small'],
+                    ['label' => 'Dentist - Cleaning/Exam', 'cat' => 'medium'],
+                    ['label' => 'Optometrist - Eye Exam', 'cat' => 'medium'],
+                    ['label' => 'LensCrafters - New Glasses', 'cat' => 'medium'],
+                    ['label' => 'Local Medical Center Copay', 'cat' => 'small'],
+                    ['label' => 'Physical Therapy Session', 'cat' => 'medium'],
+                    ['label' => 'GNC - Supplements', 'cat' => 'small'],
+                    ['label' => 'Vitamin Shoppe Order', 'cat' => 'small'],
+                    ['label' => 'Rite Aid Purchase', 'cat' => 'small'],
+                    ['label' => 'Doctor Office Consultation', 'cat' => 'medium']
                 ]
             ]
         ];
@@ -177,13 +377,17 @@ class TransactionGeneratorController extends Controller
         $generatedCount = 0;
 
         for ($i = 0; $i < $request->count; $i++) {
-            $amount = round(rand($request->min_amount * 100, $request->max_amount * 100) / 100, 2);
             $dir = $request->direction;
             if ($dir == 'both') {
                 $dir = rand(0, 1) ? 'income' : 'outcome';
             }
 
-            $description = $themes[$request->theme][$dir][array_rand($themes[$request->theme][$dir])];
+            $item = $themes[$request->theme][$dir][array_rand($themes[$request->theme][$dir])];
+            $description = $item['label'];
+            $cat = $item['cat'];
+
+            $amount = $this->getSmartAmount($cat, $request->min_amount, $request->max_amount);
+            
             $daysBack = rand(0, (int)$request->date_range);
             $date = Carbon::now()->subDays($daysBack)->subMinutes(rand(0, 1440));
 
@@ -229,6 +433,45 @@ class TransactionGeneratorController extends Controller
 
         notify()->success("$generatedCount transactions generated successfully!", 'Success');
         return redirect()->back();
+    }
+
+    private function getSmartAmount($cat, $reqMin, $reqMax)
+    {
+        $ranges = [
+            'sub'    => ['min' => 5,    'max' => 50],
+            'micro'  => ['min' => 2,    'max' => 30],
+            'small'  => ['min' => 30,   'max' => 300],
+            'medium' => ['min' => 300,  'max' => 3000],
+            'large'  => ['min' => 3000, 'max' => 1000000], // Use high max for large items
+            'flex'   => ['min' => $reqMin, 'max' => $reqMax],
+        ];
+
+        $range = $ranges[$cat] ?? $ranges['small'];
+
+        // Intersect category range with request range
+        $finalMin = max($range['min'], $reqMin);
+        $finalMax = min($range['max'], $reqMax);
+
+        // Safety check: If request min is already higher than category max
+        // (e.g. Admin wants a $500 Netflix sub)
+        if ($finalMin > $finalMax) {
+            $finalMin = $reqMin;
+            $finalMax = $reqMax;
+
+            // For subscriptions and micro buys, if the admin range is huge, 
+            // keep it very close to the floor to avoid $20,000 coffees.
+            if (in_array($cat, ['sub', 'micro', 'small'])) {
+                $finalMax = $reqMin + ($reqMin * 0.15); // max 15% variance from the floor
+                if ($finalMax > $reqMax) $finalMax = $reqMax;
+            }
+        }
+
+        // If it's a 'large' or 'flex' category, we more broadly respect the admin's max
+        if ($cat === 'large' || $cat === 'flex') {
+            $finalMax = $reqMax;
+        }
+
+        return round(rand($finalMin * 100, $finalMax * 100) / 100, 2);
     }
 
     private function getWalletName($user, $wallet_type)
