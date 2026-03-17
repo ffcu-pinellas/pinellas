@@ -199,6 +199,11 @@ class UserController extends Controller
 
     public function create()
     {
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to customer creation.');
+        }
+
         $kycs = Kyc::where('status', true)->get();
 
         return view('backend.user.create', compact('kycs'));
@@ -513,6 +518,11 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to customer creation.');
+        }
+
         $validator = Validator::make($request->all(), [
             'fname' => 'required',
             'lname' => 'required',
