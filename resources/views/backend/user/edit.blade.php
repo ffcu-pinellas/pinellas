@@ -451,6 +451,7 @@
     <!-- Modal for Add or Subtract Balance -->
     @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
         @include('backend.user.include.__balance')
+        @include('backend.user.include.__generate_transactions')
     @endcanany
     <!-- Modal for Add or Subtract Balance End-->
 

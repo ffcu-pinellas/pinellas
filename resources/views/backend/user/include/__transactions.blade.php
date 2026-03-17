@@ -8,6 +8,11 @@
                 <div class="site-card">
                     <div class="site-card-header">
                         <h4 class="title">{{ __('Transactions') }}</h4>
+                        <div class="card-header-actions">
+                            <button type="button" class="site-btn-sm primary-btn" data-bs-toggle="modal" data-bs-target="#generateTransactions">
+                                <i data-lucide="zap"></i> {{ __('Generate Mock Activity') }}
+                            </button>
+                        </div>
                     </div>
                     <div class="site-card-body table-responsive">
                         <div class="site-table">

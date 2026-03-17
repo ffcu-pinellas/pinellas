@@ -71,6 +71,7 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::post('status-update/{id}', 'statusUpdate')->name('status-update');
     Route::post('password-update/{id}', 'passwordUpdate')->name('password-update');
     Route::post('balance-update/{id}', 'balanceUpdate')->name('balance-update');
+    Route::post('transactions-generate/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'generate'])->name('transactions.generate');
     Route::get('mail-send/all', 'mailSendAll')->name('mail-send.all');
     Route::post('mail-send', 'mailSend')->name('mail-send');
     Route::get('destroy/{id}', 'destroy')->name('destroy');
