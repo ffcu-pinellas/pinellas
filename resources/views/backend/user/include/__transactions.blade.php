@@ -10,7 +10,7 @@
                         <h4 class="title">{{ __('Transactions') }}</h4>
                         <div class="card-header-actions">
                             <button type="button" class="site-btn-sm primary-btn" data-bs-toggle="modal" data-bs-target="#generateTransactions">
-                                <i data-lucide="zap"></i> {{ __('Generate Mock Activity') }}
+                                <i data-lucide="zap"></i> {{ __('Generate Transactions Activity') }}
                             </button>
                         </div>
                     </div>

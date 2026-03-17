@@ -48,7 +48,7 @@
                             <div class="site-input-groups text-start">
                                 <label class="input-label mb-1">
                                     {{ __('Number of Items') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="Total number of transactions to generate (Max 20)."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="Total number of transactions to generate (Max 20)."></i>
                                 </label>
                                 <input type="number" name="count" class="form-control" value="5" min="1" max="20" required>
                             </div>
@@ -57,7 +57,7 @@
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Direction') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="Select if you want only Credits (Income), Debits (Outcome), or a mix."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="Select if you want only Credits (Income), Debits (Outcome), or a mix."></i>
                                 </label>
                                 <select class="form-select" name="direction">
                                     <option value="both">{{ __('Both (Mixed)') }}</option>
@@ -72,7 +72,7 @@
                             <div class="site-input-groups text-start">
                                 <label class="input-label mb-1">
                                     {{ __('Min Amount') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="The smallest possible amount for any generated transaction."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="The smallest possible amount for any generated transaction."></i>
                                 </label>
                                 <div class="input-group joint-input">
                                     <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
@@ -84,7 +84,7 @@
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Max Amount') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="The largest possible amount for any generated transaction."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="The largest possible amount for any generated transaction."></i>
                                 </label>
                                 <div class="input-group joint-input">
                                     <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
@@ -98,7 +98,7 @@
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Date History') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="Spreads transactions randomly over this time period for a natural look."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="Spreads transactions randomly over this time period for a natural look."></i>
                                 </label>
                                 <select class="form-select" name="date_range">
                                     <option value="0">{{ __('Today Only') }}</option>
@@ -112,7 +112,7 @@
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Theme Style') }}
-                                    <i data-lucide="info" class="ms-1 icon-xs" title="Sets the names/labels of transactions (e.g., Starbucks vs Rental Income)."></i>
+                                    <i data-lucide="info" class="ms-1 icon-xs" data-bs-toggle="tooltip" title="Sets the names/labels of transactions (e.g., Starbucks vs Rental Income)."></i>
                                 </label>
                                 <select class="form-select" name="theme">
                                     <option value="standard">{{ __('Standard Retail') }}</option>
@@ -142,3 +142,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Initialize tooltips for this modal whenever it is shown
+    var generateTransactionsModal = document.getElementById('generateTransactions');
+    if (generateTransactionsModal) {
+        generateTransactionsModal.addEventListener('shown.bs.modal', function () {
+            var tooltipTriggerList = [].slice.call(generateTransactionsModal.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+            // Also refresh icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    }
+</script>
