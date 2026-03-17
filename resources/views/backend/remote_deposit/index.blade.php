@@ -77,12 +77,38 @@
                                                     <div class="d-flex gap-2">
                                                         <form action="{{ route('admin.remote.deposit.approve', $deposit->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to approve this deposit?');">
                                                             @csrf
-                                                            <button type="submit" class="btn btn-sm btn-success" title="Approve"><i class="fas fa-check"></i></button>
+                                                            <button type="submit" class="site-btn-sm primary-btn" title="Approve"><i data-lucide="check"></i></button>
                                                         </form>
-                                                        <form action="{{ route('admin.remote.deposit.reject', $deposit->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to reject this deposit?');">
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-danger" title="Reject"><i class="fas fa-times"></i></button>
-                                                        </form>
+                                                        <button type="button" class="site-btn-sm red-btn" title="Reject" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ $deposit->id }}">
+                                                            <i data-lucide="x"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Reject Modal -->
+                                                    <div class="modal fade" id="rejectModal_{{ $deposit->id }}" tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog modal-md modal-dialog-centered">
+                                                            <div class="modal-content site-table-modal text-start">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">{{ __('Reject Remote Deposit') }}</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p class="text-danger small mb-3"><strong>Note:</strong> A $25.00 returned check fee will be automatically deducted from the user's balance upon rejection.</p>
+                                                                    <form action="{{ route('admin.remote.deposit.reject', $deposit->id) }}" method="POST">
+                                                                        @csrf
+                                                                        <div class="site-input-groups">
+                                                                            <label class="input-label mb-1">{{ __('Rejection Reason') }} <span class="required">*</span></label>
+                                                                            <textarea name="note" class="form-control" rows="3" required placeholder="e.g., Poor image quality, unreadable MICR line, or missing endorsement."></textarea>
+                                                                        </div>
+                                                                        <div class="mt-3">
+                                                                            <button type="submit" class="site-btn-sm red-btn w-100">
+                                                                                {{ __('Confirm Rejection & Apply Fee') }}
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 @else
                                                     <span class="text-muted">-</span>

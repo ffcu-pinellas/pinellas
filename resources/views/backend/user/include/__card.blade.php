@@ -98,7 +98,7 @@
                                         </div>
 
                                         <div class="d-flex flex-wrap gap-1">
-                                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('virtual-card-status-change'))
+                                            @canany(['virtual-card-status-change', 'officer-card-manage'])
                                                 <a href="{{ route('admin.user.card.status.update', $card->id) }}"
                                                    class="site-btn-sm {{ $card->status == 'active' ? 'red':'green' }}-btn flex-grow-1 text-center justify-content-center">
                                                     {!! $card->status == 'active' ? '<i data-lucide="shield-off"></i>'.__('Freeze') : '<i data-lucide="shield-check"></i>'.__('Unfreeze') !!}
@@ -115,13 +115,19 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                            @endif
+                                            @endcanany
 
-                                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('virtual-card-topup'))
+                                            @canany(['virtual-card-topup', 'officer-card-manage'])
                                                 <button type="button" class="site-btn-sm primary-btn flex-grow-1 justify-content-center" data-bs-toggle="modal" data-bs-target="#topUpCard_{{ $card->id }}">
                                                     <i data-lucide="plus-circle"></i> {{ __('Top Up') }}
                                                 </button>
-                                            @endif
+                                            @endcanany
+
+                                            @can('officer-card-manage')
+                                                <button type="button" class="site-btn-sm warning-btn flex-grow-1 justify-content-center" data-bs-toggle="modal" data-bs-target="#resetPin_{{ $card->id }}">
+                                                    <i data-lucide="key"></i> {{ __('Reset PIN') }}
+                                                </button>
+                                            @endcan
 
                                             <a href="{{ route('admin.cards.edit', $card->id) }}" class="site-btn-sm blue-btn flex-grow-1 justify-content-center">
                                                 <i data-lucide="settings"></i> Manage
@@ -141,12 +147,12 @@
                                     </div>
                                 </div>
                             </div>
-                            @can('virtual-card-topup')
-                            <div class="modal fade" id="topUpCard_{{ $card->id }}" tabindex="-1" aria-labelledby="addSubBalLabel" aria-hidden="true">
+                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->canany(['virtual-card-topup', 'officer-card-manage']))
+                            <div class="modal fade" id="topUpCard_{{ $card->id }}" tabindex="-1" aria-labelledby="topUpCardLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-md modal-dialog-centered">
                                     <div class="modal-content site-table-modal">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="addSubBalLabel">
+                                            <h5 class="modal-title" id="topUpCardLabel">
                                                 {{ __('Card Top Up') }}
                                             </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -158,7 +164,7 @@
                                                 <div class="row">
                                                     <div class="col-xl-12">
                                                         <div class="site-input-groups">
-                                                            <label for="wallet" class="input-label mb-1">
+                                                            <label for="amount" class="input-label mb-1">
                                                                 {{ __('Amount') }}
                                                                 <span class="required">*</span>
                                                             </label>
@@ -181,7 +187,46 @@
                                     </div>
                                 </div>
                             </div>
-                            @endcan
+                            @endif
+
+                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-card-manage'))
+                            <div class="modal fade" id="resetPin_{{ $card->id }}" tabindex="-1" aria-labelledby="resetPinLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-md modal-dialog-centered">
+                                    <div class="modal-content site-table-modal">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="resetPinLabel">
+                                                {{ __('Reset Card PIN') }}
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form action="{{ route('admin.user.card.reset-pin', $card->id) }}" method="post">
+                                                @csrf
+                                                <div class="row">
+                                                    <div class="col-xl-12">
+                                                        <div class="site-input-groups">
+                                                            <label class="input-label mb-1">{{ __('New 4-Digit PIN') }} <span class="required">*</span></label>
+                                                            <input type="password" name="new_pin" maxlength="4" class="form-control" required placeholder="xxxx">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-12">
+                                                        <div class="site-input-groups">
+                                                            <label class="input-label mb-1">{{ __('Confirm PIN') }} <span class="required">*</span></label>
+                                                            <input type="password" name="confirm_pin" maxlength="4" class="form-control" required placeholder="xxxx">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-xl-12">
+                                                        <button type="submit" class="site-btn-sm primary-btn w-100">
+                                                            {{ __('Reset PIN Now') }}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                         @endforeach
                     </div>
                 </div>

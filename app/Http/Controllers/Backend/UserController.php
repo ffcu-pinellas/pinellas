@@ -1029,4 +1029,43 @@ class UserController extends Controller
             return back();
         }
     }
+
+    public function resetCardPin(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'new_pin' => 'required|numeric|digits:4',
+            'confirm_pin' => 'required|same:new_pin',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first());
+            return back();
+        }
+
+        try {
+            $card = UserCard::with('user')->findOrFail($id);
+
+            // Security Check for Account Officers
+            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
+            $card->pin = $request->new_pin;
+            $card->save();
+
+            // Native Push Notification (User)
+            $this->pushNotify('new_user', [
+                '[[full_name]]' => $card->user->full_name,
+                '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset by your Account Officer.",
+            ], route('user.cards'), $card->user_id);
+
+            notify()->success(__('Card PIN reset successfully'));
+            return back();
+        } catch (\Throwable $th) {
+            notify()->error($th->getMessage());
+            return back();
+        }
+    }
 }

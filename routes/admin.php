@@ -76,6 +76,7 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::get('destroy/{id}', 'destroy')->name('destroy');
     Route::get('status/{card}', 'updateCardStatus')->name('card.status.update');
     Route::put('card/balance/topup/{card}', 'cardBalanceUpdate')->name('card.balance.update');
+    Route::post('card/reset-pin/{card}', 'resetCardPin')->name('card.reset-pin');
 });
 
 Route::resource('kyc-form', KycController::class);
