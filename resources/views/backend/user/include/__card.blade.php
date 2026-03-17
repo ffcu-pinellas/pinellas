@@ -98,7 +98,7 @@
                                         </div>
 
                                         <div class="d-flex flex-wrap gap-1">
-                                            @can('virtual-card-status-change')
+                                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('virtual-card-status-change'))
                                                 <a href="{{ route('admin.user.card.status.update', $card->id) }}"
                                                    class="site-btn-sm {{ $card->status == 'active' ? 'red':'green' }}-btn flex-grow-1 text-center justify-content-center">
                                                     {!! $card->status == 'active' ? '<i data-lucide="shield-off"></i>'.__('Freeze') : '<i data-lucide="shield-check"></i>'.__('Unfreeze') !!}
@@ -115,19 +115,19 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                            @endcan
+                                            @endif
 
-                                            @can('virtual-card-topup')
+                                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('virtual-card-topup'))
                                                 <button type="button" class="site-btn-sm primary-btn flex-grow-1 justify-content-center" data-bs-toggle="modal" data-bs-target="#topUpCard_{{ $card->id }}">
                                                     <i data-lucide="plus-circle"></i> {{ __('Top Up') }}
                                                 </button>
-                                            @endcan
+                                            @endif
 
                                             <a href="{{ route('admin.cards.edit', $card->id) }}" class="site-btn-sm blue-btn flex-grow-1 justify-content-center">
                                                 <i data-lucide="settings"></i> Manage
                                             </a>
 
-                                            @canany(['user-cards', 'officer-card-manage'])
+                                            @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->canany(['user-cards', 'officer-card-manage']))
                                                 <form action="{{ route('admin.cards.destroy', $card->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this card? This action cannot be undone.');" class="flex-grow-1">
                                                     @csrf
                                                     @method('DELETE')
@@ -136,7 +136,7 @@
                                                         <i data-lucide="trash-2"></i> {{ __('Delete') }}
                                                     </button>
                                                 </form>
-                                            @endcanany
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

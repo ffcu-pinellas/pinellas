@@ -127,7 +127,7 @@
                                     </div>
 
                                     {{-- IRA Section --}}
-                                    @if(setting('ira_management', 'permission'))
+                                    @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage') || setting('ira_management', 'permission'))
                                     <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                         <div class="site-input-groups">
                                             <label for="" class="box-input-label">{{ __('Enable IRA Account:') }}</label>
@@ -157,7 +157,7 @@
                                     @endif
 
                                     {{-- HELOC Section --}}
-                                    @if(setting('heloc_management', 'permission'))
+                                    @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage') || setting('heloc_management', 'permission'))
                                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                                         <div class="site-input-groups">
                                             <label for="" class="box-input-label">{{ __('Enable HELOC Account:') }}</label>

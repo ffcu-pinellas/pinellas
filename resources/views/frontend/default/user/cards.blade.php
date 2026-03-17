@@ -165,36 +165,22 @@
                         </div>
                     </div>
                 </div>
-
                 @empty
-                <div class="card-carousel-item w-100">
-                    <div class="text-center py-5">
-                        <div class="mb-4">
-                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                <i class="far fa-credit-card fa-3x text-muted"></i>
+                    <div class="card-carousel-item w-100">
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="far fa-credit-card fa-3x text-muted"></i>
+                                </div>
                             </div>
+                            <h4 class="mb-3">No cards found</h4>
+                            <p class="text-muted mb-4">You don't have any active cards associated with your account.</p>
+                            <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4">Return to Dashboard</a>
                         </div>
-                        <h4 class="mb-3">No cards found</h4>
-                        <p class="text-muted mb-4">You don't have any active cards associated with your account.</p>
-                        <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4">Return to Dashboard</a>
                     </div>
-                </div>
                 @endforelse
             </div>
         </div>
-
-        @empty
-        <div class="text-center py-5">
-            <div class="mb-4">
-                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                    <i class="far fa-credit-card fa-3x text-muted"></i>
-                </div>
-            </div>
-            <h4 class="mb-3">No cards found</h4>
-            <p class="text-muted mb-4">You don't have any active cards associated with your account.</p>
-            <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4">Return to Dashboard</a>
-        </div>
-        @endforelse
     </div>
 </div>
 @endsection

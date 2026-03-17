@@ -10,7 +10,7 @@
     @canany(['customer-basic-manage', 'officer-user-manage'])
         <div class="row">
             <div class="col-xl-12">
-                <div class="site-card">
+            <div class="site-card">
                     <div class="site-card-header">
                         <h3 class="title">{{ __('Basic Info') }}</h3>
                     </div>
@@ -156,7 +156,7 @@
                                     <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Specialized Accounts (IRA & HELOC)') }}</h5>
                                 </div>
 
-                                @if(setting('ira_management', 'permission'))
+                                @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage') || setting('ira_management', 'permission'))
                                     {{-- IRA Section --}}
                                     <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                         <div class="site-input-groups">
@@ -186,7 +186,7 @@
                                     </div>
                                 @endif
 
-                                @if(setting('heloc_management', 'permission'))
+                                @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage') || setting('heloc_management', 'permission'))
                                     {{-- HELOC Section --}}
                                     <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
                                         <div class="site-input-groups">
