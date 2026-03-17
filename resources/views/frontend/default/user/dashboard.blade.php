@@ -184,7 +184,7 @@
                                     <span>Amy</span>
                                 </div>
                                 <p class="small fw-bold mb-1">We typically reply within one business day</p>
-                                <p class="small text-muted px-4">We typically respond within one business day. Please call (727) 586-4422 us if you have an urgent issue.</p>
+                                <p class="small text-muted px-4">We typically respond within one business day. Please call (737) 410-5689 us if you have an urgent issue.</p>
                             </div>
                             
                             <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="border: none;">Start a conversation</a>
