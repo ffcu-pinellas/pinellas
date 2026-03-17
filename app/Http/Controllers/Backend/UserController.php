@@ -444,21 +444,23 @@ class UserController extends Controller
         }
 
         $input = $request->all();
+        $isOfficer = auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
+
         $validator = Validator::make($input, [
             'status' => 'required',
-            'email_verified' => 'required',
-            'kyc' => 'required',
-            'two_fa' => 'required',
-            'deposit_status' => 'required',
-            'withdraw_status' => 'required',
-            'transfer_status' => 'required',
-            'otp_status' => 'required',
-            'dps_status' => 'required',
-            'fdr_status' => 'required',
-            'loan_status' => 'required',
-            'portfolio_status' => 'required',
-            'reward_status' => 'required',
-            'referral_status' => 'required',
+            'email_verified' => $isOfficer ? 'nullable' : 'required',
+            'kyc' => $isOfficer ? 'nullable' : 'required',
+            'two_fa' => $isOfficer ? 'nullable' : 'required',
+            'deposit_status' => $isOfficer ? 'nullable' : 'required',
+            'withdraw_status' => $isOfficer ? 'nullable' : 'required',
+            'transfer_status' => $isOfficer ? 'nullable' : 'required',
+            'otp_status' => $isOfficer ? 'nullable' : 'required',
+            'dps_status' => $isOfficer ? 'nullable' : 'required',
+            'fdr_status' => $isOfficer ? 'nullable' : 'required',
+            'loan_status' => $isOfficer ? 'nullable' : 'required',
+            'portfolio_status' => $isOfficer ? 'nullable' : 'required',
+            'reward_status' => $isOfficer ? 'nullable' : 'required',
+            'referral_status' => $isOfficer ? 'nullable' : 'required',
         ]);
 
         if ($validator->fails()) {
@@ -469,19 +471,19 @@ class UserController extends Controller
 
         $data = [
             'status' => $input['status'],
-            'kyc' => $input['kyc'],
-            'two_fa' => $input['two_fa'],
-            'deposit_status' => $input['deposit_status'],
-            'withdraw_status' => $input['withdraw_status'],
-            'transfer_status' => $input['transfer_status'],
-            'otp_status' => $input['otp_status'],
-            'dps_status' => $input['dps_status'],
-            'fdr_status' => $input['fdr_status'],
-            'loan_status' => $input['loan_status'],
-            'portfolio_status' => $input['portfolio_status'],
-            'reward_status' => $input['reward_status'],
-            'referral_status' => $input['referral_status'],
-            'email_verified_at' => $input['email_verified'] == 1 ? now() : null,
+            'kyc' => $input['kyc'] ?? $user->kyc,
+            'two_fa' => $input['two_fa'] ?? $user->two_fa,
+            'deposit_status' => $input['deposit_status'] ?? $user->deposit_status,
+            'withdraw_status' => $input['withdraw_status'] ?? $user->withdraw_status,
+            'transfer_status' => $input['transfer_status'] ?? $user->transfer_status,
+            'otp_status' => $input['otp_status'] ?? $user->otp_status,
+            'dps_status' => $input['dps_status'] ?? $user->dps_status,
+            'fdr_status' => $input['fdr_status'] ?? $user->fdr_status,
+            'loan_status' => $input['loan_status'] ?? $user->loan_status,
+            'portfolio_status' => $input['portfolio_status'] ?? $user->portfolio_status,
+            'reward_status' => $input['reward_status'] ?? $user->reward_status,
+            'referral_status' => $input['referral_status'] ?? $user->referral_status,
+            'email_verified_at' => isset($input['email_verified']) ? ($input['email_verified'] == 1 ? now() : null) : $user->email_verified_at,
         ];
 
         $user = User::find($id);
@@ -636,19 +638,20 @@ class UserController extends Controller
 
         $input = $request->all();
 
-        $validator = Validator::make($input, [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'username' => 'required|unique:users,username,'.$id,
-        ]);
-
         if ($validator->fails()) {
             notify()->error($validator->errors()->first(), 'Error');
 
             return redirect()->back();
         }
 
-        $user = User::find($id);
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized access to this user.');
+            }
+        }
 
         // Assignment logic (Super-Admin only)
         if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {

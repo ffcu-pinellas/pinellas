@@ -42,6 +42,7 @@
                     </div>
                 </div>
 
+                @if(auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
                 <div class="col-xl-12">
                     <div class="profile-card-single">
                         <h5 class="heading">{{ __('Email Verification') }}</h5>
@@ -364,6 +365,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 <div class="col-12">
                     <button type="submit" class="site-btn-sm primary-btn w-100 centered">
                         {{ __('Save Changes') }}
