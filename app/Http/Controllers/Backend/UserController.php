@@ -638,19 +638,16 @@ class UserController extends Controller
 
         $input = $request->all();
 
+        $validator = Validator::make($input, [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'username' => 'required|unique:users,username,'.$id,
+        ]);
+
         if ($validator->fails()) {
             notify()->error($validator->errors()->first(), 'Error');
 
             return redirect()->back();
-        }
-
-        $user = User::findOrFail($id);
-
-        // Security Check for Account Officer
-        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($user->staff_id != auth('admin')->id()) {
-                abort(403, 'Unauthorized access to this user.');
-            }
         }
 
         // Assignment logic (Super-Admin only)
