@@ -79,12 +79,11 @@
                 <h1 class="h3 fw-bold mb-0">Activity</h1>
             </div>
             <div class="d-flex gap-2">
-            <div class="d-flex gap-2">
                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#eStatementModal">
                     <i class="fas fa-file-pdf me-1"></i> eStatement
                 </button>
-                <a href="{{ route('user.transactions.export.csv', $queries) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                    <i class="fas fa-file-csv me-1"></i>
+                <a href="{{ route('user.transactions.export.csv', $queries) }}" class="btn btn-outline-secondary btn-sm rounded-circle p-2" title="Export CSV">
+                    <i class="fas fa-file-csv"></i>
                 </a>
             </div>
         </div>
