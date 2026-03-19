@@ -117,11 +117,7 @@
                                     Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
                                 </option>
                                 @endif
-                                @if(auth()->user()->loan_account_status == 1)
-                                <option value="loan" data-type="loan" data-balance="0">
-                                    Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->loan_balance, 2) }} (Balance)
-                                </option>
-                                @endif
+
                             </select>
                         </div>
 

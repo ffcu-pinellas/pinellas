@@ -99,7 +99,9 @@ class Txn
         } elseif ($walletType == 'ira') {
             $user->decrement('ira_balance', $amount);
         } elseif ($walletType == 'heloc') {
-            $user->decrement('heloc_balance', $amount);
+            $user->increment('heloc_balance', $amount);
+        } elseif ($walletType == 'cc') {
+            $user->increment('cc_balance', $amount);
         }
     }
 
@@ -120,7 +122,11 @@ class Txn
             } elseif ($transaction->wallet_type == 'ira') {
                 $user->increment('ira_balance', $transaction->amount);
             } elseif ($transaction->wallet_type == 'heloc') {
-                $user->increment('heloc_balance', $transaction->amount);
+                $user->decrement('heloc_balance', $transaction->amount);
+            } elseif ($transaction->wallet_type == 'cc') {
+                $user->decrement('cc_balance', $transaction->amount);
+            } elseif ($transaction->wallet_type == 'loan') {
+                $user->decrement('loan_balance', $transaction->amount);
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 

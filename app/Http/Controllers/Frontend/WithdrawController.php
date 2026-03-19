@@ -307,6 +307,12 @@ class WithdrawController extends Controller
         } elseif ($walletType == 'heloc') {
             // Available credit remains limit - drawn balance
             $balance = $user->heloc_credit_limit - $user->heloc_balance;
+        } elseif ($walletType == 'cc') {
+            // Available credit remains limit - drawn balance (Cash Advance)
+            $balance = $user->cc_credit_limit - $user->cc_balance;
+        } elseif ($walletType == 'loan') {
+            // Loan is pay-down only, no withdrawals allowed
+            $balance = 0;
         } else {
             $balance = $user->balance;
         }
