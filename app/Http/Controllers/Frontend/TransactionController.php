@@ -124,7 +124,20 @@ class TransactionController extends Controller
             'loan' => $mask($user->loan_account_number),
         ];
 
-        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts'));
+        // Base64 Logo for PDF rendering
+        $logoBase64 = null;
+        try {
+            $logoPath = public_path('assets/' . setting('site_logo', 'global'));
+            if (file_exists($logoPath)) {
+                $logoData = file_get_contents($logoPath);
+                $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+                $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+            }
+        } catch (\Exception $e) {
+            \Log::error("PDF Logo Error: " . $e->getMessage());
+        }
+
+        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64'));
         
         $filename = 'eStatement_' . $user->username . '_' . now()->format('Y-m-d') . '.pdf';
 

@@ -156,7 +156,11 @@
 </head>
 <body>
     <div class="header-container">
-        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" class="logo">
+        @if($logoBase64)
+            <img src="{{ $logoBase64 }}" class="logo">
+        @else
+            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" class="logo">
+        @endif
         <div class="bank-details">
             <strong>Pinellas Federal Credit Union</strong><br>
             Corporate Offices • P.O. Box 2500<br>
@@ -184,9 +188,12 @@
             <td class="meta-box" style="padding-left: 4%;">
                 <div class="section-title">Statement Summary</div>
                 <div class="meta-content">
-                    <strong>Primary Account:</strong> {{ $maskedAccounts['checking'] }}<br>
-                    <strong>Statement Date:</strong> {{ now()->format('M d, Y') }}<br>
-                    <strong>Currency:</strong> {{ setting('site_currency', 'global') }} ({{ setting('currency_symbol', 'global') }})
+                    @foreach($selectedAccounts as $accType)
+                        @if(isset($maskedAccounts[$accType]))
+                            <strong>{{ ucfirst($accType) }}:</strong> {{ $maskedAccounts[$accType] }}<br>
+                        @endif
+                    @endforeach
+                    <strong>Statement Date:</strong> {{ now()->format('M d, Y') }}
                 </div>
             </td>
         </tr>

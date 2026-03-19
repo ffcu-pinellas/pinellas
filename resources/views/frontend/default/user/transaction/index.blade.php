@@ -64,6 +64,23 @@
             background-color: #00549b;
             border-color: #00549b;
         }
+        /* Daterangepicker in Modal fixes */
+        .daterangepicker {
+            z-index: 1100 !important;
+            font-family: inherit;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .daterangepicker .drp-buttons .btn {
+            border-radius: 50px;
+            font-weight: bold;
+            padding: 4px 15px;
+        }
+        #p1m + label, #p3m + label, #p6m + label, #p1y + label, #pcustom + label {
+            min-width: 85px;
+            text-align: center;
+        }
     </style>
 @endpush
 
@@ -355,11 +372,26 @@
                 opens: 'center',
                 autoUpdateInput: false,
                 maxDate: moment(),
+                parentEl: '#eStatementModal',
                 locale: { cancelLabel: 'Clear', format: 'MM/DD/YYYY' }
             });
 
             $('#statementDaterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            });
+
+            // Handle "stuck" state on download
+            $('#eStatementModal form').on('submit', function() {
+                var $btn = $(this).find('button[type="submit"]');
+                var originalHtml = $btn.html();
+                
+                $btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin me-2"></i> Generating...');
+                
+                // Reset button and hide modal after a short delay (browser handles the download stream)
+                setTimeout(function() {
+                    $btn.prop('disabled', false).html(originalHtml);
+                    $('#eStatementModal').modal('hide');
+                }, 4000);
             });
 
             // Toggle custom date range field
