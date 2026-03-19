@@ -428,7 +428,10 @@
             }
 
             // 3. Standard double-submit prevention
-            if (form.getAttribute('data-submitting') === 'true') {
+            if (form.getAttribute('data-submitting') === 'true' || form.getAttribute('data-no-loader') === 'true') {
+                if (form.getAttribute('data-no-loader') === 'true') {
+                    return; // Skip loader but allow submission
+                }
                 e.preventDefault();
                 return;
             }

@@ -132,14 +132,16 @@ class TransactionController extends Controller
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
         try {
-            $logoPath = public_path('assets/' . setting('site_logo', 'global'));
-            if (file_exists($logoPath)) {
-                $logoData = file_get_contents($logoPath);
-                $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
-                $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
+            $logoData = curl_get_file_contents($logoUrl);
+            if ($logoData) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                \Log::info("PDF Logo successfully fetched and base64 encoded.");
+            } else {
+                \Log::warning("PDF Logo could not be fetched from: " . $logoUrl);
             }
         } catch (\Exception $e) {
-            \Log::error("PDF Logo Error: " . $e->getMessage());
+            \Log::error("PDF Logo Fetch Error: " . $e->getMessage());
         }
 
         $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64'));

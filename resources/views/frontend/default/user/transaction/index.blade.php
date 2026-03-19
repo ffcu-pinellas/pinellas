@@ -213,7 +213,7 @@
                 <h5 class="fw-bold mb-0">Download eStatement</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('user.transactions.export.pdf') }}" method="GET">
+            <form action="{{ route('user.transactions.export.pdf') }}" method="GET" data-no-loader="true">
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-4">Select the period and accounts you want to include in your official bank statement.</p>
                     
