@@ -297,12 +297,31 @@ class DepositController extends Controller
 
         $remoteDeposit = \App\Models\RemoteDeposit::where('transaction_tnx', $transaction->tnx)->first();
 
+        $targetAccNum = match($transaction->wallet_type) {
+            'primary_savings' => $transaction->user?->savings_account_number,
+            'ira' => $transaction->user?->ira_account_number,
+            'heloc' => $transaction->user?->heloc_account_number,
+            'cc' => $transaction->user?->cc_account_number,
+            'loan' => $transaction->user?->loan_account_number,
+            default => $transaction->user?->account_number
+        };
+        $targetLast4 = substr($targetAccNum ?? $transaction->user?->account_number, -4);
+        $targetName = match($transaction->wallet_type) {
+            'primary_savings' => 'Savings',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'Credit Card',
+            'loan' => 'Loan',
+            default => 'Checking'
+        };
+
         $shortcodes = [
             '[[full_name]]' => $transaction->user->full_name,
             '[[txn]]' => $transaction->tnx,
             '[[gateway_name]]' => $transaction->method,
             '[[deposit_amount]]' => $transaction->amount,
             '[[amount]]' => $transaction->amount,
+            '[[to_account]]' => $targetName . ' (... ' . $targetLast4 . ')',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
             '[[message]]' => $approvalCause,

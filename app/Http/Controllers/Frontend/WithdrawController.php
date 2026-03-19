@@ -303,7 +303,8 @@ class WithdrawController extends Controller
         if ($walletType == 'primary_savings') {
             $balance = $user->savings_balance;
         } elseif ($walletType == 'ira') {
-            $balance = $user->ira_balance;
+            // IRA is contribution-only, no withdrawals allowed
+            $balance = 0;
         } elseif ($walletType == 'heloc') {
             // Available credit remains limit - drawn balance
             $balance = $user->heloc_credit_limit - $user->heloc_balance;
@@ -338,12 +339,32 @@ class WithdrawController extends Controller
 
         $type = $withdrawMethod->type == 'auto' ? TxnType::WithdrawAuto : TxnType::Withdraw;
 
+        $sourceAccNum = match($walletType) {
+            'primary_savings' => $user->savings_account_number,
+            'ira' => $user->ira_account_number,
+            'heloc' => $user->heloc_account_number,
+            'cc' => $user->cc_account_number,
+            'loan' => $user->loan_account_number,
+            default => $user->account_number
+        };
+        $sourceLast4 = substr($sourceAccNum, -4);
+        $sourceName = match($walletType) {
+            'primary_savings' => 'SAVINGS',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'CREDIT CARD',
+            'loan' => 'LOAN',
+            default => 'CHECKING'
+        };
+
+        $txnDescription = 'WITHDRAWAL FROM ' . $sourceName . ' (...' . $sourceLast4 . ') VIA ' . strtoupper($withdrawAccount->method_name);
+
         $txnInfo = Txn::new(
             $input['amount'],
             $charge,
             $totalAmount,
             $withdrawMethod->name,
-            'WITHDRAWAL - '.strtoupper($withdrawAccount->method_name),
+            $txnDescription,
             $type,
             TxnStatus::Pending,
             $withdrawMethod->currency,
@@ -378,6 +399,7 @@ class WithdrawController extends Controller
             '[[txn]]' => $txnInfo->tnx,
             '[[method_name]]' => $withdrawMethod->name,
             '[[withdraw_amount]]' => $txnInfo->amount.setting('site_currency', 'global'),
+            '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
         ];

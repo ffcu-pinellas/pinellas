@@ -53,11 +53,6 @@
                                 <option value="primary_savings" data-balance="{{ auth()->user()->savings_balance }}">
                                     Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                 </option>
-                                @if(auth()->user()->ira_status == 1)
-                                <option value="ira" data-balance="{{ auth()->user()->ira_balance }}">
-                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->ira_balance, 2) }}
-                                </option>
-                                @endif
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
                                     HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)

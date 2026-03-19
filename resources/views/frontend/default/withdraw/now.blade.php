@@ -42,9 +42,6 @@
                                         >
                                             <option value="default">{{ __('Checking Account') }}</option>
                                             <option value="primary_savings">{{ __('Primary Savings') }}</option>
-                                            @if(auth()->user()->ira_status)
-                                            <option value="ira">{{ __('IRA Account') }}</option>
-                                            @endif
                                             @if(auth()->user()->heloc_status)
                                             <option value="heloc">{{ __('HELOC Account (Credit)') }}</option>
                                             @endif

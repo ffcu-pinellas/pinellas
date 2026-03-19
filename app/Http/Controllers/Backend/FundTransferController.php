@@ -352,6 +352,24 @@ class FundTransferController extends Controller
 
         if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
             // Member Transfer
+            $sourceAccNum = match($transaction->wallet_type) {
+                'primary_savings' => $user->savings_account_number,
+                'ira' => $user->ira_account_number,
+                'heloc' => $user->heloc_account_number,
+                'cc' => $user->cc_account_number,
+                'loan' => $user->loan_account_number,
+                default => $user->account_number
+            };
+            $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
+            $sourceName = match($transaction->wallet_type) {
+                'primary_savings' => 'Savings',
+                'ira' => 'IRA',
+                'heloc' => 'HELOC',
+                'cc' => 'Credit Card',
+                'loan' => 'Loan',
+                default => 'Checking'
+            };
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -359,6 +377,7 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
+                '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
                 '[[recipient_name]]' => data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name'),
                 '[[recipient_account]]' => data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account'),
                 '[[memo]]' => $transaction->purpose ?? 'N/A',

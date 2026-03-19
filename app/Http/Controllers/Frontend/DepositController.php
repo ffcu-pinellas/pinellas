@@ -100,8 +100,28 @@ class DepositController extends Controller
 
         // Wallet type
         $walletType = $request->get('wallet_type', 'default');
+        $user = Auth::user();
+        $targetAccNum = match($walletType) {
+            'primary_savings' => $user->savings_account_number,
+            'ira' => $user->ira_account_number,
+            'heloc' => $user->heloc_account_number,
+            'cc' => $user->cc_account_number,
+            'loan' => $user->loan_account_number,
+            default => $user->account_number
+        };
+        $targetLast4 = substr($targetAccNum, -4);
+        $targetName = match($walletType) {
+            'primary_savings' => 'SAVINGS',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'CREDIT CARD',
+            'loan' => 'LOAN',
+            default => 'CHECKING'
+        };
 
-        $txnInfo = Txn::new($input['amount'], $charge, $finalAmount, $gatewayInfo->gateway_code, 'DEPOSIT - '.strtoupper($gatewayInfo->name), $depositType, TxnStatus::Pending, $gatewayInfo->currency, $payAmount, auth()->id(), null, 'User', $manualData ?? [], $walletType);
+        $txnDescription = 'DEPOSIT TO ' . $targetName . ' (...' . $targetLast4 . ') VIA ' . strtoupper($gatewayInfo->name);
+
+        $txnInfo = Txn::new($input['amount'], $charge, $finalAmount, $gatewayInfo->gateway_code, $txnDescription, $depositType, TxnStatus::Pending, $gatewayInfo->currency, $payAmount, $user->id, null, 'User', $manualData ?? [], $walletType);
 
         $symbol = setting('currency_symbol', 'global');
         $notify = [
