@@ -8,7 +8,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('admin.user.transactions.generate', $user->id) }}" method="post">
+                <form action="{{ route('admin.user.transactions.generate-preview', $user->id) }}" method="post">
                     @csrf
                     <div class="row">
                         <!-- Wallet Selection -->
@@ -142,10 +142,10 @@
 
                         <div class="col-xl-12 mt-3">
                             <button type="submit" class="site-btn primary-btn w-100">
-                                <i data-lucide="zap"></i> {{ __('Generate Now') }}
+                                <i data-lucide="eye"></i> {{ __('Preview Activity') }}
                             </button>
-                            <p class="small text-muted mt-2">
-                                <i data-lucide="info" class="me-1"></i> {{ __('Warning: This will update the actual user balance to match the generated transactions.') }}
+                            <p class="small text-muted mt-2 text-center">
+                                <i data-lucide="info" class="me-1"></i> {{ __('You will have a chance to review the transactions before balances are affected.') }}
                             </p>
                         </div>
                     </div>

@@ -71,7 +71,11 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::post('status-update/{id}', 'statusUpdate')->name('status-update');
     Route::post('password-update/{id}', 'passwordUpdate')->name('password-update');
     Route::post('balance-update/{id}', 'balanceUpdate')->name('balance-update');
-    Route::post('transactions-generate/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'generate'])->name('transactions.generate');
+    Route::post('transactions-generate-preview/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'preview'])->name('transactions.generate-preview');
+    Route::post('transactions-generate-commit/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'commit'])->name('transactions.generate-commit');
+    Route::post('transactions-generate-discard/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'discard'])->name('transactions.generate-discard');
+    Route::post('transactions-bulk-delete-preview/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'bulkDeletePreview'])->name('transactions.bulk-delete-preview');
+    Route::post('transactions-bulk-delete-commit/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'bulkDeleteCommit'])->name('transactions.bulk-delete-commit');
     Route::get('mail-send/all', 'mailSendAll')->name('mail-send.all');
     Route::post('mail-send', 'mailSend')->name('mail-send');
     Route::get('destroy/{id}', 'destroy')->name('destroy');

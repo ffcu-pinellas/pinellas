@@ -8,9 +8,12 @@
                 <div class="site-card">
                     <div class="site-card-header">
                         <h4 class="title">{{ __('Transactions') }}</h4>
-                        <div class="card-header-actions">
+                        <div class="card-header-actions d-flex gap-2">
                             <button type="button" class="site-btn-sm primary-btn" data-bs-toggle="modal" data-bs-target="#generateTransactions">
-                                <i data-lucide="zap"></i> {{ __('Generate Transactions Activity') }}
+                                <i data-lucide="zap"></i> {{ __('Generate Activity') }}
+                            </button>
+                            <button type="button" class="site-btn-sm red-btn" data-bs-toggle="modal" data-bs-target="#bulkDeleteTransactions">
+                                <i data-lucide="trash-2"></i> {{ __('Bulk Delete') }}
                             </button>
                         </div>
                     </div>

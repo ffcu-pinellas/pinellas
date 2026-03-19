@@ -20,7 +20,7 @@ class TransactionGeneratorController extends Controller
         $this->middleware('permission:customer-balance-add-or-subtract|officer-balance-manage');
     }
 
-    public function generate(Request $request, $id)
+    public function preview(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
@@ -374,7 +374,7 @@ class TransactionGeneratorController extends Controller
         $wallet_type = $request->wallet_type;
         $wallet_name = $this->getWalletName($user, $wallet_type);
 
-        $generatedCount = 0;
+        $previewData = [];
 
         for ($i = 0; $i < $request->count; $i++) {
             $dir = $request->direction;
@@ -391,47 +391,175 @@ class TransactionGeneratorController extends Controller
             $daysBack = rand(0, (int)$request->date_range);
             $date = Carbon::now()->subDays($daysBack)->subMinutes(rand(0, 1440));
 
-            if ($dir == 'income') {
-                $this->updateUserBalance($user, $wallet_type, $amount, 'add');
-                $txn = Txn::new(
-                    amount: $amount,
-                    charge: 0,
-                    final_amount: $amount,
-                    method: 'system',
-                    description: $description,
-                    type: TxnType::Deposit,
-                    status: TxnStatus::Success,
-                    payCurrency: $wallet_name,
-                    userID: $id,
-                    relatedUserID: $adminUser->id,
-                    relatedModel: 'Admin',
-                    walletType: $wallet_type
-                );
-            } else {
-                $this->updateUserBalance($user, $wallet_type, $amount, 'subtract');
-                $txn = Txn::new(
-                    amount: $amount,
-                    charge: 0,
-                    final_amount: $amount,
-                    method: 'system',
-                    description: $description,
-                    type: TxnType::Subtract,
-                    status: TxnStatus::Success,
-                    payCurrency: $wallet_name,
-                    userID: $id,
-                    relatedUserID: $adminUser->id,
-                    relatedModel: 'Admin',
-                    walletType: $wallet_type
-                );
-            }
+            $type = ($dir == 'income') ? TxnType::Deposit : TxnType::Subtract;
 
-            // Override date for historical simulation
-            $txn->created_at = $date;
+            $previewData[] = [
+                'amount' => $amount,
+                'description' => $description,
+                'type' => $type,
+                'date' => $date->toDateTimeString(),
+                'wallet_type' => $wallet_type,
+                'wallet_name' => $wallet_name,
+                'direction' => $dir
+            ];
+            $generatedCount++;
+        }
+
+        session()->put("txn_preview_{$id}", $previewData);
+        session()->flash("show_preview_{$id}", true);
+        
+        return redirect()->back();
+    }
+
+    public function commit(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $transactions = session("txn_preview_{$id}");
+        if (!$transactions) {
+            notify()->error('No preview data found. Please try generating again.', 'Error');
+            return redirect()->back();
+        }
+
+        $adminUser = Auth::user();
+        $generatedCount = 0;
+
+        foreach ($transactions as $item) {
+            $this->updateUserBalance($user, $item['wallet_type'], $item['amount'], $item['direction'] == 'income' ? 'add' : 'subtract');
+            
+            $txn = Txn::new(
+                amount: $item['amount'],
+                charge: 0,
+                final_amount: $item['amount'],
+                method: 'system',
+                description: $item['description'],
+                type: $item['type'],
+                status: TxnStatus::Success,
+                payCurrency: $item['wallet_name'],
+                userID: $id,
+                relatedUserID: $adminUser->id,
+                relatedModel: 'Admin',
+                walletType: $item['wallet_type']
+            );
+            $txn->created_at = $item['date'];
             $txn->save();
             $generatedCount++;
         }
 
+        session()->forget("txn_preview_{$id}");
+        
         notify()->success("$generatedCount transactions generated successfully!", 'Success');
+        return redirect()->back();
+    }
+
+    public function discard(Request $request, $id)
+    {
+        session()->forget("txn_preview_{$id}");
+        return redirect()->back();
+    }
+
+    public function bulkDeletePreview(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $query = \App\Models\Transaction::where('user_id', $id);
+
+        if ($request->wallet_type !== 'all') {
+            $query->where('wallet_type', $request->wallet_type);
+        }
+
+        if ($request->date_range !== 'all') {
+            $daysBack = (int)$request->date_range;
+            if ($daysBack === 0) {
+                $query->whereDate('created_at', Carbon::today());
+            } else {
+                $query->where('created_at', '>=', Carbon::now()->subDays($daysBack));
+            }
+        }
+
+        if ($request->direction !== 'both') {
+            $type = ($request->direction === 'income') ? TxnType::Deposit : TxnType::Subtract;
+            $query->where('type', $type);
+        }
+
+        if ($request->has('system_only') && $request->system_only) {
+            $query->where('method', 'system');
+        }
+
+        $transactions = $query->orderBy('created_at', 'desc')->get();
+
+        if ($transactions->isEmpty()) {
+            notify()->error('No transactions found matching your criteria.', 'Info');
+            return redirect()->back();
+        }
+
+        session()->put("bulk_delete_preview_{$id}", $transactions);
+        session()->flash("show_bulk_delete_preview_{$id}", true);
+
+        return redirect()->back();
+    }
+
+    public function bulkDeleteCommit(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $txnIds = $request->input('txn_ids', []);
+        
+        if (empty($txnIds)) {
+            notify()->error('No transactions were selected for deletion.', 'Error');
+            session()->forget("bulk_delete_preview_{$id}");
+            return redirect()->back();
+        }
+
+        $transactions = \App\Models\Transaction::where('user_id', $id)
+            ->whereIn('id', $txnIds)
+            ->get();
+
+        $deletedCount = 0;
+        $netAdd = 0;
+        $netSub = 0;
+
+        foreach ($transactions as $txn) {
+            $amount = $txn->final_amount; // Use the exact same impact it had
+            
+            // Reversal logic:
+            // If it was a Deposit (Income), it artificially increased balance -> therefore we subtract to reverse it.
+            // If it was a Subtract (Outcome), it artificially decreased balance -> therefore we add to reverse it.
+            if ($txn->type == TxnType::Deposit) {
+                $this->updateUserBalance($user, $txn->wallet_type ?? 'default', $amount, 'subtract');
+                $netSub += $amount;
+            } else {
+                $this->updateUserBalance($user, $txn->wallet_type ?? 'default', $amount, 'add');
+                $netAdd += $amount;
+            }
+            
+            $txn->delete();
+            $deletedCount++;
+        }
+
+        session()->forget("bulk_delete_preview_{$id}");
+
+        $msg = "$deletedCount transactions deleted successfully and ledgers correctly reversed.";
+        notify()->success($msg, 'Success');
+
         return redirect()->back();
     }
 

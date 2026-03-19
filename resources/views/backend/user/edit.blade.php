@@ -458,6 +458,9 @@
     @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
         @include('backend.user.include.__balance')
         @include('backend.user.include.__generate_transactions')
+        @include('backend.user.include.__preview_transactions')
+        @include('backend.user.include.__bulk_delete_transactions')
+        @include('backend.user.include.__bulk_delete_preview')
     @endcanany
     <!-- Modal for Add or Subtract Balance End-->
 
@@ -510,6 +513,18 @@
                     }, 100);
                 });
             }
+
+            @if(session()->has("show_preview_{$user->id}"))
+                var previewModal = new bootstrap.Modal(document.getElementById('previewTransactionsModal'));
+                previewModal.show();
+            @endif
+
+            @if(session()->has("show_bulk_delete_preview_{$user->id}"))
+                setTimeout(function() {
+                    var deletePreviewModal = new bootstrap.Modal(document.getElementById('deletePreviewTransactionsModal'));
+                    deletePreviewModal.show();
+                }, 150);
+            @endif
         });
     </script>
 @endsection
