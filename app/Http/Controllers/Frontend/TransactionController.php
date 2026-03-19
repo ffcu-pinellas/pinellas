@@ -80,11 +80,16 @@ class TransactionController extends Controller
             default => now()->subMonth(),
         };
 
-        if ($period === 'custom' && $request->has('daterange')) {
-            $dates = explode(' - ', $request->get('daterange'));
-            if (count($dates) == 2) {
-                $from_date = Carbon::parse($dates[0]);
-                $to_date = Carbon::parse($dates[1]);
+        if ($period === 'custom') {
+            if ($request->has('from_date') && $request->has('to_date') && $request->from_date != '' && $request->to_date != '') {
+                $from_date = Carbon::parse($request->get('from_date'));
+                $to_date = Carbon::parse($request->get('to_date'));
+            } elseif ($request->has('daterange') && $request->daterange != '') {
+                $dates = explode(' - ', $request->get('daterange'));
+                if (count($dates) == 2) {
+                    $from_date = Carbon::parse($dates[0]);
+                    $to_date = Carbon::parse($dates[1]);
+                }
             }
         }
 

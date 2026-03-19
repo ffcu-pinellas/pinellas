@@ -235,11 +235,22 @@
                         <label class="btn btn-outline-light text-dark border-1 rounded-pill px-4 py-2 fw-bold" for="pcustom">Custom</label>
                     </div>
 
-                    <div id="customDateRange" class="mb-4 d-none">
-                        <label class="small text-muted mb-2 fw-bold d-block text-uppercase">Custom Range</label>
-                        <div class="input-group border-bottom p-2 bg-light rounded">
-                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-calendar-alt text-muted"></i></span>
-                            <input type="text" name="daterange" id="statementDaterange" class="form-control border-0 bg-transparent shadow-none" placeholder="Select dates...">
+                    <div id="customDateRange" class="mt-3 d-none">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="small text-muted mb-1 fw-bold">FROM DATE</label>
+                                <div class="input-group border-bottom border-light">
+                                    <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
+                                    <input type="text" name="from_date" id="fromDate" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="MM/DD/YYYY" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-muted mb-1 fw-bold">TO DATE</label>
+                                <div class="input-group border-bottom border-light">
+                                    <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
+                                    <input type="text" name="to_date" id="toDate" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="MM/DD/YYYY" autocomplete="off">
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -367,17 +378,18 @@
                 $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
             });
             
-            // Modal specific daterange picker
-            $('#statementDaterange').daterangepicker({
-                opens: 'center',
+            // Separate date pickers for "From" and "To" in Modal
+            $('#fromDate, #toDate').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
                 autoUpdateInput: false,
                 maxDate: moment(),
                 parentEl: '#eStatementModal',
-                locale: { cancelLabel: 'Clear', format: 'MM/DD/YYYY' }
+                locale: { format: 'MM/DD/YYYY' }
             });
 
-            $('#statementDaterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            $('#fromDate, #toDate').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY'));
             });
 
             // Handle "stuck" state on download
