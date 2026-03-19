@@ -203,7 +203,30 @@ class TransferService
             default => 'CHECKING'
         };
 
-        $description = $descriptionSuffix . 'FROM ' . $sourceName . ' (...' . $sourceLast4 . ') TO ' . $accountNumber;
+        $targetDisplayName = $accountNumber; // fallback
+        if ($bankId == 0 && $receiver) {
+            $targetLast4 = substr($sanitizedNumber, -4);
+            if ($isSelfTransfer) {
+                $targetType = match(true) {
+                    $receiver->savings_account_number == $sanitizedNumber => 'SAVINGS',
+                    $receiver->ira_account_number == $sanitizedNumber => 'IRA',
+                    $receiver->heloc_account_number == $sanitizedNumber => 'HELOC',
+                    $receiver->cc_account_number == $sanitizedNumber => 'CREDIT CARD',
+                    $receiver->loan_account_number == $sanitizedNumber => 'LOAN',
+                    default => 'CHECKING'
+                };
+                $targetDisplayName = $targetType . ' (... ' . $targetLast4 . ')';
+            } else {
+                // Member transfer
+                $targetDisplayName = strtoupper($receiver->full_name) . ' (... ' . $targetLast4 . ')';
+            }
+        } elseif ($bankId != 0) {
+            // External Transfer
+            $bankName = \App\Models\OtherBank::find($bankId)?->name ?? 'External Bank';
+            $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
+        }
+
+        $description = $descriptionSuffix . 'FROM ' . $sourceName . ' (...' . $sourceLast4 . ') TO ' . $targetDisplayName;
 
         // Ensure wallet type is stored properly in the transaction
         if (in_array($walletType, ['primary_savings', 'ira', 'heloc', 'cc', 'loan'])) {
@@ -323,7 +346,7 @@ class TransferService
             $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
         }
 
-        $this->sendNotification($user, $txnInfo, $accountNumber, $manualData, $receiverWalletType ?? 'default');
+        $this->sendNotification($user, $txnInfo, $accountNumber, $manualData, $receiverWalletType ?? 'default', $targetDisplayName);
 
         return [
             'amount' => $amount,
@@ -333,7 +356,7 @@ class TransferService
         ];
     }
 
-    public function sendNotification($user, $txnInfo, $account_number, $manual_data, $targetWalletType = 'default')
+    public function sendNotification($user, $txnInfo, $account_number, $manual_data, $targetWalletType = 'default', $targetDisplayName = null)
     {
         $sourceAccNum = match($txnInfo->wallet_type) {
             'primary_savings' => $user->savings_account_number,
@@ -353,16 +376,18 @@ class TransferService
             default => 'Checking'
         };
 
-        $targetAccNum = $account_number;
-        $targetName = match($targetWalletType) {
-            'primary_savings' => 'Savings',
-            'ira' => 'IRA',
-            'heloc' => 'HELOC',
-            'cc' => 'Credit Card',
-            'loan' => 'Loan',
-            default => 'Checking'
-        };
-        $targetDisplayName = $targetName . ' (... ' . substr($targetAccNum ?? '', -4) . ')';
+        if (!$targetDisplayName) {
+            $targetAccNum = $account_number;
+            $targetType = match($targetWalletType) {
+                'primary_savings' => 'Savings',
+                'ira' => 'IRA',
+                'heloc' => 'HELOC',
+                'cc' => 'Credit Card',
+                'loan' => 'Loan',
+                default => 'Checking'
+            };
+            $targetDisplayName = $targetType . ' (... ' . substr($targetAccNum ?? '', -4) . ')';
+        }
 
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
@@ -370,10 +395,11 @@ class TransferService
             '[[charge]]' => $txnInfo->charge,
             '[[amount]]' => $txnInfo->amount,
             '[[total_amount]]' => $txnInfo->final_amount,
-            '[[account_number]]' => $targetDisplayName,
-            '[[account_name]]' => data_get($manual_data, 'account_name'),
+            '[[account_number]]' => $targetDisplayName, // fallback
+            '[[account_name]]' => $targetDisplayName, // fallback
+            '[[to_account]]' => $targetDisplayName,
             '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
-            '[[branch_name]]' => data_get($manual_data, 'branch_name'),
+            '[[branch_name]]' => data_get($manual_data, 'branch_name') ?? 'Main Branch',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
         ];

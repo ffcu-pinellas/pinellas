@@ -370,6 +370,11 @@ class FundTransferController extends Controller
                 default => 'Checking'
             };
 
+            $recipientName = data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name') ?? 'Member';
+            $recipientAccount = data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account');
+            $recipientLast4 = substr($recipientAccount, -4);
+            $toAccount = strtoupper($recipientName) . ' (... ' . $recipientLast4 . ')';
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -378,8 +383,10 @@ class FundTransferController extends Controller
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
                 '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
-                '[[recipient_name]]' => data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name'),
-                '[[recipient_account]]' => data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account'),
+                '[[to_account]]' => $toAccount,
+                '[[account_number]]' => $toAccount, // alias
+                '[[recipient_name]]' => $recipientName,
+                '[[recipient_account]]' => $recipientAccount,
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
@@ -393,6 +400,11 @@ class FundTransferController extends Controller
 
         } elseif ($transaction->transfer_type == TransferType::OtherBankTransfer) {
             // External Transfer
+            $bankName = $transaction->bank->name ?? data_get($manual_data, 'bank_name') ?? $transaction->method ?? 'External Bank';
+            $targetAccount = data_get($manual_data, 'account_number');
+            $targetLast4 = substr($targetAccount, -4);
+            $toAccount = strtoupper($bankName) . ' (... ' . $targetLast4 . ')';
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -400,8 +412,10 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[bank_name]]' => $transaction->bank->name ?? data_get($manual_data, 'bank_name') ?? $transaction->method,
-                '[[account_number]]' => data_get($manual_data, 'account_number'),
+                '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
+                '[[to_account]]' => $toAccount,
+                '[[bank_name]]' => $bankName,
+                '[[account_number]]' => $toAccount, // alias
                 '[[account_name]]' => data_get($manual_data, 'account_name'),
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
@@ -417,6 +431,11 @@ class FundTransferController extends Controller
 
         } else {
             // Wire Transfer
+            $bankName = data_get($manual_data, 'bank_name') ?? 'External Bank';
+            $targetAccount = data_get($manual_data, 'account_number');
+            $targetLast4 = substr($targetAccount, -4);
+            $toAccount = strtoupper($bankName) . ' (... ' . $targetLast4 . ')';
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -424,10 +443,11 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[account_number]]' => data_get($manual_data, 'account_number'),
+                '[[to_account]]' => $toAccount,
+                '[[account_number]]' => $toAccount, // alias
                 '[[name_of_account]]' => data_get($manual_data, 'name_of_account'),
                 '[[swift_code]]' => data_get($manual_data, 'swift_code'),
-                '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? 'N/A',
+                '[[bank_name]]' => $bankName,
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? 'N/A',
                 '[[phone_number]]' => data_get($manual_data, 'phone_number'),
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
