@@ -6,14 +6,29 @@
     <style>
         @page {
             margin: 0;
+            padding: 0;
         }
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            color: #2d3748;
+            color: #334155;
             line-height: 1.5;
             margin: 0;
             padding: 40px;
-            background: #fff;
+            background-color: #ffffff;
+            position: relative;
+        }
+        /* Watermark Styling */
+        .watermark {
+            position: fixed;
+            top: 25%;
+            left: 10%;
+            width: 80%;
+            opacity: 0.04;
+            z-index: -1000;
+            text-align: center;
+        }
+        .watermark img {
+            width: 500px;
         }
         .header-container {
             border-bottom: 2px solid #00549b;
@@ -155,6 +170,14 @@
     </style>
 </head>
 <body>
+    <div class="watermark">
+        @if($logoBase64)
+            <img src="{{ $logoBase64 }}">
+        @else
+            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png">
+        @endif
+    </div>
+
     <div class="header-container">
         @if($logoBase64)
             <img src="{{ $logoBase64 }}" class="logo">
@@ -165,7 +188,7 @@
             <strong>Pinellas Federal Credit Union</strong><br>
             Corporate Offices • P.O. Box 2500<br>
             Largo, FL 33779-2500<br>
-            (800) 226-8902 | pinellascu.com
+            (737) 410-5689 | pinellascu.com
         </div>
         <div class="clear"></div>
     </div>
