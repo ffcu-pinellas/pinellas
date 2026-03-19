@@ -198,7 +198,7 @@
             @endif
 
             <!-- Loan Account -->
-            @if(auth()->user()->loan_status == 1)
+            @if(auth()->user()->loan_account_status == 1)
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
                     <div class="p-4 bg-white">

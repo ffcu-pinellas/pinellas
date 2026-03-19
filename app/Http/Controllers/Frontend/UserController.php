@@ -76,7 +76,7 @@ class UserController extends Controller
             'has_ira' => ($user->ira_status == 1 && !empty($user->ira_account_number)),
             'has_heloc' => ($user->heloc_status == 1 && !empty($user->heloc_account_number)),
             'has_cc' => ($user->cc_status == 1 && !empty($user->cc_account_number)),
-            'has_loan' => ($user->loan_status == 1 && !empty($user->loan_account_number)),
+            'has_loan' => ($user->loan_account_status == 1 && !empty($user->loan_account_number)),
         ]);
     }
 

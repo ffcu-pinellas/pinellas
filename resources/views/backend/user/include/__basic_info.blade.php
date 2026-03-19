@@ -272,9 +272,9 @@
                                         <div class="site-input-groups">
                                             <label for="" class="box-input-label">{{ __('Enable Loan Account:') }}</label>
                                             <div class="switch-field" style="margin-top: 5px;">
-                                                <input type="radio" id="loan_status_yes" name="loan_status" value="1" @checked($user->loan_status == 1) />
+                                                <input type="radio" id="loan_status_yes" name="loan_account_status" value="1" @checked($user->loan_account_status == 1) />
                                                 <label for="loan_status_yes">{{ __('Enable') }}</label>
-                                                <input type="radio" id="loan_status_no" name="loan_status" value="0" @checked($user->loan_status == 0) />
+                                                <input type="radio" id="loan_status_no" name="loan_account_status" value="0" @checked($user->loan_account_status == 0) />
                                                 <label for="loan_status_no">{{ __('Disable') }}</label>
                                             </div>
                                         </div>

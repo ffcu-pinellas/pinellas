@@ -35,7 +35,7 @@
                                         @if(auth()->user()->cc_status)
                                         <option value="cc" data-currency="{{ setting('site_currency') }}">{{ __('Credit Card') }}</option>
                                         @endif
-                                        @if(auth()->user()->loan_status)
+                                        @if(auth()->user()->loan_account_status)
                                         <option value="loan" data-currency="{{ setting('site_currency') }}">{{ __('Loan Account') }}</option>
                                         @endif
                                         @foreach ($wallets as $wallet)

@@ -126,7 +126,11 @@ class TransferService
             $sanitizedNumber = sanitizeAccountNumber($accountNumber);
             $receiver = User::where(function($q) use ($sanitizedNumber) {
                 $q->where('account_number', $sanitizedNumber)
-                  ->orWhere('savings_account_number', $sanitizedNumber);
+                  ->orWhere('savings_account_number', $sanitizedNumber)
+                  ->orWhere('ira_account_number', $sanitizedNumber)
+                  ->orWhere('heloc_account_number', $sanitizedNumber)
+                  ->orWhere('cc_account_number', $sanitizedNumber)
+                  ->orWhere('loan_account_number', $sanitizedNumber);
             })->first();
         }
 

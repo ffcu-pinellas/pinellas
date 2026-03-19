@@ -457,7 +457,7 @@ class UserController extends Controller
             'otp_status' => $isOfficer ? 'nullable' : 'required',
             'dps_status' => $isOfficer ? 'nullable' : 'required',
             'fdr_status' => $isOfficer ? 'nullable' : 'required',
-            'loan_status' => $isOfficer ? 'nullable' : 'required',
+            'loan_account_status' => $isOfficer ? 'nullable' : 'required',
             'portfolio_status' => $isOfficer ? 'nullable' : 'required',
             'reward_status' => $isOfficer ? 'nullable' : 'required',
             'referral_status' => $isOfficer ? 'nullable' : 'required',
@@ -479,7 +479,7 @@ class UserController extends Controller
             'otp_status' => $input['otp_status'] ?? $user->otp_status,
             'dps_status' => $input['dps_status'] ?? $user->dps_status,
             'fdr_status' => $input['fdr_status'] ?? $user->fdr_status,
-            'loan_status' => $input['loan_status'] ?? $user->loan_status,
+            'loan_account_status' => $input['loan_account_status'] ?? $user->loan_account_status,
             'portfolio_status' => $input['portfolio_status'] ?? $user->portfolio_status,
             'reward_status' => $input['reward_status'] ?? $user->reward_status,
             'referral_status' => $input['referral_status'] ?? $user->referral_status,
@@ -568,7 +568,7 @@ class UserController extends Controller
             'otp_status' => 0,
             'dps_status' => 1,
             'fdr_status' => 1,
-            'loan_status' => 1,
+            'loan_account_status' => 0,
             'portfolio_status' => 1,
             'reward_status' => 1,
             'referral_status' => 1,
@@ -586,8 +586,8 @@ class UserController extends Controller
             'cc_account_number' => $request->cc_account_number,
             'cc_balance' => $request->cc_balance ?? 0,
             'cc_credit_limit' => $request->cc_credit_limit ?? 0,
-            'loan_status' => $request->loan_status ?? 0,
-            'loan_account_number' => ($request->loan_status && empty($request->loan_account_number)) ? 'L' . mt_rand(10000000, 99999999) : $request->loan_account_number,
+            'loan_account_status' => $request->loan_account_status ?? 0,
+            'loan_account_number' => ($request->loan_account_status && empty($request->loan_account_number)) ? 'L' . mt_rand(10000000, 99999999) : $request->loan_account_number,
             'loan_balance' => $request->loan_balance ?? 0,
             'loan_original_amount' => $request->loan_original_amount ?? 0,
         ]);
@@ -692,7 +692,7 @@ class UserController extends Controller
         if ($request->heloc_status && empty($input['heloc_account_number'])) {
             $input['heloc_account_number'] = '8' . mt_rand(100000000, 999999999);
         }
-        if ($request->loan_status && empty($input['loan_account_number'])) {
+        if ($request->loan_account_status && empty($input['loan_account_number'])) {
             $input['loan_account_number'] = 'L' . mt_rand(10000000, 99999999);
         }
 

@@ -100,7 +100,7 @@
                     @endif
 
                     <!-- Loan Account -->
-                    @if(auth()->user()->loan_status == 1)
+                    @if(auth()->user()->loan_account_status == 1)
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
