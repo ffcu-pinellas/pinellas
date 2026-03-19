@@ -428,10 +428,21 @@ class TransactionGeneratorController extends Controller
             return redirect()->back();
         }
 
+        $selectedIndexes = $request->input('txn_indexes', []);
+        
+        if (empty($selectedIndexes)) {
+            session()->forget("txn_preview_{$id}");
+            notify()->error('No transactions were selected to be saved.', 'Error');
+            return redirect()->back();
+        }
+
         $adminUser = Auth::user();
         $generatedCount = 0;
 
-        foreach ($transactions as $item) {
+        foreach ($selectedIndexes as $idx) {
+            if (!isset($transactions[$idx])) continue;
+            
+            $item = $transactions[$idx];
             $this->updateUserBalance($user, $item['wallet_type'], $item['amount'], $item['direction'] == 'income' ? 'add' : 'subtract');
             
             $txn = Txn::new(
