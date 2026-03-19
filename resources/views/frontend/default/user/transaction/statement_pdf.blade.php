@@ -23,7 +23,7 @@
             top: 25%;
             left: 10%;
             width: 80%;
-            opacity: 0.24;
+            opacity: 0.14;
             z-index: -1000;
             text-align: center;
         }
