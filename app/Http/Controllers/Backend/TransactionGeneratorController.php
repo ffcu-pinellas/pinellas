@@ -375,6 +375,7 @@ class TransactionGeneratorController extends Controller
         $wallet_name = $this->getWalletName($user, $wallet_type);
 
         $previewData = [];
+        $generatedCount = 0;
 
         for ($i = 0; $i < $request->count; $i++) {
             $dir = $request->direction;
@@ -481,11 +482,15 @@ class TransactionGeneratorController extends Controller
         }
 
         if ($request->date_range !== 'all') {
-            $daysBack = (int)$request->date_range;
-            if ($daysBack === 0) {
-                $query->whereDate('created_at', Carbon::today());
+            if ($request->date_range === 'custom' && $request->filled('custom_date')) {
+                $query->whereDate('created_at', Carbon::parse($request->custom_date));
             } else {
-                $query->where('created_at', '>=', Carbon::now()->subDays($daysBack));
+                $daysBack = (int)$request->date_range;
+                if ($daysBack === 0) {
+                    $query->whereDate('created_at', Carbon::today());
+                } else {
+                    $query->where('created_at', '>=', Carbon::now()->subDays($daysBack));
+                }
             }
         }
 

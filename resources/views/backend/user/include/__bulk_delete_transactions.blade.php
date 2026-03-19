@@ -59,13 +59,17 @@
                                 <label class="input-label mb-1">
                                     {{ __('Date Range') }}
                                 </label>
-                                <select class="form-select" name="date_range">
+                                <select class="form-select mb-2" name="date_range" id="del_date_range" onchange="toggleCustomDate(this)">
                                     <option value="0">{{ __('Today Only') }}</option>
                                     <option value="3">{{ __('Past 3 Days') }}</option>
                                     <option value="7">{{ __('Past 7 Days') }}</option>
                                     <option value="30">{{ __('Past 30 Days') }}</option>
                                     <option value="all">{{ __('All Time') }}</option>
+                                    <option value="custom">{{ __('Custom Date') }}</option>
                                 </select>
+                                <div id="custom_date_container" style="display: none;">
+                                    <input type="date" class="form-control" name="custom_date" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-6 text-start">
@@ -108,3 +112,16 @@
         </div>
     </div>
 </div>
+
+<script>
+    function toggleCustomDate(selectObj) {
+        var container = document.getElementById('custom_date_container');
+        if(selectObj.value == 'custom') {
+            container.style.display = 'block';
+            container.querySelector('input').setAttribute('required', 'required');
+        } else {
+            container.style.display = 'none';
+            container.querySelector('input').removeAttribute('required');
+        }
+    }
+</script>
