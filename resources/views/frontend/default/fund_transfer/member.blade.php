@@ -63,6 +63,16 @@
                                     HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
                                 </option>
                                 @endif
+                                @if(auth()->user()->cc_status == 1)
+                                <option value="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}">
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
+                                </option>
+                                @endif
+                                @if(auth()->user()->loan_status == 1)
+                                <option value="loan" data-balance="0">
+                                    Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->loan_balance, 2) }} (Balance)
+                                </option>
+                                @endif
                             </select>
                         </div>
 
@@ -86,6 +96,8 @@
                                         <option value="savings" id="opt-savings" hidden disabled>Savings</option>
                                         <option value="ira" id="opt-ira" hidden disabled>IRA</option>
                                         <option value="heloc" id="opt-heloc" hidden disabled>HELOC (Pay Down)</option>
+                                        <option value="cc" id="opt-cc" hidden disabled>Credit Card (Pay Down)</option>
+                                        <option value="loan" id="opt-loan" hidden disabled>Loan (Pay Down)</option>
                                     </select>
                                 </div>
                             </div>
@@ -295,6 +307,8 @@
 
         const optIra = document.getElementById('opt-ira');
         const optHeloc = document.getElementById('opt-heloc');
+        const optCc = document.getElementById('opt-cc');
+        const optLoan = document.getElementById('opt-loan');
 
         if(memberInput) {
             memberInput.addEventListener('input', function() {
@@ -339,6 +353,24 @@
                                     optHeloc.disabled = true;
                                     if (targetAccountType.value === 'heloc') targetAccountType.value = 'checking';
                                 }
+
+                                if(data.has_cc) {
+                                    optCc.hidden = false;
+                                    optCc.disabled = false;
+                                } else {
+                                    optCc.hidden = true;
+                                    optCc.disabled = true;
+                                    if (targetAccountType.value === 'cc') targetAccountType.value = 'checking';
+                                }
+
+                                if(data.has_loan) {
+                                    optLoan.hidden = false;
+                                    optLoan.disabled = false;
+                                } else {
+                                    optLoan.hidden = true;
+                                    optLoan.disabled = true;
+                                    if (targetAccountType.value === 'loan') targetAccountType.value = 'checking';
+                                }
                                 
                                 // Auto-select based on identifier
                                 if(val === data.savings_account_number) {
@@ -347,6 +379,10 @@
                                     targetAccountType.value = 'ira';
                                 } else if(val === data.heloc_account_number) {
                                     targetAccountType.value = 'heloc';
+                                } else if(val === data.cc_account_number) {
+                                    targetAccountType.value = 'cc';
+                                } else if(val === data.loan_account_number) {
+                                    targetAccountType.value = 'loan';
                                 } else if(val === data.account_number) {
                                     targetAccountType.value = 'checking';
                                 }
@@ -361,6 +397,10 @@
                                 optIra.disabled = true;
                                 optHeloc.hidden = true;
                                 optHeloc.disabled = true;
+                                optCc.hidden = true;
+                                optCc.disabled = true;
+                                optLoan.hidden = true;
+                                optLoan.disabled = true;
                                 targetAccountType.value = 'checking';
                             }
                         });

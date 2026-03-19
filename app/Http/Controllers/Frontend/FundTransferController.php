@@ -123,10 +123,15 @@ class FundTransferController extends Controller
             
             if ($data['to_wallet'] === 'primary_savings') {
                 $accountNumber = $user->savings_account_number;
+            } elseif ($data['to_wallet'] === 'ira') {
+                $accountNumber = $user->ira_account_number;
+            } elseif ($data['to_wallet'] === 'heloc') {
+                $accountNumber = $user->heloc_account_number;
+            } elseif ($data['to_wallet'] === 'cc') {
+                $accountNumber = $user->cc_account_number;
+            } elseif ($data['to_wallet'] === 'loan') {
+                $accountNumber = $user->loan_account_number;
             } else {
-                 // Assuming 'to_wallet' is currency code for Checking
-                 // In this system, User has one main 'account_number' for Checkings (usually).
-                 // If wallets have distinct numbers, we'd fetch that. For now, use User's main.
                  $accountNumber = $user->account_number;
             }
             $data['manual_data']['account_number'] = $accountNumber;
@@ -153,9 +158,24 @@ class FundTransferController extends Controller
             
             if ($targetType === 'savings' && $receiver->savings_account_number) {
                 $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            } elseif ($targetType === 'ira' && $receiver->ira_account_number) {
+                $data['manual_data']['account_number'] = $receiver->ira_account_number;
+            } elseif ($targetType === 'heloc' && $receiver->heloc_account_number) {
+                $data['manual_data']['account_number'] = $receiver->heloc_account_number;
+            } elseif ($targetType === 'cc' && $receiver->cc_account_number) {
+                $data['manual_data']['account_number'] = $receiver->cc_account_number;
+            } elseif ($targetType === 'loan' && $receiver->loan_account_number) {
+                $data['manual_data']['account_number'] = $receiver->loan_account_number;
             } elseif ($sanitizedIdentifier === $receiver->savings_account_number) {
-                // If they searched with savings account number, target that even if forgot to toggle
                 $data['manual_data']['account_number'] = $receiver->savings_account_number;
+            } elseif ($sanitizedIdentifier === $receiver->ira_account_number) {
+                $data['manual_data']['account_number'] = $receiver->ira_account_number;
+            } elseif ($sanitizedIdentifier === $receiver->heloc_account_number) {
+                $data['manual_data']['account_number'] = $receiver->heloc_account_number;
+            } elseif ($sanitizedIdentifier === $receiver->cc_account_number) {
+                $data['manual_data']['account_number'] = $receiver->cc_account_number;
+            } elseif ($sanitizedIdentifier === $receiver->loan_account_number) {
+                $data['manual_data']['account_number'] = $receiver->loan_account_number;
             } else {
                 $data['manual_data']['account_number'] = $receiver->account_number;
             }

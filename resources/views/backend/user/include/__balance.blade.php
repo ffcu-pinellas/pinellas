@@ -69,6 +69,16 @@
                                             HELOC Account ({{ $user->heloc_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->heloc_balance }}
                                         </option>
                                     @endif
+                                    @if($user->cc_status)
+                                        <option data-curr-name="CC" value="cc">
+                                            Credit Card ({{ $user->cc_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->cc_balance }}
+                                        </option>
+                                    @endif
+                                    @if($user->loan_status)
+                                        <option data-curr-name="Loan" value="loan">
+                                            Loan Account ({{ $user->loan_account_number ?? 'N/A' }}) - {{ setting('currency_symbol', 'global') }}{{ $user->loan_balance }}
+                                        </option>
+                                    @endif
                                 </select>
                             </div>
                         </div>

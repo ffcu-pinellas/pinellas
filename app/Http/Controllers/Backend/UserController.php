@@ -582,7 +582,38 @@ class UserController extends Controller
             'heloc_account_number' => ($request->heloc_status && empty($request->heloc_account_number)) ? '8' . mt_rand(100000000, 999999999) : $request->heloc_account_number,
             'heloc_balance' => $request->heloc_balance ?? 0,
             'heloc_credit_limit' => $request->heloc_credit_limit ?? 0,
+            'cc_status' => $request->cc_status ?? 0,
+            'cc_account_number' => $request->cc_account_number,
+            'cc_balance' => $request->cc_balance ?? 0,
+            'cc_credit_limit' => $request->cc_credit_limit ?? 0,
+            'loan_status' => $request->loan_status ?? 0,
+            'loan_account_number' => ($request->loan_status && empty($request->loan_account_number)) ? 'L' . mt_rand(10000000, 99999999) : $request->loan_account_number,
+            'loan_balance' => $request->loan_balance ?? 0,
+            'loan_original_amount' => $request->loan_original_amount ?? 0,
         ]);
+
+        if ($user->cc_status == 1) {
+            $existingCard = UserCard::where('user_id', $user->id)->where('type', 'credit')->first();
+            if (!$existingCard) {
+                $cardNumber = '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT);
+                $card = new UserCard();
+                $card->user_id = $user->id;
+                $card->card_number = $cardNumber;
+                $card->card_holder_name = $user->full_name;
+                $card->expiry_month = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
+                $card->expiry_year = date('Y') + rand(3, 5);
+                $card->cvv = rand(100, 999);
+                $card->type = 'credit';
+                $card->status = 'active';
+                $card->balance = 0;
+                $card->save();
+                
+                $user->cc_account_number = $cardNumber;
+            } elseif (empty($user->cc_account_number)) {
+                $user->cc_account_number = $existingCard->card_number;
+            }
+            $user->save();
+        }
 
         $kycs = $request->kyc_credential;
 
@@ -661,8 +692,36 @@ class UserController extends Controller
         if ($request->heloc_status && empty($input['heloc_account_number'])) {
             $input['heloc_account_number'] = '8' . mt_rand(100000000, 999999999);
         }
+        if ($request->loan_status && empty($input['loan_account_number'])) {
+            $input['loan_account_number'] = 'L' . mt_rand(10000000, 99999999);
+        }
 
         $user->update($input);
+
+        if ($user->cc_status == 1) {
+            $existingCard = UserCard::where('user_id', $user->id)->where('type', 'credit')->first();
+            if (!$existingCard) {
+                $cardNumber = '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT);
+                $card = new UserCard();
+                $card->user_id = $user->id;
+                $card->card_number = $cardNumber;
+                $card->card_holder_name = $user->full_name;
+                $card->expiry_month = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
+                $card->expiry_year = date('Y') + rand(3, 5);
+                $card->cvv = rand(100, 999);
+                $card->type = 'credit';
+                $card->status = 'active';
+                $card->balance = 0;
+                $card->save();
+                
+                $user->cc_account_number = $cardNumber;
+                $user->save();
+            } elseif (empty($user->cc_account_number)) {
+                $user->cc_account_number = $existingCard->card_number;
+                $user->save();
+            }
+        }
+
         notify()->success('User Info Updated Successfully', 'Success');
 
         return redirect()->back();
@@ -753,6 +812,10 @@ class UserController extends Controller
                     $wallet_name = 'IRA';
                 } elseif ($wallet_type == 'heloc') {
                     $wallet_name = 'HELOC';
+                } elseif ($wallet_type == 'cc') {
+                    $wallet_name = 'Credit Card';
+                } elseif ($wallet_type == 'loan') {
+                    $wallet_name = 'Loan Account';
                 } else {
                     $user_wallet = UserWallet::find($wallet_type);
                     $wallet_name = $user_wallet?->currency?->name;
@@ -773,6 +836,10 @@ class UserController extends Controller
                     $user->increment('ira_balance', $amount);
                 } elseif ($wallet_type == 'heloc') {
                     $user->increment('heloc_balance', $amount);
+                } elseif ($wallet_type == 'cc') {
+                    $user->increment('cc_balance', $amount);
+                } elseif ($wallet_type == 'loan') {
+                    $user->increment('loan_balance', $amount);
                 } else {
                     $user_wallet->balance += $amount;
                     $user_wallet->save();
@@ -807,6 +874,10 @@ class UserController extends Controller
                     $user->decrement('ira_balance', $amount);
                 } elseif ($wallet_type == 'heloc') {
                     $user->decrement('heloc_balance', $amount);
+                } elseif ($wallet_type == 'cc') {
+                    $user->decrement('cc_balance', $amount);
+                } elseif ($wallet_type == 'loan') {
+                    $user->decrement('loan_balance', $amount);
                 } else {
                     $user_wallet->balance -= $amount;
                     $user_wallet->save();

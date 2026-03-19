@@ -41,6 +41,8 @@ class UserController extends Controller
                     ->orWhere('savings_account_number', $sanitizedNumber)
                     ->orWhere('ira_account_number', $sanitizedNumber)
                     ->orWhere('heloc_account_number', $sanitizedNumber)
+                    ->orWhere('cc_account_number', $sanitizedNumber)
+                    ->orWhere('loan_account_number', $sanitizedNumber)
                     ->first();
 
         if (!$user) {
@@ -51,9 +53,13 @@ class UserController extends Controller
                 'savings_account_number' => '',
                 'ira_account_number' => '',
                 'heloc_account_number' => '',
+                'cc_account_number' => '',
+                'loan_account_number' => '',
                 'has_savings' => false,
                 'has_ira' => false,
                 'has_heloc' => false,
+                'has_cc' => false,
+                'has_loan' => false,
             ]);
         }
 
@@ -64,9 +70,13 @@ class UserController extends Controller
             'savings_account_number' => $user->savings_account_number,
             'ira_account_number' => $user->ira_account_number,
             'heloc_account_number' => $user->heloc_account_number,
+            'cc_account_number' => $user->cc_account_number,
+            'loan_account_number' => $user->loan_account_number,
             'has_savings' => !empty($user->savings_account_number),
             'has_ira' => ($user->ira_status == 1 && !empty($user->ira_account_number)),
             'has_heloc' => ($user->heloc_status == 1 && !empty($user->heloc_account_number)),
+            'has_cc' => ($user->cc_status == 1 && !empty($user->cc_account_number)),
+            'has_loan' => ($user->loan_status == 1 && !empty($user->loan_account_number)),
         ]);
     }
 

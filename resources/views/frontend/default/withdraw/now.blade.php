@@ -48,6 +48,12 @@
                                             @if(auth()->user()->heloc_status)
                                             <option value="heloc">{{ __('HELOC Account (Credit)') }}</option>
                                             @endif
+                                            @if(auth()->user()->cc_status)
+                                            <option value="cc">{{ __('Credit Card') }}</option>
+                                            @endif
+                                            @if(auth()->user()->loan_status)
+                                            <option value="loan">{{ __('Loan Account') }}</option>
+                                            @endif
                                         </select>
                                     </div>
                                 </div>

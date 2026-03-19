@@ -44,6 +44,16 @@
                                             HELOC Account ({{ $user->heloc_account_number ?? 'N/A' }})
                                         </option>
                                     @endif
+                                    @if($user->cc_status)
+                                        <option value="cc">
+                                            Credit Card ({{ $user->cc_account_number ?? 'N/A' }})
+                                        </option>
+                                    @endif
+                                    @if($user->loan_status)
+                                        <option value="loan">
+                                            Loan Account ({{ $user->loan_account_number ?? 'N/A' }})
+                                        </option>
+                                    @endif
                                     @foreach ($user_wallets as $wallet)
                                         <option value="{{ $wallet['id'] }}">
                                             {{ $wallet['name'] }} ({{ $wallet['code'] }})

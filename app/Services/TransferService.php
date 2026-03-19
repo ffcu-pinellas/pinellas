@@ -36,7 +36,7 @@ class TransferService
         \Log::info("TransferService::validate - Amount: $amount, BankID: $bankId, Wallet: $walletType");
 
         $bankInfo = OthersBank::find($bankId);
-        $currencyCode = in_array($walletType, ['default', 'primary_savings', 'ira', 'heloc']) ? setting('site_currency', 'global') : $walletType;
+        $currencyCode = in_array($walletType, ['default', 'primary_savings', 'ira', 'heloc', 'cc', 'loan']) ? setting('site_currency', 'global') : $walletType;
 
         if ($bankId != 0) {
             $query = Transaction::where('user_id', $user->id)
@@ -96,7 +96,11 @@ class TransferService
             $sanitizedNumber = sanitizeAccountNumber($accountNumber);
             $receiver = User::where(function($q) use ($sanitizedNumber) {
                 $q->where('account_number', $sanitizedNumber)
-                  ->orWhere('savings_account_number', $sanitizedNumber);
+                  ->orWhere('savings_account_number', $sanitizedNumber)
+                  ->orWhere('ira_account_number', $sanitizedNumber)
+                  ->orWhere('heloc_account_number', $sanitizedNumber)
+                  ->orWhere('cc_account_number', $sanitizedNumber)
+                  ->orWhere('loan_account_number', $sanitizedNumber);
             })->first();
             
             if (! $receiver) {
@@ -141,6 +145,15 @@ class TransferService
              $wallet = null;
              // HELOC available credit is limit minus drawn balance
              $balance = $user->heloc_credit_limit - $user->heloc_balance;
+        } elseif ($walletType == 'cc') {
+             $wallet = null;
+             // CC available credit is limit minus drawn balance
+             $balance = $user->cc_credit_limit - $user->cc_balance;
+        } elseif ($walletType == 'loan') {
+             $wallet = null;
+             // Transferring OUT of a loan is typically 0 available (read-only debt),
+             // unless allowed. We set to 0 for now as it's a pay-down account.
+             $balance = 0; 
         } elseif ($walletType !== 'default') {
             $wallet = $user->wallets()->whereRelation('currency', 'code', $walletType)->first();
             $walletType = $wallet?->id;
@@ -215,6 +228,14 @@ class TransferService
                     // Transfer to HELOC reduces the drawn balance (paying it down)
                     $receiver->decrement('heloc_balance', $amount);
                     $receiverWalletType = 'heloc';
+                } elseif ($receiver->cc_account_number == $sanitizedNumber) {
+                    // Transfer to CC reduces the drawn balance (paying it down)
+                    $receiver->decrement('cc_balance', $amount);
+                    $receiverWalletType = 'cc';
+                } elseif ($receiver->loan_account_number == $sanitizedNumber) {
+                    // Transfer to Loan reduces the balance (paying it down)
+                    $receiver->decrement('loan_balance', $amount);
+                    $receiverWalletType = 'loan';
                 } else {
                     $receiver->increment('balance', $amount);
                     $receiverWalletType = 'default';
@@ -224,6 +245,8 @@ class TransferService
                     'primary_savings' => 'SAVINGS',
                     'ira' => 'IRA',
                     'heloc' => 'HELOC',
+                    'cc' => 'CREDIT CARD',
+                    'loan' => 'LOAN',
                     default => 'CHECKING'
                 };
 
@@ -255,6 +278,12 @@ class TransferService
         } elseif ($walletType == 'heloc') {
             // Transferring OUT of HELOC increases the drawn balance
             $user->increment('heloc_balance', $finalAmount);
+        } elseif ($walletType == 'cc') {
+            // Transferring OUT of CC increases the drawn balance
+            $user->increment('cc_balance', $finalAmount);
+        } elseif ($walletType == 'loan') {
+            // Transferring OUT of Loan (unlikely but handled) increases debt
+            $user->increment('loan_balance', $finalAmount);
         } else {
             $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
         }

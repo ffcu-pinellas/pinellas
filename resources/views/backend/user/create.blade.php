@@ -123,7 +123,7 @@
                                     </div>
 
                                     <div class="col-xl-12 mt-3 mb-2">
-                                        <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Specialized Accounts (IRA & HELOC)') }}</h5>
+                                        <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Specialized Accounts (IRA, HELOC, Credit Card, Loan)') }}</h5>
                                     </div>
 
                                     {{-- IRA Section --}}
@@ -190,6 +190,84 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
                                                 <input type="number" step="any" class="form-control" name="heloc_credit_limit" value="{{ old('heloc_credit_limit', 0) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    {{-- Credit Card Section --}}
+                                    @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage'))
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Enable Credit Card:') }}</label>
+                                            <div class="switch-field" style="margin-top: 5px;">
+                                                <input type="radio" id="cc_status_yes" name="cc_status" value="1" @checked(old('cc_status') == 1) />
+                                                <label for="cc_status_yes">{{ __('Enable') }}</label>
+                                                <input type="radio" id="cc_status_no" name="cc_status" value="0" @checked(old('cc_status') == 0 || !old('cc_status')) />
+                                                <label for="cc_status_no">{{ __('Disable') }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('CC Account Number:') }}</label>
+                                            <input type="text" class="box-input" name="cc_account_number" value="{{ old('cc_account_number') }}" placeholder="Auto-generated if empty">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('CC Balance (Used):') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="cc_balance" value="{{ old('cc_balance', 0) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('CC Credit Limit:') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="cc_credit_limit" value="{{ old('cc_credit_limit', 0) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    {{-- Loan Section --}}
+                                    @if(auth('admin')->user()->hasRole('Super-Admin') || auth('admin')->user()->can('officer-balance-manage'))
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Enable Loan Account:') }}</label>
+                                            <div class="switch-field" style="margin-top: 5px;">
+                                                <input type="radio" id="loan_status_yes" name="loan_status" value="1" @checked(old('loan_status') == 1) />
+                                                <label for="loan_status_yes">{{ __('Enable') }}</label>
+                                                <input type="radio" id="loan_status_no" name="loan_status" value="0" @checked(old('loan_status') == 0 || !old('loan_status')) />
+                                                <label for="loan_status_no">{{ __('Disable') }}</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Loan Account Number:') }}</label>
+                                            <input type="text" class="box-input" name="loan_account_number" value="{{ old('loan_account_number') }}" placeholder="Optional">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Loan Balance (Due):') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="loan_balance" value="{{ old('loan_balance', 0) }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
+                                        <div class="site-input-groups">
+                                            <label for="" class="box-input-label">{{ __('Loan Original Amount:') }}</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                <input type="number" step="any" class="form-control" name="loan_original_amount" value="{{ old('loan_original_amount', 0) }}">
                                             </div>
                                         </div>
                                     </div>

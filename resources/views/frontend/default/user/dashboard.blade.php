@@ -82,6 +82,38 @@
                         </div>
                     </div>
                     @endif
+
+                    <!-- Credit Card -->
+                    @if(auth()->user()->cc_status == 1)
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>CREDIT CARD</span>
+                                <span>${{ number_format(auth()->user()->cc_balance, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}</span>
+                                <span class="opacity-75" style="font-size: 11px;">Current Balance</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Loan Account -->
+                    @if(auth()->user()->loan_status == 1)
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                        <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                                <span>LOAN ACCOUNT</span>
+                                <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <span class="opacity-75" style="font-size: 11px;">x{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L00</span>
+                                <span class="opacity-75" style="font-size: 11px;">Current Balance</span>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <div class="accounts-dots d-flex justify-content-center gap-1 mt-2 mb-3">

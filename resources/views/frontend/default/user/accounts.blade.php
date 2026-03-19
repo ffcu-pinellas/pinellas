@@ -167,6 +167,66 @@
             </div>
             @endif
 
+            <!-- Credit Card -->
+            @if(auth()->user()->cc_status == 1)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Credit Card</h5>
+                                <div class="text-muted small">{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Pay Bill</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Current Balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','$').number_format(auth()->user()->cc_balance, 2) }}
+                            </div>
+                            <div class="text-muted small mt-1">Available Credit: {{ setting('currency_symbol','$').number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <!-- Loan Account -->
+            @if(auth()->user()->loan_status == 1)
+            <div class="col-lg-4 col-md-6">
+                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                    <div class="p-4 bg-white">
+                        <div class="d-flex justify-content-between mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Loan Account</h5>
+                                <div class="text-muted small">{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}</div>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
+                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="balance-section">
+                            <div class="text-muted small mb-1">Current Balance</div>
+                            <div class="h3 fw-bold m-0" style="color: var(--body-text-primary-color);">
+                                {{ setting('currency_symbol','$').number_format(auth()->user()->loan_balance, 2) }}
+                            </div>
+                            <div class="text-muted small mt-1">Original Amount: {{ setting('currency_symbol','$').number_format(auth()->user()->loan_original_amount, 2) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Add New Account -->
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 border-0" style="border-radius: 12px; border: 2px dashed #ddd !important; background: transparent !important; box-shadow: none !important;">

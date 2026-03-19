@@ -95,7 +95,7 @@ class UserCardController extends Controller
             '[[full_name]]' => auth()->user()->full_name,
             '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " was reported LOST/STOLEN.",
             '[[card_number]]' => $card->card_number,
-        ], route('admin.user.cards.index'), null, 'Admin');
+        ], route('admin.cards.index'), null, 'Admin');
 
         notify()->success("Card reported lost and locked.");
         return redirect()->back();
@@ -146,7 +146,7 @@ class UserCardController extends Controller
             '[[full_name]]' => $user->full_name,
             '[[message]]' => "PIN was reset for card ending in " . substr($card->card_number, -4) . ".",
             '[[card_number]]' => $card->card_number,
-        ], route('admin.user.cards.index'), null, 'Admin');
+        ], route('admin.cards.index'), null, 'Admin');
 
         notify()->success("Card PIN updated successfully.");
         return redirect()->back();

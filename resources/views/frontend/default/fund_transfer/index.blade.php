@@ -112,6 +112,16 @@
                                     HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
                                 </option>
                                 @endif
+                                @if(auth()->user()->cc_status == 1)
+                                <option value="cc" data-type="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}">
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
+                                </option>
+                                @endif
+                                @if(auth()->user()->loan_status == 1)
+                                <option value="loan" data-type="loan" data-balance="0">
+                                    Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->loan_balance, 2) }} (Balance)
+                                </option>
+                                @endif
                             </select>
                         </div>
 
@@ -413,6 +423,26 @@
                 const opt = document.createElement('option');
                 opt.value = 'heloc';
                 opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add Credit Card
+            @if(auth()->user()->cc_status == 1)
+            if(selectedType !== 'cc') {
+                const opt = document.createElement('option');
+                opt.value = 'cc';
+                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add Loan
+            @if(auth()->user()->loan_status == 1)
+            if(selectedType !== 'loan') {
+                const opt = document.createElement('option');
+                opt.value = 'loan';
+                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
                 toSelect.add(opt);
             }
             @endif

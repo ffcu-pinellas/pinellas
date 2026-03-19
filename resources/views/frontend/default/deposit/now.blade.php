@@ -32,6 +32,12 @@
                                         @if(auth()->user()->heloc_status)
                                         <option value="heloc" data-currency="{{ setting('site_currency') }}">{{ __('HELOC Account') }}</option>
                                         @endif
+                                        @if(auth()->user()->cc_status)
+                                        <option value="cc" data-currency="{{ setting('site_currency') }}">{{ __('Credit Card') }}</option>
+                                        @endif
+                                        @if(auth()->user()->loan_status)
+                                        <option value="loan" data-currency="{{ setting('site_currency') }}">{{ __('Loan Account') }}</option>
+                                        @endif
                                         @foreach ($wallets as $wallet)
                                         <option value="{{ $wallet->id }}" @selected($code==$wallet->currency?->code) data-currency="{{ $wallet->currency?->code }}">{{ $wallet?->currency?->name }} ({{ $wallet?->currency?->code }})</option>
                                         @endforeach

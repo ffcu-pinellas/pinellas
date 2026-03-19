@@ -28,7 +28,7 @@
                                         <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 30px; filter: brightness(0) invert(1);">
-                                                <span class="text-white opacity-75 small">{{ ucfirst($card->type ?? 'Debit') }}</span>
+                                                <span class="text-white opacity-75 small">{{ ($card->type == 'credit') ? 'Credit Card' : ucfirst($card->type ?? 'Debit') }}</span>
                                             </div>
                                             <div class="d-flex align-items-center my-3">
                                                 <i class="fas fa-microchip fa-3x text-warning me-3" style="opacity: 0.8;"></i>

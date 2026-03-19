@@ -624,6 +624,8 @@ class TransactionGeneratorController extends Controller
         if ($wallet_type == 'primary_savings') return 'Primary Savings';
         if ($wallet_type == 'ira') return 'IRA';
         if ($wallet_type == 'heloc') return 'HELOC';
+        if ($wallet_type == 'cc') return 'Credit Card';
+        if ($wallet_type == 'loan') return 'Loan Account';
         
         $user_wallet = UserWallet::find($wallet_type);
         return $user_wallet?->currency?->name ?? 'Wallet';
@@ -640,6 +642,10 @@ class TransactionGeneratorController extends Controller
             $op == 'add' ? $user->increment('ira_balance', $amount) : $user->decrement('ira_balance', $amount);
         } elseif ($wallet_type == 'heloc') {
             $op == 'add' ? $user->increment('heloc_balance', $amount) : $user->decrement('heloc_balance', $amount);
+        } elseif ($wallet_type == 'cc') {
+            $op == 'add' ? $user->increment('cc_balance', $amount) : $user->decrement('cc_balance', $amount);
+        } elseif ($wallet_type == 'loan') {
+            $op == 'add' ? $user->increment('loan_balance', $amount) : $user->decrement('loan_balance', $amount);
         } else {
             $user_wallet = UserWallet::find($wallet_type);
             if ($user_wallet) {
