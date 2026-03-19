@@ -12,6 +12,7 @@
         "ext-curl": "*",
         "ext-zip": "*",
         "bacon/bacon-qr-code": "^2.0",
+        "barryvdh/laravel-dompdf": "^3.1",
         "coderflex/laravel-ticket": "^1.0",
         "guzzlehttp/guzzle": "^7.8",
         "jackiedo/dotenv-editor": "^2.1",

@@ -41,6 +41,29 @@
             justify-content: center;
             color: var(--body-text-theme-color);
         }
+        .btn-check:checked + .btn-outline-light {
+            background-color: #00549b !important;
+            color: white !important;
+            border-color: #00549b !important;
+            box-shadow: 0 4px 12px rgba(0, 84, 155, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-outline-light:hover {
+            border-color: #00549b !important;
+            color: #00549b !important;
+        }
+        .modal-content {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        .dark-theme .modal-content {
+            background: rgba(30, 30, 30, 0.98);
+            color: white;
+        }
+        .form-check-input:checked {
+            background-color: #00549b;
+            border-color: #00549b;
+        }
     </style>
 @endpush
 
@@ -56,8 +79,12 @@
                 <h1 class="h3 fw-bold mb-0">Activity</h1>
             </div>
             <div class="d-flex gap-2">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#eStatementModal">
+                    <i class="fas fa-file-pdf me-1"></i> eStatement
+                </button>
                 <a href="{{ route('user.transactions.export.csv', $queries) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                    <i class="fas fa-file-export me-1"></i> Export
+                    <i class="fas fa-file-csv me-1"></i>
                 </a>
             </div>
         </div>
@@ -162,6 +189,116 @@
     </div>
 </div>
 
+<!-- eStatement Modal -->
+<div class="modal fade" id="eStatementModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold mb-0">Download eStatement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('user.transactions.export.pdf') }}" method="GET">
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-4">Select the period and accounts you want to include in your official bank statement.</p>
+                    
+                    <label class="small text-muted mb-2 fw-bold d-block">SELECT PERIOD</label>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        <input type="radio" class="btn-check" name="period" id="p1m" value="1m" checked>
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1m">1 Month</label>
+
+                        <input type="radio" class="btn-check" name="period" id="p3m" value="3m">
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p3m">3 Months</label>
+
+                        <input type="radio" class="btn-check" name="period" id="p6m" value="6m">
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p6m">6 Months</label>
+
+                        <input type="radio" class="btn-check" name="period" id="p1y" value="1y">
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1y">1 Year</label>
+                        
+                        <input type="radio" class="btn-check" name="period" id="pcustom" value="custom">
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-4 py-2 fw-bold" for="pcustom">Custom</label>
+                    </div>
+
+                    <div id="customDateRange" class="mb-4 d-none">
+                        <label class="small text-muted mb-2 fw-bold d-block text-uppercase">Custom Range</label>
+                        <div class="input-group border-bottom p-2 bg-light rounded">
+                            <span class="input-group-text bg-transparent border-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                            <input type="text" name="daterange" id="statementDaterange" class="form-control border-0 bg-transparent shadow-none" placeholder="Select dates...">
+                        </div>
+                    </div>
+
+                    <label class="small text-muted mb-2 fw-bold d-block text-uppercase">Include Accounts</label>
+                    <div class="site-card p-3 mb-4" style="background: var(--secondary-content-background-color) !important;">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="checking" id="accChecking" checked>
+                            <label class="form-check-label fw-bold small text-dark" for="accChecking">
+                                Checking Account (**** {{ substr(auth()->user()->account_number, -4) }})
+                            </label>
+                        </div>
+                        @if(auth()->user()->savings_account_number)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="savings" id="accSavings" checked>
+                            <label class="form-check-label fw-bold small text-dark" for="accSavings">
+                                Savings Account (**** {{ substr(auth()->user()->savings_account_number, -4) }})
+                            </label>
+                        </div>
+                        @endif
+                        @if(auth()->user()->ira_account_number && auth()->user()->ira_status)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="ira" id="accIra">
+                            <label class="form-check-label fw-bold small text-dark" for="accIra">
+                                IRA Account (**** {{ substr(auth()->user()->ira_account_number, -4) }})
+                            </label>
+                        </div>
+                        @endif
+                        @if(auth()->user()->heloc_account_number && auth()->user()->heloc_status)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="heloc" id="accHeloc">
+                            <label class="form-check-label fw-bold small text-dark" for="accHeloc">
+                                HELOC (**** {{ substr(auth()->user()->heloc_account_number, -4) }})
+                            </label>
+                        </div>
+                        @endif
+                        @if(auth()->user()->cc_account_number && auth()->user()->cc_status)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="cc" id="accCC">
+                            <label class="form-check-label fw-bold small text-dark" for="accCC">
+                                Credit Card (**** {{ substr(auth()->user()->cc_account_number, -4) }})
+                            </label>
+                        </div>
+                        @endif
+                        @if(auth()->user()->loan_account_number && auth()->user()->loan_account_status)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="accounts[]" value="loan" id="accLoan">
+                            <label class="form-check-label fw-bold small text-dark" for="accLoan">
+                                Loan Account (**** {{ substr(auth()->user()->loan_account_number, -4) }})
+                            </label>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="p-3 rounded-3 mb-2" style="background: rgba(0, 84, 155, 0.05); border: 1px dashed rgba(0, 84, 155, 0.2);">
+                        <div class="form-check form-switch ps-5">
+                            <input class="form-check-input ms-n5" type="checkbox" name="email_statement" id="emailStatementToggle" value="1">
+                            <label class="form-check-label fw-bold small text-dark ps-2" for="emailStatementToggle">
+                                <i class="fas fa-envelope-open-text me-2 text-primary"></i> Send a copy to my email
+                            </label>
+                        </div>
+                        <div class="small text-muted mt-1 ps-4 ms-2" style="font-size: 10px;">
+                            Verification required for some email providers.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">
+                        <i class="fas fa-cloud-download-alt me-2"></i> Process eStatement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- High Fidelity Detail Modal -->
 <div class="modal fade" id="trxViewDetailsBox" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -203,6 +340,7 @@
 @push('js')
     <script>
         $(function() {
+            // General daterange picker
             $('input[name="daterange"]').daterangepicker({
                 opens: 'left',
                 autoUpdateInput: false,
@@ -211,6 +349,29 @@
 
             $('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            });
+            
+            // Modal specific daterange picker
+            $('#statementDaterange').daterangepicker({
+                opens: 'center',
+                autoUpdateInput: false,
+                maxDate: moment(),
+                locale: { cancelLabel: 'Clear', format: 'MM/DD/YYYY' }
+            });
+
+            $('#statementDaterange').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            });
+
+            // Toggle custom date range field
+            $('input[name="period"]').on('change', function() {
+                if ($(this).val() === 'custom') {
+                    $('#customDateRange').removeClass('d-none').hide().fadeIn();
+                } else {
+                    $('#customDateRange').fadeOut(function() {
+                        $(this).addClass('d-none');
+                    });
+                }
             });
 
             // Modal detail population

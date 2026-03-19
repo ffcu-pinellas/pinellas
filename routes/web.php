@@ -83,6 +83,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::prefix('transactions')->name('transactions')->group(function () {
         Route::get('/', [TransactionController::class, 'transactions']);
         Route::get('export/csv', [TransactionController::class, 'transactionExportCSV'])->name('.export.csv');
+        Route::get('export/pdf', [TransactionController::class, 'transactionExportPDF'])->name('.export.pdf');
     });
 
     // Deposit

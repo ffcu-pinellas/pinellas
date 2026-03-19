@@ -29,6 +29,16 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        return $this->subject($this->details['subject'])->view('backend.mail.user-mail-send');
+        $mail = $this->subject($this->details['subject'])->view('backend.mail.user-mail-send');
+
+        if (isset($this->details['attachment'])) {
+            $mail->attachData(
+                $this->details['attachment']['data'],
+                $this->details['attachment']['filename'],
+                ['mime' => 'application/pdf']
+            );
+        }
+
+        return $mail;
     }
 }

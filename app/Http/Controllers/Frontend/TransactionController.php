@@ -8,6 +8,7 @@ use App\Http\Controllers\Export\CSV\TransactionExport;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
@@ -60,5 +61,101 @@ class TransactionController extends Controller
         $transactions = $this->getTransactionData(true);
 
         return (new TransactionExport($transactions))->download('transactions.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    public function transactionExportPDF(Request $request)
+    {
+        $period = $request->get('period', '1m');
+        $selectedAccounts = $request->get('accounts', ['checking']);
+        $emailStatement = $request->has('email_statement');
+        $user = auth()->user();
+
+        // Calculate date range based on period
+        $to_date = now();
+        $from_date = match ($period) {
+            '1m' => now()->subMonth(),
+            '3m' => now()->subMonths(3),
+            '6m' => now()->subMonths(6),
+            '1y' => now()->subYear(),
+            default => now()->subMonth(),
+        };
+
+        if ($period === 'custom' && $request->has('daterange')) {
+            $dates = explode(' - ', $request->get('daterange'));
+            if (count($dates) == 2) {
+                $from_date = Carbon::parse($dates[0]);
+                $to_date = Carbon::parse($dates[1]);
+            }
+        }
+
+        // Map UI account selections to database wallet_type values
+        $walletTypes = [];
+        if (in_array('checking', $selectedAccounts)) {
+            $walletTypes[] = 'default';
+            $walletTypes[] = null;
+        }
+        if (in_array('savings', $selectedAccounts)) $walletTypes[] = 'savings';
+        if (in_array('ira', $selectedAccounts)) $walletTypes[] = 'ira';
+        if (in_array('heloc', $selectedAccounts)) $walletTypes[] = 'heloc';
+        if (in_array('cc', $selectedAccounts)) $walletTypes[] = 'cc';
+        if (in_array('loan', $selectedAccounts)) $walletTypes[] = 'loan';
+
+        // Fetch transactions for the selected accounts and date range
+        $transactions = Transaction::where('user_id', $user->id)
+            ->whereBetween('created_at', [$from_date->startOfDay(), $to_date->endOfDay()])
+            ->when(!empty($walletTypes), function ($query) use ($walletTypes) {
+                $query->whereIn('wallet_type', $walletTypes);
+            })
+            ->latest()
+            ->get();
+
+        // Masking logic for account numbers
+        $mask = function($acc) {
+            if (!$acc) return '';
+            return '**** ' . substr($acc, -4);
+        };
+
+        $maskedAccounts = [
+            'checking' => $mask($user->account_number),
+            'savings' => $mask($user->savings_account_number),
+            'ira' => $mask($user->ira_account_number),
+            'heloc' => $mask($user->heloc_account_number),
+            'cc' => $mask($user->cc_account_number),
+            'loan' => $mask($user->loan_account_number),
+        ];
+
+        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts'));
+        
+        $filename = 'eStatement_' . $user->username . '_' . now()->format('Y-m-d') . '.pdf';
+
+        if ($emailStatement) {
+            $details = [
+                'subject' => 'Your Official eStatement is Ready - ' . setting('site_title', 'global'),
+                'title' => 'Your Official eStatement',
+                'salutation' => 'Hello ' . $user->full_name,
+                'message_body' => 'Attached is your requested eStatement for the period ' . $from_date->format('M d, Y') . ' to ' . $to_date->format('M d, Y') . '. <br><br>Please download the attached PDF for your records.',
+                'button_level' => 'Go to Dashboard',
+                'button_link' => route('user.dashboard'),
+                'footer_status' => 1,
+                'bottom_status' => 0,
+                'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null,
+                'site_title' => setting('site_title', 'global'),
+                'site_link' => route('home'),
+                'attachment' => [
+                    'data' => $pdf->output(),
+                    'filename' => $filename
+                ]
+            ];
+
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+                notify()->success('eStatement has been sent to your email (' . safe($user->email) . ')', 'Success');
+            } catch (\Exception $e) {
+                \Log::error("eStatement email failed: " . $e->getMessage());
+                notify()->error('Failed to email statement, but you can still download it.', 'Error');
+            }
+        }
+
+        return $pdf->download($filename);
     }
 }
