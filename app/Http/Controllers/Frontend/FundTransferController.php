@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\WireTransferService;
 use App\Http\Requests\TransferRequest;
 use Illuminate\Support\Facades\Validator;
-use App\Services\RoutingService;
 
 class FundTransferController extends Controller
 {
@@ -31,8 +30,7 @@ class FundTransferController extends Controller
 
     public function __construct(
         private TransferService $transferService,
-        private WireTransferService $wireTransferService,
-        private RoutingService $routingService
+        private WireTransferService $wireTransferService
     ) {}
 
     public function index($code = 'default')
@@ -69,11 +67,6 @@ class FundTransferController extends Controller
         $code = 'member';
 
         return view('frontend::fund_transfer.member', compact('banks', 'code', 'wallets'));
-    }
-
-    public function routingLookup($routingNumber)
-    {
-        return response()->json($this->routingService->resolve($routingNumber));
     }
 
     public function getBeneficiary(Request $request, $bankId)

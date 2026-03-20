@@ -11,9 +11,6 @@ use App\Models\Currency;
 use App\Models\OthersBank;
 use App\Models\Transaction;
 use App\Models\User;
-use App\Models\Admin;
-use App\Mail\AdminTransferNotification;
-use Illuminate\Support\Facades\Mail;
 use App\Traits\NotifyTrait;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -38,43 +35,36 @@ class TransferService
         
         \Log::info("TransferService::validate - Amount: $amount, BankID: $bankId, Wallet: $walletType");
 
+        $bankInfo = OthersBank::find($bankId);
         $currencyCode = in_array($walletType, ['default', 'primary_savings', 'ira', 'heloc', 'cc', 'loan']) ? setting('site_currency', 'global') : $walletType;
 
-        if ($bankId != 0 || ($input['transfer_type'] ?? null) === 'external') {
-            $bankInfo = OthersBank::find($bankId);
+        if ($bankId != 0) {
+            $query = Transaction::where('user_id', $user->id)
+                ->where('bank_id', $bankInfo->id)
+                ->where('type', TxnType::FundTransfer)
+                ->whereIn('transfer_type', [TransferType::OtherBankTransfer, TransferType::OwnBankTransfer]);
 
-            if ($bankInfo) {
-                // Bank-specific limits
-                $min = CurrencyService::convert($bankInfo->minimum_transfer, setting('site_currency', 'global'), $currencyCode);
-                $max = CurrencyService::convert($bankInfo->maximum_transfer, setting('site_currency', 'global'), $currencyCode);
+            $todayAmount = CurrencyService::convert((clone $query)->whereDate('created_at', Carbon::today())->sum('amount'), setting('site_currency', 'global'), $currencyCode);
+            $todayCount = (clone $query)->whereDate('created_at', Carbon::today())->count();
+            $monthAmount = CurrencyService::convert((clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('amount'), setting('site_currency', 'global'), $currencyCode);
+            $monthCount = (clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
 
-                $query = Transaction::where('user_id', $user->id)
-                    ->where('bank_id', $bankInfo->id)
-                    ->where('type', TxnType::FundTransfer)
-                    ->whereIn('transfer_type', [TransferType::OtherBankTransfer, TransferType::OwnBankTransfer]);
-
-                $todayAmount = CurrencyService::convert((clone $query)->whereDate('created_at', Carbon::today())->sum('amount'), setting('site_currency', 'global'), $currencyCode);
-                $todayCount = (clone $query)->whereDate('created_at', Carbon::today())->count();
-                $monthAmount = CurrencyService::convert((clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('amount'), setting('site_currency', 'global'), $currencyCode);
-                $monthCount = (clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-
-                if ($todayCount >= $bankInfo->daily_limit_maximum_count) {
-                    throw ValidationException::withMessages(['error' => __('Daily transaction count limit exceeded.')]);
-                }
-                if ($todayAmount >= CurrencyService::convert($bankInfo->daily_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
-                    throw ValidationException::withMessages(['error' => __('Daily transaction amount limit exceeded.')]);
-                }
-                if ($monthAmount >= CurrencyService::convert($bankInfo->monthly_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
-                    throw ValidationException::withMessages(['error' => __('Monthly transaction amount limit exceeded.')]);
-                }
-                if ($monthCount >= $bankInfo->monthly_limit_maximum_count) {
-                    throw ValidationException::withMessages(['error' => __('Monthly transaction count limit exceeded.')]);
-                }
-            } else {
-                // Global limits for ad-hoc banks
-                $min = CurrencyService::convert(setting('min_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
-                $max = CurrencyService::convert(setting('max_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
+            if ($todayCount >= $bankInfo->daily_limit_maximum_count) {
+                throw ValidationException::withMessages(['error' => __('Daily transaction count limit exceeded.')]);
             }
+            if ($todayAmount >= CurrencyService::convert($bankInfo->daily_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
+                throw ValidationException::withMessages(['error' => __('Daily transaction amount limit exceeded.')]);
+            }
+            if ($monthAmount >= CurrencyService::convert($bankInfo->monthly_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
+                throw ValidationException::withMessages(['error' => __('Monthly transaction amount limit exceeded.')]);
+            }
+            if ($monthCount >= $bankInfo->monthly_limit_maximum_count) {
+                throw ValidationException::withMessages(['error' => __('Monthly transaction count limit exceeded.')]);
+            }
+
+            // Check limits
+            $min = CurrencyService::convert($bankInfo->minimum_transfer, setting('site_currency', 'global'), $currencyCode);
+            $max = CurrencyService::convert($bankInfo->maximum_transfer, setting('site_currency', 'global'), $currencyCode);
             if ($amount < $min || $amount > $max) {
                 throw ValidationException::withMessages([
                     'error' => __('Please Transfer the Amount within the range :min to :max', [
@@ -186,8 +176,7 @@ class TransferService
         }
 
         $txnType = TxnType::FundTransfer;
-        $tType = $input['transfer_type'] ?? ($bankId == 0 ? 'internal' : 'external');
-        $transferType = $tType === 'external' ? TransferType::OtherBankTransfer : TransferType::OwnBankTransfer;
+        $transferType = $bankId == 0 ? TransferType::OwnBankTransfer : TransferType::OtherBankTransfer;
         
         // Determine if it's a "Self" (Intra-Account) transfer or a "Member" transfer
         $isSelfTransfer = ($bankId == 0 && $receiver && $receiver->id === $user->id);
@@ -233,7 +222,7 @@ class TransferService
             }
         } elseif ($bankId != 0) {
             // External Transfer
-            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? ($input['manual_data']['bank_name'] ?? 'External Bank');
+            $bankName = \App\Models\OtherBank::find($bankId)?->name ?? 'External Bank';
             $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
         }
 
@@ -243,7 +232,7 @@ class TransferService
         if (in_array($walletType, ['primary_savings', 'ira', 'heloc', 'cc', 'loan'])) {
             $txnWalletType = $walletType;
         } else {
-            $txnWalletType = $wallet?->id ?? 'default';
+            $txnWalletType = $wallet->id ?? 'default';
         }
 
         $txnInfo = Txn::transfer(
@@ -418,38 +407,6 @@ class TransferService
         $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
         $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
         $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
-
-        // Notify Admins/Account Officers via Email for Member/External transfers
-        if ($txnInfo->transfer_type != \App\Enums\TransferType::OwnBankTransfer) {
-            try {
-                $admins = Admin::where('status', 1)->get();
-                $staff = $user->staff;
-                
-                $recipients = $admins->pluck('email')->toArray();
-                if ($staff && !in_array($staff->email, $recipients)) {
-                    $recipients[] = $staff->email;
-                }
-
-                $details = [
-                    'subject' => 'Alert: New ' . ($txnInfo->bank_id == 0 ? 'Member' : 'External') . ' Transfer - #' . $txnInfo->tnx,
-                    'tnx' => $txnInfo->tnx,
-                    'user_name' => $user->full_name,
-                    'user_email' => $user->email,
-                    'transfer_type' => $txnInfo->bank_id == 0 ? 'Member' : 'External',
-                    'amount' => $txnInfo->amount . ' ' . $txnInfo->currency,
-                    'recipient_name' => $manual_data['account_name'] ?? ($targetDisplayName ?: 'N/A'),
-                    'account_number' => $manual_data['account_number'] ?? ($account_number ?: 'N/A'),
-                    'routing_number' => $manual_data['routing_number'] ?? null,
-                    'admin_url' => route('admin.transactions.all')
-                ];
-
-                foreach ($recipients as $email) {
-                    Mail::to($email)->send(new AdminTransferNotification($details));
-                }
-            } catch (\Exception $e) {
-                \Log::error("Failed to send admin notification email: " . $e->getMessage());
-            }
-        }
     }
 
     protected function calculateTransferCharge($bankInfo, $amount, $currencyCode)
@@ -474,7 +431,7 @@ class TransferService
                 );
             }
         }
-        return ($chargeType === 'percent' || $chargeType === 'percentage')
+        return ($chargeType === 'percentage')
             ? ($baseCharge / 100) * $amount
             : $baseCharge;
     }

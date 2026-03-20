@@ -22,7 +22,7 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_id' => 'nullable',
+            'bank_id' => 'required_if:transfer_type,external',
             'beneficiary_id' => 'nullable',
             'transfer_type' => 'required|in:self,member,external',
             'wallet_type' => 'required',
