@@ -146,9 +146,9 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
-                                <div class="alert alert-light border mb-0 small text-muted">
-                                    Bank will be auto-discovered from routing number in next step.
-                                </div>
+                                <p class="small text-muted mb-0">
+                                    You will enter the recipient’s routing and account information on the next screen. The receiving financial institution is identified from your nine-digit ABA routing number.
+                                </p>
                             </div>
                         </div>
 
@@ -204,12 +204,12 @@
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits routing number" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                             <div class="small mt-2" id="routingLookupStatus"></div>
                             <div class="border rounded p-3 mt-2 d-none" id="routingLookupCard">
                                 <div class="fw-bold" id="lookupBankName"></div>
-                                <div class="small text-muted" id="lookupBankState">Verified by routing lookup</div>
+                                <div class="small text-muted" id="lookupBankState">Receiving financial institution</div>
                             </div>
                             <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName">
                         </div>
@@ -228,8 +228,8 @@
                             </div>
                         </div>
                         <div class="col-12 d-none" id="manualBankNameWrap">
-                            <label class="form-label small text-uppercase fw-bold text-muted">Bank Name (Manual Fallback)</label>
-                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter bank name if auto-discovery is unavailable">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Receiving institution name</label>
+                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="As shown on your check or bank statement">
                         </div>
                     </div>
 
@@ -262,7 +262,7 @@
                                     <hr class="my-3"><div class="row">
                                         <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Routing #</span><span class="fw-bold" id="reviewRouting"></span></div>
                                         <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Account #</span><span class="fw-bold" id="reviewAccount"></span></div>
-                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Bank Name</span><span class="fw-bold" id="reviewBankName"></span></div>
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Recipient Bank Name</span><span class="fw-bold" id="reviewBankName"></span></div>
                                     </div>
                                 </div>
                             </div>
@@ -505,7 +505,7 @@
         if(!document.getElementById('resolvedBankId').value) {
             const manualName = document.getElementById('manualBankNameInput').value.trim();
             if(!manualName) {
-                Swal.fire({ title: 'Bank Verification Needed', text: 'Verify routing successfully or provide manual bank name.', icon: 'warning', confirmButtonColor: '#00549b' });
+                Swal.fire({ title: 'Receiving institution required', text: 'We could not verify your routing number automatically. Enter the receiving financial institution\'s name as it appears on your records.', icon: 'warning', confirmButtonColor: '#00549b' });
                 return;
             }
             document.getElementById('resolvedBankName').value = manualName;
@@ -521,7 +521,9 @@
                 charge: parseFloat(resolvedBank.charge || 0)
             };
         }
-        return { type: defaultChargeType, charge: defaultCharge };
+        const t = (defaultChargeType || '').toString().toLowerCase();
+        const type = (t === 'percentage' || t === 'percent') ? 'percentage' : 'fixed';
+        return { type: type, charge: defaultCharge };
     }
 
     function calculateFee(amount) {
@@ -668,39 +670,49 @@
 
             if(routing.length !== 9) return;
 
-            statusEl.innerHTML = '<span class="text-muted">Verifying routing number...</span>';
+            statusEl.innerHTML = '<span class="text-muted">Verifying ABA routing number…</span>';
             if(lookupTimer) clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => {
                 fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({ routing_number: routing })
                 })
-                .then(async response => ({ ok: response.ok, body: await response.json() }))
-                .then(({ok, body}) => {
+                .then(async response => {
+                    const text = await response.text();
+                    let body = {};
+                    try { body = text ? JSON.parse(text) : {}; } catch (e) { body = {}; }
+                    return { ok: response.ok, status: response.status, body };
+                })
+                .then(({ok, status, body}) => {
                     if(ok && body.status === 'verified') {
                         resolvedBank = body;
                         bankIdEl.value = body.bank_id;
                         bankNameHidden.value = body.bank_name;
                         bankNameEl.innerText = body.bank_name;
-                        bankStateEl.innerText = 'Verified by routing lookup';
+                        bankStateEl.innerText = 'Receiving financial institution (verified)';
                         cardEl.classList.remove('d-none');
-                        statusEl.innerHTML = '<span class="text-success">Bank verified successfully.</span>';
+                        statusEl.innerHTML = '<span class="text-success">Receiving institution verified.</span>';
                         manualWrap.classList.add('d-none');
                         manualInput.value = '';
                     } else if(body.status === 'manual_required') {
-                        statusEl.innerHTML = '<span class="text-warning">Auto-discovery unavailable. Enter bank name manually.</span>';
+                        statusEl.innerHTML = '<span class="text-warning">' + (body.message || 'Enter the receiving institution\'s name to continue.') + '</span>';
+                        manualWrap.classList.remove('d-none');
+                    } else if(body.status === 'error' || status >= 500) {
+                        statusEl.innerHTML = '<span class="text-warning">' + (body.message || 'Verification is temporarily unavailable. Enter the receiving institution\'s name to continue.') + '</span>';
                         manualWrap.classList.remove('d-none');
                     } else {
-                        statusEl.innerHTML = '<span class="text-danger">' + (body.message || 'Unable to verify routing number.') + '</span>';
+                        statusEl.innerHTML = '<span class="text-danger">' + (body.message || 'Unable to verify this routing number.') + '</span>';
                         manualWrap.classList.remove('d-none');
                     }
                 })
                 .catch(() => {
-                    statusEl.innerHTML = '<span class="text-warning">Lookup service unavailable. Enter bank name manually.</span>';
+                    statusEl.innerHTML = '<span class="text-warning">Verification is temporarily unavailable. Enter the receiving institution\'s name to continue.</span>';
                     manualWrap.classList.remove('d-none');
                 });
             }, 300);

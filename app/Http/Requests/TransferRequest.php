@@ -42,6 +42,7 @@ class TransferRequest extends FormRequest
             'manual_data.account_number' => 'required_if:transfer_type,external',
             'manual_data.routing_number' => 'required_if:transfer_type,external',
             'manual_data.bank_name' => 'nullable|string|max:255',
+            'manual_data.bank_name_manual' => 'nullable|string|max:255',
             
             'purpose' => 'nullable|string|max:255',
         ];
