@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Models\User;
+use App\Models\Admin;
 use App\Enums\TxnType;
 use App\Enums\TxnStatus;
 use App\Facades\Txn\Txn;
@@ -20,6 +21,8 @@ use App\Services\CurrencyService;
 use App\Services\TransferService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use App\Services\WireTransferService;
 use App\Http\Requests\TransferRequest;
 use Illuminate\Support\Facades\Validator;
@@ -182,7 +185,20 @@ class FundTransferController extends Controller
             
             $data['manual_data']['account_name'] = $receiver->full_name;
         } 
-        // External is already handled by TransferRequest validation and existing logic (bank_id provided)
+        if ($data['transfer_type'] === 'external') {
+            $routingNumber = preg_replace('/\D/', '', data_get($data, 'manual_data.routing_number', ''));
+            $manualBankName = data_get($data, 'manual_data.bank_name');
+
+            if (! $this->isValidAbaRoutingNumber($routingNumber)) {
+                notify()->error(__('Please provide a valid 9-digit routing number.'));
+                return redirect()->back()->withInput();
+            }
+
+            $data['manual_data']['routing_number'] = $routingNumber;
+            $resolvedBank = $this->resolveOrCreateOtherBank($routingNumber, $manualBankName);
+            $data['bank_id'] = $resolvedBank->id;
+            $data['manual_data']['bank_name'] = $resolvedBank->name;
+        }
 
         $data['frequency'] = $request->input('frequency', 'once');
         $data['scheduled_at'] = $request->input('scheduled_at') ?? now();
@@ -215,6 +231,7 @@ class FundTransferController extends Controller
             $this->transferService->validate($user, $data, $request->get('wallet_type', 'default'));
             $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
             $message = __('Fund Transfer Successful!');
+            $this->notifyTransferAdminsAndOfficers($user, $data, $responseData);
 
             // Telegram Notification
             $type = ucfirst($data['transfer_type'] ?? 'External');
@@ -329,6 +346,194 @@ class FundTransferController extends Controller
             notify()->error($e->getMessage());
 
             return redirect()->back();
+        }
+    }
+
+    public function lookupRouting(Request $request)
+    {
+        $request->validate([
+            'routing_number' => ['required', 'digits:9'],
+        ]);
+
+        $routingNumber = preg_replace('/\D/', '', $request->routing_number);
+        if (! $this->isValidAbaRoutingNumber($routingNumber)) {
+            return response()->json([
+                'status' => 'invalid',
+                'message' => __('Invalid routing number checksum.'),
+            ], 422);
+        }
+
+        $bankFromCode = OthersBank::where('code', $routingNumber)->first();
+        if ($bankFromCode) {
+            return response()->json([
+                'status' => 'verified',
+                'bank_id' => $bankFromCode->id,
+                'bank_name' => $bankFromCode->name,
+                'logo' => $bankFromCode->logo,
+                'charge_type' => $bankFromCode->charge_type,
+                'charge' => (float) $bankFromCode->charge,
+            ]);
+        }
+
+        $cacheKey = 'routing_lookup_' . $routingNumber;
+        $lookup = Cache::remember($cacheKey, now()->addHours(12), function () use ($routingNumber) {
+            try {
+                $response = Http::timeout(6)->get("https://bankrouting.io/api/v1/aba/{$routingNumber}");
+                if (! $response->successful()) {
+                    return null;
+                }
+                $json = $response->json();
+                $bankName = data_get($json, 'data.bank_name');
+                if (! $bankName) {
+                    return null;
+                }
+                return [
+                    'bank_name' => trim($bankName),
+                ];
+            } catch (\Throwable $e) {
+                \Log::warning('Routing lookup provider failed', [
+                    'routing_number' => $routingNumber,
+                    'error' => $e->getMessage(),
+                ]);
+                return null;
+            }
+        });
+
+        if (! $lookup) {
+            return response()->json([
+                'status' => 'manual_required',
+                'message' => __('Could not verify bank automatically right now. Enter bank name manually.'),
+            ]);
+        }
+
+        $bank = $this->resolveOrCreateOtherBank($routingNumber, $lookup['bank_name']);
+        return response()->json([
+            'status' => 'verified',
+            'bank_id' => $bank->id,
+            'bank_name' => $bank->name,
+            'logo' => $bank->logo,
+            'charge_type' => $bank->charge_type,
+            'charge' => (float) $bank->charge,
+        ]);
+    }
+
+    private function isValidAbaRoutingNumber(string $routingNumber): bool
+    {
+        if (! preg_match('/^\d{9}$/', $routingNumber)) {
+            return false;
+        }
+        $digits = array_map('intval', str_split($routingNumber));
+        $checksum = (3 * ($digits[0] + $digits[3] + $digits[6]))
+            + (7 * ($digits[1] + $digits[4] + $digits[7]))
+            + (1 * ($digits[2] + $digits[5] + $digits[8]));
+        return $checksum % 10 === 0;
+    }
+
+    private function normalizeBankName(string $name): string
+    {
+        $value = strtoupper(trim($name));
+        $value = preg_replace('/[^A-Z0-9]/', '', $value);
+        return $value ?? '';
+    }
+
+    private function resolveOrCreateOtherBank(string $routingNumber, ?string $providedBankName = null): OthersBank
+    {
+        $routingNumber = preg_replace('/\D/', '', $routingNumber);
+        $providedBankName = trim((string) $providedBankName);
+
+        $byRouting = OthersBank::where('code', $routingNumber)->first();
+        if ($byRouting) {
+            return $byRouting;
+        }
+
+        $bankName = $providedBankName !== '' ? $providedBankName : 'External Bank';
+        $normalizedInput = $this->normalizeBankName($bankName);
+
+        if ($normalizedInput !== '') {
+            $byName = OthersBank::all()->first(function ($bank) use ($normalizedInput) {
+                return $this->normalizeBankName((string) $bank->name) === $normalizedInput;
+            });
+            if ($byName) {
+                if (empty($byName->code)) {
+                    $byName->code = $routingNumber;
+                    $byName->save();
+                }
+                return $byName;
+            }
+        }
+
+        $baseCode = $routingNumber !== '' ? $routingNumber : 'BANK-' . now()->timestamp;
+        $codeCandidate = $baseCode;
+        $suffix = 1;
+        while (OthersBank::where('code', $codeCandidate)->exists()) {
+            $codeCandidate = $baseCode . '-' . $suffix;
+            $suffix++;
+        }
+
+        return OthersBank::create([
+            'name' => $bankName,
+            'code' => $codeCandidate,
+            'processing_time' => '1-3 Business Days',
+            'processing_type' => 'ACH',
+            'charge' => setting('fund_transfer_charge', 'fee'),
+            'charge_type' => setting('fund_transfer_charge_type', 'fee'),
+            'minimum_transfer' => setting('min_fund_transfer', 'fee'),
+            'maximum_transfer' => setting('max_fund_transfer', 'fee'),
+            'daily_limit_maximum_amount' => 999999999,
+            'daily_limit_maximum_count' => 1000,
+            'monthly_limit_maximum_amount' => 999999999,
+            'monthly_limit_maximum_count' => 10000,
+            'field_options' => json_encode([]),
+            'details' => 'Auto-created from routing lookup',
+            'status' => 1,
+        ]);
+    }
+
+    private function notifyTransferAdminsAndOfficers(User $user, array $data, array $responseData): void
+    {
+        if (! in_array($data['transfer_type'] ?? '', ['member', 'external'], true)) {
+            return;
+        }
+
+        $admins = Admin::query()
+            ->where('status', 1)
+            ->get()
+            ->filter(function ($admin) {
+                return $admin->can('fund-transfer-approval')
+                    || $admin->can('officer-transfer-manage')
+                    || $admin->hasAnyRole(['Account Officer', 'Account-Officer', 'Super-Admin', 'Super Admin'], 'admin');
+            });
+
+        if ($admins->isEmpty()) {
+            $fallback = setting('site_email', 'global');
+            if ($fallback) {
+                $admins = collect([(object) ['email' => $fallback, 'name' => 'Admin Team']]);
+            }
+        }
+
+        $bankName = data_get($data, 'manual_data.bank_name') ?? 'N/A';
+        $transferKind = strtoupper($data['transfer_type']) . ' TRANSFER';
+        $shortcodes = [
+            '[[subject]]' => $transferKind . ' Submitted For Review',
+            '[[message]]' => 'A new ' . strtolower($transferKind) . ' has been submitted and is pending review.',
+            '[[full_name]]' => $user->full_name,
+            '[[email]]' => $user->email,
+            '[[amount]]' => (float) ($data['amount'] ?? 0),
+            '[[account_name]]' => data_get($data, 'manual_data.account_name', 'N/A'),
+            '[[account_number]]' => data_get($data, 'manual_data.account_number', 'N/A'),
+            '[[routing_number]]' => data_get($data, 'manual_data.routing_number', 'N/A'),
+            '[[bank_name]]' => $bankName,
+            '[[transfer_type]]' => $transferKind,
+            '[[status]]' => 'Pending',
+            '[[tnx]]' => $responseData['tnx'] ?? 'N/A',
+            '[[site_title]]' => setting('site_title', 'global'),
+            '[[site_url]]' => route('admin.fund.transfer.pending'),
+        ];
+
+        foreach ($admins as $admin) {
+            if (! empty($admin->email)) {
+                $this->mailNotify($admin->email, 'fund_transfer_submitted_admin', $shortcodes);
+            }
         }
     }
 }

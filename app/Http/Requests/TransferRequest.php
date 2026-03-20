@@ -22,7 +22,7 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'bank_id' => 'required_if:transfer_type,external',
+            'bank_id' => 'nullable',
             'beneficiary_id' => 'nullable',
             'transfer_type' => 'required|in:self,member,external',
             'wallet_type' => 'required',
@@ -41,6 +41,7 @@ class TransferRequest extends FormRequest
             'manual_data.account_name' => 'required_if:transfer_type,external',
             'manual_data.account_number' => 'required_if:transfer_type,external',
             'manual_data.routing_number' => 'required_if:transfer_type,external',
+            'manual_data.bank_name' => 'nullable|string|max:255',
             
             'purpose' => 'nullable|string|max:255',
         ];

@@ -40,6 +40,7 @@
             <form action="{{ route('user.fund_transfer.transfer') }}" method="POST" id="transferForm">
                 @csrf
                 <input type="hidden" name="charge_type" value="percentage">
+                <input type="hidden" name="bank_id" id="resolvedBankId">
                 
                 <!-- Step 1: Transfer Type -->
                 <div class="wizard-step active p-3 p-md-5" id="step1">
@@ -145,13 +146,9 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
-                                <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
-                                    <option value="" selected disabled>Select Destination Bank</option>
-                                    @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="alert alert-light border mb-0 small text-muted">
+                                    Bank will be auto-discovered from routing number in next step.
+                                </div>
                             </div>
                         </div>
 
@@ -207,8 +204,14 @@
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
+                            <div class="small mt-2" id="routingLookupStatus"></div>
+                            <div class="border rounded p-3 mt-2 d-none" id="routingLookupCard">
+                                <div class="fw-bold" id="lookupBankName"></div>
+                                <div class="small text-muted" id="lookupBankState">Verified by routing lookup</div>
+                            </div>
+                            <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Account Number</label>
@@ -223,6 +226,10 @@
                                 <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Re-enter to confirm">
                                 <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
+                        </div>
+                        <div class="col-12 d-none" id="manualBankNameWrap">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Bank Name (Manual Fallback)</label>
+                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="Enter bank name if auto-discovery is unavailable">
                         </div>
                     </div>
 
@@ -255,13 +262,15 @@
                                     <hr class="my-3"><div class="row">
                                         <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Routing #</span><span class="fw-bold" id="reviewRouting"></span></div>
                                         <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Account #</span><span class="fw-bold" id="reviewAccount"></span></div>
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Bank Name</span><span class="fw-bold" id="reviewBankName"></span></div>
                                     </div>
                                 </div>
                             </div>
                             <hr class="my-4">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div><span class="h5 mb-0 d-block fw-bold">Total to Send</span><span class="small text-muted">Immediate processing.</span></div>
-                                <span class="h2 mb-0 text-primary fw-bold" id="reviewAmount"></span>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between"><span class="small text-muted">Transfer Amount</span><span class="fw-bold" id="reviewTransferAmount"></span></div>
+                                <div class="d-flex justify-content-between"><span class="small text-muted">Fee</span><span class="fw-bold" id="reviewFeeAmount"></span></div>
+                                <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold">Total Deducted</span><span class="h5 mb-0 text-primary fw-bold" id="reviewAmount"></span></div>
                             </div>
 
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
@@ -316,6 +325,9 @@
 <script>
     var currentStep = 1;
     var transferType = null;
+    var resolvedBank = null;
+    var defaultChargeType = @json(setting('fund_transfer_charge_type', 'fee'));
+    var defaultCharge = parseFloat(@json((float) setting('fund_transfer_charge', 'fee')));
 
     // Moving this to a direct function so it's globally available
     window.selectType = function(type, card) {
@@ -472,10 +484,6 @@
             Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
-        if(transferType === 'external' && !document.getElementById('bankId').value) {
-            Swal.fire({ title: 'Bank Required', text: 'Please select a destination bank.', icon: 'warning', confirmButtonColor: '#00549b' });
-            return;
-        }
         if(transferType === 'external') goToStep(3);
         else { populateReview(); goToStep(4); }
     }
@@ -494,8 +502,34 @@
             Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
+        if(!document.getElementById('resolvedBankId').value) {
+            const manualName = document.getElementById('manualBankNameInput').value.trim();
+            if(!manualName) {
+                Swal.fire({ title: 'Bank Verification Needed', text: 'Verify routing successfully or provide manual bank name.', icon: 'warning', confirmButtonColor: '#00549b' });
+                return;
+            }
+            document.getElementById('resolvedBankName').value = manualName;
+        }
         populateReview();
         goToStep(4);
+    }
+
+    function getExternalChargeMeta() {
+        if(resolvedBank && resolvedBank.charge_type) {
+            return {
+                type: resolvedBank.charge_type,
+                charge: parseFloat(resolvedBank.charge || 0)
+            };
+        }
+        return { type: defaultChargeType, charge: defaultCharge };
+    }
+
+    function calculateFee(amount) {
+        const meta = getExternalChargeMeta();
+        if(meta.type === 'percentage') {
+            return (meta.charge / 100) * amount;
+        }
+        return meta.charge;
     }
 
     function populateReview() {
@@ -506,13 +540,27 @@
         let toText = 'Unknown';
         if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
         else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
-        else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
+        else toText = (document.getElementById('resolvedBankName').value || document.getElementById('manualBankNameInput').value || 'External Bank');
         
         document.getElementById('reviewTo').innerText = toText;
-        document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const fee = transferType === 'external' ? calculateFee(amount) : 0;
+        const total = amount + fee;
+        document.getElementById('reviewTransferAmount').innerText = '$' + amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('reviewFeeAmount').innerText = '$' + fee.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('reviewAmount').innerText = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
         document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
         document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
+        const externalDetails = document.querySelector('.external-review-details');
+        if(transferType === 'external') {
+            externalDetails.classList.remove('d-none');
+            document.getElementById('reviewRouting').innerText = document.getElementById('routingNumberInput').value;
+            document.getElementById('reviewAccount').innerText = document.getElementById('ext_acc_num').value;
+            document.getElementById('reviewBankName').innerText = toText;
+        } else {
+            externalDetails.classList.add('d-none');
+        }
     }
 
     function goBackFromReview() {
@@ -592,6 +640,71 @@
                 }
             });
         }
+
+        const routingInput = document.getElementById('routingNumberInput');
+        const statusEl = document.getElementById('routingLookupStatus');
+        const cardEl = document.getElementById('routingLookupCard');
+        const bankNameEl = document.getElementById('lookupBankName');
+        const bankStateEl = document.getElementById('lookupBankState');
+        const bankIdEl = document.getElementById('resolvedBankId');
+        const bankNameHidden = document.getElementById('resolvedBankName');
+        const manualWrap = document.getElementById('manualBankNameWrap');
+        const manualInput = document.getElementById('manualBankNameInput');
+
+        function clearResolvedBank() {
+            resolvedBank = null;
+            bankIdEl.value = '';
+            bankNameHidden.value = '';
+            cardEl.classList.add('d-none');
+        }
+
+        let lookupTimer = null;
+        routingInput?.addEventListener('input', function() {
+            const routing = this.value.trim();
+            clearResolvedBank();
+            manualWrap.classList.add('d-none');
+            manualInput.value = '';
+            statusEl.innerHTML = '';
+
+            if(routing.length !== 9) return;
+
+            statusEl.innerHTML = '<span class="text-muted">Verifying routing number...</span>';
+            if(lookupTimer) clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(() => {
+                fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({ routing_number: routing })
+                })
+                .then(async response => ({ ok: response.ok, body: await response.json() }))
+                .then(({ok, body}) => {
+                    if(ok && body.status === 'verified') {
+                        resolvedBank = body;
+                        bankIdEl.value = body.bank_id;
+                        bankNameHidden.value = body.bank_name;
+                        bankNameEl.innerText = body.bank_name;
+                        bankStateEl.innerText = 'Verified by routing lookup';
+                        cardEl.classList.remove('d-none');
+                        statusEl.innerHTML = '<span class="text-success">Bank verified successfully.</span>';
+                        manualWrap.classList.add('d-none');
+                        manualInput.value = '';
+                    } else if(body.status === 'manual_required') {
+                        statusEl.innerHTML = '<span class="text-warning">Auto-discovery unavailable. Enter bank name manually.</span>';
+                        manualWrap.classList.remove('d-none');
+                    } else {
+                        statusEl.innerHTML = '<span class="text-danger">' + (body.message || 'Unable to verify routing number.') + '</span>';
+                        manualWrap.classList.remove('d-none');
+                    }
+                })
+                .catch(() => {
+                    statusEl.innerHTML = '<span class="text-warning">Lookup service unavailable. Enter bank name manually.</span>';
+                    manualWrap.classList.remove('d-none');
+                });
+            }, 300);
+        });
     });
 </script>
 @endsection

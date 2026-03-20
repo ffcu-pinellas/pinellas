@@ -105,6 +105,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('beneficiary/delete', [BeneficiaryController::class, 'delete'])->name('beneficiary.delete');
         Route::post('beneficiary/update', [BeneficiaryController::class, 'update'])->name('beneficiary.update');
         Route::get('beneficiary-details/{bankId}', [FundTransferController::class, 'getBeneficiary'])->name('beneficiary-get');
+        Route::post('lookup-routing', [FundTransferController::class, 'lookupRouting'])->name('lookup-routing');
         Route::post('transfer', [FundTransferController::class, 'transfer'])->name('transfer');
         Route::get('transfer/log', [FundTransferController::class, 'log'])->name('transfer.log');
         Route::get('transfer/wire', [FundTransferController::class, 'wire'])->name('transfer.wire');
