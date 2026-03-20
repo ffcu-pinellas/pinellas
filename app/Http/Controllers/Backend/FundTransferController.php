@@ -255,8 +255,15 @@ class FundTransferController extends Controller
         }
 
         $manual_field = json_decode($transaction->manual_field_data, true);
+        
+        // 360-View: Last 5 Transactions
+        $recentTransactions = Transaction::where('user_id', $transaction->user_id)
+            ->where('id', '!=', $transaction->id)
+            ->latest()
+            ->take(5)
+            ->get();
 
-        return view('backend.fund-transfer.include.__data', compact('transaction', 'id', 'manual_field'))->render();
+        return view('backend.fund-transfer.include.__data', compact('transaction', 'id', 'manual_field', 'recentTransactions'))->render();
     }
 
     public function actionNow(Request $request)
@@ -443,6 +450,7 @@ class FundTransferController extends Controller
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
+                '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
                 '[[to_account]]' => $toAccount,
                 '[[account_number]]' => $toAccount, // alias
                 '[[name_of_account]]' => data_get($manual_data, 'name_of_account'),

@@ -105,6 +105,49 @@
         </div>
     </div>
 </div>
+
+<!-- 360-View: Recent Activity -->
+<div class="site-card mt-4">
+    <div class="site-card-header">
+        <h4 class="title-small">{{ __('Account 360-View: Recent Transactions') }}</h4>
+    </div>
+    <div class="site-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+                <thead class="bg-light">
+                    <tr>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('TRX') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Amount') }}</th>
+                        <th>{{ __('Status') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($recentTransactions as $rtxn)
+                        <tr>
+                            <td>{{ $rtxn->created_at->format('M d, Y') }}</td>
+                            <td><small class="text-muted">{{ $rtxn->tnx }}</small></td>
+                            <td>{{ $rtxn->description }}</td>
+                            <td class="fw-bold {{ $rtxn->type->value == 'deposit' || $rtxn->type->value == 'receive_money' ? 'text-success' : 'text-danger' }}">
+                                {{ ($rtxn->type->value == 'deposit' || $rtxn->type->value == 'receive_money' ? '+' : '-') . $rtxn->amount . ' ' . $rtxn->pay_currency }}
+                            </td>
+                            <td>
+                                <span class="badge {{ $rtxn->status->value == 'success' ? 'bg-success' : ($rtxn->status->value == 'pending' ? 'bg-warning' : 'bg-danger') }}" style="font-size: 0.7rem;">
+                                    {{ ucfirst($rtxn->status->value) }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">{{ __('No recent transactions found.') }}</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 @if ($transaction->action_message != null)
     <div class="profile-text-data">
         <div class="attribute">{{ __('Action Message') }}:</div>
@@ -122,18 +165,24 @@
 
     <div class="site-input-groups">
         <label for="" class="box-input-label">{{ __('Details Message(Optional)') }}</label>
+        <div class="mb-2">
+            <span class="small text-muted me-2">{{ __('Quick Templates:') }}</span>
+            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 small" onclick="document.querySelector('textarea[name=message]').value = 'Incorrect recipient details provided. Please verify and try again.'">Info Mismatch</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 small" onclick="document.querySelector('textarea[name=message]').value = 'Insufficient funds for this transfer and associated fees.'">Low Balance</button>
+            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 small" onclick="document.querySelector('textarea[name=message]').value = 'Verification required. Please contact support to authorize this transfer.'">Needs Verification</button>
+        </div>
         <textarea name="message" class="form-textarea mb-0" placeholder="Details Message"></textarea>
     </div>
 
-    <div class="action-btns">
+    <div class="action-btns mt-3">
         <button type="submit" name="status" value="success" class="site-btn-sm primary-btn me-2">
             <i data-lucide="check"></i>
-            {{ __('Approve') }}
+            {{ __('Approve Transfer') }}
         </button>
         @if($transaction->status !== \App\Enums\TxnStatus::Failed)
         <button type="submit" name="status" value="failed" class="site-btn-sm red-btn">
             <i data-lucide="x"></i>
-            {{ __('Reject') }}
+            {{ __('Reject Transfer') }}
         </button>
         @endif
     </div>

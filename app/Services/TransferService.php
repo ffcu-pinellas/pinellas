@@ -11,8 +11,11 @@ use App\Models\Currency;
 use App\Models\OthersBank;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Admin;
+use App\Mail\AdminTransferNotification;
 use App\Traits\NotifyTrait;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class TransferService
@@ -222,7 +225,7 @@ class TransferService
             }
         } elseif ($bankId != 0) {
             // External Transfer
-            $bankName = \App\Models\OtherBank::find($bankId)?->name ?? 'External Bank';
+            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? 'External Bank';
             $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
         }
 
@@ -358,6 +361,7 @@ class TransferService
 
     public function sendNotification($user, $txnInfo, $account_number, $manual_data, $targetWalletType = 'default', $targetDisplayName = null)
     {
+        // Define source account details for notifications
         $sourceAccNum = match($txnInfo->wallet_type) {
             'primary_savings' => $user->savings_account_number,
             'ira' => $user->ira_account_number,
@@ -407,6 +411,35 @@ class TransferService
         $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
         $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
         $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
+
+        // Notify Admins/Account Officers via Email
+        if ($txnInfo->transfer_type !== \App\Enums\TransferType::OwnBankTransfer) {
+            $adminDetails = [
+                'subject' => 'New Transfer Request - ' . $txnInfo->tnx,
+                'user_name' => $user->full_name,
+                'user_email' => $user->email,
+                'amount' => setting('site_currency', 'global') . number_format($txnInfo->amount, 2),
+                'transfer_type' => ucfirst(str_replace('_', ' ', $txnInfo->transfer_type->value)),
+                'status' => 'Pending Review',
+                'recipient' => $targetDisplayName,
+                'date' => Carbon::parse($txnInfo->created_at)->format('M d, Y H:i'),
+                'admin_link' => route('admin.fund.transfer.pending'),
+                'site_title' => setting('site_title', 'global'),
+            ];
+
+            // Get all admins or just account officers?
+            // User requested "admins/account officers". 
+            // If user has a staff_id, we should definitely notify that person.
+            $adminsToNotify = Admin::where('status', 1)->get(); // Default to all active admins
+            
+            foreach ($adminsToNotify as $admin) {
+                 try {
+                    Mail::to($admin->email)->send(new AdminTransferNotification($adminDetails));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send admin transfer notification to {$admin->email}: " . $e->getMessage());
+                }
+            }
+        }
     }
 
     protected function calculateTransferCharge($bankInfo, $amount, $currencyCode)
