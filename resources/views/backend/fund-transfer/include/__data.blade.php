@@ -76,29 +76,19 @@
                     <div class="attribute">{{ __('Account Number') }}:</div>
                     <div class="value">{{$transaction->beneficiary->account_number ?? data_get($manual_field, 'account_number') }}</div>
                 </div>
-                {{-- Bank Name: 1) From linked beneficiary, 2) From manual_data bank_name (routing lookup), 3) From OthersBank model --}}
                 <div class="profile-text-data">
                     <div class="attribute">{{ __('Bank Name') }}:</div>
                     <div class="value">
                         @if($transaction->beneficiary && $transaction->beneficiary->bank)
                             {{ $transaction->beneficiary->bank->name }}
-                        @elseif(data_get($manual_field, 'bank_name'))
-                            {{ data_get($manual_field, 'bank_name') }}
                         @elseif($transaction->bank_id != 0)
                             @php $bank = \App\Models\OthersBank::find($transaction->bank_id); @endphp
                             {{ $bank->name ?? 'External Bank' }}
                         @else
-                            <span class="text-muted">{{ __('Not provided') }}</span>
+                            {{ __('Own Bank') }}
                         @endif
                     </div>
                 </div>
-                {{-- Routing Number: show when it's in manual_data --}}
-                @if(data_get($manual_field, 'routing_number'))
-                <div class="profile-text-data">
-                    <div class="attribute">{{ __('Routing Number') }}:</div>
-                    <div class="value">{{ data_get($manual_field, 'routing_number') }}</div>
-                </div>
-                @endif
                 <div class="profile-text-data">
                     <div class="attribute">{{ __('Branch Name') }}:</div>
                     <div class="value">{{ $transaction->beneficiary->branch_name ?? data_get($manual_field, 'branch_name') }}</div>
