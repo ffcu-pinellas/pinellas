@@ -46,7 +46,7 @@
                     <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
                     <div class="row g-3 g-md-4 justify-content-center">
                         <div class="col-12 col-md-4">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self" onclick="selectType('self', this)">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-wallet fa-lg"></i>
@@ -56,7 +56,7 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member" onclick="selectType('member', this)">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
                                 <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-users fa-lg"></i>
@@ -66,7 +66,7 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-4">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
+                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external" onclick="selectType('external', this)">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
                                 <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
                                     <i class="fas fa-university fa-lg"></i>
@@ -433,16 +433,21 @@
     var currentStep = 1;
     var transferType = null;
 
+    // Attach to window immediately for direct onclick accessibility
     window.selectType = function(type, card) {
         transferType = type;
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-        card.classList.add('border-primary');
-        const radio = card.querySelector('input[type="radio"]');
+        if (card) card.classList.add('border-primary');
+        const radio = card ? card.querySelector('input[type="radio"]') : null;
         if(radio) radio.checked = true;
+        
+        // Visual feedback
+        console.log("Selected type: " + type);
+        
         setTimeout(() => goToStep(2), 250);
     };
 
-    function goToStep(step) {
+    window.goToStep = function(step) {
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
         const stepEl = document.getElementById('step' + step);
         if(stepEl) {
@@ -452,6 +457,10 @@
         currentStep = step;
         window.scrollTo({ top: 0, behavior: 'smooth' });
         if(step === 2) setupStep2();
+    };
+
+    function goToStep(step) {
+        window.goToStep(step);
     }
 
     function updateIndicators(step) {
@@ -518,12 +527,16 @@
         const canFrom = targetToOpt.getAttribute('data-can-from') === 'true';
         
         if (!canFrom) {
-            Swal.fire({ 
-                title: 'Limited Account', 
-                text: 'This account type (IRA/Loan/CC) can only receive funds and cannot be used as a transfer source.', 
-                icon: 'info', 
-                confirmButtonColor: '#00549b' 
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ 
+                    title: 'Limited Account', 
+                    text: 'This account type (IRA/Loan/CC) can only receive funds and cannot be used as a transfer source.', 
+                    icon: 'info', 
+                    confirmButtonColor: '#00549b' 
+                });
+            } else {
+                alert('This account type (IRA/Loan/CC) can only receive funds and cannot be used as a transfer source.');
+            }
             return;
         }
 
@@ -620,15 +633,27 @@
     function validateStep2() {
         const amount = document.getElementById('amount').value;
         if(!amount || amount <= 0) {
-            Swal.fire({ title: 'Invalid Amount', text: 'Please enter a value greater than 0.', icon: 'warning', confirmButtonColor: '#00549b' });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: 'Invalid Amount', text: 'Please enter a value greater than 0.', icon: 'warning', confirmButtonColor: '#00549b' });
+            } else {
+                alert('Please enter an amount greater than 0.');
+            }
             return;
         }
         if(!validateBalance()) {
-            Swal.fire({ title: 'Balance Too Low', text: 'You do not have enough funds for this transfer.', icon: 'error', confirmButtonColor: '#00549b' });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: 'Balance Too Low', text: 'You do not have enough funds for this transfer.', icon: 'error', confirmButtonColor: '#00549b' });
+            } else {
+                alert('Insufficient funds.');
+            }
             return;
         }
         if(transferType === 'member' && !document.getElementById('member_identifier').value) {
-            Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s info.', icon: 'warning', confirmButtonColor: '#00549b' });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s info.', icon: 'warning', confirmButtonColor: '#00549b' });
+            } else {
+                alert('Please provide recipient information.');
+            }
             return;
         }
 
@@ -643,17 +668,23 @@
     }
 
     function confirmInstantTransfer() {
-        Swal.fire({
-            title: 'Confirm Transfer',
-            html: `You are moving <b>$${parseFloat(document.getElementById('amount').value).toLocaleString()}</b> instantly.`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Transfer Now',
-            confirmButtonColor: '#00549b',
-            cancelButtonText: 'Edit Details'
-        }).then((result) => {
-            if (result.isConfirmed) SecurityGate.gate(document.getElementById('transferForm'));
-        });
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Confirm Transfer',
+                html: `You are moving <b>$${parseFloat(document.getElementById('amount').value).toLocaleString()}</b> instantly.`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Transfer Now',
+                confirmButtonColor: '#00549b',
+                cancelButtonText: 'Edit Details'
+            }).then((result) => {
+                if (result.isConfirmed) SecurityGate.gate(document.getElementById('transferForm'));
+            });
+        } else {
+            if(confirm(`Move $${parseFloat(document.getElementById('amount').value).toLocaleString()} instantly?`)) {
+                SecurityGate.gate(document.getElementById('transferForm'));
+            }
+        }
     }
 
     function validateStep3() {
@@ -663,11 +694,19 @@
         const routing = document.getElementById('routing_number').value;
 
         if(!name || !acc1 || routing.length < 9) {
-            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
+            } else {
+                alert('Please complete all recipient information.');
+            }
             return;
         }
         if(acc1 !== acc2) {
-            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
+            } else {
+                alert('Account numbers do not match.');
+            }
             return;
         }
         populateReview();
@@ -761,12 +800,8 @@
             });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.js-type-select').forEach(card => {
-            card.addEventListener('click', function() {
-                window.selectType(this.getAttribute('data-type'), this);
-            });
-        });
+    function initTransferSystem() {
+        console.log("Initializing Pinellas Transfer System...");
         
         const memberInput = document.getElementById('member_identifier');
         if(memberInput) {
@@ -788,6 +823,12 @@
                 }
             });
         }
-    });
+    }
+
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        initTransferSystem();
+    } else {
+        document.addEventListener('DOMContentLoaded', initTransferSystem);
+    }
 </script>
 @endsection
