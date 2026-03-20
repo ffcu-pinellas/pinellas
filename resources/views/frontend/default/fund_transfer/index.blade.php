@@ -116,8 +116,8 @@
                             </select>
                         </div>
 
-                        <div class="col-12" id="accountBridgeSection">
-                            <!-- Account Bridge for Self Transfers -->
+                        <div class="col-12">
+                            <!-- Internal Transfer ("Account Bridge") -->
                             <div class="dynamic-field d-none" id="field-self">
                                 <div class="account-bridge">
                                     <div class="row align-items-center g-3">
@@ -164,6 +164,7 @@
                                 </div>
                             </div>
 
+                            <!-- Member Transfer -->
                             <div class="dynamic-field d-none" id="field-member">
                                 <div class="row g-3">
                                     <div class="col-12 col-md-4">
@@ -171,9 +172,27 @@
                                         <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Email or Account #">
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Member's Name</label>
-                                        <div id="member_name_display_wrapper" class="form-control form-control-lg border-2 bg-light d-flex align-items-center" style="min-height: 50px; color: #64748b;">
-                                            <span id="member_name_display_text">Enter info to verify...</span>
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Member Verification</label>
+                                        <div id="member_card_preview" class="p-3 border-2 border-dashed bg-light d-flex align-items-center justify-content-center" style="border-radius: 12px; min-height: 52px; transition: all 0.3s;">
+                                            <div id="member_initial_state" class="text-muted small">
+                                                <i class="fas fa-user-check me-2"></i> Enter info to verify Member Account
+                                            </div>
+                                            <div id="member_success_state" class="d-none w-100">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="member-avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: 700;">
+                                                        <span id="member_initials">UN</span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold text-dark lh-1 mb-1" id="member_full_name">User Name</div>
+                                                        <div class="small text-success fw-bold d-flex align-items-center">
+                                                            <i class="fas fa-check-circle me-1"></i> Verified Member
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="member_error_state" class="d-none text-danger small fw-bold">
+                                                <i class="fas fa-times-circle me-2"></i> Not Found
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-12 col-md-4">
@@ -185,25 +204,15 @@
                                     </div>
                                 </div>
                             </div>
-
+                            
+                            <!-- External Transfer Placeholder for Step 2 -->
                             <div class="dynamic-field d-none" id="field-external">
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
-                                        <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
-                                            <option value="" selected disabled>Select Destination Bank</option>
-                                            @foreach($banks as $bank)
-                                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-12 d-none" id="routingValidationDisplay">
-                                        <div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center border-0" style="border-radius: 12px; background: rgba(0, 84, 155, 0.05);">
-                                            <i class="fas fa-university me-3 text-primary"></i>
-                                            <div>
-                                                <div class="small fw-bold text-primary" id="detectedBankName">Searching...</div>
-                                                <div class="extra-small text-muted" id="detectedBankLocation"></div>
-                                            </div>
+                                <div class="alert alert-info border-0 shadow-sm" style="border-radius: 15px; background: rgba(0, 84, 155, 0.05);">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle fa-lg me-3 text-primary"></i>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold text-primary">External Bank Transfer</h6>
+                                            <p class="small mb-0 text-muted">You will enter recipient bank details in the next step.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -258,6 +267,16 @@
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">Full Name</label>
                             <input type="text" name="manual_data[account_name]" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient's legal name">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
+                            <!-- Manual Bank Selection removed in favor of Auto-Discovery -->
+                            <div class="p-3 border-2 bg-light d-flex align-items-center" style="border-radius: 12px; min-height: 52px;">
+                                <div id="bank_auto_name" class="fw-bold text-muted small">
+                                    <i class="fas fa-university me-2"></i> Verify bank from routing number...
+                                </div>
+                            </div>
+                            <input type="hidden" name="bank_id" id="bankId" value="">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
@@ -445,6 +464,32 @@
         .btn-swap:hover { transform: rotate(270deg) !important; }
     }
     
+    /* Member Card Preview Styles */
+    #member_card_preview {
+        height: 64px;
+        border-radius: 12px;
+        background-color: #f8fafc;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+    #member_card_preview.bg-white {
+        border-color: #22c55e !important;
+        background-color: #fff !important;
+    }
+    .member-avatar {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    #member_success_state {
+        animation: slideIn 0.4s ease-out;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
     .form-control::-webkit-input-placeholder { font-size: 0.85rem !important; }
     .form-control:-ms-input-placeholder { font-size: 0.85rem !important; }
@@ -460,6 +505,7 @@
 
     // Account data extracted from the main select
     var accounts = [];
+    var defaultBankId = '{{ $banks->first()?->id ?? 1 }}';
     document.addEventListener('DOMContentLoaded', function() {
         const walletSelect = document.getElementById('walletSelect');
         Array.from(walletSelect.options).forEach(opt => {
@@ -488,10 +534,8 @@
 
         if(type === 'self') {
             document.getElementById('walletSelectWrapper').classList.add('d-none');
-            document.getElementById('accountBridgeSection').classList.remove('d-none');
         } else {
             document.getElementById('walletSelectWrapper').classList.remove('d-none');
-            document.getElementById('accountBridgeSection').classList.add('d-none');
         }
 
         setTimeout(() => goToStep(2), 250);
@@ -685,10 +729,6 @@
             Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
-        if(transferType === 'external' && !document.getElementById('bankId').value) {
-            Swal.fire({ title: 'Bank Required', text: 'Please select a destination bank.', icon: 'warning', confirmButtonColor: '#00549b' });
-            return;
-        }
         if(transferType === 'external') goToStep(3);
         else { populateReview(); goToStep(4); }
     }
@@ -699,8 +739,8 @@
         const acc2 = document.getElementById('ext_acc_num_confirm').value;
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
 
-        if(!name || !acc1 || routing.length < 9) {
-            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
+        if(!name || !acc1 || !routing || routing.length < 9 || !document.getElementById('bankId').value) {
+            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information (Name, Bank, Routing, Account #).', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
         if(acc1 !== acc2) {
@@ -721,10 +761,9 @@
             const toVal = document.getElementById('toWalletSelect').value;
             toText = accounts.find(a => a.value === toVal)?.name || 'My Account';
         }
-        else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
+        else if(transferType === 'member') toText = 'Member: ' + (document.getElementById('member_full_name').innerText || document.getElementById('member_identifier').value);
         else {
-            const bankSel = document.getElementById('bankId');
-            toText = bankSel.options[bankSel.selectedIndex].text;
+            toText = document.getElementById('bank_auto_name').innerText || 'External Bank';
             
             // Add Routing Display for External
             document.querySelector('.external-review-details').classList.remove('d-none');
@@ -778,10 +817,20 @@
                                 document.getElementById('detectedBankName').classList.remove('text-muted');
                                 document.getElementById('detectedBankName').classList.add('text-primary');
                                 document.getElementById('detectedBankLocation').innerText = (data.city ? data.city + ', ' : '') + (data.state || '');
+                                
+                                // Auto-fill bank display and hidden ID
+                                const autoBankDisplay = document.getElementById('bank_auto_name');
+                                autoBankDisplay.innerHTML = `<i class="fas fa-university me-2 text-primary"></i> <span class="text-dark">${data.bank_name}</span>`;
+                                autoBankDisplay.classList.remove('text-muted');
+                                
+                                // Set bankId - if it's an external bank, we might need a specific ID.
+                                // Use the ID from discovery if available, otherwise use our system default.
+                                document.getElementById('bankId').value = data.bank_id || defaultBankId || '1'; 
                             } else {
                                 document.getElementById('detectedBankName').innerText = 'Invalid Routing Number';
                                 document.getElementById('detectedBankName').classList.add('text-danger');
                                 document.getElementById('detectedBankName').classList.remove('text-primary');
+                                document.getElementById('bank_auto_name').innerHTML = '<i class="fas fa-exclamation-triangle me-2 text-danger"></i> <span class="text-danger">Invalid Routing</span>';
                             }
                         })
                         .catch(() => {
@@ -807,10 +856,21 @@
                     fetch('/user/search-by-account-number/' + encodeURIComponent(val))
                         .then(response => response.json())
                         .then(data => {
+                            const initialS = document.getElementById('member_initial_state');
+                            const successS = document.getElementById('member_success_state');
+                            const errorS = document.getElementById('member_error_state');
+                            const card = document.getElementById('member_card_preview');
+
                             if(data.name) {
-                                memberNameDisplayText.innerText = data.name;
-                                memberNameDisplayText.classList.remove('text-muted');
-                                memberNameDisplayText.classList.add('fw-bold', 'text-dark');
+                                initialS.classList.add('d-none');
+                                errorS.classList.add('d-none');
+                                successS.classList.remove('d-none');
+                                card.classList.remove('border-dashed');
+                                card.classList.add('border-solid', 'bg-white', 'shadow-sm');
+                                
+                                document.getElementById('member_full_name').innerText = data.name;
+                                const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                                document.getElementById('member_initials').innerText = initials;
                                 
                                 if(data.has_savings) {
                                     optSavings.hidden = false;
@@ -821,14 +881,19 @@
                                     targetAccountType.value = 'checking';
                                 }
                             } else {
-                                memberNameDisplayText.innerText = 'Member not Found!';
-                                memberNameDisplayText.classList.add('text-danger');
-                                memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
+                                initialS.classList.add('d-none');
+                                successS.classList.add('d-none');
+                                errorS.classList.remove('d-none');
+                                card.classList.add('border-dashed');
+                                card.classList.remove('bg-white', 'shadow-sm');
                             }
                         });
                 } else {
-                    memberNameDisplayText.innerText = 'Enter info to verify...';
-                    memberNameDisplayText.classList.remove('text-danger', 'text-dark', 'fw-bold');
+                    document.getElementById('member_initial_state').classList.remove('d-none');
+                    document.getElementById('member_success_state').classList.add('d-none');
+                    document.getElementById('member_error_state').classList.add('d-none');
+                    document.getElementById('member_card_preview').classList.add('border-dashed');
+                    document.getElementById('member_card_preview').classList.remove('bg-white', 'shadow-sm');
                     optSavings.hidden = true;
                     optSavings.disabled = true;
                     targetAccountType.value = 'checking';

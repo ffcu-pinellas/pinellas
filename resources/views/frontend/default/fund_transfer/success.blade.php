@@ -7,6 +7,7 @@
         <div class="col-lg-6 col-md-8 col-12">
             <div class="site-card text-center py-5 px-4 shadow-sm">
                 <div class="mb-5 px-md-4">
+                    @if(($responseData['type'] ?? '') !== 'self')
                     <div class="d-flex justify-content-between position-relative mb-4 mt-2">
                         <div class="progress position-absolute start-0 top-50 translate-middle-y w-100" style="height: 4px; z-index: 0;">
                             <div class="progress-bar bg-success" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
@@ -40,6 +41,7 @@
                             <span class="small text-muted">{{ __('Sent') }}</span>
                         </div>
                     </div>
+                    @endif
                     
                     <div class="mt-4">
                         <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle mb-3 shadow" style="width: 80px; height: 80px;">

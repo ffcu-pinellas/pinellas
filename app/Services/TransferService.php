@@ -398,6 +398,7 @@ class TransferService
             'currency' => $currencyCode,
             'account' => $accountNumber,
             'tnx' => $txnInfo['tnx'],
+            'type' => $input['transfer_type'] ?? ($bankId == 0 ? 'member' : 'external'),
         ];
     }
 
