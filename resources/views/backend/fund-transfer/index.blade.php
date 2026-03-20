@@ -69,6 +69,7 @@
                                                 'label' => 'Status',
                                                 'field' => 'status',
                                             ])
+                                            <th>{{ __('Risk') }}</th>
                                             <th>{{ __('Action') }}</th>
                                         </tr>
                                     </thead>
@@ -102,6 +103,16 @@
                                                     @include('backend.transaction.include.__txn_status', [
                                                         'txnStatus' => $list->status->value,
                                                     ])
+                                                </td>
+                                                <td>
+                                                    @php $risk = data_get(json_decode($list->manual_field_data, true), 'risk_score', 0); @endphp
+                                                    @if($risk >= 60)
+                                                        <span class="site-badge danger">{{ $risk }}% Risk</span>
+                                                    @elseif($risk >= 30)
+                                                        <span class="site-badge pending">{{ $risk }}% Risk</span>
+                                                    @else
+                                                        <span class="site-badge success">Low Risk</span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     @include('backend.fund-transfer.include.__action', [

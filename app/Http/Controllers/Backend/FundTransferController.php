@@ -256,7 +256,13 @@ class FundTransferController extends Controller
 
         $manual_field = json_decode($transaction->manual_field_data, true);
 
-        return view('backend.fund-transfer.include.__data', compact('transaction', 'id', 'manual_field'))->render();
+        $recent_transactions = Transaction::where('user_id', $transaction->user_id)
+            ->where('id', '!=', $transaction->id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('backend.fund-transfer.include.__data', compact('transaction', 'id', 'manual_field', 'recent_transactions'))->render();
     }
 
     public function actionNow(Request $request)
@@ -350,25 +356,25 @@ class FundTransferController extends Controller
         $user = $transaction->user;
         $manual_data = json_decode($transaction->manual_field_data);
 
+        $sourceAccNum = match($transaction->wallet_type) {
+            'primary_savings' => $user->savings_account_number,
+            'ira' => $user->ira_account_number,
+            'heloc' => $user->heloc_account_number,
+            'cc' => $user->cc_account_number,
+            'loan' => $user->loan_account_number,
+            default => $user->account_number
+        };
+        $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
+        $sourceName = match($transaction->wallet_type) {
+            'primary_savings' => 'Savings',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'Credit Card',
+            'loan' => 'Loan',
+            default => 'Checking'
+        };
+
         if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
-            // Member Transfer
-            $sourceAccNum = match($transaction->wallet_type) {
-                'primary_savings' => $user->savings_account_number,
-                'ira' => $user->ira_account_number,
-                'heloc' => $user->heloc_account_number,
-                'cc' => $user->cc_account_number,
-                'loan' => $user->loan_account_number,
-                default => $user->account_number
-            };
-            $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
-            $sourceName = match($transaction->wallet_type) {
-                'primary_savings' => 'Savings',
-                'ira' => 'IRA',
-                'heloc' => 'HELOC',
-                'cc' => 'Credit Card',
-                'loan' => 'Loan',
-                default => 'Checking'
-            };
 
             $recipientName = data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name') ?? 'Member';
             $recipientAccount = data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account');

@@ -75,7 +75,13 @@
                                 <div class="badge-rounded">
                                     @switch($transaction->status->value)
                                         @case('pending')
-                                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill small fw-bold">Pending</span>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill small fw-bold mb-2 d-inline-block">Pending</span>
+                                            <div class="mini-stepper d-flex gap-1 justify-content-end mt-1">
+                                                <div class="dot bg-success" title="Submitted" style="width: 8px; height: 8px; border-radius: 50%;"></div>
+                                                <div class="dot bg-primary" title="Reviewing" style="width: 8px; height: 8px; border-radius: 50%;"></div>
+                                                <div class="dot bg-light border" title="Processing" style="width: 8px; height: 8px; border-radius: 50%;"></div>
+                                                <div class="dot bg-light border" title="Sent" style="width: 8px; height: 8px; border-radius: 50%;"></div>
+                                            </div>
                                         @break
                                         @case('success')
                                             <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill small fw-bold">Completed</span>

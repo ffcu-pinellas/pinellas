@@ -85,30 +85,30 @@
                     </div>
 
                     <div class="row g-4">
-                        <div class="col-12">
+                        <div class="col-12" id="walletSelectWrapper">
                             <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="updateAccountOptions()">
                                 @if($wallets->isEmpty())
-                                    <option value="default" data-type="checking" data-balance="{{ auth()->user()->balance }}">
+                                    <option value="default" data-name="Checking" data-number="...{{ substr(auth()->user()->account_number, -4) }}" data-type="checking" data-balance="{{ auth()->user()->balance }}">
                                         Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
-                                        <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ $wallet->balance }}">
+                                        <option value="{{ $wallet->currency->code }}" data-name="Checking" data-number="...{{ substr(auth()->user()->account_number, -4) }}" data-type="checking" data-balance="{{ $wallet->balance }}">
                                             Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
                                         </option>
                                     @endforeach
                                 @endif
-                                <option value="primary_savings" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}">
+                                <option value="primary_savings" data-name="Savings" data-number="...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}">
                                     Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                 </option>
                                 @if(auth()->user()->heloc_status == 1)
-                                <option value="heloc" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
+                                <option value="heloc" data-name="HELOC" data-number="...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
                                     HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
-                                <option value="cc" data-type="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}">
+                                <option value="cc" data-name="Credit Card" data-number="...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C" data-type="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}">
                                     Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
                                 </option>
                                 @endif
@@ -116,10 +116,52 @@
                             </select>
                         </div>
 
-                        <div class="col-12" id="toRecipientSection">
+                        <div class="col-12" id="accountBridgeSection">
+                            <!-- Account Bridge for Self Transfers -->
                             <div class="dynamic-field d-none" id="field-self">
-                                <label class="form-label small text-uppercase fw-bold text-muted">To Account</label>
-                                <select name="to_wallet" class="form-select form-select-lg border-2 shadow-none" id="toWalletSelect"></select>
+                                <div class="account-bridge">
+                                    <div class="row align-items-center g-3">
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label small text-uppercase fw-bold text-muted mb-2">From Account</label>
+                                            <div class="bridge-card active" id="fromCard" onclick="openAccountSelector('from')">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="fw-bold" id="fromCardName">Checking</span>
+                                                    <i class="fas fa-chevron-down small text-muted"></i>
+                                                </div>
+                                                <div class="small text-muted mb-3" id="fromCardNumber">...{{ substr(auth()->user()->account_number, -4) }}</div>
+                                                <div class="h5 mb-0 fw-bold" id="fromCardBalance">{{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->balance, 2) }}</div>
+                                                <div class="balance-preview" id="fromBalancePreview">New Balance: <span class="value">--</span></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12 col-md-2 p-0 text-center">
+                                            <div class="swap-container">
+                                                <button type="button" class="btn btn-swap" onclick="swapAccounts()" title="Swap Accounts">
+                                                    <i class="fas fa-arrows-alt-h fa-lg d-none d-md-block"></i>
+                                                    <i class="fas fa-arrows-alt-v fa-lg d-md-none"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-5">
+                                            <label class="form-label small text-uppercase fw-bold text-muted mb-2">To Account</label>
+                                            <div class="bridge-card" id="toCard" onclick="openAccountSelector('to')">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span class="fw-bold" id="toCardName">Savings</span>
+                                                    <i class="fas fa-chevron-down small text-muted"></i>
+                                                </div>
+                                                <div class="small text-muted mb-3" id="toCardNumber">...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S</div>
+                                                <div class="h5 mb-0 fw-bold" id="toCardBalance">{{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}</div>
+                                                <div class="balance-preview" id="toBalancePreview">New Balance: <span class="value">--</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Hidden Selects for compatibility with existing form logic -->
+                                    <select name="to_wallet" id="toWalletSelect" class="d-none">
+                                        <option value="primary_savings" selected>Savings</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="dynamic-field d-none" id="field-member">
@@ -145,13 +187,26 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
-                                <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
-                                    <option value="" selected disabled>Select Destination Bank</option>
-                                    @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
+                                        <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
+                                            <option value="" selected disabled>Select Destination Bank</option>
+                                            @foreach($banks as $bank)
+                                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-12 d-none" id="routingValidationDisplay">
+                                        <div class="alert alert-info py-2 px-3 mb-0 d-flex align-items-center border-0" style="border-radius: 12px; background: rgba(0, 84, 155, 0.05);">
+                                            <i class="fas fa-university me-3 text-primary"></i>
+                                            <div>
+                                                <div class="small fw-bold text-primary" id="detectedBankName">Searching...</div>
+                                                <div class="extra-small text-muted" id="detectedBankLocation"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -275,6 +330,23 @@
         </div>
     </div>
 </div>
+
+<!-- Account Selector Modal -->
+<div class="modal fade" id="accountSelectorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold" id="selectorTitle">Select Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="accountList" class="d-grid gap-2">
+                    <!-- Dynamic Account Items -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('style')
@@ -297,12 +369,80 @@
     .icon-circle { transition: all 0.25s; }
     .transfer-type-card:hover .icon-circle { transform: scale(1.1); }
 
-    /* Mobile Refinements */
+    /* Account Bridge Styles */
+    .account-bridge {
+        background: #f8f9fa;
+        border-radius: 24px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .bridge-card {
+        background: white;
+        border: 2px solid #edeff2;
+        border-radius: 18px;
+        padding: 1.5rem;
+        transition: all 0.3s;
+        cursor: pointer;
+        height: 100%;
+    }
+    .bridge-card.active {
+        border-color: var(--primary-color);
+        box-shadow: 0 8px 20px rgba(0, 84, 155, 0.1);
+    }
+    .bridge-card:hover:not(.active) {
+        border-color: #dee2e6;
+        transform: translateY(-2px);
+    }
+    .swap-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+    }
+    .btn-swap {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #edeff2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .btn-swap:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translate(-50%, -50%) rotate(180deg) !important;
+    }
+    .balance-preview {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+    .balance-preview .value {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    /* Mobile Bridge */
     @media (max-width: 768px) {
-        .wizard-step { padding: 1.5rem !important; }
-        .transfer-type-card { padding: 1.5rem !important; margin-bottom: 0.5rem; }
-        .form-control-lg, .form-select-lg { font-size: 1rem; padding: 0.75rem 1rem; }
-        h4 { font-size: 1.25rem; }
+        .account-bridge { padding: 1rem; }
+        .swap-container {
+            position: relative;
+            left: 0;
+            top: 0;
+            transform: none;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+        }
+        .btn-swap { transform: rotate(90deg); }
+        .btn-swap:hover { transform: rotate(270deg) !important; }
     }
     
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
@@ -316,23 +456,162 @@
 <script>
     var currentStep = 1;
     var transferType = null;
+    var activeBridgeSide = 'from';
 
-    // Moving this to a direct function so it's globally available
-    window.selectType = function(type, card) {
-        console.log('selectType called via listener:', type);
-        transferType = type;
+    // Account data extracted from the main select
+    var accounts = [];
+    document.addEventListener('DOMContentLoaded', function() {
+        const walletSelect = document.getElementById('walletSelect');
+        Array.from(walletSelect.options).forEach(opt => {
+            accounts.push({
+                value: opt.value,
+                name: opt.getAttribute('data-name'),
+                number: opt.getAttribute('data-number'),
+                balance: parseFloat(opt.getAttribute('data-balance')),
+                type: opt.getAttribute('data-type')
+            });
+        });
         
+        // Initial setup for default account cards
+        updateBridgeCards();
+        
+        // Listen to amount changes for balance preview
+        document.getElementById('amount').addEventListener('input', updateBalancePreviews);
+    });
+
+    window.selectType = function(type, card) {
+        transferType = type;
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
         card.classList.add('border-primary');
         const radio = card.querySelector('input[type="radio"]');
         if(radio) radio.checked = true;
 
+        if(type === 'self') {
+            document.getElementById('walletSelectWrapper').classList.add('d-none');
+            document.getElementById('accountBridgeSection').classList.remove('d-none');
+        } else {
+            document.getElementById('walletSelectWrapper').classList.remove('d-none');
+            document.getElementById('accountBridgeSection').classList.add('d-none');
+        }
+
         setTimeout(() => goToStep(2), 250);
     };
 
+    function updateBridgeCards() {
+        const fromVal = document.getElementById('walletSelect').value;
+        const toVal = document.getElementById('toWalletSelect').value;
+        
+        const fromAcc = accounts.find(a => a.value === fromVal) || accounts[0];
+        const toAcc = accounts.find(a => a.value === toVal) || accounts[1] || accounts[0];
+
+        // Update From Card
+        document.getElementById('fromCardName').innerText = fromAcc.name;
+        document.getElementById('fromCardNumber').innerText = fromAcc.number;
+        document.getElementById('fromCardBalance').innerText = '{{ setting("site_currency", "global") }} ' + fromAcc.balance.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        // Update To Card
+        document.getElementById('toCardName').innerText = toAcc.name;
+        document.getElementById('toCardNumber').innerText = toAcc.number;
+        document.getElementById('toCardBalance').innerText = '{{ setting("site_currency", "global") }} ' + toAcc.balance.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        updateBalancePreviews();
+    }
+
+    function openAccountSelector(side) {
+        activeBridgeSide = side;
+        const modal = new bootstrap.Modal(document.getElementById('accountSelectorModal'));
+        const list = document.getElementById('accountList');
+        const title = document.getElementById('selectorTitle');
+        title.innerText = side === 'from' ? 'Transfer From' : 'Transfer To';
+        list.innerHTML = '';
+
+        const currentFrom = document.getElementById('walletSelect').value;
+        const currentTo = document.getElementById('toWalletSelect').value;
+
+        accounts.forEach(acc => {
+            // Pay-into logic: If it's the From side, exclude Loan, CC, and IRA
+            if(side === 'from' && ['loan', 'cc', 'ira'].includes(acc.type)) return;
+            
+            // Exclude the account already selected on the other side
+            if(side === 'from' && acc.value === currentTo) return;
+            if(side === 'to' && acc.value === currentFrom) return;
+
+            const item = document.createElement('div');
+            item.className = 'bridge-card mb-2 p-3 d-flex justify-content-between align-items-center';
+            item.innerHTML = `
+                <div>
+                    <div class="fw-bold">${acc.name}</div>
+                    <div class="small text-muted">${acc.number}</div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold text-primary">{{ setting("site_currency", "global") }} ${acc.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                </div>
+            `;
+            item.onclick = () => {
+                if(side === 'from') {
+                    document.getElementById('walletSelect').value = acc.value;
+                } else {
+                    document.getElementById('toWalletSelect').innerHTML = `<option value="${acc.value}" selected>${acc.name}</option>`;
+                }
+                updateBridgeCards();
+                modal.hide();
+            };
+            list.appendChild(item);
+        });
+
+        modal.show();
+    }
+
+    function swapAccounts() {
+        const fromSelect = document.getElementById('walletSelect');
+        const toSelect = document.getElementById('toWalletSelect');
+        
+        const oldFrom = fromSelect.value;
+        const oldTo = toSelect.value;
+        
+        // Check if we can swap (pay-into constraint)
+        const toAcc = accounts.find(a => a.value === oldTo);
+        if(['loan', 'cc', 'ira'].includes(toAcc.type)) {
+            Swal.fire({ title: 'Cannot Swap', text: toAcc.name + ' cannot be used as a source account.', icon: 'info', confirmButtonColor: '#00549b' });
+            return;
+        }
+
+        fromSelect.value = oldTo;
+        toSelect.innerHTML = `<option value="${oldFrom}" selected>${accounts.find(a => a.value === oldFrom).name}</option>`;
+        
+        const btn = document.querySelector('.btn-swap');
+        btn.style.transform = 'translate(-50%, -50%) rotate(180deg)';
+        setTimeout(() => {
+            btn.style.transform = '';
+            updateBridgeCards();
+        }, 300);
+    }
+
+    function updateBalancePreviews() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const fromVal = document.getElementById('walletSelect').value;
+        const toVal = document.getElementById('toWalletSelect').value;
+        
+        const fromAcc = accounts.find(a => a.value === fromVal);
+        const toAcc = accounts.find(a => a.value === toVal);
+
+        if(fromAcc) {
+            const newFrom = fromAcc.balance - amount;
+            document.getElementById('fromBalancePreview').querySelector('.value').innerText = '{{ setting("site_currency", "global") }} ' + newFrom.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('fromBalancePreview').querySelector('.value').classList.toggle('text-danger', newFrom < 0);
+        }
+        
+        if(toAcc) {
+            // For Pay-down accounts (Loan, CC, HELOC balance), the balance is how much they OWE.
+            // But here the balance passed is "Available" for HELOC/CC, or we should show real balance.
+            // Let's assume balance is what they HAVE or what is AVAILABLE.
+            const newTo = toAcc.balance + amount;
+            document.getElementById('toBalancePreview').querySelector('.value').innerText = '{{ setting("site_currency", "global") }} ' + newTo.toLocaleString(undefined, {minimumFractionDigits: 2});
+        }
+    }
+
     function goToStep(step) {
-        console.log('goToStep:', step);
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none', 'active'));
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
         
         const stepEl = document.getElementById('step' + step);
@@ -365,86 +644,20 @@
     }
 
     function updateAccountOptions() {
-        const fromSelect = document.getElementById('walletSelect');
-        const toSelect = document.getElementById('toWalletSelect');
-        if(!fromSelect || !toSelect) return;
-        const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
-        
-        if(transferType === 'self') {
-            toSelect.innerHTML = '';
-            
-            // Add Checking
-            if(selectedType !== 'checking') {
-                if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
-                    var opt = document.createElement('option');
-                    opt.value = 'default';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
-                    toSelect.add(opt);
-                } else {
-                    @foreach($wallets as $wallet)
-                        var opt = document.createElement('option');
-                        opt.value = '{{ $wallet->currency->code }}';
-                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
-                        toSelect.add(opt);
-                    @endforeach
-                }
-            }
-
-            // Add Savings
-            if(selectedType !== 'savings') {
-                const opt = document.createElement('option');
-                opt.value = 'primary_savings';
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
-                toSelect.add(opt);
-            }
-
-            // Add IRA
-            @if(auth()->user()->ira_status == 1)
-            if(selectedType !== 'ira') {
-                const opt = document.createElement('option');
-                opt.value = 'ira';
-                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add HELOC
-            @if(auth()->user()->heloc_status == 1)
-            if(selectedType !== 'heloc') {
-                const opt = document.createElement('option');
-                opt.value = 'heloc';
-                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add Credit Card
-            @if(auth()->user()->cc_status == 1)
-            if(selectedType !== 'cc') {
-                const opt = document.createElement('option');
-                opt.value = 'cc';
-                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add Loan
-            @if(auth()->user()->loan_account_status == 1)
-            if(selectedType !== 'loan') {
-                const opt = document.createElement('option');
-                opt.value = 'loan';
-                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
+        if(transferType !== 'self') {
+            validateBalance();
+            return;
         }
-        validateBalance();
+        updateBridgeCards();
     }
 
     function validateBalance() {
         const amount = parseFloat(document.getElementById('amount').value) || 0;
         const fromSelect = document.getElementById('walletSelect');
-        const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
+        const fromOpt = fromSelect.options[fromSelect.selectedIndex];
+        if(!fromOpt) return true;
+
+        const balance = parseFloat(fromOpt.getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
         
         if (amount > balance) {
@@ -504,12 +717,23 @@
         document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
         
         let toText = 'Unknown';
-        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
+        if(transferType === 'self') {
+            const toVal = document.getElementById('toWalletSelect').value;
+            toText = accounts.find(a => a.value === toVal)?.name || 'My Account';
+        }
         else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
-        else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
+        else {
+            const bankSel = document.getElementById('bankId');
+            toText = bankSel.options[bankSel.selectedIndex].text;
+            
+            // Add Routing Display for External
+            document.querySelector('.external-review-details').classList.remove('d-none');
+            document.getElementById('reviewRouting').innerText = document.querySelector('input[name="manual_data[routing_number]"]').value;
+            document.getElementById('reviewAccount').innerText = '****' + document.getElementById('ext_acc_num').value.slice(-4);
+        }
         
         document.getElementById('reviewTo').innerText = toText;
-        document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
+        document.getElementById('reviewAmount').innerText = '{{ setting("site_currency", "global") }} ' + parseFloat(document.getElementById('amount').value).toLocaleString(undefined, {minimumFractionDigits: 2});
         document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
         document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
         document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
@@ -535,12 +759,42 @@
                 window.selectType(type, this);
             });
         });
-        
-        // Form submission is handled by SecurityGate via onclick on the confirm button
 
+        // Bank Routing Lookup
+        const routingInput = document.querySelector('input[name="manual_data[routing_number]"]');
+        if(routingInput) {
+            routingInput.addEventListener('input', function() {
+                const val = this.value;
+                if(val.length === 9) {
+                    document.getElementById('routingValidationDisplay').classList.remove('d-none');
+                    document.getElementById('detectedBankName').innerText = 'Verifying Routing Number...';
+                    document.getElementById('detectedBankLocation').innerText = '';
+                    
+                    fetch('/user/fund-transfer/routing-lookup/' + val)
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.status === 'success') {
+                                document.getElementById('detectedBankName').innerText = data.bank_name;
+                                document.getElementById('detectedBankName').classList.remove('text-muted');
+                                document.getElementById('detectedBankName').classList.add('text-primary');
+                                document.getElementById('detectedBankLocation').innerText = (data.city ? data.city + ', ' : '') + (data.state || '');
+                            } else {
+                                document.getElementById('detectedBankName').innerText = 'Invalid Routing Number';
+                                document.getElementById('detectedBankName').classList.add('text-danger');
+                                document.getElementById('detectedBankName').classList.remove('text-primary');
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('detectedBankName').innerText = 'Verification Unavailable';
+                        });
+                } else {
+                    document.getElementById('routingValidationDisplay').classList.add('d-none');
+                }
+            });
+        }
+        
         // Unified Member Lookup
         const memberInput = document.getElementById('member_identifier');
-        const memberNameDisplay = document.getElementById('member_name_display');
         const targetAccountType = document.getElementById('target_account_type');
         const optSavings = document.getElementById('opt-savings');
 
@@ -548,7 +802,6 @@
             memberInput.addEventListener('input', function() {
                 const val = this.value;
                 const memberNameDisplayText = document.getElementById('member_name_display_text');
-                const memberNameWrapper = document.getElementById('member_name_display_wrapper');
 
                 if(val.length > 4 || (val.includes('@') && val.length > 3)) {
                     fetch('/user/search-by-account-number/' + encodeURIComponent(val))
@@ -567,20 +820,10 @@
                                     optSavings.disabled = true;
                                     targetAccountType.value = 'checking';
                                 }
-                                
-                                // Auto-select savings if they searched with savings account number
-                                if(val === data.savings_account_number) {
-                                    targetAccountType.value = 'savings';
-                                } else if(val === data.account_number) {
-                                    targetAccountType.value = 'checking';
-                                }
                             } else {
                                 memberNameDisplayText.innerText = 'Member not Found!';
                                 memberNameDisplayText.classList.add('text-danger');
                                 memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
-                                optSavings.hidden = true;
-                                optSavings.disabled = true;
-                                targetAccountType.value = 'checking';
                             }
                         });
                 } else {
@@ -593,5 +836,6 @@
             });
         }
     });
+</script>
 </script>
 @endsection
