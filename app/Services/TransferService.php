@@ -243,7 +243,7 @@ class TransferService
         if (in_array($walletType, ['primary_savings', 'ira', 'heloc', 'cc', 'loan'])) {
             $txnWalletType = $walletType;
         } else {
-            $txnWalletType = $wallet->id ?? 'default';
+            $txnWalletType = $wallet?->id ?? 'default';
         }
 
         $txnInfo = Txn::transfer(
