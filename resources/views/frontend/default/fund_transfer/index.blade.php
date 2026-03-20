@@ -436,7 +436,8 @@
     .btn-swap:hover {
         background: var(--primary-color);
         color: white;
-        transform: translate(-50%, -50%) rotate(180deg) !important;
+        transform: rotate(180deg);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     .balance-preview {
         font-size: 0.8rem;
@@ -523,6 +524,14 @@
         
         // Listen to amount changes for balance preview
         document.getElementById('amount').addEventListener('input', updateBalancePreviews);
+
+        // Attach listeners to transfer-type cards
+        document.querySelectorAll('.js-type-select').forEach(card => {
+            card.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                selectType(type, this);
+            });
+        });
     });
 
     window.selectType = function(type, card) {
@@ -537,6 +546,11 @@
         } else {
             document.getElementById('walletSelectWrapper').classList.remove('d-none');
         }
+        
+        // Explicitly hide/show dynamic fields based on type
+        document.querySelectorAll('.dynamic-field').forEach(el => el.classList.add('d-none'));
+        const targetField = document.getElementById('field-' + type);
+        if(targetField) targetField.classList.remove('d-none');
 
         setTimeout(() => goToStep(2), 250);
     };
@@ -681,9 +695,19 @@
     }
 
     function setupStep2() {
+        // Double-check field visibility in Step 2
         document.querySelectorAll('.dynamic-field').forEach(el => el.classList.add('d-none'));
         const field = document.getElementById('field-' + transferType);
-        if(field) field.classList.remove('d-none');
+        if(field) {
+            field.classList.remove('d-none');
+        }
+        
+        if(transferType === 'self') {
+            document.getElementById('walletSelectWrapper').classList.add('d-none');
+        } else {
+            document.getElementById('walletSelectWrapper').classList.remove('d-none');
+        }
+
         updateAccountOptions();
     }
 
@@ -725,12 +749,21 @@
             Swal.fire({ title: 'Balance Too Low', text: 'You do not have enough funds for this transfer.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
+        // Step 2 validation is common for all types (amount, frequency)
         if(transferType === 'member' && !document.getElementById('member_identifier').value) {
             Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
-        if(transferType === 'external') goToStep(3);
-        else { populateReview(); goToStep(4); }
+
+        if(transferType === 'external') {
+            goToStep(3);
+        } else if(transferType === 'member') {
+            populateReview(); 
+            goToStep(4);
+        } else {
+            populateReview(); 
+            goToStep(4);
+        }
     }
 
     function validateStep3() {

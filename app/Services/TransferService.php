@@ -466,7 +466,7 @@ class TransferService
                 '[[transfer_type]]' => ucfirst(str_replace('_', ' ', $txnInfo->transfer_type->value))
             ]);
 
-            $admins = \App\Models\Admin::where('status', '=', 1)->where('is_admin', '=', 1)->get();
+            $admins = \App\Models\Admin::where('status', 1)->get();
             foreach ($admins as $admin) {
                 $this->mailNotify($admin->email, 'admin_fund_transfer_notification', $adminShortcodes);
             }
