@@ -145,13 +145,11 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
-                                <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
-                                    <option value="" selected disabled>Select Destination Bank</option>
-                                    @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
+                                <label class="form-label small text-uppercase fw-bold text-muted">Destination Details</label>
+                                <div class="p-3 bg-light rounded-3 small text-muted">
+                                    <i class="fas fa-info-circle me-2"></i> You will provide the routing and account numbers in the next step.
+                                </div>
+                                <input type="hidden" name="bank_id" id="bankId" value="0">
                             </div>
                         </div>
 
@@ -207,7 +205,19 @@
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routing_number" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits numeric" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                            <div id="routing_bank_display" class="mt-2 d-none">
+                                <div class="px-3 py-2 bg-success bg-opacity-10 text-success rounded-3 small d-flex align-items-center">
+                                    <i class="fas fa-university me-2"></i>
+                                    <span id="discovered_bank_name" class="fw-bold"></span>
+                                </div>
+                            </div>
+                            <div id="routing_error_display" class="mt-2 d-none">
+                                <div class="px-3 py-2 bg-danger bg-opacity-10 text-danger rounded-3 small d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <span id="routing_error_text"></span>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -241,33 +251,79 @@
                     
                     <h4 class="mb-4 text-center fw-bold">Transfer Review</h4>
                     
-                    <div class="card bg-white border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 1px solid var(--border-color) !important;">
-                        <div class="card-body p-4">
-                            <div class="row g-4">
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Payment From</span><span class="fw-bold" id="reviewFrom"></span></div>
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Transfer To</span><span class="fw-bold" id="reviewTo"></span></div>
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Delivery Method</span><span class="fw-bold text-capitalize" id="reviewType"></span></div>
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Frequency</span><span class="fw-bold text-capitalize" id="reviewFreq"></span></div>
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Date</span><span class="fw-bold" id="reviewDate"></span></div>
-                                <div class="col-12"><span class="text-muted d-block small text-uppercase fw-bold">Purpose</span><span class="fw-bold" id="reviewPurpose"></span></div>
+                    <div class="receipt-container mx-auto" style="max-width: 450px;">
+                        <div class="receipt-card bg-white shadow-sm border" style="border-radius: 24px; overflow: hidden;">
+                            <div class="receipt-header p-4 bg-light border-bottom text-center">
+                                <div class="mb-2"><span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold" id="reviewType"></span></div>
+                                <h2 class="mb-0 fw-bold text-primary" id="reviewAmountDisplay"></h2>
+                                <p class="small text-muted mb-0">Total amount to be deducted</p>
+                            </div>
+                            
+                            <div class="receipt-body p-4">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted small fw-bold text-uppercase">From</span>
+                                    <span class="fw-bold text-end" id="reviewFrom"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted small fw-bold text-uppercase">To</span>
+                                    <span class="fw-bold text-end" id="reviewTo"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted small fw-bold text-uppercase">Date</span>
+                                    <span class="fw-bold text-end" id="reviewDate"></span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="text-muted small fw-bold text-uppercase">Frequency</span>
+                                    <span class="fw-bold text-end text-capitalize" id="reviewFreq"></span>
+                                </div>
                                 
-                                <div class="col-12 external-review-details d-none">
-                                    <hr class="my-3"><div class="row">
-                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Routing #</span><span class="fw-bold" id="reviewRouting"></span></div>
-                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Account #</span><span class="fw-bold" id="reviewAccount"></span></div>
+                                <div class="external-review-details d-none" id="reviewExternalSection">
+                                    <hr class="my-3 border-dashed" style="border-top: 1px dashed #dee2e6;">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small fw-bold text-uppercase">Routing #</span>
+                                        <span class="fw-bold" id="reviewRouting"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small fw-bold text-uppercase">Account #</span>
+                                        <span class="fw-bold" id="reviewAccount"></span>
+                                    </div>
+                                </div>
+
+                                <hr class="my-3">
+                                
+                                <div class="p-3 rounded-4 bg-light border">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Transfer Amount</span>
+                                        <span class="fw-bold text-dark" id="breakdownSubtotal"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted small">Processing Fee</span>
+                                        <span class="fw-bold text-danger font-monospace" id="breakdownFee"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+                                        <span class="fw-bold text-dark">Total Deduction</span>
+                                        <span class="fw-bold text-primary" id="breakdownTotal"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 p-3 bg-info bg-opacity-10 text-info rounded-4 small">
+                                    <div class="d-flex">
+                                        <i class="fas fa-clock mt-1 me-2"></i>
+                                        <div>
+                                            <span class="fw-bold d-block">Est. Processing Time</span>
+                                            <span id="deliveryEstimate">1-2 Business Days</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <hr class="my-4">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div><span class="h5 mb-0 d-block fw-bold">Total to Send</span><span class="small text-muted">Immediate processing.</span></div>
-                                <span class="h2 mb-0 text-primary fw-bold" id="reviewAmount"></span>
+                            
+                            <div class="p-4 bg-light border-top">
+                                <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    <i class="fas fa-shield-alt me-2"></i> Confirm & Send
+                                </button>
+                                <p class="text-center small text-muted mt-3 mb-0"><i class="fas fa-lock me-1"></i> Secure end-to-end encryption</p>
                             </div>
-
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
-                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -498,21 +554,60 @@
         goToStep(4);
     }
 
+    var selectedBankCharge = {{ setting('fund_transfer_charge', 'fee') }};
+    var selectedBankChargeType = '{{ setting('fund_transfer_charge_type', 'fee') }}';
+
     function populateReview() {
-        document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH');
+        // Basic Info
+        const displayType = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH');
+        document.getElementById('reviewType').innerText = displayType;
+        
         const fromSelect = document.getElementById('walletSelect');
         document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
         
         let toText = 'Unknown';
-        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
-        else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
-        else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
+        if(transferType === 'self') {
+            toText = document.getElementById('toWalletSelect').options[document.getElementById('toWalletSelect').selectedIndex]?.text.split(' - ')[0] || 'My Account';
+            document.getElementById('reviewExternalSection').classList.add('d-none');
+            selectedBankCharge = 0; // Self transfers are free
+            selectedBankChargeType = 'fixed';
+        } else if(transferType === 'member') {
+            toText = document.getElementById('member_name_display_text').innerText;
+            document.getElementById('reviewExternalSection').classList.add('d-none');
+            // Member transfers usually follow global settings
+        } else {
+            toText = document.getElementById('discovered_bank_name').innerText || 'External Bank';
+            document.getElementById('reviewExternalSection').classList.remove('d-none');
+            document.getElementById('reviewRouting').innerText = document.getElementById('routing_number').value;
+            document.getElementById('reviewAccount').innerText = '****' + document.getElementById('ext_acc_num').value.slice(-4);
+        }
         
         document.getElementById('reviewTo').innerText = toText;
-        document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
         document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
         document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
-        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
+
+        // Breakdown Calculation
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        let fee = 0;
+        if(selectedBankChargeType === 'percent' || selectedBankChargeType === 'percentage') {
+            fee = (amount * selectedBankCharge) / 100;
+        } else {
+            fee = selectedBankCharge;
+        }
+
+        const total = amount + fee;
+        const symbol = '$'; // Assuming USD for now, could be dynamic
+
+        document.getElementById('reviewAmountDisplay').innerText = symbol + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('breakdownSubtotal').innerText = symbol + amount.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('breakdownFee').innerText = '+' + symbol + fee.toLocaleString(undefined, {minimumFractionDigits: 2});
+        document.getElementById('breakdownTotal').innerText = symbol + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        
+        // Delivery Estimate
+        const estimate = document.getElementById('deliveryEstimate');
+        if(transferType === 'self') estimate.innerText = 'Instant';
+        else if(transferType === 'member') estimate.innerText = '1-2 Business Hours';
+        else estimate.innerText = '1-3 Business Days';
     }
 
     function goBackFromReview() {
@@ -589,6 +684,45 @@
                     optSavings.hidden = true;
                     optSavings.disabled = true;
                     targetAccountType.value = 'checking';
+                }
+            });
+        }
+
+        // Routing Lookup
+        const routingInput = document.getElementById('routing_number');
+        if(routingInput) {
+            routingInput.addEventListener('input', function() {
+                const val = this.value;
+                const bankDisplay = document.getElementById('routing_bank_display');
+                const errorDisplay = document.getElementById('routing_error_display');
+                const bankNameTxt = document.getElementById('discovered_bank_name');
+                const errorTxt = document.getElementById('routing_error_text');
+                const adminBankId = document.getElementById('bankId');
+
+                if(val.length === 9) {
+                    fetch('/user/fund-transfer/routing-lookup/' + encodeURIComponent(val))
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.status === 'success') {
+                                bankNameTxt.innerText = data.name;
+                                bankDisplay.classList.remove('d-none');
+                                errorDisplay.classList.add('d-none');
+                                if(data.id) adminBankId.value = data.id;
+                                else adminBankId.value = 0;
+                                
+                                // Store charges for review
+                                selectedBankCharge = data.charge;
+                                selectedBankChargeType = data.charge_type;
+                            } else {
+                                errorTxt.innerText = data.message;
+                                errorDisplay.classList.remove('d-none');
+                                bankDisplay.classList.add('d-none');
+                                adminBankId.value = 0;
+                            }
+                        });
+                } else {
+                    bankDisplay.classList.add('d-none');
+                    errorDisplay.classList.add('d-none');
                 }
             });
         }

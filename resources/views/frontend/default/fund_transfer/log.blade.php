@@ -75,7 +75,7 @@
                                 <div class="badge-rounded">
                                     @switch($transaction->status->value)
                                         @case('pending')
-                                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill small fw-bold">Pending</span>
+                                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill small fw-bold">Pending Review</span>
                                         @break
                                         @case('success')
                                             <span class="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill small fw-bold">Completed</span>
@@ -85,8 +85,49 @@
                                         @break
                                     @endswitch
                                 </div>
+                                @if($transaction->transfer_type->value !== 'own_bank_transfer')
+                                    <button class="btn btn-link btn-sm text-primary p-0 mt-1 small fw-bold text-decoration-none" onclick="toggleProgress(this)">
+                                        Track Status <i class="fas fa-chevron-down ms-1"></i>
+                                    </button>
+                                @endif
                             </div>
                         </div>
+                        @if($transaction->transfer_type->value !== 'own_bank_transfer')
+                            <div class="progress-track-wrapper d-none bg-light bg-opacity-50 p-4 border-bottom">
+                                <div class="progress-stepper d-flex justify-content-between position-relative mx-auto" style="max-width: 600px;">
+                                    <!-- Background Line -->
+                                    <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-secondary opacity-25" style="height: 2px; z-index: 0;"></div>
+                                    <div class="position-absolute top-50 start-0 translate-middle-y bg-primary transition-all" style="height: 2px; z-index: 1; width: {{ $transaction->status->value == 'success' ? '100' : '33' }}%;"></div>
+
+                                    @php
+                                        $steps = [
+                                            ['label' => 'Submitted', 'icon' => 'check-circle', 'done' => true],
+                                            ['label' => 'Reviewing', 'icon' => 'shield-alt', 'done' => true],
+                                            ['label' => 'Processing', 'icon' => 'sync', 'done' => $transaction->status->value == 'success'],
+                                            ['label' => 'Sent', 'icon' => 'paper-plane', 'done' => $transaction->status->value == 'success']
+                                        ];
+                                    @endphp
+
+                                    @foreach($steps as $index => $step)
+                                        <div class="step-item text-center position-relative" style="z-index: 2; width: 80px;">
+                                            <div class="step-icon mx-auto rounded-circle d-flex align-items-center justify-content-center shadow-sm {{ $step['done'] ? 'bg-primary text-white' : 'bg-white text-muted border' }}" style="width: 32px; height: 32px; transition: all 0.3s;">
+                                                <i class="fas fa-{{ $step['icon'] }} small"></i>
+                                            </div>
+                                            <div class="step-label mt-2 small fw-bold {{ $step['done'] ? 'text-dark' : 'text-muted' }}">{{ $step['label'] }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="text-center mt-3 small text-muted">
+                                    @if($transaction->status->value == 'pending')
+                                        <i class="fas fa-info-circle me-1"></i> Our team is currently reviewing your transfer. Estimated completion: 1-2 business hours.
+                                    @elseif($transaction->status->value == 'success')
+                                        <i class="fas fa-check-circle text-success me-1"></i> Funds have been successfully sent to the recipient bank.
+                                    @else
+                                        <i class="fas fa-times-circle text-danger me-1"></i> Transfer was cancelled. Please check your secure messages for details.
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     @empty
                         <div class="text-center p-5">
                             <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
@@ -133,6 +174,14 @@
                 window.location.href = "{{ route('user.fund_transfer.transfer.log') }}";
             });
         });
+
+        function toggleProgress(btn) {
+            const wrapper = btn.closest('.activity-item').nextElementSibling;
+            wrapper.classList.toggle('d-none');
+            const icon = btn.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
     </script>
     <style>
         .hover-bg-light:hover { background-color: rgba(0,0,0,0.02); }
