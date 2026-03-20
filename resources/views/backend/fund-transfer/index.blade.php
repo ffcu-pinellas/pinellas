@@ -69,7 +69,6 @@
                                                 'label' => 'Status',
                                                 'field' => 'status',
                                             ])
-                                            <th>{{ __('Risk Check') }}</th>
                                             <th>{{ __('Action') }}</th>
                                         </tr>
                                     </thead>
@@ -100,30 +99,9 @@
                                                     {{ ucfirst(str_replace('_', ' ', $list->transfer_type->value)) }}
                                                 </td>
                                                 <td>
-                                                    @php
-                                                        $riskLevel = 'low';
-                                                        $flags = [];
-                                                        
-                                                        if($list->amount > 5000) { $riskLevel = 'high'; $flags[] = 'Large Amount'; }
-                                                        
-                                                        // Check if first transfer to this recipient
-                                                        $previous = \App\Models\Transaction::where('user_id', $list->user_id)
-                                                            ->where('id', '<', $list->id)
-                                                            ->where('type', \App\Enums\TxnType::FundTransfer)
-                                                            ->whereJsonContains('manual_field->account_number', $list->manual_field['account_number'] ?? '')
-                                                            ->count();
-                                                        if($previous == 0) { $flags[] = 'New Recipient'; if($riskLevel == 'low') $riskLevel = 'medium'; }
-                                                    @endphp
-                                                    
-                                                    @if(empty($flags))
-                                                        <span class="badge bg-success-soft text-success"><i class="fas fa-check-circle me-1"></i> Standard</span>
-                                                    @else
-                                                        @foreach($flags as $flag)
-                                                            <span class="badge {{ $riskLevel == 'high' ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning' }} mb-1" style="font-size: 0.7rem;">
-                                                                <i class="fas fa-exclamation-triangle me-1"></i> {{ $flag }}
-                                                            </span><br>
-                                                        @endforeach
-                                                    @endif
+                                                    @include('backend.transaction.include.__txn_status', [
+                                                        'txnStatus' => $list->status->value,
+                                                    ])
                                                 </td>
                                                 <td>
                                                     @include('backend.fund-transfer.include.__action', [
