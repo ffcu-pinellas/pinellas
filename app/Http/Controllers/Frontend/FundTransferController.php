@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\WireTransferService;
 use App\Http\Requests\TransferRequest;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 
 class FundTransferController extends Controller
 {
@@ -329,6 +330,16 @@ class FundTransferController extends Controller
             notify()->error($e->getMessage());
 
             return redirect()->back();
+        }
+    }
+
+    public function routingLookup($routing)
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::get("https://www.routingnumbers.info/api/data.json?rn={$routing}");
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json(['code' => 500, 'message' => 'Service Unavailable'], 500);
         }
     }
 }

@@ -9,6 +9,7 @@ use App\Models\UserWallet;
 use App\Traits\NotifyTrait;
 use App\Traits\RewardTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class FundTransferController extends Controller
 {
@@ -357,25 +358,27 @@ class FundTransferController extends Controller
         $user = $transaction->user;
         $manual_data = json_decode($transaction->manual_field_data);
 
+        // Define source account info globally for all transfer types
+        $sourceAccNum = match($transaction->wallet_type) {
+            'primary_savings' => $user->savings_account_number,
+            'ira' => $user->ira_account_number,
+            'heloc' => $user->heloc_account_number,
+            'cc' => $user->cc_account_number,
+            'loan' => $user->loan_account_number,
+            default => $user->account_number
+        };
+        $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
+        $sourceName = match($transaction->wallet_type) {
+            'primary_savings' => 'Savings',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'Credit Card',
+            'loan' => 'Loan',
+            default => 'Checking'
+        };
+
         if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
             // Member Transfer
-            $sourceAccNum = match($transaction->wallet_type) {
-                'primary_savings' => $user->savings_account_number,
-                'ira' => $user->ira_account_number,
-                'heloc' => $user->heloc_account_number,
-                'cc' => $user->cc_account_number,
-                'loan' => $user->loan_account_number,
-                default => $user->account_number
-            };
-            $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
-            $sourceName = match($transaction->wallet_type) {
-                'primary_savings' => 'Savings',
-                'ira' => 'IRA',
-                'heloc' => 'HELOC',
-                'cc' => 'Credit Card',
-                'loan' => 'Loan',
-                default => 'Checking'
-            };
 
             $recipientName = data_get($manual_data, 'account_name') ?? data_get($manual_data, 'recipient_name') ?? 'Member';
             $recipientAccount = data_get($manual_data, 'account_number') ?? data_get($manual_data, 'recipient_account');

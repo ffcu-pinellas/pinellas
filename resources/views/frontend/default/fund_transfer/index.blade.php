@@ -90,7 +90,7 @@
                             <div class="account-card source" id="bridge-source-card">
                                 <span class="label">From Account</span>
                                 <span class="acc-name" id="bridge-source-name">Checking (...{{ substr(auth()->user()->account_number, -4) }})</span>
-                                <span class="acc-balance" id="bridge-source-balance">{{ setting('site_currency', 'global') . number_format(auth()->user()->balance, 2) }}</span>
+                                <span class="acc-balance" id="bridge-source-balance">$ {{ number_format(auth()->user()->balance, 2) }}</span>
                                 <span class="new-balance d-none" id="bridge-source-new-info">New: <span id="bridge-source-new-val"></span></span>
                             </div>
                             
@@ -101,7 +101,7 @@
                             <div class="account-card destination" id="bridge-dest-card">
                                 <span class="label">To Account</span>
                                 <span class="acc-name" id="bridge-dest-name">Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)</span>
-                                <span class="acc-balance" id="bridge-dest-balance">{{ setting('site_currency', 'global') . number_format(auth()->user()->savings_balance, 2) }}</span>
+                                <span class="acc-balance" id="bridge-dest-balance">$ {{ number_format(auth()->user()->savings_balance, 2) }}</span>
                                 <span class="new-balance d-none" id="bridge-dest-new-info">New: <span id="bridge-dest-new-val"></span></span>
                             </div>
                         </div>
@@ -112,27 +112,37 @@
                             <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="updateAccountOptions()">
                                 @if($wallets->isEmpty())
-                                    <option value="default" data-name="Checking (...{{ substr(auth()->user()->account_number, -4) }})" data-type="checking" data-balance="{{ auth()->user()->balance }}">
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
+                                    <option value="default" data-name="Checking (...{{ substr(auth()->user()->account_number, -4) }})" data-type="checking" data-can-from="true" data-balance="{{ auth()->user()->balance }}">
+                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - $ {{ number_format(auth()->user()->balance, 2) }}
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
-                                        <option value="{{ $wallet->currency->code }}" data-name="Checking (...{{ substr(auth()->user()->account_number, -4) }})" data-type="checking" data-balance="{{ $wallet->balance }}">
-                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
+                                        <option value="{{ $wallet->currency->code }}" data-name="Checking (...{{ substr(auth()->user()->account_number, -4) }})" data-type="checking" data-can-from="true" data-balance="{{ $wallet->balance }}">
+                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - $ {{ number_format($wallet->balance, 2) }}
                                         </option>
                                     @endforeach
                                 @endif
-                                <option value="primary_savings" data-name="Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}">
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
+                                <option value="primary_savings" data-name="Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)" data-type="savings" data-can-from="true" data-balance="{{ auth()->user()->savings_balance }}">
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - $ {{ number_format(auth()->user()->savings_balance, 2) }}
                                 </option>
                                 @if(auth()->user()->heloc_status == 1)
-                                <option value="heloc" data-name="HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
-                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
+                                <option value="heloc" data-name="HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)" data-type="heloc" data-can-from="true" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}">
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - $ {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
+                                </option>
+                                @endif
+                                @if(auth()->user()->ira_status == 1)
+                                <option value="ira" data-name="IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)" data-type="ira" data-can-from="false" data-balance="{{ auth()->user()->ira_balance }}" disabled class="bg-light opacity-50">
+                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - Contribution Only
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
-                                <option value="cc" data-name="Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)" data-type="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}">
-                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
+                                <option value="cc" data-name="Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)" data-type="cc" data-can-from="false" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}" disabled class="bg-light opacity-50">
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Pay Down Only
+                                </option>
+                                @endif
+                                @if(auth()->user()->loan_account_status == 1)
+                                <option value="loan" data-name="Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)" data-type="loan" data-can-from="false" data-balance="{{ auth()->user()->loan_balance }}" disabled class="bg-light opacity-50">
+                                    Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - Pay Down Only
                                 </option>
                                 @endif
                             </select>
@@ -167,20 +177,25 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank</label>
-                                <select name="bank_id" class="form-select form-select-lg border-2 shadow-none" id="bankId">
-                                    <option value="" selected disabled>Select Destination Bank</option>
-                                    @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="alert alert-primary border-0 rounded-4 p-4 mb-0">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-circle bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 48px; height: 48px;">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">Smart Bank Discovery Enabled</h6>
+                                            <p class="small mb-0 opacity-75">We'll automatically detect the bank and branch instantly once you provide the routing number in the next step.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="bank_id" id="bankId" value="0">
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Amount</label>
                             <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-white border-2 border-end-0">{{ setting('site_currency', 'global') }}</span>
+                                <span class="input-group-text bg-white border-2 border-end-0">$</span>
                                 <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none" id="amount" name="amount" placeholder="0.00" oninput="validateBalance()">
                             </div>
                             <div id="quickAmountContainer" class="d-none">
@@ -243,7 +258,14 @@
                                         <div class="fw-bold text-dark" id="bank_name_found">Detecting Bank...</div>
                                         <div class="text-muted" style="font-size: 0.75rem;">Verified Routing Number</div>
                                     </div>
+                                    <div class="ms-auto">
+                                         <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none fw-bold" onclick="showManualBank()">Edit Name</button>
+                                    </div>
                                 </div>
+                            </div>
+                            <div id="manual_bank_container" class="mt-2 d-none">
+                                <label class="form-label small text-uppercase fw-bold text-muted">Bank Name (Manual)</label>
+                                <input type="text" name="manual_data[bank_name]" id="bank_name_manual" class="form-control border-2 shadow-none" placeholder="Enter bank name manually">
                             </div>
                         </div>
                         <div class="col-12">
@@ -302,8 +324,16 @@
                                 <span class="fw-bold text-capitalize" id="reviewType"></span>
                             </div>
                             <div class="receipt-row d-flex justify-content-between mb-3">
+                                <span class="text-muted small fw-bold text-uppercase">Scheduled For</span>
+                                <span class="fw-bold" id="reviewDate"></span>
+                            </div>
+                            <div class="receipt-row d-flex justify-content-between mb-3">
                                 <span class="text-muted small fw-bold text-uppercase">Frequency</span>
                                 <span class="fw-bold text-capitalize" id="reviewFreq"></span>
+                            </div>
+                            <div class="receipt-row d-flex justify-content-between mb-3">
+                                <span class="text-muted small fw-bold text-uppercase">Purpose</span>
+                                <span class="fw-bold" id="reviewPurpose"></span>
                             </div>
                             
                             <div class="external-review-details d-none">
@@ -403,41 +433,31 @@
     var currentStep = 1;
     var transferType = null;
 
-    // Moving this to a direct function so it's globally available
     window.selectType = function(type, card) {
-        console.log('selectType called via listener:', type);
         transferType = type;
-        
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
         card.classList.add('border-primary');
         const radio = card.querySelector('input[type="radio"]');
         if(radio) radio.checked = true;
-
         setTimeout(() => goToStep(2), 250);
     };
 
     function goToStep(step) {
-        console.log('goToStep:', step);
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none', 'active'));
-        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-        
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('d-none'));
         const stepEl = document.getElementById('step' + step);
         if(stepEl) {
             stepEl.classList.remove('d-none');
-            stepEl.classList.add('active');
         }
-        
         updateIndicators(step);
         currentStep = step;
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
         if(step === 2) setupStep2();
     }
 
     function updateIndicators(step) {
         document.querySelectorAll('.step-indicator').forEach((el, index) => {
             const stepNum = index + 1;
-            el.classList.remove('active', 'text-primary', 'text-success');
+            el.classList.remove('active', 'text-success');
             if (stepNum === step) el.classList.add('active');
             else if (stepNum < step) el.classList.add('text-success');
         });
@@ -457,24 +477,84 @@
             document.getElementById('standardAccountSelect').classList.remove('d-none');
             document.getElementById('quickAmountContainer').classList.add('d-none');
         }
-        
         updateAccountOptions();
     }
 
+    function updateAccountOptions() {
+        const fromSelect = document.getElementById('walletSelect');
+        const toSelect = document.getElementById('toWalletSelect');
+        if(!fromSelect || !toSelect) return;
+        
+        const optionsArr = Array.from(fromSelect.options);
+        const selectedOpt = fromSelect.options[fromSelect.selectedIndex];
+        const selectedValue = selectedOpt.value;
+        const selectedType = selectedOpt.getAttribute('data-type');
+
+        if(transferType === 'self') {
+            toSelect.innerHTML = '';
+            optionsArr.forEach(opt => {
+                if(opt.value !== selectedValue) {
+                    const newOpt = opt.cloneNode(true);
+                    newOpt.disabled = false;
+                    newOpt.classList.remove('opacity-50', 'bg-light');
+                    toSelect.add(newOpt);
+                }
+            });
+        }
+        updateBridgeUI();
+        validateBalance();
+    }
+
     function swapAccounts() {
+        if (transferType !== 'self') return;
         const fromSelect = document.getElementById('walletSelect');
         const toSelect = document.getElementById('toWalletSelect');
         
         const currentFrom = fromSelect.value;
-        const currentTo = toSelect.value;
+        const targetToValue = toSelect.value;
         
-        // Attempt to swap. This requires finding the option in the other select.
-        // We trigger a value change on fromSelect, then updateAccountOptions will run, then we select the target in toSelect.
-        fromSelect.value = currentTo;
+        // Smarter swap: only swap if destination is a valid source
+        const targetToOpt = toSelect.options[toSelect.selectedIndex];
+        const canFrom = targetToOpt.getAttribute('data-can-from') === 'true';
+        
+        if (!canFrom) {
+            Swal.fire({ 
+                title: 'Limited Account', 
+                text: 'This account type (IRA/Loan/CC) can only receive funds and cannot be used as a transfer source.', 
+                icon: 'info', 
+                confirmButtonColor: '#00549b' 
+            });
+            return;
+        }
+
+        fromSelect.value = targetToValue;
         updateAccountOptions();
         toSelect.value = currentFrom;
         
         updateBridgeUI();
+        validateBalance();
+    }
+
+    function updateBridgeUI() {
+        if (transferType !== 'self') return;
+        const fromSelect = document.getElementById('walletSelect');
+        const toSelect = document.getElementById('toWalletSelect');
+        const sourceOpt = fromSelect.options[fromSelect.selectedIndex];
+        const destOpt = toSelect.options[toSelect.selectedIndex];
+        
+        if (sourceOpt) {
+            document.getElementById('bridge-source-name').innerText = sourceOpt.getAttribute('data-name');
+            document.getElementById('bridge-source-balance').innerText = '$ ' + parseFloat(sourceOpt.getAttribute('data-balance')).toLocaleString('en-US', {minimumFractionDigits: 2});
+        }
+        if (destOpt) {
+            document.getElementById('bridge-dest-name').innerText = destOpt.getAttribute('data-name');
+            document.getElementById('bridge-dest-balance').innerText = '$ ' + parseFloat(destOpt.getAttribute('data-balance')).toLocaleString('en-US', {minimumFractionDigits: 2});
+            
+            const toType = destOpt.getAttribute('data-type');
+            const payoffBtn = document.getElementById('payoffBtn');
+            if (['heloc', 'cc', 'loan'].includes(toType)) payoffBtn.classList.remove('d-none');
+            else payoffBtn.classList.add('d-none');
+        }
         validateBalance();
     }
 
@@ -487,128 +567,8 @@
 
     function setPayoffAmount() {
         const toSelect = document.getElementById('toWalletSelect');
-        const selectedText = toSelect.options[toSelect.selectedIndex].text;
-        // Extract "Pay Down Balance: $X,XXX.XX"
-        const match = selectedText.match(/Pay Down Balance: .* ([\d,.]+)/);
-        if (match) {
-            document.getElementById('amount').value = match[1].replace(/,/g, '');
-            validateBalance();
-        }
-    }
-
-    function updateBridgeUI() {
-        if (transferType !== 'self') return;
-        
-        const fromSelect = document.getElementById('walletSelect');
-        const toSelect = document.getElementById('toWalletSelect');
-        
-        const sourceOpt = fromSelect.options[fromSelect.selectedIndex];
-        const destOpt = toSelect.options[toSelect.selectedIndex];
-        
-        if (sourceOpt) {
-            document.getElementById('bridge-source-name').innerText = sourceOpt.getAttribute('data-name');
-            document.getElementById('bridge-source-balance').innerText = '{{ setting("site_currency", "global") }} ' + parseFloat(sourceOpt.getAttribute('data-balance')).toLocaleString('en-US', {minimumFractionDigits: 2});
-        }
-        
-        if (destOpt) {
-            document.getElementById('bridge-dest-name').innerText = destOpt.text.split(' - ')[0];
-            // Get balance for destination too
-            const destBalanceText = destOpt.text.split(' - ').pop();
-            document.getElementById('bridge-dest-balance').innerText = destBalanceText.replace('(Available)', '').replace('Pay Down Balance: ', '');
-            
-            // Show/Hide Payoff button
-            const toType = destOpt.getAttribute('data-type') || (destOpt.value === 'primary_savings' ? 'savings' : 'checking');
-            const payoffBtn = document.getElementById('payoffBtn');
-            if (['heloc', 'cc', 'loan'].includes(toType)) {
-                payoffBtn.classList.remove('d-none');
-            } else {
-                payoffBtn.classList.add('d-none');
-            }
-        }
-        
-        validateBalance();
-    }
-
-    function updateAccountOptions() {
-        const fromSelect = document.getElementById('walletSelect');
-        const toSelect = document.getElementById('toWalletSelect');
-        if(!fromSelect || !toSelect) return;
-        const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
-        
-        if(transferType === 'self') {
-            toSelect.innerHTML = '';
-            
-            // Add Checking
-            if(selectedType !== 'checking') {
-                if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
-                    var opt = document.createElement('option');
-                    opt.value = 'default';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
-                    toSelect.add(opt);
-                } else {
-                    @foreach($wallets as $wallet)
-                        var opt = document.createElement('option');
-                        opt.value = '{{ $wallet->currency->code }}';
-                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
-                        toSelect.add(opt);
-                    @endforeach
-                }
-            }
-
-            // Add Savings
-            if(selectedType !== 'savings') {
-                const opt = document.createElement('option');
-                opt.value = 'primary_savings';
-                opt.setAttribute('data-type', 'savings');
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
-                toSelect.add(opt);
-            }
-
-            // Add IRA
-            @if(auth()->user()->ira_status == 1)
-            if(selectedType !== 'ira') {
-                const opt = document.createElement('option');
-                opt.value = 'ira';
-                opt.setAttribute('data-type', 'ira');
-                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add HELOC
-            @if(auth()->user()->heloc_status == 1)
-            if(selectedType !== 'heloc') {
-                const opt = document.createElement('option');
-                opt.value = 'heloc';
-                opt.setAttribute('data-type', 'heloc');
-                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add Credit Card
-            @if(auth()->user()->cc_status == 1)
-            if(selectedType !== 'cc') {
-                const opt = document.createElement('option');
-                opt.value = 'cc';
-                opt.setAttribute('data-type', 'cc');
-                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-
-            // Add Loan
-            @if(auth()->user()->loan_account_status == 1)
-            if(selectedType !== 'loan') {
-                const opt = document.createElement('option');
-                opt.value = 'loan';
-                opt.setAttribute('data-type', 'loan');
-                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
-                toSelect.add(opt);
-            }
-            @endif
-        }
-        updateBridgeUI();
+        const balance = parseFloat(toSelect.options[toSelect.selectedIndex].getAttribute('data-balance')) || 0;
+        document.getElementById('amount').value = balance.toFixed(2);
         validateBalance();
     }
 
@@ -618,38 +578,31 @@
         const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
         
-        // Internal Bridge Preview
         if (transferType === 'self') {
-            const sourceNewInfo = document.getElementById('bridge-source-new-info');
-            const destNewInfo = document.getElementById('bridge-dest-new-info');
-            const sourceNewVal = document.getElementById('bridge-source-new-val');
-            const destNewVal = document.getElementById('bridge-dest-new-val');
+            const sourceInfo = document.getElementById('bridge-source-new-info');
+            const destInfo = document.getElementById('bridge-dest-new-info');
+            const sourceVal = document.getElementById('bridge-source-new-val');
+            const destVal = document.getElementById('bridge-dest-new-val');
             
             if (amount > 0) {
-                sourceNewInfo.classList.remove('d-none');
-                destNewInfo.classList.remove('d-none');
+                sourceInfo.classList.remove('d-none');
+                destInfo.classList.remove('d-none');
                 
                 const sNew = balance - amount;
-                sourceNewVal.innerText = '{{ setting("site_currency", "global") }} ' + sNew.toLocaleString('en-US', {minimumFractionDigits: 2});
-                sourceNewVal.className = sNew < 0 ? 'text-danger' : 'text-success';
+                sourceVal.innerText = '$ ' + sNew.toLocaleString('en-US', {minimumFractionDigits: 2});
+                sourceVal.className = sNew < 0 ? 'text-danger' : 'text-success';
                 
-                // For destination, we need to know its current balance
                 const toSelect = document.getElementById('toWalletSelect');
-                const destText = toSelect.options[toSelect.selectedIndex]?.text || '';
-                const destBalMatch = destText.match(/(?:Balance: | - )[^0-9]*([\d,.]+)/);
-                const destBal = destBalMatch ? parseFloat(destBalMatch[1].replace(/,/g, '')) : 0;
+                const dBal = parseFloat(toSelect.options[toSelect.selectedIndex]?.getAttribute('data-balance')) || 0;
                 const toType = toSelect.options[toSelect.selectedIndex]?.getAttribute('data-type');
                 
-                let dNew = destBal + amount;
-                if (['heloc', 'cc', 'loan'].includes(toType)) {
-                    dNew = destBal - amount; // Pay down balance
-                }
+                let dNew = dBal + amount;
+                if (['heloc', 'cc', 'loan'].includes(toType)) dNew = dBal - amount; 
                 
-                destNewVal.innerText = '{{ setting("site_currency", "global") }} ' + dNew.toLocaleString('en-US', {minimumFractionDigits: 2});
-                destNewVal.className = 'text-success';
+                destVal.innerText = '$ ' + dNew.toLocaleString('en-US', {minimumFractionDigits: 2});
             } else {
-                sourceNewInfo.classList.add('d-none');
-                destNewInfo.classList.add('d-none');
+                sourceInfo.classList.add('d-none');
+                destInfo.classList.add('d-none');
             }
         }
         
@@ -675,15 +628,10 @@
             return;
         }
         if(transferType === 'member' && !document.getElementById('member_identifier').value) {
-            Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
-            return;
-        }
-        if(transferType === 'external' && !document.getElementById('bankId').value) {
-            Swal.fire({ title: 'Bank Required', text: 'Please select a destination bank.', icon: 'warning', confirmButtonColor: '#00549b' });
+            Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s info.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
 
-        // Bypass Review for Internal Transfer < $1,000
         if(transferType === 'self' && amount < 1000) {
             populateReview();
             confirmInstantTransfer();
@@ -697,16 +645,14 @@
     function confirmInstantTransfer() {
         Swal.fire({
             title: 'Confirm Transfer',
-            html: `You are moving <b>$${parseFloat(document.getElementById('amount').value).toLocaleString()}</b> instantly.<br><br><span class="small text-muted">Internal transfers are processed immediately.</span>`,
+            html: `You are moving <b>$${parseFloat(document.getElementById('amount').value).toLocaleString()}</b> instantly.`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Transfer Now',
             confirmButtonColor: '#00549b',
             cancelButtonText: 'Edit Details'
         }).then((result) => {
-            if (result.isConfirmed) {
-                SecurityGate.gate(document.getElementById('transferForm'));
-            }
+            if (result.isConfirmed) SecurityGate.gate(document.getElementById('transferForm'));
         });
     }
 
@@ -714,7 +660,7 @@
         const name = document.querySelector('input[name="manual_data[account_name]"]').value;
         const acc1 = document.getElementById('ext_acc_num').value;
         const acc2 = document.getElementById('ext_acc_num_confirm').value;
-        const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
+        const routing = document.getElementById('routing_number').value;
 
         if(!name || !acc1 || routing.length < 9) {
             Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
@@ -731,18 +677,38 @@
     function populateReview() {
         document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH');
         const fromSelect = document.getElementById('walletSelect');
-        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
+        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-name');
         
         let toText = 'Unknown';
-        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
+        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[document.getElementById('toWalletSelect').selectedIndex]?.getAttribute('data-name') || 'My Account';
         else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
-        else toText = document.getElementById('bankId').options[document.getElementById('bankId').selectedIndex].text;
+        else toText = document.getElementById('bank_name_found').innerText;
         
         document.getElementById('reviewTo').innerText = toText;
         document.getElementById('reviewAmount').innerText = '$' + parseFloat(document.getElementById('amount').value).toLocaleString();
-        document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
-        document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
-        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
+        
+        const scheduledAt = document.querySelector('input[name="scheduled_at"]').value;
+        const freqText = document.querySelector('select[name="frequency"]').value;
+        const purposeText = document.getElementById('transferPurpose').value || 'Transfer Funds';
+
+        if(document.getElementById('reviewDate')) document.getElementById('reviewDate').innerText = scheduledAt;
+        if(document.getElementById('reviewFreq')) document.getElementById('reviewFreq').innerText = freqText;
+        if(document.getElementById('reviewPurpose')) document.getElementById('reviewPurpose').innerText = purposeText;
+        
+        const dateSub = document.getElementById('reviewDateSub');
+        const today = new Date().toISOString().split('T')[0];
+        dateSub.innerText = scheduledAt === today ? 'Scheduled for today' : 'Scheduled for ' + scheduledAt;
+
+        const deliveryEst = document.getElementById('reviewDeliveryEst');
+        if (transferType === 'self') {
+            deliveryEst.innerText = 'Instant Transfer';
+            document.querySelectorAll('.external-review-details').forEach(el => el.classList.add('d-none'));
+        } else {
+            deliveryEst.innerText = transferType === 'member' ? 'Same Day' : '1-3 Business Days';
+            document.querySelectorAll('.external-review-details').forEach(el => el.classList.remove('d-none'));
+            document.getElementById('reviewRouting').innerText = document.getElementById('routing_number').value;
+            document.getElementById('reviewAccount').innerText = '****' + document.getElementById('ext_acc_num').value.slice(-4);
+        }
     }
 
     function goBackFromReview() {
@@ -757,148 +723,71 @@
         btn.querySelector('i').classList.toggle('fa-eye-slash');
     }
 
-    // Attach listeners after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.js-type-select').forEach(card => {
-            card.addEventListener('click', function(e) {
-                const type = this.getAttribute('data-type');
-                window.selectType(type, this);
-            });
-        });
-        
-        // Form submission is handled by SecurityGate via onclick on the confirm button
+    function showManualBank() {
+        document.getElementById('manual_bank_container').classList.remove('d-none');
+    }
 
-        // Unified Member Lookup
-        const memberInput = document.getElementById('member_identifier');
-        const memberNameDisplay = document.getElementById('member_name_display');
-        const targetAccountType = document.getElementById('target_account_type');
-        const optSavings = document.getElementById('opt-savings');
-
-        if(memberInput) {
-            memberInput.addEventListener('input', function() {
-                const val = this.value;
-                const memberNameDisplayText = document.getElementById('member_name_display_text');
-                const memberNameWrapper = document.getElementById('member_name_display_wrapper');
-
-                if(val.length > 4 || (val.includes('@') && val.length > 3)) {
-                    fetch('/user/search-by-account-number/' + encodeURIComponent(val))
-                        .then(response => response.json())
-                        .then(data => {
-                            if(data.name) {
-                                memberNameDisplayText.innerText = data.name;
-                                memberNameDisplayText.classList.remove('text-muted');
-                                memberNameDisplayText.classList.add('fw-bold', 'text-dark');
-                                
-                                if(data.has_savings) {
-                                    optSavings.hidden = false;
-                                    optSavings.disabled = false;
-                                } else {
-                                    optSavings.hidden = true;
-                                    optSavings.disabled = true;
-                                    targetAccountType.value = 'checking';
-                                }
-                                
-                                // Auto-select savings if they searched with savings account number
-                                if(val === data.savings_account_number) {
-                                    targetAccountType.value = 'savings';
-                                } else if(val === data.account_number) {
-                                    targetAccountType.value = 'checking';
-                                }
-                            } else {
-                                memberNameDisplayText.innerText = 'Member not Found!';
-                                memberNameDisplayText.classList.add('text-danger');
-                                memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
-                                optSavings.hidden = true;
-                                optSavings.disabled = true;
-                                targetAccountType.value = 'checking';
-                            }
-                        });
-                } else {
-                    memberNameDisplayText.innerText = 'Enter info to verify...';
-                    memberNameDisplayText.classList.remove('text-danger', 'text-dark', 'fw-bold');
-                    optSavings.hidden = true;
-                    optSavings.disabled = true;
-                    targetAccountType.value = 'checking';
-                }
-            });
-        }
-    });
-
-    // Routing Lookup Logic
-    let routingTimeout = null;
     function lookupRouting(rn) {
         const val = rn.replace(/[^0-9]/g, '');
         document.getElementById('routing_number').value = val;
-        
         const feedback = document.getElementById('routing_feedback');
         const loader = document.getElementById('routing_loader');
         const bankNameText = document.getElementById('bank_name_found');
         const bankInitials = document.getElementById('bank_initials');
 
-        if (val.length < 9) {
-            feedback.classList.add('d-none');
-            return;
-        }
-
+        if (val.length < 9) { feedback.classList.add('d-none'); return; }
         loader.classList.remove('d-none');
-        clearTimeout(routingTimeout);
-
-        routingTimeout = setTimeout(() => {
-            // Robust, Free implementation using a reliable US routing catalog
-            // We use routingnumbers.info as primary (free/no-key) with a local common bank fallback
-            fetch(`https://www.routingnumbers.info/api/data.json?rn=${val}`)
-                .then(res => res.json())
-                .then(data => {
-                    loader.classList.add('d-none');
-                    feedback.classList.remove('d-none');
-                    
-                    if (data.code === 200 && data.name) {
-                        bankNameText.innerText = data.name;
-                        bankInitials.innerText = data.name.charAt(0);
-                        bankInitials.style.background = '#00549b';
-                    } else {
-                        // Fallback logic for all US Banks
-                        bankNameText.innerText = 'US Bank Account Detected';
-                        bankInitials.innerText = 'US';
-                        bankInitials.style.background = '#64748b';
-                    }
-                })
-                .catch(() => {
-                    // Critical Fallback: System stays functional if API is down
-                    loader.classList.add('d-none');
-                    feedback.classList.remove('d-none');
-                    bankNameText.innerText = 'Domestic Bank Record Found';
-                    bankInitials.innerText = 'BK';
+        
+        fetch(`/user/fund-transfer/routing-lookup/${val}`)
+            .then(res => res.json())
+            .then(data => {
+                loader.classList.add('d-none');
+                feedback.classList.remove('d-none');
+                if (data.name) {
+                    bankNameText.innerText = data.name;
+                    bankInitials.innerText = data.name.charAt(0);
+                    bankInitials.style.background = '#00549b';
+                } else {
+                    bankNameText.innerText = 'US Bank Account';
+                    bankInitials.innerText = 'US';
                     bankInitials.style.background = '#64748b';
-                });
-        }, 600);
+                }
+            })
+            .catch(() => {
+                loader.classList.add('d-none');
+                feedback.classList.remove('d-none');
+                bankNameText.innerText = 'Domestic Bank Found';
+                bankInitials.innerText = 'BK';
+            });
     }
-    
-    // Override populateReview for new fields
-    const originalPopulateReview = populateReview;
-    populateReview = function() {
-        originalPopulateReview();
-        
-        const amountStr = document.getElementById('amount').value;
-        const amount = parseFloat(amountStr) || 0;
-        const dateSub = document.getElementById('reviewDateSub');
-        const deliveryEst = document.getElementById('reviewDeliveryEst');
-        const scheduledAt = document.querySelector('input[name="scheduled_at"]').value;
-        const today = new Date().toISOString().split('T')[0];
 
-        dateSub.innerText = scheduledAt === today ? 'Scheduled for today' : 'Scheduled for ' + scheduledAt;
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.js-type-select').forEach(card => {
+            card.addEventListener('click', function() {
+                window.selectType(this.getAttribute('data-type'), this);
+            });
+        });
         
-        if (transferType === 'self') {
-            deliveryEst.innerText = 'Instant Transfer';
-            document.querySelectorAll('.external-review-details').forEach(el => el.classList.add('d-none'));
-        } else {
-            deliveryEst.innerText = transferType === 'member' ? 'Same Day (Review Priority)' : '1-3 Business Days';
-            document.querySelectorAll('.external-review-details').forEach(el => el.classList.remove('d-none'));
-            
-            document.getElementById('reviewRouting').innerText = document.getElementById('routing_number')?.value || 'N/A';
-            const accNum = document.getElementById('ext_acc_num')?.value || '';
-            document.getElementById('reviewAccount').innerText = '****' + accNum.slice(-4);
+        const memberInput = document.getElementById('member_identifier');
+        if(memberInput) {
+            memberInput.addEventListener('input', function() {
+                const val = this.value;
+                const nameDisplay = document.getElementById('member_name_display_text');
+                if(val.length > 4) {
+                    fetch('/user/search-by-account-number/' + encodeURIComponent(val))
+                        .then(res => res.json())
+                        .then(data => {
+                            if(data.name) {
+                                nameDisplay.innerText = data.name;
+                                nameDisplay.classList.add('fw-bold', 'text-dark');
+                            } else {
+                                nameDisplay.innerText = 'Member not Found!';
+                                nameDisplay.classList.add('text-danger');
+                            }
+                        });
+                }
+            });
         }
-    };
+    });
 </script>
 @endsection
