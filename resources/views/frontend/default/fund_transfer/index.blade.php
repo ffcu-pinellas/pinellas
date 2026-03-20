@@ -227,6 +227,10 @@
                                 <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
+                        <div class="col-md-6 d-none" id="manual_bank_field">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Recipient Bank Name</label>
+                            <input type="text" name="manual_data[bank_name]" id="manual_bank_name" class="form-control form-control-lg border-2 shadow-sm" placeholder="e.g. Chase Bank">
+                        </div>
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">Confirm Account Number</label>
                             <div class="input-group">
@@ -576,10 +580,11 @@
             document.getElementById('reviewExternalSection').classList.add('d-none');
             // Member transfers usually follow global settings
         } else {
-            toText = document.getElementById('discovered_bank_name').innerText || 'External Bank';
+            toText = document.getElementById('discovered_bank_name').innerText || document.getElementById('manual_bank_name').value || 'External Bank';
             document.getElementById('reviewExternalSection').classList.remove('d-none');
             document.getElementById('reviewRouting').innerText = document.getElementById('routing_number').value;
-            document.getElementById('reviewAccount').innerText = '****' + document.getElementById('ext_acc_num').value.slice(-4);
+            // Unmasking account number as requested by user
+            document.getElementById('reviewAccount').innerText = document.getElementById('ext_acc_num').value;
         }
         
         document.getElementById('reviewTo').innerText = toText;
@@ -707,6 +712,7 @@
                                 bankNameTxt.innerText = data.name;
                                 bankDisplay.classList.remove('d-none');
                                 errorDisplay.classList.add('d-none');
+                                document.getElementById('manual_bank_field').classList.add('d-none');
                                 if(data.id) adminBankId.value = data.id;
                                 else adminBankId.value = 0;
                                 
@@ -717,6 +723,7 @@
                                 errorTxt.innerText = data.message;
                                 errorDisplay.classList.remove('d-none');
                                 bankDisplay.classList.add('d-none');
+                                document.getElementById('manual_bank_field').classList.remove('d-none');
                                 adminBankId.value = 0;
                             }
                         });

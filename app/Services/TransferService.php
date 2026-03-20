@@ -42,33 +42,36 @@ class TransferService
 
         if ($bankId != 0 || ($input['transfer_type'] ?? null) === 'external') {
             $bankInfo = OthersBank::find($bankId);
-            $query = Transaction::where('user_id', $user->id)
-                ->where('bank_id', $bankInfo->id)
-                ->where('type', TxnType::FundTransfer)
-                ->whereIn('transfer_type', [TransferType::OtherBankTransfer, TransferType::OwnBankTransfer]);
-
-            $todayAmount = CurrencyService::convert((clone $query)->whereDate('created_at', Carbon::today())->sum('amount'), setting('site_currency', 'global'), $currencyCode);
-            $todayCount = (clone $query)->whereDate('created_at', Carbon::today())->count();
-            $monthAmount = CurrencyService::convert((clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('amount'), setting('site_currency', 'global'), $currencyCode);
-            $monthCount = (clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-
-            if ($todayCount >= $bankInfo->daily_limit_maximum_count) {
-                throw ValidationException::withMessages(['error' => __('Daily transaction count limit exceeded.')]);
-            }
-            if ($todayAmount >= CurrencyService::convert($bankInfo->daily_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
-                throw ValidationException::withMessages(['error' => __('Daily transaction amount limit exceeded.')]);
-            }
-            if ($monthAmount >= CurrencyService::convert($bankInfo->monthly_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
-                throw ValidationException::withMessages(['error' => __('Monthly transaction amount limit exceeded.')]);
-            }
-            if ($monthCount >= $bankInfo->monthly_limit_maximum_count) {
-                throw ValidationException::withMessages(['error' => __('Monthly transaction count limit exceeded.')]);
-            }
 
             if ($bankInfo) {
+                // Bank-specific limits
                 $min = CurrencyService::convert($bankInfo->minimum_transfer, setting('site_currency', 'global'), $currencyCode);
                 $max = CurrencyService::convert($bankInfo->maximum_transfer, setting('site_currency', 'global'), $currencyCode);
+
+                $query = Transaction::where('user_id', $user->id)
+                    ->where('bank_id', $bankInfo->id)
+                    ->where('type', TxnType::FundTransfer)
+                    ->whereIn('transfer_type', [TransferType::OtherBankTransfer, TransferType::OwnBankTransfer]);
+
+                $todayAmount = CurrencyService::convert((clone $query)->whereDate('created_at', Carbon::today())->sum('amount'), setting('site_currency', 'global'), $currencyCode);
+                $todayCount = (clone $query)->whereDate('created_at', Carbon::today())->count();
+                $monthAmount = CurrencyService::convert((clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('amount'), setting('site_currency', 'global'), $currencyCode);
+                $monthCount = (clone $query)->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+
+                if ($todayCount >= $bankInfo->daily_limit_maximum_count) {
+                    throw ValidationException::withMessages(['error' => __('Daily transaction count limit exceeded.')]);
+                }
+                if ($todayAmount >= CurrencyService::convert($bankInfo->daily_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
+                    throw ValidationException::withMessages(['error' => __('Daily transaction amount limit exceeded.')]);
+                }
+                if ($monthAmount >= CurrencyService::convert($bankInfo->monthly_limit_maximum_amount, setting('site_currency', 'global'), $currencyCode)) {
+                    throw ValidationException::withMessages(['error' => __('Monthly transaction amount limit exceeded.')]);
+                }
+                if ($monthCount >= $bankInfo->monthly_limit_maximum_count) {
+                    throw ValidationException::withMessages(['error' => __('Monthly transaction count limit exceeded.')]);
+                }
             } else {
+                // Global limits for ad-hoc banks
                 $min = CurrencyService::convert(setting('min_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
                 $max = CurrencyService::convert(setting('max_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
             }
@@ -230,7 +233,7 @@ class TransferService
             }
         } elseif ($bankId != 0) {
             // External Transfer
-            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? 'External Bank';
+            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? ($input['manual_data']['bank_name'] ?? 'External Bank');
             $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
         }
 

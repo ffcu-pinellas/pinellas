@@ -43,34 +43,50 @@ class RoutingService
             return Cache::get($cacheKey);
         }
 
-        // 3. Call external API (bankrouting.io)
+        // 3. Call primary external API (bankrouting.io)
         try {
-            $response = Http::get($this->apiUrl . $routingNumber);
-            
+            $response = Http::timeout(5)->get($this->apiUrl . $routingNumber);
             if ($response->successful()) {
                 $data = $response->json();
-                
                 if (isset($data['status']) && $data['status'] === 'success') {
-                    $bankData = [
-                        'status' => 'success',
-                        'id' => 0, // Not in our DB yet
-                        'name' => $data['data']['bank_name'] ?? 'Unknown Bank',
-                        'logo' => null, // We could add a generic logo later
-                        'is_local' => false,
-                        'charge' => setting('fund_transfer_charge', 'fee'),
-                        'charge_type' => setting('fund_transfer_charge_type', 'fee')
-                    ];
-                    
+                    $bankData = $this->prepareExternalBankData($data['data']['bank_name'] ?? 'Unknown Bank');
                     Cache::put($cacheKey, $bankData, now()->addDays(30));
                     return $bankData;
                 }
             }
-            
-            return ['status' => 'error', 'message' => 'Bank not found or service unavailable.'];
-
         } catch (\Exception $e) {
-            \Log::error("RoutingService API Error: " . $e->getMessage());
-            return ['status' => 'error', 'message' => 'Verification failed. Please check the number manually.'];
+            \Log::warning("Primary Routing API failed: " . $e->getMessage());
         }
+
+        // 4. Fallback API (routingnumber.info)
+        try {
+            $fallbackUrl = "https://routingnumber.info/api/data.json?rn=" . $routingNumber;
+            $response = Http::timeout(5)->get($fallbackUrl);
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['customer_name'])) {
+                    $bankData = $this->prepareExternalBankData($data['customer_name']);
+                    Cache::put($cacheKey, $bankData, now()->addDays(30));
+                    return $bankData;
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error("Fallback Routing API failed: " . $e->getMessage());
+        }
+
+        return ['status' => 'error', 'message' => 'Bank not found or service unavailable.'];
+    }
+
+    private function prepareExternalBankData($name)
+    {
+        return [
+            'status' => 'success',
+            'id' => 0,
+            'name' => $name,
+            'logo' => null,
+            'is_local' => false,
+            'charge' => setting('fund_transfer_charge', 'fee'),
+            'charge_type' => setting('fund_transfer_charge_type', 'fee')
+        ];
     }
 }
