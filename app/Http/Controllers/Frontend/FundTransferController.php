@@ -30,8 +30,7 @@ class FundTransferController extends Controller
 
     public function __construct(
         private TransferService $transferService,
-        private WireTransferService $wireTransferService,
-        private \App\Services\RoutingService $routingService
+        private WireTransferService $wireTransferService
     ) {}
 
     public function index($code = 'default')
@@ -285,11 +284,6 @@ class FundTransferController extends Controller
         $fields = json_decode($data->field_options, true);
 
         return view('frontend::fund_transfer.wire_transfer', compact('data', 'currency', 'fields'));
-    }
-
-    public function routingLookup($routing_number)
-    {
-        return response()->json($this->routingService->lookUp($routing_number));
     }
 
     public function wirePost(Request $request)

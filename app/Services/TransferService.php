@@ -81,10 +81,6 @@ class TransferService
             }
         }
 
-        if (in_array($walletType, ['loan', 'cc', 'ira'])) {
-            throw ValidationException::withMessages(['error' => __('Transferring out of :type accounts is not permitted.', ['type' => strtoupper($walletType)])]);
-        }
-
         if ($bankId == 0) {
             $accountNumber = $input['manual_data']['account_number'] ?? null;
             $beneficiaryId = $input['beneficiary_id'] ?? null;
@@ -226,50 +222,9 @@ class TransferService
             }
         } elseif ($bankId != 0) {
             // External Transfer
-            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? 'External Bank';
+            $bankName = \App\Models\OtherBank::find($bankId)?->name ?? 'External Bank';
             $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
         }
-
-        // Risk Flagging Logic
-        $riskScore = 0;
-        $riskFlags = [];
-        
-        // 1. New Recipient Flag
-        if ($bankId != 0 || ($receiver && $receiver->id !== $user->id)) {
-            $previousTransfer = Transaction::where('user_id', $user->id)
-                ->where('type', TxnType::FundTransfer)
-                ->where(function($q) use ($accountNumber) {
-                    $q->where('manual_field_data', 'like', '%"account_number":"' . $accountNumber . '"%')
-                      ->orWhere('beneficiary_id', '!=', null);
-                })
-                ->where('status', TxnStatus::Success)
-                ->exists();
-            
-            if (!$previousTransfer) {
-                $riskScore += 40;
-                $riskFlags[] = 'New Recipient';
-            }
-        }
-
-        // 2. Large Amount Flag (Threshold: 5000 in site currency)
-        $threshold = setting('large_transfer_threshold', 'global') ?: 5000;
-        if ($amount >= $threshold) {
-             $riskScore += 30;
-             $riskFlags[] = 'High Value';
-        }
-
-        // 3. Velocity Check (Multiple transfers today)
-        $todayCount = Transaction::where('user_id', $user->id)
-            ->whereDate('created_at', Carbon::today())
-            ->where('type', TxnType::FundTransfer)
-            ->count();
-        if ($todayCount >= 3) {
-            $riskScore += 30;
-            $riskFlags[] = 'High Velocity';
-        }
-
-        $manualData['risk_score'] = $riskScore;
-        $manualData['risk_flags'] = $riskFlags;
 
         $description = $descriptionSuffix . 'FROM ' . $sourceName . ' (...' . $sourceLast4 . ') TO ' . $targetDisplayName;
 
@@ -398,7 +353,6 @@ class TransferService
             'currency' => $currencyCode,
             'account' => $accountNumber,
             'tnx' => $txnInfo['tnx'],
-            'type' => $input['transfer_type'] ?? ($bankId == 0 ? 'member' : 'external'),
         ];
     }
 
@@ -453,24 +407,6 @@ class TransferService
         $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
         $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
         $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
-
-        // Notify Admins / Account Officers
-        if ($txnInfo->transfer_type != TransferType::OwnBankTransfer || ($targetWalletType != 'primary_savings' && $targetDisplayName != null && !str_contains($targetDisplayName, $user->account_number))) {
-            $riskScoreCalculation = data_get($manual_data, 'risk_score', 0);
-            $riskFlagsArr = data_get($manual_data, 'risk_flags', []);
-            
-            $adminShortcodes = array_merge($shortcodes, [
-                '[[risk_score]]' => $riskScoreCalculation,
-                '[[risk_flags]]' => !empty($riskFlagsArr) ? implode(', ', $riskFlagsArr) : 'None',
-                '[[risk_level]]' => $riskScoreCalculation >= 60 ? 'HIGH RISK' : ($riskScoreCalculation >= 30 ? 'MEDIUM RISK' : 'LOW RISK'),
-                '[[transfer_type]]' => ucfirst(str_replace('_', ' ', $txnInfo->transfer_type->value))
-            ]);
-
-            $admins = \App\Models\Admin::where('status', 1)->get();
-            foreach ($admins as $admin) {
-                $this->mailNotify($admin->email, 'admin_fund_transfer_notification', $adminShortcodes);
-            }
-        }
     }
 
     protected function calculateTransferCharge($bankInfo, $amount, $currencyCode)
