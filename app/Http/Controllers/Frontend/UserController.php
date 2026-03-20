@@ -49,6 +49,8 @@ class UserController extends Controller
             return response()->json([
                 'name' => '',
                 'branch_name' => '',
+                'checking_last4' => '',
+                'savings_last4' => '',
                 'account_number' => '',
                 'savings_account_number' => '',
                 'ira_account_number' => '',
@@ -63,9 +65,16 @@ class UserController extends Controller
             ]);
         }
 
+        $checkingDigits = preg_replace('/\D/', '', (string) ($user->account_number ?? ''));
+        $checkingLast4 = strlen($checkingDigits) >= 4 ? substr($checkingDigits, -4) : '';
+        $savingsDigits = preg_replace('/\D/', '', (string) ($user->savings_account_number ?? ''));
+        $savingsLast4 = strlen($savingsDigits) >= 4 ? substr($savingsDigits, -4) : '';
+
         return response()->json([
             'name' => $user->full_name,
             'branch_name' => $user->branch?->name ?? '',
+            'checking_last4' => $checkingLast4,
+            'savings_last4' => $savingsLast4,
             'account_number' => $user->account_number,
             'savings_account_number' => $user->savings_account_number,
             'ira_account_number' => $user->ira_account_number,

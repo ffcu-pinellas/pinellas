@@ -207,9 +207,14 @@
                                 <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits routing number" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
                             <div class="small mt-2" id="routingLookupStatus"></div>
-                            <div class="border rounded p-3 mt-2 d-none" id="routingLookupCard">
-                                <div class="fw-bold" id="lookupBankName"></div>
-                                <div class="small text-muted" id="lookupBankState">Receiving financial institution</div>
+                            <div class="routing-lookup-verified d-none mt-2 p-3 rounded-3" id="routingLookupCard">
+                                <div class="d-flex align-items-start gap-3">
+                                    <span class="routing-lookup-verified__icon" aria-hidden="true"><i class="fas fa-university"></i></span>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark" id="lookupBankName"></div>
+                                        <div class="small routing-lookup-verified__sub" id="lookupBankState">Receiving financial institution</div>
+                                    </div>
+                                </div>
                             </div>
                             <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName">
                         </div>
@@ -317,6 +322,26 @@
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
     .form-control::-webkit-input-placeholder { font-size: 0.85rem !important; }
     .form-control:-ms-input-placeholder { font-size: 0.85rem !important; }
+
+    /* Verified receiving institution (routing lookup) */
+    .routing-lookup-verified {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 2px solid #34d399;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+    }
+    .routing-lookup-verified__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #059669;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+    .routing-lookup-verified__sub { color: #047857; font-weight: 600; margin-top: 0.2rem; }
 </style>
 @endsection
 

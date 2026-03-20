@@ -5,6 +5,7 @@ namespace App\Traits;
 use App\Events\NotificationEvent;
 use App\Mail\MailSend;
 use App\Models\EmailTemplate;
+use App\Support\MailAsset;
 use App\Models\Notification;
 use App\Models\PushNotificationTemplate;
 use App\Models\SmsTemplate;
@@ -46,10 +47,36 @@ trait NotifyTrait
         return $shortcodes;
     }
 
+    /**
+     * Map common alternate shortcodes used in DB email templates (e.g. [[txn]] vs [[tnx]]).
+     */
+    protected function expandMailShortcodeAliases(?array $shortcodes): array
+    {
+        $shortcodes = $shortcodes ?? [];
+
+        if (isset($shortcodes['[[tnx]]']) && ! isset($shortcodes['[[txn]]'])) {
+            $shortcodes['[[txn]]'] = $shortcodes['[[tnx]]'];
+        }
+        if (isset($shortcodes['[[txn]]']) && ! isset($shortcodes['[[tnx]]'])) {
+            $shortcodes['[[tnx]]'] = $shortcodes['[[txn]]'];
+        }
+
+        $reason = $shortcodes['[[message]]'] ?? $shortcodes['[[reason]]'] ?? $shortcodes['[[action_message]]'] ?? null;
+        if ($reason !== null && $reason !== '') {
+            foreach (['[[message]]', '[[reason]]', '[[action_message]]'] as $key) {
+                if (! array_key_exists($key, $shortcodes) || trim((string) $shortcodes[$key]) === '') {
+                    $shortcodes[$key] = $reason;
+                }
+            }
+        }
+
+        return $shortcodes;
+    }
+
     // ============================= mail template helper ===================================================
     protected function mailNotify($email, $code, $shortcodes = null)
     {
-        $shortcodes = $this->formatShortcodes($shortcodes);
+        $shortcodes = $this->expandMailShortcodeAliases($this->formatShortcodes($shortcodes));
         try {
             $template = EmailTemplate::where('status', true)->where('code', $code)->first();
             if ($template) {
@@ -82,7 +109,7 @@ trait NotifyTrait
 
                 $details = [
                     'subject' => str_replace($find, $replace, $template->subject),
-                    'banner' => $banner ? asset($banner) : null,
+                    'banner' => $banner ? MailAsset::absolute($banner) : null,
                     'title' => str_replace($find, $replace, $template->title),
                     'salutation' => str_replace($find, $replace, $template->salutation),
                     'message_body' => str_replace($find, $replace, $template->message_body),
@@ -94,9 +121,9 @@ trait NotifyTrait
                     'bottom_title' => str_replace($find, $replace, $template->bottom_title) ?? '',
                     'bottom_body' => str_replace($find, $replace, $template->bottom_body) ?? '',
 
-                    'site_logo' => $siteLogo ? asset($siteLogo) : null,
+                    'site_logo' => MailAsset::absolute($siteLogo),
                     'site_title' => setting('site_title', 'global'),
-                    'site_link' => route('home'),
+                    'site_link' => rtrim((string) config('app.url'), '/').'/',
                 ];
 
                 if ($code == 'email_verification') {
@@ -128,8 +155,8 @@ trait NotifyTrait
             $details = [
                 'subject' => $manualSubject ?: 'Account Notification - ' . setting('site_title', 'global'),
                 'message_body' => $manualMessage ?: ($shortcodes['[[action]]'] ?? 'A notification has been triggered for your account.'),
-                'site_logo' => $siteLogo ? asset($siteLogo) : null,
-                'site_link' => route('home'),
+                'site_logo' => MailAsset::absolute($siteLogo),
+                'site_link' => rtrim((string) config('app.url'), '/').'/',
                 'site_title' => setting('site_title', 'global'),
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
                 'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),

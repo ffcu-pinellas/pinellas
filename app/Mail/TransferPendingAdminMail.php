@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\Admin;
 use App\Models\User;
+use App\Support\MailAsset;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -38,8 +39,8 @@ class TransferPendingAdminMail extends Mailable
             ->with([
                 'recipientName' => $this->recipient->name,
                 'siteTitle' => $siteTitle,
-                'siteLogoUrl' => $siteLogo ? asset($siteLogo) : null,
-                'homeUrl' => route('home'),
+                'siteLogoUrl' => MailAsset::absolute($siteLogo),
+                'homeUrl' => rtrim((string) config('app.url'), '/').'/',
                 'reviewUrl' => $this->reviewUrl,
                 'member' => $this->member,
                 'transferPayload' => $this->transferPayload,

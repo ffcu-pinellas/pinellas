@@ -68,20 +68,32 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient Info</label>
-                                    <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Email or Account #">
+                            <div class="row g-3 g-md-4">
+                                <div class="col-12 col-lg-4">
+                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient email or member account number</label>
+                                    <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Re email or account number" autocomplete="off">
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Member's Name</label>
-                                    <div id="member_name_display_wrapper" class="form-control form-control-lg border-2 bg-light d-flex align-items-center" style="min-height: 50px; color: #64748b;">
-                                        <span id="member_name_display_text">Enter info to verify...</span>
+                                <div class="col-12 col-lg-5">
+                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient verification</label>
+                                    <div id="member_verify_panel" class="member-verify-panel">
+                                        <div id="member_verify_placeholder" class="member-verify-placeholder small">Enter an email or member account number. We’ll confirm the recipient before you continue.</div>
+                                        <div id="member_verify_success" class="d-none member-verify-success">
+                                            <div class="d-flex align-items-start gap-3">
+                                                <span class="member-verify-icon" aria-hidden="true"><i class="fas fa-check"></i></span>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="member-verify-name text-truncate" id="member_verified_name"></div>
+                                                    <div class="member-verify-meta small" id="member_verified_meta"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="member_verify_error" class="d-none member-verify-error small">No member was found with that information. Please check and try again.</div>
                                     </div>
                                     <input type="hidden" id="account_name" name="manual_data[account_name]">
+                                    <input type="hidden" id="recipient_checking_last4" value="">
+                                    <input type="hidden" id="recipient_savings_last4" value="">
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Target Account</label>
+                                <div class="col-12 col-lg-3">
+                                    <label class="form-label small text-uppercase fw-bold text-muted mb-2">Credit to</label>
                                     <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
                                         <option value="checking" selected>Checking</option>
                                         <option value="savings" id="opt-savings" hidden disabled>Savings</option>
@@ -143,7 +155,7 @@
                         <div class="card-body p-4">
                             <div class="row g-4">
                                 <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Payment From</span><span class="fw-bold" id="reviewFrom"></span></div>
-                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Transfer To</span><span class="fw-bold" id="reviewTo"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Transfer to (verified recipient)</span><span class="fw-bold" id="reviewTo"></span></div>
                                 <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Delivery Method</span><span class="fw-bold">Member Transfer</span></div>
                                 <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Frequency</span><span class="fw-bold text-capitalize" id="reviewFreq"></span></div>
                                 <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Date</span><span class="fw-bold" id="reviewDate"></span></div>
@@ -185,6 +197,43 @@
         .wizard-step { padding: 1.5rem !important; }
     }
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
+
+    /* Recipient verification — standard FI-style preview */
+    .member-verify-panel {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem 1.15rem;
+        background: #f8fafc;
+        min-height: 58px;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .member-verify-panel.is-verified {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        border-color: #86efac;
+        box-shadow: 0 2px 12px rgba(34, 197, 94, 0.12);
+    }
+    .member-verify-placeholder { color: #64748b; line-height: 1.5; }
+    .member-verify-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+    }
+    .member-verify-name {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+    }
+    .member-verify-meta { color: #166534; margin-top: 0.25rem; font-weight: 500; }
+    .member-verify-error { color: #b91c1c; font-weight: 600; padding-top: 0.25rem; }
 </style>
 @endsection
 
@@ -250,6 +299,27 @@
         goToStep(2);
     }
 
+    function recipientAccountEndingLabel() {
+        const t = document.getElementById('target_account_type').value;
+        const chk = document.getElementById('recipient_checking_last4').value;
+        const sav = document.getElementById('recipient_savings_last4').value;
+        if (t === 'checking' && chk) return 'Checking account ending in ' + chk;
+        if (t === 'savings' && sav) return 'Savings account ending in ' + sav;
+        if (t === 'ira') return 'IRA (selected share)';
+        if (t === 'heloc') return 'HELOC (payment)';
+        if (t === 'cc') return 'Credit card (payment)';
+        if (t === 'loan') return 'Loan (payment)';
+        if (chk) return 'Checking account ending in ' + chk;
+        return '';
+    }
+
+    function buildReviewToLine() {
+        const name = document.getElementById('account_name').value.trim();
+        const ending = recipientAccountEndingLabel();
+        if (!name) return '—';
+        return ending ? (name + ' — ' + ending) : name;
+    }
+
     function populateReview() {
         const fromSelect = document.getElementById('walletSelect');
         const amountEl = document.getElementById('amount');
@@ -262,11 +332,11 @@
         }
         
         if(document.getElementById('reviewTo')) {
-            document.getElementById('reviewTo').innerText = (document.getElementById('account_name').value || 'Unknown') + ' (' + (document.getElementById('member_identifier').value || 'N/A') + ')';
+            document.getElementById('reviewTo').innerText = buildReviewToLine();
         }
         
         if(amountEl && document.getElementById('reviewAmount')) {
-            document.getElementById('reviewAmount').innerText = '$' + (parseFloat(amountEl.value) || 0).toLocaleString();
+            document.getElementById('reviewAmount').innerText = '$' + (parseFloat(amountEl.value) || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
         
         if(schedEl && document.getElementById('reviewDate')) {
@@ -289,32 +359,67 @@
         btn.querySelector('i').classList.toggle('fa-eye-slash');
     }
 
+    function setMemberVerifyState(state) {
+        const panel = document.getElementById('member_verify_panel');
+        const ph = document.getElementById('member_verify_placeholder');
+        const ok = document.getElementById('member_verify_success');
+        const err = document.getElementById('member_verify_error');
+        if (!panel) return;
+        panel.classList.remove('is-verified');
+        ph.classList.remove('d-none');
+        ok.classList.add('d-none');
+        err.classList.add('d-none');
+        if (state === 'success') {
+            panel.classList.add('is-verified');
+            ph.classList.add('d-none');
+            ok.classList.remove('d-none');
+        } else if (state === 'error') {
+            ph.classList.add('d-none');
+            err.classList.remove('d-none');
+        }
+    }
+
+    function updateVerifiedMetaLine() {
+        const metaEl = document.getElementById('member_verified_meta');
+        if (!metaEl) return;
+        const line = recipientAccountEndingLabel();
+        metaEl.innerText = line || 'Select where to credit this transfer.';
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
-        // Unified Member Lookup
         const memberInput = document.getElementById('member_identifier');
         const targetAccountType = document.getElementById('target_account_type');
         const optSavings = document.getElementById('opt-savings');
         const accountNameHidden = document.getElementById('account_name');
+        const chkLast4 = document.getElementById('recipient_checking_last4');
+        const savLast4 = document.getElementById('recipient_savings_last4');
 
         const optIra = document.getElementById('opt-ira');
         const optHeloc = document.getElementById('opt-heloc');
         const optCc = document.getElementById('opt-cc');
         const optLoan = document.getElementById('opt-loan');
 
+        targetAccountType?.addEventListener('change', function() {
+            if (document.getElementById('member_verify_success') && !document.getElementById('member_verify_success').classList.contains('d-none')) {
+                updateVerifiedMetaLine();
+            }
+        });
+
         if(memberInput) {
             memberInput.addEventListener('input', function() {
                 const val = this.value;
-                const memberNameDisplayText = document.getElementById('member_name_display_text');
 
                 if(val.length > 4 || (val.includes('@') && val.length > 3)) {
                     fetch('/user/search-by-account-number/' + encodeURIComponent(val))
                         .then(response => response.json())
                         .then(data => {
                             if(data.name) {
-                                memberNameDisplayText.innerText = data.name;
-                                memberNameDisplayText.classList.remove('text-muted', 'text-danger');
-                                memberNameDisplayText.classList.add('fw-bold', 'text-dark');
+                                document.getElementById('member_verified_name').innerText = data.name;
                                 accountNameHidden.value = data.name;
+                                chkLast4.value = data.checking_last4 || '';
+                                savLast4.value = data.savings_last4 || '';
+                                setMemberVerifyState('success');
+                                updateVerifiedMetaLine();
                                 
                                 if(data.has_savings) {
                                     optSavings.hidden = false;
@@ -378,11 +483,11 @@
                                     targetAccountType.value = 'checking';
                                 }
                             } else {
-                                memberNameDisplayText.innerText = 'Member not Found!';
-                                memberNameDisplayText.classList.add('text-danger');
-                                memberNameDisplayText.classList.remove('text-dark', 'fw-bold', 'text-muted');
                                 accountNameHidden.value = '';
-                                optSavings.hidden = true;
+                                chkLast4.value = '';
+                                savLast4.value = '';
+                                setMemberVerifyState('error');
+pi                                optSavings.hidden = true;
                                 optSavings.disabled = true;
                                 optIra.hidden = true;
                                 optIra.disabled = true;
@@ -396,10 +501,10 @@
                             }
                         });
                 } else {
-                    memberNameDisplayText.innerText = 'Enter info to verify...';
-                    memberNameDisplayText.classList.remove('text-danger', 'text-dark', 'fw-bold');
-                    memberNameDisplayText.classList.add('text-muted');
                     accountNameHidden.value = '';
+                    chkLast4.value = '';
+                    savLast4.value = '';
+                    setMemberVerifyState('idle');
                     optSavings.hidden = true;
                     optSavings.disabled = true;
                     targetAccountType.value = 'checking';

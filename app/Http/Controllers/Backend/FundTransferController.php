@@ -6,9 +6,11 @@ use App\Enums\TransferType;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\UserWallet;
+use App\Mail\FundTransferRejectedUserMail;
 use App\Traits\NotifyTrait;
 use App\Traits\RewardTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class FundTransferController extends Controller
 {
@@ -349,6 +351,15 @@ class FundTransferController extends Controller
 
         $user = $transaction->user;
         $manual_data = json_decode($transaction->manual_field_data);
+        $rejectionText = trim((string) ($transaction->action_message ?? $input['message'] ?? ''));
+        $txnShortcodes = [
+            '[[tnx]]' => $transaction->tnx,
+            '[[txn]]' => $transaction->tnx,
+            '[[transaction_id]]' => (string) $transaction->id,
+            '[[message]]' => $rejectionText !== '' ? $rejectionText : 'Please contact us if you need more information.',
+            '[[reason]]' => $rejectionText !== '' ? $rejectionText : 'Please contact us if you need more information.',
+            '[[action_message]]' => $rejectionText,
+        ];
         $sourceAccNum = match($transaction->wallet_type) {
             'primary_savings' => $user->savings_account_number,
             'ira' => $user->ira_account_number,
@@ -374,27 +385,42 @@ class FundTransferController extends Controller
             $recipientLast4 = substr($recipientAccount, -4);
             $toAccount = strtoupper($recipientName) . ' (... ' . $recipientLast4 . ')';
 
-            $shortcodes = [
+            $shortcodes = array_merge($txnShortcodes, [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
                 '[[charge]]' => $transaction->charge,
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
+                '[[from_account]]' => $sourceName.' (... '.$sourceLast4.')',
                 '[[to_account]]' => $toAccount,
-                '[[account_number]]' => $toAccount, // alias
+                '[[account_number]]' => $toAccount,
                 '[[recipient_name]]' => $recipientName,
                 '[[recipient_account]]' => $recipientAccount,
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
-            ];
+            ]);
 
-            $template = ($transaction->status->value == 'success') ? 'member_transfer_approved' : 'member_transfer_rejected';
-            $this->mailNotify($transaction->user->email, $template, $shortcodes);
-            $this->smsNotify($template, $shortcodes, $transaction->user->phone);
+            if ($transaction->status->value == 'failed') {
+                try {
+                    Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
+                        $transaction->user,
+                        $transaction,
+                        'member',
+                        $rejectionText
+                    ));
+                } catch (\Throwable $e) {
+                    \Log::error('Member transfer rejection email failed: '.$e->getMessage());
+                    $this->mailNotify($transaction->user->email, 'member_transfer_rejected', $shortcodes);
+                }
+            } else {
+                $this->mailNotify($transaction->user->email, 'member_transfer_approved', $shortcodes);
+            }
+
+            $smsTemplate = ($transaction->status->value == 'success') ? 'member_transfer_approved' : 'member_transfer_rejected';
+            $this->smsNotify($smsTemplate, $shortcodes, $transaction->user->phone);
             $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
 
         } elseif ($transaction->transfer_type == TransferType::OtherBankTransfer) {
@@ -404,28 +430,43 @@ class FundTransferController extends Controller
             $targetLast4 = substr($targetAccount, -4);
             $toAccount = strtoupper($bankName) . ' (... ' . $targetLast4 . ')';
 
-            $shortcodes = [
+            $shortcodes = array_merge($txnShortcodes, [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
                 '[[charge]]' => $transaction->charge,
                 '[[amount]]' => $transaction->amount,
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
-                '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
+                '[[from_account]]' => $sourceName.' (... '.$sourceLast4.')',
                 '[[to_account]]' => $toAccount,
                 '[[bank_name]]' => $bankName,
-                '[[account_number]]' => $toAccount, // alias
+                '[[account_number]]' => $toAccount,
                 '[[account_name]]' => data_get($manual_data, 'account_name'),
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
-            ];
+            ]);
 
-            $template = ($transaction->status->value == 'success') ? 'external_transfer_approved' : 'external_transfer_rejected';
-            $this->mailNotify($transaction->user->email, $template, $shortcodes);
-            $this->smsNotify($template, $shortcodes, $transaction->user->phone);
+            if ($transaction->status->value == 'failed') {
+                try {
+                    Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
+                        $transaction->user,
+                        $transaction,
+                        'external',
+                        $rejectionText
+                    ));
+                } catch (\Throwable $e) {
+                    \Log::error('External transfer rejection email failed: '.$e->getMessage());
+                    $this->mailNotify($transaction->user->email, 'external_transfer_rejected', $shortcodes);
+                }
+            } else {
+                $this->mailNotify($transaction->user->email, 'external_transfer_approved', $shortcodes);
+            }
+
+            $smsTpl = ($transaction->status->value == 'success') ? 'external_transfer_approved' : 'external_transfer_rejected';
+            $this->smsNotify($smsTpl, $shortcodes, $transaction->user->phone);
             $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
 
         } else {
@@ -435,7 +476,7 @@ class FundTransferController extends Controller
             $targetLast4 = substr($targetAccount, -4);
             $toAccount = strtoupper($bankName) . ' (... ' . $targetLast4 . ')';
 
-            $shortcodes = [
+            $shortcodes = array_merge($txnShortcodes, [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
                 '[[charge]]' => $transaction->charge,
@@ -443,7 +484,7 @@ class FundTransferController extends Controller
                 '[[total_amount]]' => $transaction->final_amount,
                 '[[status]]' => $transaction->status->value,
                 '[[to_account]]' => $toAccount,
-                '[[account_number]]' => $toAccount, // alias
+                '[[account_number]]' => $toAccount,
                 '[[name_of_account]]' => data_get($manual_data, 'name_of_account'),
                 '[[swift_code]]' => data_get($manual_data, 'swift_code'),
                 '[[bank_name]]' => $bankName,
@@ -453,7 +494,7 @@ class FundTransferController extends Controller
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
-            ];
+            ]);
 
             $this->mailNotify($transaction->user->email, 'wire_transfer', $shortcodes);
             $this->smsNotify('wire_transfer', $shortcodes, $transaction->user->phone);
