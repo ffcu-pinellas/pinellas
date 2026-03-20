@@ -222,7 +222,7 @@ class TransferService
             }
         } elseif ($bankId != 0) {
             // External Transfer
-            $bankName = \App\Models\OthersBank::find($bankId)?->name ?? 'External Bank';
+            $bankName = $bankInfo?->name ?? 'External Bank';
             $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
         }
 
