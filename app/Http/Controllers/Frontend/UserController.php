@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\Portfolio;
 use App\Models\User;
 use App\Rules\MatchOldPassword;
+use App\Services\RoutingService;
 use App\Traits\ImageUpload;
 use Hash;
 use Illuminate\Http\Request;
@@ -31,6 +32,25 @@ class UserController extends Controller
         return $data;
     }
  
+    /**
+     * Server-side proxy for ABA routing number lookup.
+     * Avoids CORS by calling the third-party API from the server.
+     * Uses a multi-tier fallback (bankrouting.io → api-ninjas → null).
+     */
+    public function lookupRouting($number, RoutingService $routingService)
+    {
+        // Sanitize: strip non-digits
+        $number = preg_replace('/\D/', '', $number);
+
+        $result = $routingService->lookup($number);
+
+        return response()->json([
+            'status'    => $result['status'],         // 'success' | 'not_found' | 'invalid' | 'error'
+            'bank_name' => $result['bank_name'],       // string or null
+            'source'    => $result['source'] ?? null,  // for debugging
+        ]);
+    }
+
     public function searchByAccountNumber($number)
     {
         $sanitizedNumber = sanitizeAccountNumber($number);

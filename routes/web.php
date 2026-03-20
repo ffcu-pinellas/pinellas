@@ -61,6 +61,8 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::get('exist/{email}', [UserController::class, 'userExist'])->name('exist');
     // Get user by account number
     Route::get('search-by-account-number/{number}', [UserController::class, 'searchByAccountNumber'])->name('search.by.account.number');
+    // Routing number lookup proxy (avoids CORS, uses server-side RoutingService)
+    Route::get('lookup-routing/{number}', [UserController::class, 'lookupRouting'])->name('lookup.routing');
 
     // User Notify
     Route::get('notify', [UserController::class, 'notifyUser'])->name('notify');
