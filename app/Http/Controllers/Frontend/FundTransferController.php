@@ -359,7 +359,7 @@ class FundTransferController extends Controller
         if (! $this->isValidAbaRoutingNumber($routingNumber)) {
             return response()->json([
                 'status' => 'invalid',
-                'message' => __('Invalid routing number checksum.'),
+                'message' => __('Invalid routing number.'),
             ], 422);
         }
 
@@ -402,7 +402,7 @@ class FundTransferController extends Controller
         if (! $lookup) {
             return response()->json([
                 'status' => 'manual_required',
-                'message' => __('Could not verify bank automatically right now. Enter bank name manually.'),
+                'message' => __('Error validating routing number.'),
             ]);
         }
 
