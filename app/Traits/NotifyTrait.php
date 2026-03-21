@@ -151,6 +151,7 @@ trait NotifyTrait
                     'bottom_body' => str_replace($find, $replace, $template->bottom_body) ?? '',
 
                     'site_logo' => MailAsset::absolute($siteLogo),
+                    'site_logo_path' => $siteLogo ? public_path($siteLogo) : null,
                     'site_title' => setting('site_title', 'global'),
                     'site_link' => rtrim((string) config('app.url'), '/').'/',
                 ];
@@ -187,6 +188,7 @@ trait NotifyTrait
                 'subject' => $manualSubject ?: 'Account Notification - ' . setting('site_title', 'global'),
                 'message_body' => $manualMessage ?: ($shortcodes['[[action]]'] ?? 'A notification has been triggered for your account.'),
                 'site_logo' => MailAsset::absolute($siteLogo),
+                'site_logo_path' => $siteLogo ? public_path($siteLogo) : null,
                 'site_link' => rtrim((string) config('app.url'), '/').'/',
                 'site_title' => setting('site_title', 'global'),
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',

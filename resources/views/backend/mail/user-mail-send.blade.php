@@ -40,7 +40,16 @@
                     <!-- Main Card -->
                     <div class="container">
                         <div class="header">
-                            @if(!empty($details['site_logo']))
+                            @php
+                                $logoPath = $details['site_logo_path'] ?? null;
+                                $canEmbed = $logoPath && file_exists($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
+                            @endphp
+
+                            @if($canEmbed)
+                                <a href="{{ $details['site_link'] }}">
+                                    <img src="{{ $message->embed($logoPath) }}" alt="{{ $details['site_title'] }}" class="logo">
+                                </a>
+                            @elseif(!empty($details['site_logo']))
                                 <a href="{{ $details['site_link'] }}">
                                     <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
                                 </a>
