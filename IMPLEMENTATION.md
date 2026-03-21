@@ -89,7 +89,7 @@ In Review step show:
 - Fee/Charge
 - Total Deducted
 - Destination Bank
-- Account ending in XXXX
+- Recipient Account Number (full number not just last 4 for review)
 - Routing number
 
 This will use existing charge rules from backend and current form amount/selected source account.

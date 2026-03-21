@@ -39,13 +39,17 @@
                 <div style="padding: 20px 0;">
                     <!-- Main Card -->
                     <div class="container">
-                        @if($details['site_logo'])
                         <div class="header">
-                            <a href="{{ $details['site_link'] }}">
-                                <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
-                            </a>
+                            @if(!empty($details['site_logo']))
+                                <a href="{{ $details['site_link'] }}">
+                                    <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
+                                </a>
+                            @else
+                                <a href="{{ $details['site_link'] }}" style="text-decoration:none; color:#00549b; font-weight:700; font-size:22px;">
+                                    {{ $details['site_title'] }}
+                                </a>
+                            @endif
                         </div>
-                        @endif
                         
                         <div style="height: 4px; background-color: #00549b;"></div>
 

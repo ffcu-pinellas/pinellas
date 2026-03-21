@@ -40,6 +40,14 @@ class UserCardController extends Controller
         }
 
         try {
+            // Email Notification
+            $this->mailNotify(auth()->user()->email, 'card_status_update', [
+                '[[full_name]]' => auth()->user()->full_name,
+                '[[card_number]]' => "****" . substr($card->card_number, -4),
+                '[[status]]' => $status,
+                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+            ]);
+
             // Native Push Notification (User)
             $this->pushNotify('new_user', [ // Reusing generic template for now
                 '[[full_name]]' => auth()->user()->full_name,
@@ -83,6 +91,14 @@ class UserCardController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
         }
+
+        // Email Notification
+        $this->mailNotify(auth()->user()->email, 'card_status_update', [
+            '[[full_name]]' => auth()->user()->full_name,
+            '[[card_number]]' => "****" . substr($card->card_number, -4),
+            '[[status]]' => 'Locked (Lost/Stolen)',
+            '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked. Please contact support if you did not initiate this.",
+        ]);
 
         // Native Push Notification (User)
         $this->pushNotify('new_user', [
@@ -134,6 +150,14 @@ class UserCardController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card PIN updated successfully.']);
         }
+
+        // Email Notification
+        $this->mailNotify($user->email, 'card_security_update', [
+            '[[full_name]]' => $user->full_name,
+            '[[card_number]]' => "****" . substr($card->card_number, -4),
+            '[[action]]' => 'PIN Reset',
+            '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully. If this wasn't you, lock your card immediately and contact support.",
+        ]);
 
         // Native Push Notification (User)
         $this->pushNotify('new_user', [

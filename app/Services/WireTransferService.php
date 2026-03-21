@@ -139,6 +139,12 @@ class WireTransferService
             '[[amount]]' => $txnInfo->amount,
             '[[total_amount]]' => $txnInfo->final_amount,
             '[[status]]' => $txnInfo->status->value,
+            '[[tnx]]' => $txnInfo->tnx,
+            '[[txn]]' => $txnInfo->tnx,
+            '[[transaction_id]]' => (string) $txnInfo->id,
+            '[[message]]' => 'Your wire transfer request is pending review.',
+            '[[reason]]' => 'Your wire transfer request is pending review.',
+            '[[action_message]]' => 'Your wire transfer request is pending review.',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
         ];

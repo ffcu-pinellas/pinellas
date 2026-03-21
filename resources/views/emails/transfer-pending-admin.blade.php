@@ -87,7 +87,7 @@
         </div>
         <div class="footer">
             <strong>{{ $siteTitle }}</strong>
-            <div class="muted">This message was sent to you because you are a Super Administrator or the assigned account officer for this member. Do not forward sensitive member information.</div>
+            <div class="muted">This message was sent to you because you are an Administrator or the assigned account officer for this member. Do not forward sensitive member information.</div>
         </div>
     </div>
 </div>

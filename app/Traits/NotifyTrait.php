@@ -62,15 +62,44 @@ trait NotifyTrait
         }
 
         $reason = $shortcodes['[[message]]'] ?? $shortcodes['[[reason]]'] ?? $shortcodes['[[action_message]]'] ?? null;
-        if ($reason !== null && $reason !== '') {
-            foreach (['[[message]]', '[[reason]]', '[[action_message]]'] as $key) {
-                if (! array_key_exists($key, $shortcodes) || trim((string) $shortcodes[$key]) === '') {
-                    $shortcodes[$key] = $reason;
-                }
+        $reason = trim((string) $reason);
+        if ($reason === '') {
+            $reason = 'No additional details were provided.';
+        }
+        foreach (['[[message]]', '[[reason]]', '[[action_message]]'] as $key) {
+            if (! array_key_exists($key, $shortcodes) || trim((string) $shortcodes[$key]) === '') {
+                $shortcodes[$key] = $reason;
             }
         }
 
         return $shortcodes;
+    }
+
+    /**
+     * Replace any shortcodes still present after substitution (avoids raw [[txn]] in member-facing mail).
+     */
+    protected function stripUnresolvedMailShortcodes(?string $content): string
+    {
+        if ($content === null || $content === '') {
+            return (string) $content;
+        }
+
+        return preg_replace('/\[\[[^\]]+\]\]/', '—', $content);
+    }
+
+    /**
+     * @param  array<string, mixed>  $details
+     * @return array<string, mixed>
+     */
+    protected function sanitizeMailTemplateDetails(array $details): array
+    {
+        foreach (['subject', 'title', 'salutation', 'message_body', 'footer_body', 'bottom_title', 'bottom_body', 'button_link'] as $key) {
+            if (isset($details[$key]) && is_string($details[$key])) {
+                $details[$key] = $this->stripUnresolvedMailShortcodes($details[$key]);
+            }
+        }
+
+        return $details;
     }
 
     // ============================= mail template helper ===================================================
@@ -86,7 +115,7 @@ trait NotifyTrait
                 // Add Standard Shortcodes if not present
                 if (!in_array('[[status]]', $find)) {
                     $find[] = '[[status]]';
-                    $replace[] = $shortcodes['status'] ?? '';
+                    $replace[] = $shortcodes['[[status]]'] ?? $shortcodes['status'] ?? '';
                 }
                 if (!in_array('[[site_title]]', $find)) {
                     $find[] = '[[site_title]]';
@@ -98,13 +127,13 @@ trait NotifyTrait
                 }
 
                 $siteLogo = setting('site_logo', 'global');
-                if ($siteLogo && !Str::startsWith($siteLogo, 'assets/')) {
-                    $siteLogo = 'assets/' . $siteLogo;
+                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                    $siteLogo = 'assets/'.$siteLogo;
                 }
 
                 $banner = $template->banner;
-                if ($banner && !Str::startsWith($banner, 'assets/')) {
-                    $banner = 'assets/' . $banner;
+                if ($banner && !Str::startsWith($banner, ['assets/', 'storage/'])) {
+                    $banner = 'assets/'.$banner;
                 }
 
                 $details = [
@@ -126,6 +155,8 @@ trait NotifyTrait
                     'site_link' => rtrim((string) config('app.url'), '/').'/',
                 ];
 
+                $details = $this->sanitizeMailTemplateDetails($details);
+
                 if ($code == 'email_verification') {
                 return (new MailMessage)
                     ->subject($details['subject'])
@@ -144,8 +175,8 @@ trait NotifyTrait
             
             // Standard Fallback for ANY missing template to prevent failure
             $siteLogo = setting('site_logo', 'global');
-            if ($siteLogo && !Str::startsWith($siteLogo, 'assets/')) {
-                $siteLogo = 'assets/' . $siteLogo;
+            if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                $siteLogo = 'assets/'.$siteLogo;
             }
 
             // Prioritize manual inputs from the Admin Modal (Subject and Email Details)
@@ -169,6 +200,23 @@ trait NotifyTrait
                 'bottom_title' => '',
                 'bottom_body' => '',
             ];
+
+            // Specific Fallbacks for commonly missing templates
+            if ($code === 'remote_deposit_submitted') {
+                $details['subject'] = 'Check Deposit Received - ' . setting('site_title', 'global');
+                $details['title'] = 'Check Received';
+                $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? 'the specified amount') . ' to your ' . ($shortcodes['[[account_name]]'] ?? 'account') . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.';
+            } elseif ($code === 'card_status_update') {
+                $details['subject'] = 'Security Alert: Card Status Changed';
+                $details['title'] = 'Card Update';
+                $details['message_body'] = $shortcodes['[[message]]'] ?? 'A status change was detected for your card ending in ' . ($shortcodes['[[card_number]]'] ?? 'XXXX') . '.';
+            } elseif ($code === 'card_security_update') {
+                $details['subject'] = 'Security Alert: Card Security Action';
+                $details['title'] = 'Security Update';
+                $details['message_body'] = $shortcodes['[[message]]'] ?? 'A security action (' . ($shortcodes['[[action]]'] ?? 'Update') . ') was performed on your card ending in ' . ($shortcodes['[[card_number]]'] ?? 'XXXX') . '.';
+            }
+
+            $details = $this->sanitizeMailTemplateDetails($details);
 
             try {
                 return Mail::to($email)->send(new MailSend($details));

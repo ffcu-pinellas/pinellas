@@ -5,7 +5,7 @@ namespace App\Support;
 use Illuminate\Support\Str;
 
 /**
- * Absolute URLs for email clients (many ignore relative paths and broken APP_URL breaks asset()).
+ * Absolute URLs for email clients (many ignore relative paths; use asset() so APP_URL / ASSET_URL apply).
  */
 class MailAsset
 {
@@ -29,6 +29,11 @@ class MailAsset
 
         if (! Str::startsWith($relative, ['assets/', 'storage/'])) {
             $relative = 'assets/'.$relative;
+        }
+
+        // asset() respects config('app.url') and optional ASSET_URL (CDN) — critical for email img src.
+        if (function_exists('asset')) {
+            return asset($relative);
         }
 
         return rtrim((string) config('app.url'), '/').'/'.$relative;

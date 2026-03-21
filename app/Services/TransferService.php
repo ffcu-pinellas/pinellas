@@ -352,7 +352,7 @@ class TransferService
             'amount' => $amount,
             'currency' => $currencyCode,
             'account' => $accountNumber,
-            'tnx' => $txnInfo['tnx'],
+            'tnx' => $txnInfo->tnx,
         ];
     }
 
@@ -389,6 +389,12 @@ class TransferService
             $targetDisplayName = $targetType . ' (... ' . substr($targetAccNum ?? '', -4) . ')';
         }
 
+        $purpose = trim((string) ($txnInfo->purpose ?? ''));
+        $memoDisplay = $purpose !== '' ? $purpose : '—';
+        $submittedAt = $txnInfo->created_at
+            ? $txnInfo->created_at->timezone(config('app.timezone'))->format('M j, Y \a\t g:i A T')
+            : now()->timezone(config('app.timezone'))->format('M j, Y \a\t g:i A T');
+
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
             '[[email]]' => $user->email,
@@ -400,8 +406,26 @@ class TransferService
             '[[to_account]]' => $targetDisplayName,
             '[[from_account]]' => $sourceName . ' (... ' . $sourceLast4 . ')',
             '[[branch_name]]' => data_get($manual_data, 'branch_name') ?? 'Main Branch',
+            '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? 'N/A',
+            '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
+            '[[recipient_account]]' => data_get($manual_data, 'account_number') ?? 'N/A',
             '[[site_title]]' => setting('site_title', 'global'),
             '[[site_url]]' => route('home'),
+            '[[date]]' => $submittedAt,
+            // DB template fund_transfer_request + bank-style confirmations
+            '[[tnx]]' => $txnInfo->tnx,
+            '[[txn]]' => $txnInfo->tnx,
+            '[[transaction_id]]' => (string) $txnInfo->id,
+            '[[status]]' => $txnInfo->status->value ?? (string) $txnInfo->status,
+            '[[memo]]' => $memoDisplay,
+            '[[purpose]]' => $memoDisplay,
+            '[[date]]' => $submittedAt,
+            '[[timestamp]]' => $submittedAt,
+            '[[submitted_at]]' => $submittedAt,
+            // Keep these non-empty for templates that include a generic reason/message block.
+            '[[message]]' => 'Your transfer request is pending review.',
+            '[[reason]]' => 'Your transfer request is pending review.',
+            '[[action_message]]' => 'Your transfer request is pending review.',
         ];
 
         $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');

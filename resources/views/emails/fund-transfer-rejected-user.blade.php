@@ -42,10 +42,12 @@
             <p class="intro">Hello {{ $member->full_name }},</p>
             <p class="intro">Your <strong>{{ strtolower($transferKind) }}</strong> request could not be approved at this time. Any funds held for this transfer have been returned to your available balance where applicable.</p>
 
-            <div class="reason-box">
-                <div class="reason-label">Reason provided</div>
-                <div>{{ $rejectionReason }}</div>
-            </div>
+            @if(!empty(trim((string) $rejectionReason)))
+                <div class="reason-box">
+                    <div class="reason-label">Reason provided</div>
+                    <div>{{ $rejectionReason }}</div>
+                </div>
+            @endif
 
             <table class="meta" cellpadding="0" cellspacing="0">
                 <tr><td>Transaction reference</td><td>{{ $transaction->tnx }}</td></tr>

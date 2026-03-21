@@ -44,7 +44,7 @@ class FundTransferRejectedUserMail extends Mailable
                 'transaction' => $this->transaction,
                 'transferKind' => $label,
                 'isExternal' => $this->transferKindSlug === 'external',
-                'rejectionReason' => $this->rejectionReason !== '' ? $this->rejectionReason : 'No additional details were provided. If you have questions, please contact us.',
+                'rejectionReason' => trim((string) $this->rejectionReason),
                 'manualData' => $this->manualData,
                 'siteTitle' => $siteTitle,
                 'siteLogoUrl' => MailAsset::absolute($siteLogo),

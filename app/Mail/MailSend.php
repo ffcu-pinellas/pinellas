@@ -29,7 +29,9 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        $mail = $this->subject($this->details['subject'])->view('backend.mail.user-mail-send');
+        $mail = $this->from(setting('support_email', 'global'))
+            ->subject($this->details['subject'])
+            ->view('backend.mail.user-mail-send');
 
         if (isset($this->details['attachment'])) {
             $mail->attachData(

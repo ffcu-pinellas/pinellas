@@ -253,10 +253,9 @@ class UserController extends Controller
             $accountNumber = $user->savings_account_number ?? $user->account_number;
         }
 
-        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber) {
-            // 0. Pre-generate Transaction Ref
-            $txnam = 'TRX' . strtoupper(str()->random(10));
+        $txnam = 'TRX' . strtoupper(str()->random(10));
 
+        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber, $txnam) {
             // 1. Create Remote Deposit Record
             $deposit = $user->remoteDeposits()->create([
                 'amount' => $amount,
@@ -308,6 +307,16 @@ class UserController extends Controller
             '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
             '[[account_number]]' => $accountNumber,
         ], route('admin.remote.deposit.index'), null, 'Admin');
+
+        // Email Notification (User)
+        $this->mailNotify($user->email, 'remote_deposit_submitted', [
+            '[[full_name]]' => $user->full_name,
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+            '[[txn]]' => $txnam ?? 'N/A',
+            '[[account_name]]' => $accountName,
+            '[[account_number]]' => "****" . substr($accountNumber, -4),
+            '[[date]]' => now()->format('M d, Y H:i A'),
+        ]);
 
         notify()->success('Remote deposit submitted successfully and is pending review.');
         return redirect()->route('user.remote_deposit');
