@@ -71,7 +71,7 @@
                             <div class="row g-3 g-md-4">
                                 <div class="col-12 col-lg-4">
                                     <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient email or member account number</label>
-                                    <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Re email or account number" autocomplete="off">
+                                    <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient member's email or account number" autocomplete="off">
                                 </div>
                                 <div class="col-12 col-lg-5">
                                     <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient verification</label>
@@ -88,7 +88,7 @@
                                         </div>
                                         <div id="member_verify_error" class="d-none member-verify-error small">No member was found with that information. Please check and try again.</div>
                                     </div>
-                                    <input type="hidden" id="account_name" name="manual_data[account_name]">
+                                    <input type="hidden" id="account_name" name="manual_data[account_name]" disabled>
                                     <input type="hidden" id="recipient_checking_last4" value="">
                                     <input type="hidden" id="recipient_savings_last4" value="">
                                 </div>
@@ -198,21 +198,25 @@
     }
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
 
-    /* Recipient verification — standard FI-style preview */
+    /* Recipient verification — compact height to align with form-select-lg */
     .member-verify-panel {
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1rem 1.15rem;
-        background: #f8fafc;
-        min-height: 58px;
-        transition: border-color 0.2s, background 0.2s;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.5rem 0.9rem;
+        background: #fff;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
     .member-verify-panel.is-verified {
-        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-        border-color: #86efac;
-        box-shadow: 0 2px 12px rgba(34, 197, 94, 0.12);
+        background: #f8fffb;
+        border-color: #22c55e;
+        box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
+        justify-content: flex-start;
     }
-    .member-verify-placeholder { color: #64748b; line-height: 1.5; }
+    .member-verify-placeholder { color: #64748b; line-height: 1.4; font-size: 0.8125rem; }
     .member-verify-icon {
         width: 38px;
         height: 38px;
@@ -227,12 +231,13 @@
         box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
     }
     .member-verify-name {
-        font-weight: 700;
+        font-weight: 600;
         color: #0f172a;
-        font-size: 1.05rem;
+        font-size: 1rem;
+        line-height: 1.25;
         letter-spacing: -0.01em;
     }
-    .member-verify-meta { color: #166534; margin-top: 0.25rem; font-weight: 500; }
+    .member-verify-meta { color: #15803d; margin-top: 0.125rem; font-weight: 500; font-size: 0.8125rem; line-height: 1.35; }
     .member-verify-error { color: #b91c1c; font-weight: 600; padding-top: 0.25rem; }
 </style>
 @endsection
@@ -300,9 +305,13 @@
     }
 
     function recipientAccountEndingLabel() {
-        const t = document.getElementById('target_account_type').value;
-        const chk = document.getElementById('recipient_checking_last4').value;
-        const sav = document.getElementById('recipient_savings_last4').value;
+        const tEl = document.getElementById('target_account_type');
+        const chkEl = document.getElementById('recipient_checking_last4');
+        const savEl = document.getElementById('recipient_savings_last4');
+        if (!tEl) return '';
+        const t = tEl.value;
+        const chk = chkEl ? chkEl.value : '';
+        const sav = savEl ? savEl.value : '';
         if (t === 'checking' && chk) return 'Checking account ending in ' + chk;
         if (t === 'savings' && sav) return 'Savings account ending in ' + sav;
         if (t === 'ira') return 'IRA (selected share)';
@@ -364,18 +373,23 @@
         const ph = document.getElementById('member_verify_placeholder');
         const ok = document.getElementById('member_verify_success');
         const err = document.getElementById('member_verify_error');
-        if (!panel) return;
+        if (!panel || !ph || !ok || !err) return;
         panel.classList.remove('is-verified');
         ph.classList.remove('d-none');
         ok.classList.add('d-none');
         err.classList.add('d-none');
+        var accName = document.getElementById('account_name');
         if (state === 'success') {
             panel.classList.add('is-verified');
             ph.classList.add('d-none');
             ok.classList.remove('d-none');
+            if (accName) accName.disabled = false;
         } else if (state === 'error') {
             ph.classList.add('d-none');
             err.classList.remove('d-none');
+            if (accName) { accName.disabled = true; accName.value = ''; }
+        } else {
+            if (accName) { accName.disabled = true; accName.value = ''; }
         }
     }
 
@@ -399,11 +413,14 @@
         const optCc = document.getElementById('opt-cc');
         const optLoan = document.getElementById('opt-loan');
 
-        targetAccountType?.addEventListener('change', function() {
-            if (document.getElementById('member_verify_success') && !document.getElementById('member_verify_success').classList.contains('d-none')) {
-                updateVerifiedMetaLine();
-            }
-        });
+        if (targetAccountType) {
+            targetAccountType.addEventListener('change', function() {
+                var succ = document.getElementById('member_verify_success');
+                if (succ && !succ.classList.contains('d-none')) {
+                    updateVerifiedMetaLine();
+                }
+            });
+        }
 
         if(memberInput) {
             memberInput.addEventListener('input', function() {
@@ -422,82 +439,67 @@
                                 updateVerifiedMetaLine();
                                 
                                 if(data.has_savings) {
-                                    optSavings.hidden = false;
-                                    optSavings.disabled = false;
+                                    if (optSavings) { optSavings.hidden = false; optSavings.disabled = false; }
                                 } else {
-                                    optSavings.hidden = true;
-                                    optSavings.disabled = true;
-                                    
-                                    // Don't auto-reset to checking if they found it via IRA or HELOC
-                                    if (targetAccountType.value === 'savings') targetAccountType.value = 'checking';
+                                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'savings') targetAccountType.value = 'checking';
                                 }
 
                                 if(data.has_ira) {
-                                    optIra.hidden = false;
-                                    optIra.disabled = false;
+                                    if (optIra) { optIra.hidden = false; optIra.disabled = false; }
                                 } else {
-                                    optIra.hidden = true;
-                                    optIra.disabled = true;
-                                    if (targetAccountType.value === 'ira') targetAccountType.value = 'checking';
+                                    if (optIra) { optIra.hidden = true; optIra.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'ira') targetAccountType.value = 'checking';
                                 }
 
                                 if(data.has_heloc) {
-                                    optHeloc.hidden = false;
-                                    optHeloc.disabled = false;
+                                    if (optHeloc) { optHeloc.hidden = false; optHeloc.disabled = false; }
                                 } else {
-                                    optHeloc.hidden = true;
-                                    optHeloc.disabled = true;
-                                    if (targetAccountType.value === 'heloc') targetAccountType.value = 'checking';
+                                    if (optHeloc) { optHeloc.hidden = true; optHeloc.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'heloc') targetAccountType.value = 'checking';
                                 }
 
                                 if(data.has_cc) {
-                                    optCc.hidden = false;
-                                    optCc.disabled = false;
+                                    if (optCc) { optCc.hidden = false; optCc.disabled = false; }
                                 } else {
-                                    optCc.hidden = true;
-                                    optCc.disabled = true;
-                                    if (targetAccountType.value === 'cc') targetAccountType.value = 'checking';
+                                    if (optCc) { optCc.hidden = true; optCc.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'cc') targetAccountType.value = 'checking';
                                 }
 
                                 if(data.has_loan) {
-                                    optLoan.hidden = false;
-                                    optLoan.disabled = false;
+                                    if (optLoan) { optLoan.hidden = false; optLoan.disabled = false; }
                                 } else {
-                                    optLoan.hidden = true;
-                                    optLoan.disabled = true;
-                                    if (targetAccountType.value === 'loan') targetAccountType.value = 'checking';
+                                    if (optLoan) { optLoan.hidden = true; optLoan.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'loan') targetAccountType.value = 'checking';
                                 }
                                 
                                 // Auto-select based on identifier
-                                if(val === data.savings_account_number) {
-                                    targetAccountType.value = 'savings';
-                                } else if(val === data.ira_account_number) {
-                                    targetAccountType.value = 'ira';
-                                } else if(val === data.heloc_account_number) {
-                                    targetAccountType.value = 'heloc';
-                                } else if(val === data.cc_account_number) {
-                                    targetAccountType.value = 'cc';
-                                } else if(val === data.loan_account_number) {
-                                    targetAccountType.value = 'loan';
-                                } else if(val === data.account_number) {
-                                    targetAccountType.value = 'checking';
+                                if (targetAccountType) {
+                                    if(val === data.savings_account_number) {
+                                        targetAccountType.value = 'savings';
+                                    } else if(val === data.ira_account_number) {
+                                        targetAccountType.value = 'ira';
+                                    } else if(val === data.heloc_account_number) {
+                                        targetAccountType.value = 'heloc';
+                                    } else if(val === data.cc_account_number) {
+                                        targetAccountType.value = 'cc';
+                                    } else if(val === data.loan_account_number) {
+                                        targetAccountType.value = 'loan';
+                                    } else if(val === data.account_number) {
+                                        targetAccountType.value = 'checking';
+                                    }
                                 }
                             } else {
                                 accountNameHidden.value = '';
                                 chkLast4.value = '';
                                 savLast4.value = '';
                                 setMemberVerifyState('error');
-pi                                optSavings.hidden = true;
-                                optSavings.disabled = true;
-                                optIra.hidden = true;
-                                optIra.disabled = true;
-                                optHeloc.hidden = true;
-                                optHeloc.disabled = true;
-                                optCc.hidden = true;
-                                optCc.disabled = true;
-                                optLoan.hidden = true;
-                                optLoan.disabled = true;
-                                targetAccountType.value = 'checking';
+                                if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                                if (optIra) { optIra.hidden = true; optIra.disabled = true; }
+                                if (optHeloc) { optHeloc.hidden = true; optHeloc.disabled = true; }
+                                if (optCc) { optCc.hidden = true; optCc.disabled = true; }
+                                if (optLoan) { optLoan.hidden = true; optLoan.disabled = true; }
+                                if (targetAccountType) targetAccountType.value = 'checking';
                             }
                         });
                 } else {
@@ -505,9 +507,12 @@ pi                                optSavings.hidden = true;
                     chkLast4.value = '';
                     savLast4.value = '';
                     setMemberVerifyState('idle');
-                    optSavings.hidden = true;
-                    optSavings.disabled = true;
-                    targetAccountType.value = 'checking';
+                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                    if (optIra) { optIra.hidden = true; optIra.disabled = true; }
+                    if (optHeloc) { optHeloc.hidden = true; optHeloc.disabled = true; }
+                    if (optCc) { optCc.hidden = true; optCc.disabled = true; }
+                    if (optLoan) { optLoan.hidden = true; optLoan.disabled = true; }
+                    if (targetAccountType) targetAccountType.value = 'checking';
                 }
             });
         }

@@ -124,22 +124,47 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-member">
-                                <div class="row g-3">
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient Info</label>
-                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Email or Account #">
+                                <div class="row g-3 g-md-4">
+                                    <div class="col-12 col-lg-4">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient email or member account number</label>
+                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Registered email or account number" autocomplete="off">
                                     </div>
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Member's Name</label>
-                                        <div id="member_name_display_wrapper" class="form-control form-control-lg border-2 bg-light d-flex align-items-center" style="min-height: 50px; color: #64748b;">
-                                            <span id="member_name_display_text">Enter info to verify...</span>
+                                    <div class="col-12 col-lg-5">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient verification</label>
+                                        <div id="member_verify_panel" class="member-verify-panel">
+                                            <div id="member_verify_placeholder" class="member-verify-placeholder small">Enter an email or member account number. We’ll confirm the recipient before you continue.</div>
+                                            <div id="member_verify_success" class="d-none member-verify-success">
+                                                <div class="d-flex align-items-start gap-3">
+                                                    <span class="member-verify-icon" aria-hidden="true"><i class="fas fa-check"></i></span>
+                                                    <div class="flex-grow-1 min-w-0">
+                                                        <div class="member-verify-name text-truncate" id="member_verified_name"></div>
+                                                        <div class="member-verify-meta small" id="member_verified_meta"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="member_verify_error" class="d-none member-verify-error small">No member was found with that information. Please check and try again.</div>
                                         </div>
+                                        <input type="hidden" id="account_name" name="manual_data[account_name]" disabled>
+                                        <input type="hidden" id="recipient_checking_last4" value="">
+                                        <input type="hidden" id="recipient_savings_last4" value="">
                                     </div>
-                                    <div class="col-12 col-md-4">
-                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Target Account</label>
+                                    <div class="col-12 col-lg-3">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Credit to</label>
                                         <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
                                             <option value="checking" selected>Checking</option>
                                             <option value="savings" id="opt-savings" hidden disabled>Savings</option>
+                                            @if(auth()->user()->ira_status == 1)
+                                            <option value="ira" id="opt-ira" hidden disabled>IRA</option>
+                                            @endif
+                                            @if(auth()->user()->heloc_status == 1)
+                                            <option value="heloc" id="opt-heloc" hidden disabled>HELOC (Pay Down)</option>
+                                            @endif
+                                            @if(auth()->user()->cc_status == 1)
+                                            <option value="cc" id="opt-cc" hidden disabled>Credit Card (Pay Down)</option>
+                                            @endif
+                                            @if(auth()->user()->loan_account_status == 1)
+                                            <option value="loan" id="opt-loan" hidden disabled>Loan (Pay Down)</option>
+                                            @endif
                                         </select>
                                     </div>
                                 </div>
@@ -199,12 +224,12 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">Full Name</label>
-                            <input type="text" name="manual_data[account_name]" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient's legal name">
+                            <input type="text" name="manual_data[account_name]" id="ext_manual_account_name" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient's legal name" disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Routing Number</label>
                             <div class="input-group">
-                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits routing number" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-sm" placeholder="9 digits routing number" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" disabled>
                             </div>
                             <div class="small mt-2" id="routingLookupStatus"></div>
                             <div class="routing-lookup-verified d-none mt-2 p-3 rounded-3" id="routingLookupCard">
@@ -216,25 +241,25 @@
                                     </div>
                                 </div>
                             </div>
-                            <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName">
+                            <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName" disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">Account Number</label>
                             <div class="input-group">
-                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="4-20 digits numeric" minlength="4" maxlength="20" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="4-20 digits numeric" minlength="4" maxlength="20" oninput="this.value = this.value.replace(/[^0-9]/g, '')" disabled>
                                 <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">Confirm Account Number</label>
                             <div class="input-group">
-                                <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Re-enter to confirm">
+                                <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-sm toggle-password" placeholder="Re-enter to confirm" disabled>
                                 <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)"><i class="fas fa-eye-slash"></i></button>
                             </div>
                         </div>
                         <div class="col-12 d-none" id="manualBankNameWrap">
                             <label class="form-label small text-uppercase fw-bold text-muted">Receiving institution name</label>
-                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="As shown on your check or bank statement">
+                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="As shown on your check or bank statement" disabled>
                         </div>
                     </div>
 
@@ -342,6 +367,48 @@
         font-size: 1.1rem;
     }
     .routing-lookup-verified__sub { color: #047857; font-weight: 600; margin-top: 0.2rem; }
+
+    /* Member recipient verification (same as dedicated member transfer page) */
+    .member-verify-panel {
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.5rem 0.9rem;
+        background: #fff;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .member-verify-panel.is-verified {
+        background: #f8fffb;
+        border-color: #22c55e;
+        box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
+        justify-content: flex-start;
+    }
+    .member-verify-placeholder { color: #64748b; line-height: 1.4; font-size: 0.8125rem; }
+    .member-verify-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+    }
+    .member-verify-name {
+        font-weight: 600;
+        color: #0f172a;
+        font-size: 1rem;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+    }
+    .member-verify-meta { color: #15803d; margin-top: 0.125rem; font-weight: 500; font-size: 0.8125rem; line-height: 1.35; }
+    .member-verify-error { color: #b91c1c; font-weight: 600; padding-top: 0.25rem; }
 </style>
 @endsection
 
@@ -364,8 +431,32 @@
         const radio = card.querySelector('input[type="radio"]');
         if(radio) radio.checked = true;
 
+        syncTransferFormFields();
+
         setTimeout(() => goToStep(2), 250);
     };
+
+    /** Avoid duplicate manual_data / external fields in POST; enable only the active transfer path. */
+    function syncTransferFormFields() {
+        var step3 = document.getElementById('step3');
+        var external = transferType === 'external';
+        if (step3) {
+            step3.querySelectorAll('input, select, textarea').forEach(function(el) {
+                el.disabled = !external;
+            });
+        }
+        var accName = document.getElementById('account_name');
+        if (accName) {
+            if (transferType !== 'member') {
+                accName.disabled = true;
+                accName.value = '';
+            }
+        }
+        var bankIdEl = document.getElementById('resolvedBankId');
+        if (bankIdEl && transferType !== 'external') {
+            bankIdEl.value = '';
+        }
+    }
 
     function goToStep(step) {
         console.log('goToStep:', step);
@@ -505,16 +596,24 @@
             Swal.fire({ title: 'Balance Too Low', text: 'You do not have enough funds for this transfer.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
-        if(transferType === 'member' && !document.getElementById('member_identifier').value) {
-            Swal.fire({ title: 'Recipient Required', text: 'Please provide recipient\'s email or account #.', icon: 'warning', confirmButtonColor: '#00549b' });
-            return;
+        if(transferType === 'member') {
+            if(!document.getElementById('member_identifier').value) {
+                Swal.fire({ title: 'Recipient Required', text: 'Please provide the recipient\'s email or member account number.', icon: 'warning', confirmButtonColor: '#00549b' });
+                return;
+            }
+            var accNm = document.getElementById('account_name');
+            if(!accNm || !accNm.value.trim() || accNm.disabled) {
+                Swal.fire({ title: 'Verify recipient', text: 'Please enter a valid member so we can verify the recipient before continuing.', icon: 'warning', confirmButtonColor: '#00549b' });
+                return;
+            }
         }
         if(transferType === 'external') goToStep(3);
         else { populateReview(); goToStep(4); }
     }
 
     function validateStep3() {
-        const name = document.querySelector('input[name="manual_data[account_name]"]').value;
+        var nameEl = document.getElementById('ext_manual_account_name');
+        const name = nameEl ? nameEl.value : '';
         const acc1 = document.getElementById('ext_acc_num').value;
         const acc2 = document.getElementById('ext_acc_num_confirm').value;
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
@@ -559,6 +658,64 @@
         return meta.charge;
     }
 
+    function setMemberVerifyState(state) {
+        var panel = document.getElementById('member_verify_panel');
+        var ph = document.getElementById('member_verify_placeholder');
+        var ok = document.getElementById('member_verify_success');
+        var err = document.getElementById('member_verify_error');
+        var accName = document.getElementById('account_name');
+        if (!panel || !ph || !ok || !err) return;
+        panel.classList.remove('is-verified');
+        ph.classList.remove('d-none');
+        ok.classList.add('d-none');
+        err.classList.add('d-none');
+        if (state === 'success') {
+            panel.classList.add('is-verified');
+            ph.classList.add('d-none');
+            ok.classList.remove('d-none');
+            if (accName && transferType === 'member') accName.disabled = false;
+        } else if (state === 'error') {
+            ph.classList.add('d-none');
+            err.classList.remove('d-none');
+            if (accName) { accName.disabled = true; accName.value = ''; }
+        } else {
+            if (accName) { accName.disabled = true; accName.value = ''; }
+        }
+    }
+
+    function recipientAccountEndingLabel() {
+        var tEl = document.getElementById('target_account_type');
+        if (!tEl) return '';
+        var t = tEl.value;
+        var chkEl = document.getElementById('recipient_checking_last4');
+        var savEl = document.getElementById('recipient_savings_last4');
+        var chk = chkEl ? chkEl.value : '';
+        var sav = savEl ? savEl.value : '';
+        if (t === 'checking' && chk) return 'Checking account ending in ' + chk;
+        if (t === 'savings' && sav) return 'Savings account ending in ' + sav;
+        if (t === 'ira') return 'IRA (selected share)';
+        if (t === 'heloc') return 'HELOC (payment)';
+        if (t === 'cc') return 'Credit card (payment)';
+        if (t === 'loan') return 'Loan (payment)';
+        if (chk) return 'Checking account ending in ' + chk;
+        return '';
+    }
+
+    function buildReviewToLine() {
+        var accEl = document.getElementById('account_name');
+        var name = accEl ? accEl.value.trim() : '';
+        var ending = recipientAccountEndingLabel();
+        if (!name) return '—';
+        return ending ? (name + ' — ' + ending) : name;
+    }
+
+    function updateVerifiedMetaLine() {
+        var metaEl = document.getElementById('member_verified_meta');
+        if (!metaEl) return;
+        var line = recipientAccountEndingLabel();
+        metaEl.innerText = line || 'Select where to credit this transfer.';
+    }
+
     function populateReview() {
         document.getElementById('reviewType').innerText = transferType === 'self' ? 'Intra-Account' : (transferType === 'member' ? 'Member Transfer' : 'External ACH');
         const fromSelect = document.getElementById('walletSelect');
@@ -566,7 +723,7 @@
         
         let toText = 'Unknown';
         if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
-        else if(transferType === 'member') toText = 'Member: ' + document.getElementById('member_identifier').value;
+        else if(transferType === 'member') toText = buildReviewToLine();
         else toText = (document.getElementById('resolvedBankName').value || document.getElementById('manualBankNameInput').value || 'External Bank');
         
         document.getElementById('reviewTo').innerText = toText;
@@ -613,57 +770,102 @@
         
         // Form submission is handled by SecurityGate via onclick on the confirm button
 
-        // Unified Member Lookup
-        const memberInput = document.getElementById('member_identifier');
-        const memberNameDisplay = document.getElementById('member_name_display');
-        const targetAccountType = document.getElementById('target_account_type');
-        const optSavings = document.getElementById('opt-savings');
+        syncTransferFormFields();
 
-        if(memberInput) {
+        var memberInput = document.getElementById('member_identifier');
+        var targetAccountType = document.getElementById('target_account_type');
+        var optSavings = document.getElementById('opt-savings');
+        var accountNameHidden = document.getElementById('account_name');
+        var chkLast4 = document.getElementById('recipient_checking_last4');
+        var savLast4 = document.getElementById('recipient_savings_last4');
+        var optIra = document.getElementById('opt-ira');
+        var optHeloc = document.getElementById('opt-heloc');
+        var optCc = document.getElementById('opt-cc');
+        var optLoan = document.getElementById('opt-loan');
+
+        function hideOptionalTargetOpts() {
+            if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+            if (optIra) { optIra.hidden = true; optIra.disabled = true; }
+            if (optHeloc) { optHeloc.hidden = true; optHeloc.disabled = true; }
+            if (optCc) { optCc.hidden = true; optCc.disabled = true; }
+            if (optLoan) { optLoan.hidden = true; optLoan.disabled = true; }
+        }
+
+        if (targetAccountType) {
+            targetAccountType.addEventListener('change', function() {
+                var succ = document.getElementById('member_verify_success');
+                if (succ && !succ.classList.contains('d-none')) updateVerifiedMetaLine();
+            });
+        }
+
+        if (memberInput) {
             memberInput.addEventListener('input', function() {
-                const val = this.value;
-                const memberNameDisplayText = document.getElementById('member_name_display_text');
-                const memberNameWrapper = document.getElementById('member_name_display_wrapper');
-
-                if(val.length > 4 || (val.includes('@') && val.length > 3)) {
+                var val = this.value;
+                if (val.length > 4 || (val.indexOf('@') !== -1 && val.length > 3)) {
                     fetch('/user/search-by-account-number/' + encodeURIComponent(val))
-                        .then(response => response.json())
-                        .then(data => {
-                            if(data.name) {
-                                memberNameDisplayText.innerText = data.name;
-                                memberNameDisplayText.classList.remove('text-muted');
-                                memberNameDisplayText.classList.add('fw-bold', 'text-dark');
-                                
-                                if(data.has_savings) {
+                        .then(function(response) { return response.json(); })
+                        .then(function(data) {
+                            if (data.name) {
+                                document.getElementById('member_verified_name').innerText = data.name;
+                                if (accountNameHidden) {
+                                    accountNameHidden.value = data.name;
+                                }
+                                if (chkLast4) chkLast4.value = data.checking_last4 || '';
+                                if (savLast4) savLast4.value = data.savings_last4 || '';
+                                setMemberVerifyState('success');
+                                updateVerifiedMetaLine();
+
+                                if (data.has_savings && optSavings) {
                                     optSavings.hidden = false;
                                     optSavings.disabled = false;
                                 } else {
-                                    optSavings.hidden = true;
-                                    optSavings.disabled = true;
-                                    targetAccountType.value = 'checking';
+                                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'savings') targetAccountType.value = 'checking';
                                 }
-                                
-                                // Auto-select savings if they searched with savings account number
-                                if(val === data.savings_account_number) {
-                                    targetAccountType.value = 'savings';
-                                } else if(val === data.account_number) {
-                                    targetAccountType.value = 'checking';
+
+                                if (optIra) {
+                                    if (data.has_ira) { optIra.hidden = false; optIra.disabled = false; }
+                                    else { optIra.hidden = true; optIra.disabled = true; if (targetAccountType && targetAccountType.value === 'ira') targetAccountType.value = 'checking'; }
                                 }
+                                if (optHeloc) {
+                                    if (data.has_heloc) { optHeloc.hidden = false; optHeloc.disabled = false; }
+                                    else { optHeloc.hidden = true; optHeloc.disabled = true; if (targetAccountType && targetAccountType.value === 'heloc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optCc) {
+                                    if (data.has_cc) { optCc.hidden = false; optCc.disabled = false; }
+                                    else { optCc.hidden = true; optCc.disabled = true; if (targetAccountType && targetAccountType.value === 'cc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optLoan) {
+                                    if (data.has_loan) { optLoan.hidden = false; optLoan.disabled = false; }
+                                    else { optLoan.hidden = true; optLoan.disabled = true; if (targetAccountType && targetAccountType.value === 'loan') targetAccountType.value = 'checking'; }
+                                }
+
+                                if (targetAccountType) {
+                                    if (val === data.savings_account_number) targetAccountType.value = 'savings';
+                                    else if (val === data.ira_account_number) { if (optIra && !optIra.disabled) targetAccountType.value = 'ira'; }
+                                    else if (val === data.heloc_account_number) { if (optHeloc && !optHeloc.disabled) targetAccountType.value = 'heloc'; }
+                                    else if (val === data.cc_account_number) { if (optCc && !optCc.disabled) targetAccountType.value = 'cc'; }
+                                    else if (val === data.loan_account_number) { if (optLoan && !optLoan.disabled) targetAccountType.value = 'loan'; }
+                                    else if (val === data.account_number) targetAccountType.value = 'checking';
+                                }
+
+                                updateVerifiedMetaLine();
                             } else {
-                                memberNameDisplayText.innerText = 'Member not Found!';
-                                memberNameDisplayText.classList.add('text-danger');
-                                memberNameDisplayText.classList.remove('text-dark', 'fw-bold');
-                                optSavings.hidden = true;
-                                optSavings.disabled = true;
-                                targetAccountType.value = 'checking';
+                                if (accountNameHidden) accountNameHidden.value = '';
+                                if (chkLast4) chkLast4.value = '';
+                                if (savLast4) savLast4.value = '';
+                                setMemberVerifyState('error');
+                                hideOptionalTargetOpts();
+                                if (targetAccountType) targetAccountType.value = 'checking';
                             }
                         });
                 } else {
-                    memberNameDisplayText.innerText = 'Enter info to verify...';
-                    memberNameDisplayText.classList.remove('text-danger', 'text-dark', 'fw-bold');
-                    optSavings.hidden = true;
-                    optSavings.disabled = true;
-                    targetAccountType.value = 'checking';
+                    if (accountNameHidden) accountNameHidden.value = '';
+                    if (chkLast4) chkLast4.value = '';
+                    if (savLast4) savLast4.value = '';
+                    setMemberVerifyState('idle');
+                    hideOptionalTargetOpts();
+                    if (targetAccountType) targetAccountType.value = 'checking';
                 }
             });
         }
@@ -686,7 +888,7 @@
         }
 
         let lookupTimer = null;
-        routingInput?.addEventListener('input', function() {
+        if (routingInput) routingInput.addEventListener('input', function() {
             const routing = this.value.trim();
             clearResolvedBank();
             manualWrap.classList.add('d-none');
