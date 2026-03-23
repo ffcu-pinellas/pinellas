@@ -354,7 +354,7 @@
         <div class="login-card">
             <div class="logo-container">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('assets/images/logo.png') }}" onerror="this.src='https://my.pinellasfcu.org/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-logo-69c2d0b4.png'" alt="Pinellas Federal Credit Union">
+                    <img src="{{ asset('assets/images/logo.png') }}" onerror="this.src='{{ asset('assets/external/images/logo.png') }}'" alt="Pinellas Federal Credit Union">
                 </a>
             </div>
 

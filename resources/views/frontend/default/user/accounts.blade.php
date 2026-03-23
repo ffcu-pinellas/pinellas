@@ -6,7 +6,7 @@
 
 @section('content')
 <!-- Banno Accounts Header (Blue Water Theme) -->
-<div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
+<div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('{{ asset('assets/external/images/bg-main.jpg') }}') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
     <div class="position-relative z-1">
         <div class="d-flex align-items-center mb-2">
             <a href="{{ route('user.dashboard') }}" class="back-nav-link bg-white bg-opacity-10 text-white">

@@ -1,0 +1,32 @@
+.FAwords{border:0;clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.RFflexrow,.Rflexrow{padding:20px}.Rflexbox{width:260px;display:inline-block;margin:10px}.Rflexbox label{font-weight:700;font-size:14px}.RFflexrow{display:flex;justify-content:space-between;flex-wrap:wrap}.RFflexbox{flex:1 1 260px;margin:10px;padding:10px;border:1px solid silver}.RFflexbox label{font-size:14px}.RFflexbox input,.Rflexbox input{width:100%}.code_block_accordion{margin-bottom:1rem}.code_block_accordion .code_block_indiv_top{position:relative;padding:10px 30px 10px 10px;font-size:20px;background:#999;color:#000;font-weight:600;cursor:pointer;user-select:none}.code_block_accordion>.code_block_indiv_top:after{position:absolute;right:10px;top:10px;content:'+'}.code_block_accordion.open>.code_block_indiv_top:after{content:'-'}.code_block_accordion .code_block_indiv_content{display:none;padding:10px}.code_block_accordion .code_block_indiv_image{display:none}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:before {
+    content: 'Column 1';
+    display: block;
+    background-color: #ddd;
+    padding: 3px;
+    text-align: center;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    border-top: 1px solid black
+}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:nth-child(2):before {
+    content: 'Column 2'
+}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:nth-child(3):before {
+    content: 'Column 3'
+}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:nth-child(4):before {
+    content: 'Column 4'
+}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:nth-child(5):before {
+    content: 'Column 5'
+}
+
+.cke_editable.cke_show_blocks .cms_row .cms_col:nth-child(6):before {
+    content: 'Column 6'
+}

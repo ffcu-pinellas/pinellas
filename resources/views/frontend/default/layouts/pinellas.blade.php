@@ -14,11 +14,11 @@
 	<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
 
 	<!-- jquery -->
-	<script src="https://www.pinellasfcu.org/templates/COMMON_JS/jquery-1.11.3.min.js"></script>
-	<script src="https://www.pinellasfcu.org/templates/pinellas/js/jqueriness.js"></script>
+	<script src="{{ asset('assets/external/js/jquery.min.js') }}"></script>
+	<script src="{{ asset('assets/external/js/jqueriness.js') }}"></script>
 
 	<!-- universal styles -->
-	<link rel="stylesheet" href="https://www.pinellasfcu.org/admin/css/universal_template.css">
+	<link rel="stylesheet" href="{{ asset('assets/external/css/universal_template.css') }}">
 	
     <!-- Locator Module Header Code Start -->
     <script>window.initMap = function() { console.log("Google Maps (Suppressed)"); };</script>
@@ -26,20 +26,20 @@
     <!-- Locator Module Header Code End -->
     
     <!-- Forms Module Header Code Start -->
-    <link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/COMMON_JS/CSS/default_form.css" />
-    <link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/COMMON_JS/CSS/default_form_side.css" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/default_form.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/default_form_side.css') }}" />
     <!-- Forms Module Header Code End -->
 
     <!-- Tables Module Header Code Start -->
-    <link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/COMMON_JS/CSS/default_table.css" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/default_table.css') }}" />
     <!-- Tables Module Header Code End -->
 
     <!-- Modal Popups & Alerts Code Start -->
-    <script src="https://www.pinellasfcu.org/templates/COMMON_JS/jquery.cookie.js" ></script>
+    <script src="{{ asset('assets/external/js/jquery.cookie.js') }}" ></script>
     <!-- Modal Popups & Alerts Code End -->
 
     <!-- Modern Calendar Module Header Code Start -->
-    <link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/COMMON_JS/CSS/modern_cal.css" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/modern_cal.css') }}" />
     <!-- Modern Calendar Module Header Code End -->
 
     <!-- Generic CMS Styles Start -->
@@ -47,23 +47,23 @@
     <!-- Generic CMS Styles End -->
 
     <!-- font awesome -->
-    <link href="https://www.pinellasfcu.org/templates/COMMON_JS/fontawesome-pro-5.15.1-web/css/all.min.css" rel="stylesheet">
+    <link href="{{ asset('assets/external/css/all.min.css') }}" rel="stylesheet">
     
     <!-- generic frontend scripting -->
-    <script type="text/javascript" src="https://www.pinellasfcu.org/admin/js/frontend.js"></script>
+    <script type="text/javascript" src="{{ asset('assets/external/js/frontend.js') }}"></script>
     <!-- for validating forms -->
-    <script type="text/javascript" src="https://www.pinellasfcu.org/form_system/js/uniValidate.js"></script>
+    <script type="text/javascript" src="{{ asset('assets/external/js/uniValidate.js') }}"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 	
 	<!-- STYLESHEETS -->
 	<link rel="stylesheet" href="https://use.typekit.net/kdd4cmy.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-	<link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/pinellas/css/style.css">
-	<link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/pinellas/css/responsive.css">
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/style.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/responsive.css') }}">
 
 	@include('frontend::home.include.pinellas_inline_styles')
 
-<script src="https://www.pinellasfcu.org/templates/pinellas/js/pushmenu.js"></script>
+<script src="{{ asset('assets/external/js/pushmenu.js') }}"></script>
 
 <script>
 jQuery(function(){ // on DOM load
@@ -98,8 +98,8 @@ jQuery(function(){ // on DOM load
 }
 </style>
 
-<link rel="stylesheet" type="text/css" href="https://www.pinellasfcu.org/templates/pinellas/css/slick.css" />
-<script src="https://www.pinellasfcu.org/templates/COMMON_JS/slick.js" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/slick.css') }}" />
+<script src="{{ asset('assets/external/js/slick.js') }}" type="text/javascript" charset="utf-8"></script>
 
 @stack('style')
 </head>

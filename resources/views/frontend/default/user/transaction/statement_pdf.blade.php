@@ -174,7 +174,7 @@
         @if($logoBase64)
             <img src="{{ $logoBase64 }}">
         @else
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png">
+            <img src="{{ asset('assets/external/images/logo.png') }}">
         @endif
     </div>
 
@@ -182,7 +182,7 @@
         @if($logoBase64)
             <img src="{{ $logoBase64 }}" class="logo">
         @else
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" class="logo">
+            <img src="{{ asset('assets/external/images/logo.png') }}" class="logo">
         @endif
         <div class="bank-details">
             <strong>Pinellas Federal Credit Union</strong><br>

@@ -130,7 +130,7 @@
             <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 28px;">
+            <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 28px;">
         </div>
         <div class="dropdown">
             <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -154,7 +154,7 @@
     <aside class="sidebar" id="content">
         <div class="fi-logo" style="padding: 20px 24px;">
              <a href="{{ route('home') }}" aria-label="Dashboard">
-                <img role="presentation" height="60" alt="Pinellas FCU" src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" style="max-width: 100%; height: auto;">
+                <img role="presentation" height="60" alt="Pinellas FCU" src="{{ asset('assets/external/images/logo.png') }}" style="max-width: 100%; height: auto;">
             </a>
         </div>
         

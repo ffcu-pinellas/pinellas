@@ -256,7 +256,7 @@
                     @elseif($widget == 'promo')
                         <!-- Keep us in the loop Promo Card -->
                         <div class="banno-card p-0 overflow-hidden h-100">
-                            <img src="https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg" alt="Promo" class="w-100" style="height: 150px; object-fit: cover;">
+                            <img src="{{ asset('assets/external/images/bg-main.jpg') }}" alt="Promo" class="w-100" style="height: 150px; object-fit: cover;">
                             <div class="p-3">
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <i class="fas fa-check-circle text-primary opacity-75"></i>

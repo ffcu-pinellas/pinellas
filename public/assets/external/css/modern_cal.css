@@ -1,0 +1,31 @@
+
+p.rounded-text-bubble {
+    display:inline-block; 
+    background-color: hsl(0,0%,95%); 
+    border-radius:100px; 
+    padding:6px 18px; 
+    font-size:14px;
+}
+
+p.featured-note {
+    display:inline-block;
+    float:right;
+    background-color: hsl(0,0%,95%);
+    border-radius:100px;
+    padding:6px 18px;
+    font-size:14px;
+}
+
+.br-30p {
+    border-radius: 30px;
+    overflow: hidden;
+}
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+H2.cms_featured_event_name, H2.cms_featured_event_name A {
+    font-size: 34px;
+}
+

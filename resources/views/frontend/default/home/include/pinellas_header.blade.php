@@ -1,6 +1,6 @@
 <header><div class="liner">
 <!-- HOMELINK -->
-		<a href="{{ route('home') }}" class="homelink "><img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png"  alt="Pinellas Federal Credit Union"  /></a>
+		<a href="{{ route('home') }}" class="homelink "><img src="{{ asset('assets/external/images/logo.png') }}"  alt="Pinellas Federal Credit Union"  /></a>
 
 <!-- SKIPNAV -->
 		<a href="#maincontent" class="skipper" tabindex=0>Go to main content</a>

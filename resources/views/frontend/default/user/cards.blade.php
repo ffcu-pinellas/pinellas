@@ -27,7 +27,7 @@
                                         <div class="card-bg"></div>
                                         <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-start">
-                                                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 30px; filter: brightness(0) invert(1);">
+                                                <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 30px; filter: brightness(0) invert(1);">
                                                 <span class="text-white opacity-75 small">{{ ($card->type == 'credit') ? 'Credit Card' : ucfirst($card->type ?? 'Debit') }}</span>
                                             </div>
                                             <div class="d-flex align-items-center my-3">
@@ -289,7 +289,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-image: url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg');
+        background-image: url('{{ asset('assets/external/images/bg-main.jpg') }}');
         background-size: cover;
         opacity: 0.3;
         mix-blend-mode: overlay;

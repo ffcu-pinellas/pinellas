@@ -76,7 +76,7 @@
 	a.Bskipper:focus, a.Bskipper:visited:focus {border: solid 2px white; color: black; background-color: yellow; line-height: 1; font-size: 18px; z-index: 1000;}
 	section.slick-slider {width: 100%;  max-width: initial;  height: 540px; margin: 0 auto; padding: 0;  position: relative; display: block; z-index: 10; border: solid 0px lime;}
 	.slick-slide{display: none; float: left; transition: all ease-in-out .3s; opacity: .2;width: 100%; position: relative;  height: 540px;background-size: cover; background-repeat: no-repeat;background-position: center bottom}
-	.thetextholder{height: 540px;  width: 100%;  position: absolute; bottom: 0px; left: 0; background: url(https://www.pinellasfcu.org/templates/pinellas/images/wave.png) no-repeat center bottom;  display: flex;  justify-content: center; align-items: center; border: solid 0px orange}
+	.thetextholder{height: 540px;  width: 100%;  position: absolute; bottom: 0px; left: 0; background: url({{ asset('assets/external/images/wave.png') }}) no-repeat center bottom;  display: flex;  justify-content: center; align-items: center; border: solid 0px orange}
 	.thetext {width: 1170px; padding: 0 386px 0 60px;;  color: white; font-size: 18px; text-align: left; font-weight: 300; line-height:  26px; color: white;}
 	.slick-dots{position: absolute; bottom: 85px; display: block; width: 100%; padding: 0; margin: 0; list-style: none; text-align: center;}
 	.slick-dots li{ position: relative; display: inline-block; width: 18px; height: 18px; margin: 0 5px; cursor: pointer; border: solid 2px white; border-radius: 9px; text-align: center}
@@ -89,7 +89,7 @@
 		.thetext {width: 480px; padding: 0 0 0 40px; font-size: 16px; line-height:  24px;}
 	}
 	@media only screen and (max-width: 800px) {
-		.thetextholder{background-image: url(https://www.pinellasfcu.org/templates/pinellas/images/waveBlue800.png); background-position: center top; height: 300px; padding: 0;  background-size: 133% auto;position: absolute; bottom: 0px; right: 0px;}
+		.thetextholder{background-image: url({{ asset('assets/external/images/waveBlue800.png') }}); background-position: center top; height: 300px; padding: 0;  background-size: 133% auto;position: absolute; bottom: 0px; right: 0px;}
 		section.slick-slider { height: 0; padding-bottom: calc(50% + 300px);}
 		.slick-slide{ height: 0; padding: 10% 0 300px 0; background-size: 280% auto; background-position: center top;}
 		.thetext {width: 100%; margin-right: 0px; padding: 50px 40px 0 40px; }
@@ -127,7 +127,7 @@
 <!-- promos -->
 <section class="sand" role="complementary">
     <style type="text/css">
-        section.sand {background: url(https://www.pinellasfcu.org/templates/pinellas/images/SandBackground.jpg) center top no-repeat; max-height:  1040px; padding: 40px 0;  position: relative; z-index: 1}
+        section.sand {background: url({{ asset('assets/external/images/SandBackground.jpg') }}) center top no-repeat; max-height:  1040px; padding: 40px 0;  position: relative; z-index: 1}
         .center {display: block; width: 90%; max-width: 1110px; height: 630px; margin: 0 auto; position: relative; padding: 10px 0;z-index: 10}
         .center .slick-slide {width: 372px; height: 630px; margin: 0px; padding: 10px; overflow: hidden; transition: all ease-in-out .3s; opacity: 1; float: left;z-index: 10}
         .holder {width: 352px; height: 610px; background-color: white; border-radius: 5px; -webkit-box-shadow: 0 0 5px 0 rgba(0,0,0,.5); box-shadow: 0 0 5px 0 rgba(0,0,0,.5); margin: 0; padding: 30px; text-align: left; z-index: 10}

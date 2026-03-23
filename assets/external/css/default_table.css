@@ -1,0 +1,25 @@
+TABLE.table_builder {
+    width: 100%;
+    border-spacing: 0;
+}
+
+TR.table_builder_header_row {
+    background-color: #B7B7B7;
+    font-weight: bold;
+}
+
+TR.table_builder_row_even {
+}
+
+TR.table_builder_row_odd {
+}
+
+.table_builder_cell {
+    padding: 8px 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* rows hidden by filtering (needed for child rows) */
+.table_builder .filtered {
+	display: none;
+}

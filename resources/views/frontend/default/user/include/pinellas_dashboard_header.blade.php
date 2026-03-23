@@ -5,7 +5,7 @@
         </button>
         <div class="logo">
             <a href="{{ route('home') }}">
-                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 36px;">
+                <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 36px;">
             </a>
         </div>
     </div>
