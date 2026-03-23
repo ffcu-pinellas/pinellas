@@ -41,9 +41,17 @@ class GeneralController extends Controller
         ]);
     }
 
-    public function getBanks()
+    public function getBanks(Request $request)
     {
-        $banks = OthersBank::all();
+        $search = $request->get('search');
+
+        $banks = cache()->remember('active_banks_list_' . ($search ?? 'all'), 3600, function () use ($search) {
+            $query = OthersBank::active();
+            if ($search) {
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+            return $query->select('id', 'name', 'charge', 'charge_type', 'minimum_transfer', 'maximum_transfer', 'processing_time', 'processing_type')->get();
+        });
 
         return response()->json([
             'status' => true,

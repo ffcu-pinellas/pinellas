@@ -50,7 +50,7 @@ class FundTransferController extends Controller
             return to_route('user.dashboard');
         }
 
-        $banks = OthersBank::active()->get();
+        $banks = OthersBank::active()->select('id', 'name')->get();
         $wallets = auth()->user()->wallets->load('currency');
 
         return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets'));
@@ -472,26 +472,26 @@ class FundTransferController extends Controller
         }
 
         $bankName = $providedBankName !== '' ? $providedBankName : 'External Bank';
-        $normalizedInput = $this->normalizeBankName($bankName);
+        // Fallback: search by name using SQL for better performance than O(N) PHP loop
+        $cleanName = strtolower(trim($providedBankName));
+        $byName = OthersBank::whereRaw('LOWER(name) = ?', [$cleanName])->first();
 
-        if ($normalizedInput !== '') {
-            $matchedId = null;
-            foreach (OthersBank::query()->select('id', 'name', 'code')->cursor() as $bank) {
-                if ($this->normalizeBankName((string) $bank->name) === $normalizedInput) {
-                    $matchedId = $bank->id;
-                    break;
-                }
+        if ($byName) {
+            if (empty($byName->code)) {
+                $byName->code = $routingNumber;
+                $byName->save();
             }
-            if ($matchedId) {
-                $byName = OthersBank::find($matchedId);
-                if ($byName) {
-                    if (empty($byName->code)) {
-                        $byName->code = $routingNumber;
-                        $byName->save();
-                    }
-                    return $byName;
-                }
+            return $byName;
+        }
+
+        // If still not found, search using LIKE as a broader fallback
+        $byNameLike = OthersBank::where('name', 'LIKE', '%' . $providedBankName . '%')->first();
+        if ($byNameLike) {
+            if (empty($byNameLike->code)) {
+                $byNameLike->code = $routingNumber;
+                $byNameLike->save();
             }
+            return $byNameLike;
         }
 
         $baseCode = $routingNumber !== '' ? $routingNumber : 'BANK-' . now()->timestamp;

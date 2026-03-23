@@ -159,20 +159,37 @@ if (! function_exists('getLocation')) {
         $clientIp = request()->ip();
         $ip = $clientIp == '127.0.0.1' ? '103.77.188.202' : $clientIp;
 
-        $location = json_decode(curl_get_file_contents('http://ip-api.com/json/'.$ip), true);
+        // Cache the location result for the session to avoid redundant external calls
+        return session()->remember('user_location_' . $ip, function () use ($ip) {
+            try {
+                $ctx = stream_context_create([
+                    'http' => ['timeout' => 5] // 5 second timeout
+                ]);
+                $response = file_get_contents('http://ip-api.com/json/'.$ip, false, $ctx);
+                $locationData = json_decode($response, true);
 
-        $currentCountry = collect(getCountries())->first(function ($value, $key) use ($location) {
-            return data_get($value, 'code') == $location['countryCode'];
+                $currentCountry = collect(getCountries())->first(function ($value, $key) use ($locationData) {
+                    return data_get($value, 'code') == ($locationData['countryCode'] ?? '');
+                });
+
+                $loc = [
+                    'country_code' => data_get($currentCountry, 'code', 'US'),
+                    'name' => data_get($currentCountry, 'name', 'United States'),
+                    'dial_code' => data_get($currentCountry, 'dial_code', '+1'),
+                    'ip' => $locationData['query'] ?? $ip,
+                ];
+
+                return new \Illuminate\Support\Fluent($loc);
+            } catch (\Exception $e) {
+                // Return a default location object to prevent blocking the application
+                return new \Illuminate\Support\Fluent([
+                    'country_code' => 'US',
+                    'name' => 'United States',
+                    'dial_code' => '+1',
+                    'ip' => $ip,
+                ]);
+            }
         });
-
-        $location = [
-            'country_code' => data_get($currentCountry, 'code', ''),
-            'name' => data_get($currentCountry, 'name', ''),
-            'dial_code' => data_get($currentCountry, 'dial_code', ''),
-            'ip' => data_get($location, 'query', ''),
-        ];
-
-        return new \Illuminate\Support\Fluent($location);
     }
 }
 

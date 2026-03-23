@@ -19,7 +19,7 @@ class BeneficiaryController extends Controller
     public function index()
     {
         $beneficiary = Beneficiary::own()->latest()->get();
-        $banks = OthersBank::active()->get();
+        $banks = OthersBank::active()->select('id', 'name')->get();
 
         return view('frontend::fund_transfer.beneficiary', compact('beneficiary', 'banks'));
     }
