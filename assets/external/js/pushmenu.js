@@ -6,7 +6,7 @@
 
 (function(w, $){
 
-	var menutoggler = '<div class="menutoggler" class="mt" title="Open Push Menu"><span class="wordmenu">Menu</span> <div class="far fa-bars"></div> </div>' // Menu Toggler HTML. Set to empty string '' to disable
+	var menutoggler = '' // Menu Toggler HTML. Set to empty string '' to disable
 
 	var defaults = {
 		position: 'right',
@@ -36,7 +36,10 @@
 
 		function init(menuref){
 			$menu = $(menuref).css({top: 0, visibility: 'hidden', zIndex: 1000, transitionDuration: s.fxduration +'ms'}).prependTo(document.body)
-			if (menutoggler != ''){
+			// Custom logic: use existing menutoggler if it exists
+			$menutoggler = $('.menutoggler').css({transitionDelay: s.fxduration +'ms'}).addClass(s.position)
+			
+			if ($menutoggler.length == 0 && menutoggler != ''){
 				$menutoggler = $(menutoggler).css({transitionDelay: s.fxduration +'ms'}).addClass(s.position).appendTo('header')
 			}
 			$menu.on('click touchstart', function(e){

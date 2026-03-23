@@ -99,11 +99,17 @@
 
 <a href="#skipslides" class="Bskipper">Skip Slideshow</a>
 <section class="SL_html" role="complementary">
-    <div style="background-image: url(https://www.pinellasfcu.org/files/pinellasfcu/1/image/slideshow/PIN-web-annual-meeting-26-home.jpg); ">
+    <div style="background-image: url({{ asset('assets/external/images/annual-meeting.jpg') }}); ">
         <div class="thetextholder"><div class="thetext"><p style="margin-left: 215px"><a class="cta" href="https://www.pinellasfcu.org/celebrate">LEARN MORE</a></p></div></div>
     </div>
-    <div style="background-image: url(https://www.pinellasfcu.org/files/pinellasfcu/1/image/slideshow/PIN-web-free-gap-26-home-2.jpg); ">
+    <div style="background-image: url({{ asset('assets/external/images/free-gap.jpg') }}); ">
         <div class="thetextholder"><div class="thetext"><p><span style="margin-left: 444px"><a class="cta" href="https://www.pinellasfcu.org/free-gap">LEARN MORE</a></span></p></div></div>
+    </div>
+    <div style="background-image: url({{ asset('assets/external/images/advisory-committee.jpg') }}); ">
+        <div class="thetextholder"><div class="thetext"><p style="margin-left: 140px"><a class="cta" href="https://www.pinellasfcu.org/advisory-committee">LEARN MORE</a></p></div></div>
+    </div>
+    <div style="background-image: url({{ asset('assets/external/images/mortgage-promo.jpg') }}); ">
+        <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans">LEARN MORE</a></p></div></div>
     </div>
 </section>
 <a name="skipslides"></a>
@@ -144,9 +150,9 @@
         }
     </style>
     <div class="center slider">
-        <div><div class="holder"><h2><a href="https://www.pinellasfcu.org/personal-banking/loans"><img alt="auto" src="https://www.pinellasfcu.org/files/pinellasfcu/1/image/home_page_promos/loanshomepage2022.jpg" /></a></h2><h2 style="text-align: center;"><strong>We've Got You Covered!</strong></h2><p>We have loans to help you through every stage of life. Call us at 727.586.4422 or stop by one of the branches to apply.</p></div></div>
-        <div><div class="holder"><h2><a href="{{ route('register') }}"><img alt="membership" src="https://www.pinellasfcu.org/files/pinellasfcu/1/image/home_page_promos/membershipgraphic2022 (1).jpg" /></a></h2><h2 style="text-align: center;"><strong>Our Members Are Family</strong></h2><p>Since 1956, PFCU has offered an array of benefits to help members reach financial wellness. </p><p> <a class="cta" href="{{ route('register') }}">BECOME A MEMBER</a></p></div></div>
-        <div><div class="holder"><h2><img alt="Pinellas Retirement" src="https://www.pinellasfcu.org/files/pinellasfcu/1/image/Loan Promos/PinellasFCU_Launch-WebBanner_FINAL.jpg" /></h2><h2 style="text-align: center;"><strong>Reward Yourself!</strong></h2><p>Check out our newly designed credit card with rewards!</p><p><a class="cta" href="https://www.pinellasfcu.org/personal-banking/visa/visa-credit-cards">LEARN MORE</a></p></div></div>
+        <div><div class="holder"><h2><a href="https://www.pinellasfcu.org/personal-banking/loans"><img alt="auto" src="{{ asset('assets/external/images/loans-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>We've Got You Covered!</strong></h2><p>We have loans to help you through every stage of life. Call us at 727.586.4422 or stop by one of the branches to apply.</p></div></div>
+        <div><div class="holder"><h2><a href="{{ route('register') }}"><img alt="membership" src="{{ asset('assets/external/images/membership-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>Our Members Are Family</strong></h2><p>Since 1956, PFCU has offered an array of benefits to help members reach financial wellness. </p><p> <a class="cta" href="{{ route('register') }}">BECOME A MEMBER</a></p></div></div>
+        <div><div class="holder"><h2><img alt="Pinellas Retirement" src="{{ asset('assets/external/images/credit-card-promo.jpg') }}" /></h2><h2 style="text-align: center;"><strong>Reward Yourself!</strong></h2><p>Check out our newly designed credit card with rewards!</p><p><a class="cta" href="https://www.pinellasfcu.org/personal-banking/visa/visa-credit-cards">LEARN MORE</a></p></div></div>
     </div>
     <script type="text/javascript">
         $(document).on('ready', function() {
@@ -178,7 +184,7 @@
 
 <section class="P2" role="complementary">
     <div class="liner">
-        <div class="imgbox" style="background-image: url(https://www.pinellasfcu.org/files/pinellasfcu/1/banners/autosmart__pic_71.jpg);"></div>
+        <div class="imgbox" style="background-image: url({{ asset('assets/external/images/autosmart.jpg') }});"></div>
         <div class="txtbox"><div class="sidebox">
             <div class="code_block_box"><h2>SEARCH, SHOP & FINANCE, ALL IN ONE PLACE</h2>
             <p>Find the best deal on your next vehicle purchase through our partnership with AutoSMART. Buy with confidence.</p>
