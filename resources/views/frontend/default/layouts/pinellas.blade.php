@@ -98,8 +98,9 @@ jQuery(function(){ // on DOM load
 }
 </style>
 
-<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/slick.css') }}" />
-<script src="{{ asset('assets/external/js/slick.js') }}" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/slick.min.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/slick-theme.min.css') }}" />
+<script src="{{ asset('assets/external/js/slick.min.js') }}" type="text/javascript" charset="utf-8"></script>
 
 @stack('style')
 </head>

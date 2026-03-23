@@ -76,6 +76,7 @@
 	a.Bskipper:focus, a.Bskipper:visited:focus {border: solid 2px white; color: black; background-color: yellow; line-height: 1; font-size: 18px; z-index: 1000;}
 	section.slick-slider {width: 100%;  max-width: initial;  height: 540px; margin: 0 auto; padding: 0;  position: relative; display: block; z-index: 10; border: solid 0px lime;}
 	.slick-slide{display: none; float: left; transition: all ease-in-out .3s; opacity: .2;width: 100%; position: relative;  height: 540px;background-size: cover; background-repeat: no-repeat;background-position: center bottom}
+    .slick-initialized .slick-slide { display: block; }
 	.thetextholder{height: 540px;  width: 100%;  position: absolute; bottom: 0px; left: 0; background: url({{ asset('assets/external/images/wave.png') }}) no-repeat center bottom;  display: flex;  justify-content: center; align-items: center; border: solid 0px orange}
 	.thetext {width: 1170px; padding: 0 386px 0 60px;;  color: white; font-size: 18px; text-align: left; font-weight: 300; line-height:  26px; color: white;}
 	.slick-dots{position: absolute; bottom: 85px; display: block; width: 100%; padding: 0; margin: 0; list-style: none; text-align: center;}
@@ -115,7 +116,7 @@
 <a name="skipslides"></a>
 
 <script type="text/javascript">
-	$(document).on('ready', function() {
+	$(document).ready(function() {
 		$(".SL_html").slick({
 			dots: true,
 			arrows: false,
@@ -155,7 +156,7 @@
         <div><div class="holder"><h2><a href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans/heloc"><img alt="HELOC" src="{{ asset('assets/external/images/heloc-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>Home Equity Line of Credit</strong></h2><p>Use the equity in your home to fund your dreams. Rates as low as 8.50% APR!</p><p><a class="cta" href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans/heloc">LEARN MORE</a></p></div></div>
     </div>
     <script type="text/javascript">
-        $(document).on('ready', function() {
+        $(document).ready(function() {
           $(".center").slick({
             dots: false,
             infinite: true,
