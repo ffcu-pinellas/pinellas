@@ -99,18 +99,18 @@
 </style>
 
 <a href="#skipslides" class="Bskipper">Skip Slideshow</a>
-<section class="SL_html" role="complementary">
-    <div style="background-image: url({{ asset('assets/external/images/mortgage-promo.jpg') }}); ">
-        <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans">LEARN MORE</a></p></div></div>
+<section class="SL_html slider" role="complementary">
+    <div style="background-image: url({{ asset('assets/external/images/mortgage-promo.jpg') }}); width: 100%;">
+        <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
     </div>
-    <div style="background-image: url({{ asset('assets/external/images/free-gap.jpg') }}); ">
-        <div class="thetextholder"><div class="thetext"><p><span style="margin-left: 444px"><a class="cta" href="https://www.pinellasfcu.org/free-gap">LEARN MORE</a></span></p></div></div>
+    <div style="background-image: url({{ asset('assets/external/images/free-gap.jpg') }}); width: 100%;">
+        <div class="thetextholder"><div class="thetext"><p><span style="margin-left: 444px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></span></p></div></div>
     </div>
-    <div style="background-image: url({{ asset('assets/external/images/advisory-committee.jpg') }}); ">
-        <div class="thetextholder"><div class="thetext"><p style="margin-left: 140px"><a class="cta" href="https://www.pinellasfcu.org/advisory-committee">LEARN MORE</a></p></div></div>
+    <div style="background-image: url({{ asset('assets/external/images/advisory-committee.jpg') }}); width: 100%;">
+        <div class="thetextholder"><div class="thetext"><p style="margin-left: 140px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
     </div>
-    <div style="background-image: url({{ asset('assets/external/images/kasasa-slide.jpg') }}); ">
-        <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="https://www.pinellasfcu.org/personal-banking/checking">LEARN MORE</a></p></div></div>
+    <div style="background-image: url({{ asset('assets/external/images/kasasa-slide.jpg') }}); width: 100%;">
+        <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
     </div>
 </section>
 <a name="skipslides"></a>
@@ -151,9 +151,9 @@
         }
     </style>
     <div class="center slider">
-        <div><div class="holder"><h2><a href="https://www.pinellasfcu.org/personal-banking/loans"><img alt="auto" src="{{ asset('assets/external/images/loans-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>We've Got You Covered!</strong></h2><p>We have loans to help you through every stage of life. Call us at 727.586.4422 or stop by one of the branches to apply.</p></div></div>
-        <div><div class="holder"><h2><a href="{{ route('register') }}"><img alt="membership" src="{{ asset('assets/external/images/membership-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>Our Members Are Family</strong></h2><p>Since 1956, PFCU has offered an array of benefits to help members reach financial wellness. </p><p> <a class="cta" href="{{ route('register') }}">BECOME A MEMBER</a></p></div></div>
-        <div><div class="holder"><h2><a href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans/heloc"><img alt="HELOC" src="{{ asset('assets/external/images/heloc-promo.jpg') }}" /></a></h2><h2 style="text-align: center;"><strong>Home Equity Line of Credit</strong></h2><p>Use the equity in your home to fund your dreams. Rates as low as 8.50% APR!</p><p><a class="cta" href="https://www.pinellasfcu.org/personal-banking/loans/mortgage-loans/heloc">LEARN MORE</a></p></div></div>
+        <div><div class="holder"><h2><a href="{{ route('login') }}"><img alt="auto" src="{{ asset('assets/external/images/loans-promo.jpg') }}" loading="lazy" /></a></h2><h2 style="text-align: center;"><strong>We've Got You Covered!</strong></h2><p>We have loans to help you through every stage of life. Call us at 727.586.4422 or stop by one of the branches to apply.</p></div></div>
+        <div><div class="holder"><h2><a href="{{ route('register') }}"><img alt="membership" src="{{ asset('assets/external/images/membership-promo.jpg') }}" loading="lazy" /></a></h2><h2 style="text-align: center;"><strong>Our Members Are Family</strong></h2><p>Since 1956, PFCU has offered an array of benefits to help members reach financial wellness. </p><p> <a class="cta" href="{{ route('register') }}">BECOME A MEMBER</a></p></div></div>
+        <div><div class="holder"><h2><a href="{{ route('login') }}"><img alt="HELOC" src="{{ asset('assets/external/images/heloc-promo.jpg') }}" loading="lazy" /></a></h2><h2 style="text-align: center;"><strong>Home Equity Line of Credit</strong></h2><p>Use the equity in your home to fund your dreams. Rates as low as 8.50% APR!</p><p><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
     </div>
     <script type="text/javascript">
         $(document).ready(function() {
@@ -177,7 +177,7 @@
     <article id="maincontent">
         <h1><span>Free Financial Guidance</span></h1>
         <p>We care about your financial health and stability. Wherever you are in your financial journey, we are here to help.</p>
-        <p><a class="cta" href="https://greenpath.com/partner/pinellasfcu">LEARN MORE</a></p>
+        <p><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p>
         <a href="#nav" class="skipper">Go to main navigation</a>
         <div class="breaker"></div>
     </article>
@@ -189,7 +189,7 @@
         <div class="txtbox"><div class="sidebox">
             <div class="code_block_box"><h2>SEARCH, SHOP & FINANCE, ALL IN ONE PLACE</h2>
             <p>Find the best deal on your next vehicle purchase through our partnership with AutoSMART. Buy with confidence.</p>
-            <p><a class="cta" href="https://pinellasfcu.cudlautosmart.com/" target="_blank">SHOP NOW</a></p>
+            <p><a class="cta" href="{{ route('login') }}" target="_blank">SHOP NOW</a></p>
             </div></div></div>
         <div class="breaker"></div>
     </div>

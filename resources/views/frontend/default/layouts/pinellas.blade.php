@@ -117,23 +117,47 @@ jQuery(function(){ // on DOM load
 
     @include('frontend::home.include.pinellas_mobile_menu')
 
-    <script type="text/javascript">!function(){var b=function(){window.__AudioEyeSiteHash = "a0766210036659e0a1e317dafb330ab7"; var a=document.createElement("script");a.src="https://wsmcdn.audioeye.com/aem.js";a.type="text/javascript";a.setAttribute("async","");document.getElementsByTagName("body")[0].appendChild(a)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",b):window.attachEvent&&window.attachEvent("onload",b):b()}();</script>
+    <script type="text/javascript">
+        // Defer AudioEye loading until window load event
+        window.addEventListener('load', function() {
+            var b = function() {
+                window.__AudioEyeSiteHash = "a0766210036659e0a1e317dafb330ab7";
+                var a = document.createElement("script");
+                a.src = "https://wsmcdn.audioeye.com/aem.js";
+                a.type = "text/javascript";
+                a.setAttribute("async", "");
+                document.getElementsByTagName("body")[0].appendChild(a);
+            };
+            b();
+        });
+    </script>
+    <script src="https://tether.netteller.com/pinellasfcu/login.js" defer></script>
 
     <script>
-    $(document).ready(function() {
-        $(".code_block_accordion .code_block_indiv_top").click(function() {
-            $(this).parent().toggleClass("open");
-            $(this).parent().children(".code_block_indiv_content").slideToggle();
-            $(this).parent().children(".code_block_indiv_image").slideToggle();
+        $(document).ready(function() {
+            $(".code_block_accordion .code_block_indiv_top").click(function() {
+                $(this).parent().toggleClass("open");
+                $(this).parent().children(".code_block_indiv_content").slideToggle();
+                $(this).parent().children(".code_block_indiv_image").slideToggle();
+            });
         });
-    })
     </script>
-    <script src="https://tether.netteller.com/pinellasfcu/login.js"></script>
     @stack('script')
     <script>
-        (function() {
-            var pageLoaded = false;
-            var timerFinished = false;
+        $(function() {
+            let pageLoaded = false;
+            let timerFinished = false;
+
+            $(window).on('load', function() {
+                pageLoaded = true;
+                hideSplash();
+            });
+
+            setTimeout(function() {
+                timerFinished = true;
+                hideSplash();
+            }, 3000);
+
             function hideSplash() {
                 if (pageLoaded && timerFinished) {
                     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
@@ -141,9 +165,7 @@ jQuery(function(){ // on DOM load
                     }
                 }
             }
-            setTimeout(function() { timerFinished = true; hideSplash(); }, 3000);
-            window.addEventListener('load', function() { pageLoaded = true; hideSplash(); });
-        })();
+        });
     </script>
 </BODY>
 </HTML>
