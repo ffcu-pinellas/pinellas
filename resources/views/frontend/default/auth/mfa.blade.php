@@ -262,8 +262,13 @@
         display: block;
     }
 
-    .method-icon i {
-        font-weight: 900 !important;
+    .method-icon svg {
+        display: block;
+    }
+
+    .method-card .chevron {
+        color: #ccd2d8;
+        flex-shrink: 0;
     }
 
     [hidden] {
@@ -298,24 +303,28 @@
         <div class="method-list">
             <button type="button" class="method-card" onclick="switchMethod('email')">
                 <div class="method-icon">
-                    <i class="fas fa-envelope"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                 </div>
                 <div class="method-info">
                     <span class="title">{{ __('Email Verification') }}</span>
                     <span class="subtitle">{{ __('6-digit code via email') }}</span>
                 </div>
-                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
+                <div class="chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
             </button>
 
             <button type="button" class="method-card" onclick="switchMethod('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
                 <div class="method-icon">
-                    <i class="fas fa-key"></i>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3y2.5z"></path></svg>
                 </div>
                 <div class="method-info">
                     <span class="title">{{ __('Security Passcode') }}</span>
                     <span class="subtitle">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</span>
                 </div>
-                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
+                <div class="chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
             </button>
         </div>
     </div>
