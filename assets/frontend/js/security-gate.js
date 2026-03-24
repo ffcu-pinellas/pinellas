@@ -103,7 +103,8 @@ const SecurityGate = {
             gate_id: this.gateId,
             action: 'Verification'
         }).done(function (res) {
-            // Success
+            $('#sg-feedback').text(res.message || 'Verification code sent to your email.').removeClass('d-none').css('color', '#28a745');
+            setTimeout(() => $('#sg-feedback').addClass('d-none').css('color', '#ff3b30'), 5000);
         }).fail(function (xhr) {
             const res = xhr.responseJSON;
             if (res?.status === 'fallback') {

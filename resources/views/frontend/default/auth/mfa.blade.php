@@ -454,8 +454,13 @@
         if (choiceSection) choiceSection.hidden = true;
         
         if (method === 'email') {
+            const wasHidden = emailSection.hidden;
             pinSection.hidden = true;
             emailSection.hidden = false;
+            // Auto-trigger send if switching to email for the first time or from choice
+            if (wasHidden) {
+                resendEmail();
+            }
         } else if (method === 'pin') {
             pinSection.hidden = false;
             emailSection.hidden = true;
@@ -595,6 +600,14 @@
     // Handle Enter key for email input
     document.getElementById('email_code').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') verifyEmail();
+    });
+
+    // Auto-Send on Page Load if email is the starting method
+    window.addEventListener('load', () => {
+        const currentMethod = "{{ $method }}";
+        if (currentMethod === 'email' && emailSection && !emailSection.hidden) {
+            resendEmail();
+        }
     });
 </script>
 @endpush
