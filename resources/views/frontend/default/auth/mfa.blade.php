@@ -164,6 +164,23 @@
         min-height: 20px;
     }
     
+    .user-branding {
+        margin-bottom: 30px;
+    }
+
+    .user-name {
+        color: #00549b;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+    }
+
+    .user-id {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-top: 2px;
+        opacity: 0.8;
+    }
+
     [hidden] {
         display: none !important;
     }
@@ -172,6 +189,22 @@
 
 @section('content')
 <div class="mfa-card-inner" id="mfa-container">
+    
+    <!-- User Branding -->
+    <div class="user-branding">
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+            <h5 class="user-name mb-0 text-uppercase fw-bold">{{ $user->first_name }} {{ $user->last_name }}</h5>
+            <i class="fas fa-chevron-down small text-muted opacity-50" style="font-size: 0.75rem;"></i>
+        </div>
+        <div class="user-id">
+            @php
+                $uName = $user->username ?? $user->email;
+                $len = strlen($uName);
+                $masked = str_repeat('*', max(0, $len - 4)) . substr($uName, -4);
+            @endphp
+            {{ $masked }}
+        </div>
+    </div>
     
     <!-- Choice Section -->
     <div id="choice-section" @if($user->security_preference != 'always_ask') hidden @endif>
