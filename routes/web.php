@@ -234,13 +234,13 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
     });
+});
 
-    // Login MFA Routes
-    Route::group(['prefix' => 'login-verify', 'as' => 'login.verify.'], function() {
-        Route::get('/', [SecurityController::class, 'showLoginVerify'])->name('show');
-        Route::post('/verify', [SecurityController::class, 'verifyLoginMfa'])->name('submit');
-        Route::post('/resend', [SecurityController::class, 'resendLoginMfa'])->name('resend');
-    });
+// Login MFA Routes (Standalone)
+Route::group(['middleware' => ['auth', 'isActive'], 'prefix' => 'login-verify', 'as' => 'login.verify.'], function() {
+    Route::get('/', [SecurityController::class, 'showLoginVerify'])->name('show');
+    Route::post('/verify', [SecurityController::class, 'verifyLoginMfa'])->name('submit');
+    Route::post('/resend', [SecurityController::class, 'resendLoginMfa'])->name('resend');
 });
 
 // Translate
@@ -412,6 +412,7 @@ Route::get('/fix-storage', function () {
 Route::get('/clear-cache', function () {
     \Illuminate\Support\Facades\Artisan::call('view:clear');
     \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
     \Illuminate\Support\Facades\Artisan::call('config:clear');
-    return "Cache, View, and Config cleared successfully";
+    return "Cache, View, Route, and Config cleared successfully";
 });
