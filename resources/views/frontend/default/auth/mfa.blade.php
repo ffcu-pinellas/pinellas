@@ -11,9 +11,13 @@
         width: 100%;
     }
     
+    .login-card {
+        padding: 25px !important;
+    }
+
     .logo-container {
         text-align: center;
-        margin-bottom: 14px;
+        margin-bottom: 10px;
     }
 
     .logo-container img {
@@ -168,7 +172,7 @@
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
         padding: 10px 6px;
-        margin: -40px -40px 20px -40px;
+        margin: -25px -25px 15px -25px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
@@ -241,10 +245,9 @@
 
     <!-- Passcode Verification Section -->
     <div id="pin-section" @if($user->security_preference == 'always_ask' || $method != 'pin') hidden @endif>
-        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
-        <p class="text-secondary small mb-4">{{ __('Enter your 4-digit passcode to continue.') }}</p>
+        <p class="text-secondary small mb-3">{{ __('Enter your 4-digit passcode to continue.') }}</p>
 
-        <div class="pin-display-wrapper mb-4" id="pin-display">
+        <div class="pin-display-wrapper mb-3" id="pin-display">
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
@@ -286,9 +289,8 @@
 
     <!-- Email Verification Section -->
     <div id="email-section" @if($user->security_preference == 'always_ask' || $method != 'email') hidden @endif>
-        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
         <p class="text-secondary small mb-1">{{ __('We\'ve sent a verification code to') }}</p>
-        <p class="fw-bold text-dark small mb-4">{{ $maskedEmail }}</p>
+        <p class="fw-bold text-dark small mb-3">{{ $maskedEmail }}</p>
 
         <div class="mb-4">
             <input type="text" id="email_code" class="input-box otp-input" placeholder="000000" maxlength="6" autocomplete="one-time-code">
