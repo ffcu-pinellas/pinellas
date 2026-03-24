@@ -17,7 +17,7 @@
     }
 
     .logo-container img {
-        max-width: 180px;
+        max-width: 140px;
         height: auto;
     }
 
@@ -55,8 +55,8 @@
         background: #f8f9fa;
         border: 1px solid #e9ecef;
         border-radius: 8px;
-        padding: 12px;
-        font-size: 20px;
+        padding: 8px;
+        font-size: 18px;
         font-weight: 600;
         color: var(--body-text-primary-color);
         cursor: pointer;
@@ -64,7 +64,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 52px;
+        height: 46px;
         user-select: none;
     }
 
@@ -167,22 +167,22 @@
     .user-branding {
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
-        padding: 20px 15px;
-        margin: -25px -25px 25px -25px;
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
+        padding: 15px 10px;
+        margin: -40px -40px 20px -40px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
     }
 
     .user-name {
         color: #003d73;
-        font-size: 1rem;
-        letter-spacing: 0.8px;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
     }
 
     .user-id {
         color: #64748b;
-        font-size: 0.8rem;
-        margin-top: 3px;
+        font-size: 0.75rem;
+        margin-top: 1px;
         font-weight: 500;
     }
 
