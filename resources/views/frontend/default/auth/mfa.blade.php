@@ -186,7 +186,7 @@
     .user-id {
         color: #64748b;
         font-size: 0.75rem;
-        margin-top: -2px !important;
+        margin-top: -4px !important;
         font-weight: 500;
         line-height: 1;
     }
