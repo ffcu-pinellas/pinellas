@@ -101,10 +101,10 @@
 
 <style>
     /* Literal Copy from mfa.blade.php */
-    .mfa-card-inner { text-align: center; width: 100%; }
+    /* PIN dots inside modal */
     .pin-display-wrapper { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; }
-    .pin-dot { width: 14px; height: 14px; border: 2px solid #555; border-radius: 50%; transition: all 0.2s ease; }
-    .pin-dot.filled { background-color: #555; transform: scale(1.1); }
+    .pin-dot { width: 14px; height: 14px; border: 2px solid #555 !important; border-radius: 50%; transition: all 0.2s ease; background-color: transparent !important; }
+    .pin-dot.filled { background-color: #555 !important; transform: scale(1.1); }
     .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; max-width: 280px; margin-left: auto; margin-right: auto; }
     .key-btn { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; font-size: 20px; font-weight: 600; color: #333; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; height: 52px; user-select: none; }
     .key-btn:hover { background: #e9ecef; border-color: #dee2e6; }
