@@ -145,7 +145,6 @@
             <div class="transaction-list">
                 @forelse ($transactions as $transaction)
                 <div class="activity-row d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-light" 
-                     onclick="window.location.href='{{ route('user.transactions') }}?details={{ $transaction->tnx }}'"
                      data-bs-toggle="modal" data-bs-target="#trxViewDetailsBox"
                      data-title="{{ $transaction->description }}"
                      data-trx="{{ $transaction->tnx }}"
