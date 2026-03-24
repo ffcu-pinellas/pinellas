@@ -70,6 +70,7 @@
         justify-content: center;
         height: 46px;
         user-select: none;
+        touch-action: manipulation;
     }
 
     .key-btn:hover {

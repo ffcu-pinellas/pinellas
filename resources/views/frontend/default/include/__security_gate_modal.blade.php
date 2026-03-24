@@ -106,7 +106,23 @@
     .pin-dot { width: 14px; height: 14px; border: 2px solid #555 !important; border-radius: 50%; transition: all 0.2s ease; background-color: transparent !important; }
     .pin-dot.filled { background-color: #555 !important; transform: scale(1.1); }
     .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; max-width: 280px; margin-left: auto; margin-right: auto; }
-    .key-btn { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; font-size: 20px; font-weight: 600; color: #333; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; height: 52px; user-select: none; }
+    .key-btn { 
+        background: #f8f9fa; 
+        border: 1px solid #e9ecef; 
+        border-radius: 8px; 
+        padding: 8px; 
+        font-size: 18px; 
+        font-weight: 600; 
+        color: #333; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        height: 46px; 
+        user-select: none; 
+        touch-action: manipulation;
+    }
     .key-btn:hover { background: #e9ecef; border-color: #dee2e6; }
     .key-btn:active { background: #dee2e6; transform: scale(0.95); }
     .key-btn.invisible { visibility: hidden; }
