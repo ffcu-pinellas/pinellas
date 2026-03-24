@@ -121,24 +121,26 @@ const SecurityGate = {
     },
 
     submitVerification: function () {
-        const value = this.selectedMethod === 'email' ? $('#sg-email-code-input').val() : this.currentPin;
+        // Ensure PIN is 4 digits if PIN mode
+        if (this.selectedMethod === 'pin' && this.currentPin.length < 4) return;
 
-        if (!value) {
-            $('#sg-feedback').text('Please enter the Email Verification code or MFA PIN.').removeClass('d-none');
-            return;
-        }
-
-        if (typeof window.showLoader === 'function') window.showLoader('Verifying...');
+        const value = (this.selectedMethod === 'pin') ? this.currentPin : $('#sg-email-code-input').val();
+        const feedback = $('#sg-feedback');
+        const modalBody = $('#sg-modal-body'); 
         const btn = $('#sg-verify-btn');
-        btn.prop('disabled', true).find('.spinner-border').removeClass('d-none');
-        $('#sg-feedback').addClass('d-none');
+        const spinner = btn.find('.spinner-border');
+
+        feedback.addClass('d-none');
+        btn.prop('disabled', true);
+        spinner.removeClass('d-none');
 
         $.post('/user/security-gate/verify', {
             _token: $('meta[name="csrf-token"]').attr('content'),
             type: this.selectedMethod,
             value: value,
             gate_id: this.gateId
-        }).done((res) => {
+        })
+        .done((res) => {
             if (res.status === 'success') {
                 // Verification successful
                 $('#securityGateModal').modal('hide');
@@ -148,44 +150,50 @@ const SecurityGate = {
                     if (this.currentTarget.tagName === 'FORM') {
                         $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
                         this.currentTarget.submit();
+                    } else {
+                        // If onSuccessCallback is defined (via some other part of app), call it
+                        if (typeof window.SecurityGateOnSuccess === 'function') {
+                            window.SecurityGateOnSuccess(res);
+                        } else {
+                            window.location.reload();
+                        }
                     }
+                } else {
+                    window.location.reload();
                 }
-            } else if (res.status === 'fallback') {
-                // Switch to secondary method
-                $('#sg-feedback').text(res.message).removeClass('d-none').removeClass('alert-danger').addClass('alert-warning');
-                setTimeout(() => {
-                    $('#sg-feedback').addClass('d-none').addClass('alert-danger').removeClass('alert-warning');
-                    this.selectMethod(res.method);
-                }, 3000);
-            } else if (res.status === 'locked_out') {
-                // Account disabled
-                $('#sg-feedback').text(res.message).removeClass('d-none');
-                setTimeout(() => {
-                    window.location.reload(); // Middleware will handle the logout/message
-                }, 4000);
+            } else {
+                this.handleError(res.message || 'Verification failed.');
             }
         }).fail((xhr) => {
-            if (typeof window.hideLoader === 'function') window.hideLoader();
             btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
             const res = xhr.responseJSON;
 
             if (xhr.status === 419 || xhr.status === 401) {
-                window.location.reload(); // Likely session timed out
+                window.location.reload();
                 return;
             }
-
-            if (res?.status === 'fallback') {
-                $('#sg-feedback').text(res.message).removeClass('d-none').addClass('alert-warning');
-                setTimeout(() => {
-                    this.selectMethod(res.method);
-                }, 3000);
-            } else if (res?.status === 'locked_out') {
-                $('#sg-feedback').text(res.message).removeClass('d-none');
-                setTimeout(() => window.location.reload(), 3000);
-            } else {
-                $('#sg-feedback').text(res?.message || 'Multi-Factor Verification failed.').removeClass('d-none');
-            }
+            this.handleError(res?.message || 'Multi-Factor Verification failed.');
         });
+    },
+
+    handleError: function(message) {
+        const feedback = $('#sg-feedback');
+        const modalBody = $('#sg-modal-body');
+        
+        feedback.text(message).removeClass('d-none');
+        
+        // Shake Animation
+        modalBody.removeClass('shake');
+        void modalBody[0].offsetWidth; // Trigger reflow
+        modalBody.addClass('shake');
+
+        if (this.selectedMethod === 'pin') {
+            this.currentPin = "";
+            this.updateDots();
+        } else {
+            $('#sg-email-code-input').val('');
+        }
+        $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
     }
 };
 

@@ -9,99 +9,107 @@
     .mfa-container {
         text-align: center;
         width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+        padding-bottom: 20px;
     }
     .pin-display {
         display: flex;
         justify-content: center;
-        gap: 20px;
-        margin: 30px 0;
+        gap: 15px;
+        margin: 20px 0;
     }
     .pin-dot {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         border: 2px solid var(--body-text-theme-color);
         border-radius: 50%;
         transition: all 0.2s ease;
     }
     .pin-dot.filled {
         background-color: var(--body-text-theme-color);
-        transform: scale(1.2);
+        transform: scale(1.1);
     }
     .keypad {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        max-width: 280px;
+        gap: 10px;
+        max-width: 260px;
         margin: 0 auto;
     }
     .key-btn {
         aspect-ratio: 1/1;
         border-radius: 50%;
-        border: 1px solid #e9ecef;
+        border: 1px solid #f1f3f5;
         background: white;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 600;
-        color: var(--body-text-primary-color);
+        color: #333;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.15s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
         user-select: none;
     }
     .key-btn:active {
         background: #f8f9fa;
-        transform: scale(0.95);
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        transform: scale(0.92);
     }
-    .key-btn.empty {
-        border: none;
-        background: none;
-        box-shadow: none;
-        cursor: default;
-    }
-    .key-btn.action {
-        font-size: 18px;
-        color: var(--body-text-secondary-color);
-    }
+    .key-btn.empty { border: none; background: none; box-shadow: none; cursor: default; }
+    .key-btn.action { font-size: 16px; color: #666; }
 
     /* Email Mode */
     .otp-inputs {
         display: flex;
         justify-content: center;
-        gap: 10px;
-        margin-bottom: 30px;
+        gap: 8px;
+        margin-bottom: 20px;
     }
     .otp-field {
-        width: 45px;
-        height: 55px;
+        width: 40px;
+        height: 50px;
         text-align: center;
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
         border: 2px solid #e9ecef;
-        border-radius: 12px;
+        border-radius: 10px;
         outline: none;
-        transition: all 0.2s;
+        transition: border-color 0.2s;
     }
     .otp-field:focus {
         border-color: var(--body-text-theme-color);
-        box-shadow: 0 0 0 4px rgba(0, 84, 155, 0.1);
     }
     
     #mfa-feedback {
-        margin-top: 20px;
-        font-size: 14px;
-        min-height: 20px;
+        min-height: 24px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .shake {
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--body-text-theme-color);
+        border-color: var(--body-text-theme-color);
     }
 </style>
 @endpush
 
 @section('content')
-<div class="mfa-container">
+<div class="mfa-container" id="mfa-main-container">
     <div id="mfa-header" @if($user->security_preference == 'always_ask') hidden @endif>
-        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
-        <p class="text-muted small" id="mfa-instruction">
+        <h4 class="fw-bold text-dark mb-1">{{ __('Security Verification') }}</h4>
+        <p class="text-muted small mb-3" id="mfa-instruction">
             @if($user->security_preference == 'email_priority')
                 {{ __('Enter the 6-digit code sent to your email.') }}
             @else
@@ -110,25 +118,28 @@
         </p>
     </div>
 
+    <!-- Error/Feedback Area (Moved Up) -->
+    <div id="mfa-feedback" class="text-danger small"></div>
+
     <!-- CHOICE UI -->
     <div id="choice-ui" @if($user->security_preference != 'always_ask') hidden @endif>
-        <div class="d-grid gap-3 mt-4">
-            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start transition-all" onclick="switchMode('email')">
+        <div class="d-grid gap-2 mt-2">
+            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMode('email')">
                 <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
                     <i class="fas fa-envelope text-primary"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">{{ __('Email Verification Code') }}</div>
-                    <div class="small text-muted">{{ __('Get a 6-digit code via email') }}</div>
+                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Email Verification Code') }}</div>
+                    <div class="small text-muted">{{ __('6-digit code via email') }}</div>
                 </div>
             </button>
 
-            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start transition-all" onclick="switchMode('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
+            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMode('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
                 <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
                     <i class="fas fa-key text-primary"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark">{{ __('Security PIN') }}</div>
+                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Security Passcode') }}</div>
                     <div class="small text-muted">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</div>
                 </div>
             </button>
@@ -145,61 +156,54 @@
         </div>
 
         <div class="keypad">
-            <div class="key-btn" onclick="pressKey(1)">1</div>
-            <div class="key-btn" onclick="pressKey(2)">2</div>
-            <div class="key-btn" onclick="pressKey(3)">3</div>
-            <div class="key-btn" onclick="pressKey(4)">4</div>
-            <div class="key-btn" onclick="pressKey(5)">5</div>
-            <div class="key-btn" onclick="pressKey(6)">6</div>
-            <div class="key-btn" onclick="pressKey(7)">7</div>
-            <div class="key-btn" onclick="pressKey(8)">8</div>
-            <div class="key-btn" onclick="pressKey(9)">9</div>
+            @foreach([1,2,3,4,5,6,7,8,9] as $num)
+                <div class="key-btn" onclick="pressKey({{ $num }})">{{ $num }}</div>
+            @endforeach
             <div class="key-btn empty"></div>
             <div class="key-btn" onclick="pressKey(0)">0</div>
             <div class="key-btn action" onclick="backspace()">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                <i class="fas fa-backspace"></i>
             </div>
         </div>
         
-        <div class="mt-4">
-            <button type="button" class="btn btn-link text-decoration-none small text-primary" onclick="backToChoice()">
+        <div class="mt-3">
+            <a href="javascript:void(0)" class="text-decoration-none small fw-bold text-primary" onclick="backToChoice()">
                 {{ $user->security_preference == 'always_ask' ? __('Back') : __('Use Email Verification Code instead') }}
-            </button>
+            </a>
         </div>
     </div>
 
     <!-- EMAIL OTP UI -->
     <div id="email-ui" @if($user->security_preference != 'email_priority') hidden @endif>
-        <div class="text-center mb-4 mt-3">
-            <div class="small text-muted">{{ __('Verification code sent to') }}</div>
-            <div class="fw-bold text-dark">{{ substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@')) }}</div>
+        <div class="text-center mb-3">
+            <div class="small text-muted">{{ __('Sent to') }} <span class="fw-bold text-dark">{{ substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@')) }}</span></div>
         </div>
 
         <div class="otp-inputs">
             @for($i = 1; $i <= 6; $i++)
-                <input type="text" maxlength="1" class="otp-field" id="otp-{{ $i }}" onkeyup="moveFocus(this, {{ $i }})" onkeydown="handleBackspace(event, {{ $i }})">
+                <input type="text" maxlength="1" class="otp-field" id="otp-{{ $i }}" onkeyup="moveFocus(this, {{ $i }})" onkeydown="handleBackspace(event, {{ $i }})" autofocus>
             @endfor
         </div>
 
         <div class="text-center">
-            <button type="button" class="btn btn-link text-primary text-decoration-none small fw-bold" onclick="resendEmail()">{{ __('Resend Code') }}</button>
+            <button type="button" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" onclick="resendEmail()">{{ __('Resend Code') }}</button>
         </div>
 
-        <div class="mt-4">
-            <button type="button" class="btn btn-link text-decoration-none small text-primary" onclick="backToChoice()">
+        <div class="mt-3">
+            <a href="javascript:void(0)" class="text-decoration-none small fw-bold text-primary" onclick="backToChoice()">
                  {{ $user->security_preference == 'always_ask' ? __('Back') : __('Use Passcode instead') }}
-            </button>
+            </a>
         </div>
     </div>
 
-    <div class="mt-4 text-start">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--body-text-secondary-color); justify-content: center;">
-            <input type="checkbox" id="trust_device" name="trust_device" checked style="width: 18px; height: 18px; cursor: pointer;">
-            {{ __('Trust this device for 30 days') }}
-        </label>
+    <div class="mt-4 d-flex justify-content-center">
+        <div class="form-check form-switch d-inline-block text-start">
+            <input class="form-check-input" type="checkbox" id="trust_device" name="trust_device" checked style="cursor: pointer; width: 36px; height: 18px;">
+            <label class="form-check-label small text-muted ms-2" for="trust_device" style="cursor: pointer; padding-top: 2px;">
+                {{ __('Trust this device for 30 days') }}
+            </label>
+        </div>
     </div>
-
-    <div id="mfa-feedback" class="text-danger small mt-3"></div>
 </div>
 @endsection
 
@@ -327,9 +331,11 @@
         const type = otpValue ? 'email' : 'pin';
         const trustDevice = document.getElementById('trust_device').checked;
         const feedback = document.getElementById('mfa-feedback');
+        const container = document.getElementById('mfa-main-container');
 
         if (typeof window.showLoader === 'function') window.showLoader('Verifying security...');
-        
+        feedback.textContent = "";
+
         fetch("{{ route('login.verify.submit') }}", {
             method: 'POST',
             headers: {
@@ -348,9 +354,14 @@
                 window.location.href = data.redirect;
             } else {
                 if (typeof window.hideLoader === 'function') window.hideLoader();
-                feedback.textContent = data.message;
-                feedback.className = "small mt-3 text-danger";
+                feedback.textContent = data.message || "Incorrect code. Please try again.";
+                feedback.className = "text-danger small mb-2";
                 
+                // Shake Animation
+                container.classList.remove('shake');
+                void container.offsetWidth; // Trigger reflow
+                container.classList.add('shake');
+
                 if (type === 'pin') {
                     currentPin = "";
                     updateDots();
@@ -361,10 +372,15 @@
                 }
             }
         })
-        .catch(() => {
+        .catch((error) => {
             if (typeof window.hideLoader === 'function') window.hideLoader();
+            console.error("MFA Error:", error);
             feedback.textContent = "An error occurred. Please try again.";
-            feedback.className = "small mt-3 text-danger";
+            feedback.className = "text-danger small mb-2";
+            
+            container.classList.remove('shake');
+            void container.offsetWidth;
+            container.classList.add('shake');
         });
     }
 
