@@ -22,11 +22,41 @@ const SecurityGate = {
 
     reset: function () {
         this.selectedMethod = null;
+        this.currentPin = "";
         $('#sg-method-selection').addClass('d-none');
         $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
-        $('#sg-email-code-input, #sg-pin-input').val('');
+        $('#sg-email-code-input').val('');
+        this.updateDots();
         $('#sg-back-btn').text('Cancel');
         $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
+    },
+
+    pressKey: function (num) {
+        if (this.currentPin.length < 4) {
+            this.currentPin += num;
+            this.updateDots();
+            if (this.currentPin.length === 4) {
+                this.submitVerification();
+            }
+        }
+    },
+
+    backspace: function () {
+        if (this.currentPin.length > 0) {
+            this.currentPin = this.currentPin.slice(0, -1);
+            this.updateDots();
+        }
+    },
+
+    updateDots: function () {
+        for (let i = 1; i <= 4; i++) {
+            const dot = $('#sg-dot-' + i);
+            if (i <= this.currentPin.length) {
+                dot.css('background-color', 'var(--body-text-theme-color)').css('transform', 'scale(1.2)');
+            } else {
+                dot.css('background-color', 'transparent').css('transform', 'scale(1)');
+            }
+        }
     },
 
     selectMethod: function (method) {
@@ -91,10 +121,10 @@ const SecurityGate = {
     },
 
     submitVerification: function () {
-        const value = this.selectedMethod === 'email' ? $('#sg-email-code-input').val() : $('#sg-pin-input').val();
+        const value = this.selectedMethod === 'email' ? $('#sg-email-code-input').val() : this.currentPin;
 
         if (!value) {
-            $('#sg-feedback').text('Please enter the Email Verification code or Multi-Factor Authentication PIN.').removeClass('d-none');
+            $('#sg-feedback').text('Please enter the Email Verification code or MFA PIN.').removeClass('d-none');
             return;
         }
 
@@ -160,9 +190,9 @@ const SecurityGate = {
 };
 
 $(document).ready(function () {
-    // Auto-focus logic for inputs
-    $('#sg-email-code-input, #sg-pin-input').on('keyup', function (e) {
-        if ($(this).val().length === (SecurityGate.selectedMethod === 'pin' ? 4 : 6)) {
+    // Auto-focus logic for Email OTP
+    $('#sg-email-code-input').on('keyup', function (e) {
+        if ($(this).val().length === 6) {
             SecurityGate.submitVerification();
         }
     });

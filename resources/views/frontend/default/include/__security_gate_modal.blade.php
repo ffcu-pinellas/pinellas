@@ -49,12 +49,29 @@
                     </div>
                 </div>
 
-                <!-- PIN Input -->
+                <!-- PIN Input (New Premium Design) -->
                 <div id="sg-pin-verify" class="d-none">
-                    <div class="text-center mb-3">
-                        <label class="form-label fw-bold text-dark">Enter 4-Digit Multi-Factor Authentication PIN</label>
+                    <div class="text-center mb-4">
+                        <label class="form-label fw-bold text-dark">{{ __('Enter 4-Digit Passcode') }}</label>
                     </div>
-                    <input type="password" maxlength="4" class="form-control form-control-lg text-center fw-bold fs-1 border-2 rounded-4 shadow-none mb-4" style="letter-spacing: 0.8em;" placeholder="••••" id="sg-pin-input">
+                    
+                    <div class="pin-display mb-4" style="display: flex; justify-content: center; gap: 20px;">
+                        <div class="pin-dot" id="sg-dot-1" style="width: 16px; height: 16px; border: 2px solid var(--body-text-theme-color); border-radius: 50%;"></div>
+                        <div class="pin-dot" id="sg-dot-2" style="width: 16px; height: 16px; border: 2px solid var(--body-text-theme-color); border-radius: 50%;"></div>
+                        <div class="pin-dot" id="sg-dot-3" style="width: 16px; height: 16px; border: 2px solid var(--body-text-theme-color); border-radius: 50%;"></div>
+                        <div class="pin-dot" id="sg-dot-4" style="width: 16px; height: 16px; border: 2px solid var(--body-text-theme-color); border-radius: 50%;"></div>
+                    </div>
+
+                    <div class="keypad mx-auto" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 240px;">
+                        @for($i = 1; $i <= 9; $i++)
+                            <button type="button" class="btn btn-outline-light text-dark fw-bold rounded-circle p-0" style="width: 60px; height: 60px; font-size: 20px; border-color: #eee;" onclick="SecurityGate.pressKey({{ $i }})">{{ $i }}</button>
+                        @endfor
+                        <div style="width: 60px;"></div>
+                        <button type="button" class="btn btn-outline-light text-dark fw-bold rounded-circle p-0" style="width: 60px; height: 60px; font-size: 20px; border-color: #eee;" onclick="SecurityGate.pressKey(0)">0</button>
+                        <button type="button" class="btn btn-outline-light text-muted rounded-circle p-0 border-0" style="width: 60px; height: 60px;" onclick="SecurityGate.backspace()">
+                            <i class="fas fa-backspace"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="sg-feedback" class="alert alert-danger d-none mt-3 p-2 small border-0 text-center rounded-3"></div>

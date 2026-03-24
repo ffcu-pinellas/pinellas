@@ -40,6 +40,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\StoreReferralCode::class,
             \App\Http\Middleware\IsMaintenance::class,
+            \App\Http\Middleware\LoginMfa::class,
         ],
 
         'api' => [
@@ -78,5 +79,6 @@ class Kernel extends HttpKernel
         'isDemo' => \App\Http\Middleware\DemoMode::class,
         'otp' => \App\Http\Middleware\OtpVerify::class,
         'passcode' => \App\Http\Middleware\VerifyPasscode::class,
+        'login_mfa' => \App\Http\Middleware\LoginMfa::class,
     ];
 }

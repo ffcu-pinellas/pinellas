@@ -43,6 +43,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->authenticate();
         $request->session()->regenerate();
+
+        $user = Auth::user();
+        
+        // Trusted Device Check
+        $trustedCookie = request()->cookie('trusted_device');
+        $expectedToken = hash('sha256', $user->email . '|' . $user->id);
+        $isTrusted = ($trustedCookie === $expectedToken);
+
+        // Respect Security Preference & New Device Requirement
+        if (!$isTrusted && ($user->security_preference && $user->security_preference !== 'none')) {
+            session()->put('login_mfa_pending', true);
+            return redirect()->route('login.verify.show');
+        }
+
         if (setting('otp_verification', 'permission')) {
             $user = Auth::user();
             $otp = random_int(1000, 9999);

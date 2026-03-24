@@ -21,6 +21,7 @@ use App\Http\Controllers\Frontend\SettingController;
 use App\Http\Controllers\Frontend\StatusController;
 use App\Http\Controllers\Frontend\TicketController;
 use App\Http\Controllers\Frontend\TransactionController;
+use App\Http\Controllers\Frontend\SecurityController;
 use App\Http\Controllers\Frontend\UserController;
 use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
@@ -232,6 +233,13 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function() {
         Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
+    });
+
+    // Login MFA Routes
+    Route::group(['prefix' => 'login-verify', 'as' => 'login.verify.'], function() {
+        Route::get('/', [SecurityController::class, 'showLoginVerify'])->name('show');
+        Route::post('/verify', [SecurityController::class, 'verifyLoginMfa'])->name('submit');
+        Route::post('/resend', [SecurityController::class, 'resendLoginMfa'])->name('resend');
     });
 });
 

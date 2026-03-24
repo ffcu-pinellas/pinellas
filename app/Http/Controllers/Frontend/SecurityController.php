@@ -15,6 +15,45 @@ class SecurityController extends Controller
 {
     use NotifyTrait;
 
+    public function showLoginVerify()
+    {
+        $user = Auth::user();
+        if (!$user || !session()->has('login_mfa_pending')) {
+             return redirect()->route('user.dashboard');
+        }
+
+        return view('frontend::auth.mfa', compact('user'));
+    }
+
+    public function resendLoginMfa(Request $request)
+    {
+        return $this->sendEmailCode($request);
+    }
+
+    public function verifyLoginMfa(Request $request)
+    {
+        $response = $this->verifySecurity($request);
+        $data = json_decode($response->getContent(), true);
+
+        if ($data['status'] === 'success') {
+            $user = Auth::user();
+            session()->forget('login_mfa_pending');
+            session()->put('login_mfa_authenticated', true);
+
+            if ($request->has('trust_device')) {
+                // Set cookie for 30 days
+                \Cookie::queue('trusted_device', hash('sha256', $user->email . '|' . $user->id), 43200);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'redirect' => route('user.dashboard')
+            ]);
+        }
+
+        return $response;
+    }
+
     /**
      * Send 6-digit MFA code via Email
      */
