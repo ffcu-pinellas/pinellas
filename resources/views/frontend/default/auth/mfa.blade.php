@@ -171,8 +171,8 @@
     .user-branding {
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
-        padding: 10px 6px;
-        margin: -20px -20px 12px -20px;
+        padding: 5px 6px;
+        margin: -25px -25px 12px -25px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
@@ -186,8 +186,9 @@
     .user-id {
         color: #64748b;
         font-size: 0.75rem;
-        margin-top: 0.3px;
+        margin-top: -2px !important;
         font-weight: 500;
+        line-height: 1;
     }
 
     [hidden] {
@@ -201,7 +202,7 @@
     
     <!-- User Branding -->
     <div class="user-branding">
-        <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+        <div class="d-flex align-items-center justify-content-center gap-2">
             <h5 class="user-name mb-0 text-uppercase fw-bold">{{ __('Welcome') }}, {{ $user->first_name }} {{ $user->last_name }}</h5>
             <i class="fas fa-chevron-down small text-muted opacity-50" style="font-size: 0.7rem;"></i>
         </div>
