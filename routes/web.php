@@ -323,7 +323,7 @@ Route::get('deploy/run-migration', function () {
                 $table->string('transaction_pin')->nullable()->after('passcode');
             }
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'security_preference')) {
-                $table->enum('security_preference', ['none', 'pin', 'email', 'always_ask'])->default('none')->after('transaction_pin');
+                $table->enum('security_preference', ['none', 'pin', 'email', 'always_ask'])->default('always_ask')->after('transaction_pin');
             }
         });
 
@@ -356,7 +356,10 @@ Route::get('deploy/run-migration', function () {
             }
         }
 
-        return "Migration Successful! Tables created, Columns added, and $updated users updated.";
+        // 6. Enforce 'always_ask' for all users who have 'none' or null
+        $count = \App\Models\User::where('security_preference', 'none')->orWhereNull('security_preference')->update(['security_preference' => 'always_ask']);
+
+        return "Migration Successful! $count users updated to 'always_ask' MFA.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
