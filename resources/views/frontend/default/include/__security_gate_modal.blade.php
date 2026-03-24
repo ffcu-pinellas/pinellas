@@ -214,5 +214,9 @@
         display: block;
     }
 
+    .method-icon i {
+        font-weight: 900 !important;
+    }
+
     .sg-choice-btn:hover { background-color: rgba(0, 84, 155, 0.05); transform: translateY(-2px); border-color: #0056b3 !important; }
 </style>

@@ -262,6 +262,10 @@
         display: block;
     }
 
+    .method-icon i {
+        font-weight: 900 !important;
+    }
+
     [hidden] {
         display: none !important;
     }
