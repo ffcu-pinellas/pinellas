@@ -128,6 +128,8 @@
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
+        display: block;
+        margin: 5px 0;
     }
 
     .forgot-link:hover {
@@ -155,6 +157,13 @@
         margin: 0 auto;
     }
 
+    .error-text {
+        color: #ff3b30 !important; /* iOS/Branded Red */
+        font-weight: 700 !important;
+        margin-top: 8px;
+        min-height: 20px;
+    }
+    
     [hidden] {
         display: none !important;
     }
@@ -204,7 +213,7 @@
             <div class="pin-dot"></div>
         </div>
 
-        <div id="pin-error" class="text-danger small mb-3 fw-bold" style="min-height: 20px;"></div>
+        <div id="pin-error" class="error-text small mb-3"></div>
 
         <div class="keypad">
             <button type="button" class="key-btn" data-key="1">1</button>
@@ -245,7 +254,7 @@
 
         <div class="mb-4">
             <input type="text" id="email_code" class="input-box otp-input" placeholder="000000" maxlength="6" autocomplete="one-time-code">
-            <div id="email-error" class="text-danger small mt-2 fw-bold" style="min-height: 20px;"></div>
+            <div id="email-error" class="error-text small mt-2"></div>
         </div>
 
         <button type="button" class="primary-btn w-100 mb-3" id="btn-verify-email" onclick="verifyEmail()">{{ __('Verify Code') }}</button>
@@ -257,11 +266,16 @@
             </label>
         </div>
 
-        <div class="d-flex flex-column gap-2 mt-3">
-            <a href="javascript:void(0)" class="forgot-link" id="btn-resend-email" onclick="resendEmail()">{{ __('Resend Code') }}</a>
-            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod(securityPreference === 'always_ask' ? '' : 'pin')">
-                {{ $user->security_preference == 'always_ask' ? __('Back to Options') : __('Use Passcode instead') }}
-            </a>
+        <div class="mt-4">
+            <div class="mb-2">
+                <a href="javascript:void(0)" class="forgot-link" id="btn-resend-email" onclick="resendEmail()">{{ __('Resend Code') }}</a>
+            </div>
+            <div class="mt-2 text-muted small" style="opacity: 0.5;">— or —</div>
+            <div class="mt-2">
+                <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod(securityPreference === 'always_ask' ? '' : 'pin')">
+                    {{ $user->security_preference == 'always_ask' ? __('Back to Options') : __('Use Passcode instead') }}
+                </a>
+            </div>
         </div>
     </div>
 
@@ -437,10 +451,10 @@
         .then(data => {
             if (data.status === 'success') {
                 errorEl.innerText = "New code sent to your email.";
-                errorEl.className = "text-success small mt-2 fw-bold";
+                errorEl.style.color = "#28a745"; // Green
                 setTimeout(() => {
                     errorEl.innerText = "";
-                    errorEl.className = "text-danger small mt-2 fw-bold";
+                    errorEl.style.color = "#ff3b30"; // Back to Red
                 }, 5000);
             } else {
                 errorEl.innerText = data.message || "Failed to resend code.";

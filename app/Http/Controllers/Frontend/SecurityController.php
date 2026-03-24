@@ -205,7 +205,7 @@ class SecurityController extends Controller
             $record = TransactionSecurityCode::where('user_id', $user->id)->first();
 
             if (!$record || $record->expires_at < Carbon::now()) {
-                return response()->json(['status' => 'error', 'message' => 'Code expired or not found. Please resend.'], 422);
+                return response()->json(['status' => 'error', 'message' => 'The verification code you entered is invalid or has expired. Please request a new code and try again.'], 422);
             }
 
             if ($record->code === $value) {
@@ -247,7 +247,7 @@ class SecurityController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Incorrect Email Verification Code. ' . ($lockoutLimit - $emailTries) . ' attempts remaining.'
+                'message' => 'The verification code you entered is incorrect. ' . ($lockoutLimit - $emailTries) . ' attempts remaining.'
             ], 422);
         }
 
