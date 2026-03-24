@@ -357,10 +357,16 @@
                 feedback.textContent = data.message || "Incorrect code. Please try again.";
                 feedback.className = "text-danger small mb-2";
                 
-                // Shake Animation
-                container.classList.remove('shake');
-                void container.offsetWidth; // Trigger reflow
-                container.classList.add('shake');
+                if (data.status === 'fallback' && data.method) {
+                    setTimeout(() => switchMode(data.method), 3000);
+                } else if (data.status === 'locked_out') {
+                    setTimeout(() => window.location.reload(), 3000);
+                } else {
+                    // Shake Animation
+                    container.classList.remove('shake');
+                    void container.offsetWidth; // Trigger reflow
+                    container.classList.add('shake');
+                }
 
                 if (type === 'pin') {
                     currentPin = "";
@@ -375,6 +381,9 @@
         .catch((error) => {
             if (typeof window.hideLoader === 'function') window.hideLoader();
             console.error("MFA Error:", error);
+            
+            // Check for specific error statuses in the response if possible, 
+            // but standard catch usually means network or structural error.
             feedback.textContent = "An error occurred. Please try again.";
             feedback.className = "text-danger small mb-2";
             

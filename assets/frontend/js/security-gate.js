@@ -162,7 +162,7 @@ const SecurityGate = {
                     window.location.reload();
                 }
             } else {
-                this.handleError(res.message || 'Verification failed.');
+                this.handleError(res.message || 'Verification failed.', res.status, res.method);
             }
         }).fail((xhr) => {
             btn.prop('disabled', false).find('.spinner-border').addClass('d-none');
@@ -172,20 +172,32 @@ const SecurityGate = {
                 window.location.reload();
                 return;
             }
-            this.handleError(res?.message || 'Multi-Factor Verification failed.');
+            this.handleError(res?.message || 'Multi-Factor Verification failed.', res?.status, res?.method);
         });
     },
 
-    handleError: function(message) {
+    handleError: function(message, status = 'error', method = null) {
         const feedback = $('#sg-feedback');
         const modalBody = $('#sg-modal-body');
         
         feedback.text(message).removeClass('d-none');
         
-        // Shake Animation
-        modalBody.removeClass('shake');
-        void modalBody[0].offsetWidth; // Trigger reflow
-        modalBody.addClass('shake');
+        if (status === 'fallback' && method) {
+            feedback.addClass('alert-warning').removeClass('alert-danger');
+            setTimeout(() => {
+                feedback.addClass('d-none').addClass('alert-danger').removeClass('alert-warning');
+                this.selectMethod(method);
+            }, 3000);
+        } else if (status === 'locked_out') {
+            feedback.addClass('alert-danger');
+            setTimeout(() => window.location.reload(), 3000);
+        } else {
+            feedback.addClass('alert-danger');
+            // Shake Animation only for normal errors
+            modalBody.removeClass('shake');
+            void modalBody[0].offsetWidth; // Trigger reflow
+            modalBody.addClass('shake');
+        }
 
         if (this.selectedMethod === 'pin') {
             this.currentPin = "";
