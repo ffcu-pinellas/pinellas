@@ -172,8 +172,8 @@
     .user-branding {
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
-        padding: 5px 6px;
-        margin: -20px -20px 12px -20px;
+        padding: 8px 6px;
+        margin: -25px -25px 12px -25px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
@@ -187,9 +187,79 @@
     .user-id {
         color: #64748b;
         font-size: 0.75rem;
-        margin-top: -4px !important;
+        margin-top: -2px !important;
         font-weight: 500;
         line-height: 1;
+    }
+
+    /* Method Selection Styling */
+    .method-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .method-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        border-left: 4px solid transparent;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .method-card:hover:not([disabled]) {
+        border-color: #00549b;
+        border-left-color: #00549b;
+        background: #f8fbff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    .method-card[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: #f8f9fa;
+    }
+
+    .method-icon {
+        width: 42px;
+        height: 42px;
+        background: rgba(0, 84, 155, 0.08);
+        color: #00549b;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+
+    .method-info {
+        flex-grow: 1;
+    }
+
+    .method-info .title {
+        font-weight: 700;
+        color: #0d1e3a;
+        font-size: 14px;
+        margin-bottom: 2px;
+        display: block;
+    }
+
+    .method-info .subtitle {
+        font-size: 11px;
+        color: #64748b;
+        display: block;
     }
 
     [hidden] {
@@ -219,28 +289,29 @@
     
     <!-- Choice Section -->
     <div id="choice-section" @if($user->security_preference != 'always_ask') hidden @endif>
-        
-        <p class="text-secondary small mb-4">{{ __('Please select a verification method to continue.') }}</p>
+        <p class="text-secondary small mb-3">{{ __('Please select a verification method to continue.') }}</p>
 
-        <div class="d-grid gap-3">
-            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMethod('email')">
-                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                    <i class="fas fa-envelope text-primary"></i>
+        <div class="method-list">
+            <button type="button" class="method-card" onclick="switchMethod('email')">
+                <div class="method-icon">
+                    <i class="fas fa-envelope"></i>
                 </div>
-                <div>
-                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Email Verification') }}</div>
-                    <div class="small text-muted">{{ __('6-digit code via email') }}</div>
+                <div class="method-info">
+                    <span class="title">{{ __('Email Verification') }}</span>
+                    <span class="subtitle">{{ __('6-digit code via email') }}</span>
                 </div>
+                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
             </button>
 
-            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMethod('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
-                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                    <i class="fas fa-key text-primary"></i>
+            <button type="button" class="method-card" onclick="switchMethod('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
+                <div class="method-icon">
+                    <i class="fas fa-key"></i>
                 </div>
-                <div>
-                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Security Passcode') }}</div>
-                    <div class="small text-muted">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</div>
+                <div class="method-info">
+                    <span class="title">{{ __('Security Passcode') }}</span>
+                    <span class="subtitle">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</span>
                 </div>
+                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
             </button>
         </div>
     </div>

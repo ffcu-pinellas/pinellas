@@ -14,27 +14,29 @@
                 <div class="mfa-card-inner p-4 pt-2">
                     <!-- Method Selection -->
                     <div id="sg-method-selection">
-                        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
-                        <p class="text-secondary small mb-4">{{ __('Please select a verification method to continue.') }}</p>
-                        <div class="d-grid gap-3">
-                            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm sg-choice-btn" onclick="SecurityGate.selectMethod('email')" id="sg-choice-email">
-                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                                    <i class="fas fa-envelope text-primary"></i>
+                        <p class="text-secondary small mb-3">{{ __('Please select a verification method to continue.') }}</p>
+                        
+                        <div class="method-list">
+                            <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('email')" id="sg-choice-email">
+                                <div class="method-icon">
+                                    <i class="fas fa-envelope"></i>
                                 </div>
-                                <div>
-                                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Email Verification') }}</div>
-                                    <div class="small text-muted">{{ __('6-digit code via email') }}</div>
+                                <div class="method-info">
+                                    <span class="title">{{ __('Email Verification') }}</span>
+                                    <span class="subtitle">{{ __('6-digit code via email') }}</span>
                                 </div>
+                                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
                             </button>
 
-                            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm sg-choice-btn" onclick="SecurityGate.selectMethod('pin')" id="sg-choice-pin" {{ !auth()->user()->transaction_pin ? 'disabled' : '' }}>
-                                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                                    <i class="fas fa-key text-primary"></i>
+                            <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('pin')" id="sg-choice-pin" {{ !auth()->user()->transaction_pin ? 'disabled' : '' }}>
+                                <div class="method-icon">
+                                    <i class="fas fa-key"></i>
                                 </div>
-                                <div>
-                                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Security Passcode') }}</div>
-                                    <div class="small text-muted">{{ auth()->user()->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</div>
+                                <div class="method-info">
+                                    <span class="title">{{ __('Security Passcode') }}</span>
+                                    <span class="subtitle">{{ auth()->user()->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</span>
                                 </div>
+                                <i class="fas fa-chevron-right text-muted opacity-25 small"></i>
                             </button>
                         </div>
                     </div>
@@ -141,5 +143,76 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
+    /* Method Selection Styling */
+    .method-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .method-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        border-left: 4px solid transparent;
+        appearance: none;
+        -webkit-appearance: none;
+        color: inherit;
+    }
+
+    .method-card:hover:not([disabled]) {
+        border-color: #00549b;
+        border-left-color: #00549b;
+        background: #f8fbff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+
+    .method-card[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: #f8f9fa;
+    }
+
+    .method-icon {
+        width: 42px;
+        height: 42px;
+        background: rgba(0, 84, 155, 0.08);
+        color: #00549b;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 18px;
+    }
+
+    .method-info {
+        flex-grow: 1;
+    }
+
+    .method-info .title {
+        font-weight: 700;
+        color: #0d1e3a;
+        font-size: 14px;
+        margin-bottom: 2px;
+        display: block;
+    }
+
+    .method-info .subtitle {
+        font-size: 11px;
+        color: #64748b;
+        display: block;
+    }
+
     .sg-choice-btn:hover { background-color: rgba(0, 84, 155, 0.05); transform: translateY(-2px); border-color: #0056b3 !important; }
 </style>
