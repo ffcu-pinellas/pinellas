@@ -13,7 +13,7 @@
     
     .logo-container {
         text-align: center;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
 
     .logo-container img {
@@ -167,7 +167,7 @@
     .user-branding {
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
-        padding: 12px 8px;
+        padding: 10px 6px;
         margin: -40px -40px 20px -40px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
