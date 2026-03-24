@@ -257,17 +257,17 @@
                             <input
                                 type="radio"
                                 id="loan-active"
-                                name="loan_status"
+                                name="loan_account_status"
                                 value="1"
-                                @if($user->loan_status) checked @endif
+                                @if($user->loan_account_status) checked @endif
                             />
                             <label for="loan-active">{{ __('Active') }}</label>
                             <input
                                 type="radio"
                                 id="loan-disabled"
-                                name="loan_status"
+                                name="loan_account_status"
                                 value="0"
-                                @if(!$user->loan_status) checked @endif
+                                @if(!$user->loan_account_status) checked @endif
                             />
                             <label for="loan-disabled">{{ __('Disabled') }}</label>
                         </div>

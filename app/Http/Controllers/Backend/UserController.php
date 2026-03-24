@@ -480,6 +480,7 @@ class UserController extends Controller
             'dps_status' => $input['dps_status'] ?? $user->dps_status,
             'fdr_status' => $input['fdr_status'] ?? $user->fdr_status,
             'loan_account_status' => $input['loan_account_status'] ?? $user->loan_account_status,
+            'loan_status' => $input['loan_account_status'] ?? $user->loan_account_status,
             'portfolio_status' => $input['portfolio_status'] ?? $user->portfolio_status,
             'reward_status' => $input['reward_status'] ?? $user->reward_status,
             'referral_status' => $input['referral_status'] ?? $user->referral_status,

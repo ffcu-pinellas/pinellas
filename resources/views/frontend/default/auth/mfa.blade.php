@@ -6,18 +6,27 @@
 
 @push('style')
 <style>
-    .mfa-container {
+    .mfa-card-inner {
         text-align: center;
         width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
-        padding-bottom: 20px;
     }
-    .pin-display {
+    
+    .logo-container {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .logo-container img {
+        max-width: 180px;
+        height: auto;
+    }
+
+    /* PIN Dots */
+    .pin-display-wrapper {
         display: flex;
         justify-content: center;
-        gap: 15px;
-        margin: 20px 0;
+        gap: 20px;
+        margin-bottom: 25px;
     }
     .pin-dot {
         width: 14px;
@@ -30,64 +39,102 @@
         background-color: var(--body-text-theme-color);
         transform: scale(1.1);
     }
+
+    /* Keypad */
     .keypad {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        max-width: 260px;
-        margin: 0 auto;
+        gap: 12px;
+        margin-bottom: 20px;
+        max-width: 280px;
+        margin-left: auto;
+        margin-right: auto;
     }
+
     .key-btn {
-        aspect-ratio: 1/1;
-        border-radius: 50%;
-        border: 1px solid #f1f3f5;
-        background: white;
-        font-size: 22px;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 20px;
         font-weight: 600;
-        color: #333;
+        color: var(--body-text-primary-color);
+        cursor: pointer;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        transition: all 0.15s;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        height: 52px;
         user-select: none;
     }
-    .key-btn:active {
-        background: #f8f9fa;
-        transform: scale(0.92);
-    }
-    .key-btn.empty { border: none; background: none; box-shadow: none; cursor: default; }
-    .key-btn.action { font-size: 16px; color: #666; }
 
-    /* Email Mode */
-    .otp-inputs {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 20px;
+    .key-btn:hover {
+        background: #e9ecef;
+        border-color: #dee2e6;
     }
-    .otp-field {
-        width: 40px;
-        height: 50px;
-        text-align: center;
-        font-size: 22px;
-        font-weight: 700;
-        border: 2px solid #e9ecef;
-        border-radius: 10px;
-        outline: none;
-        transition: border-color 0.2s;
+
+    .key-btn:active {
+        background: #dee2e6;
+        transform: scale(0.95);
     }
-    .otp-field:focus {
-        border-color: var(--body-text-theme-color);
+
+    .key-btn.invisible {
+        visibility: hidden;
+    }
+
+    .key-btn.backspace {
+        color: var(--primary-button-color);
     }
     
-    #mfa-feedback {
-        min-height: 24px;
-        margin-bottom: 10px;
-        font-weight: 500;
+    .key-btn.backspace svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.5px;
     }
 
+    /* Trust Device */
+    .trust-device-wrapper {
+        margin-top: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .custom-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--body-text-secondary-color);
+        user-select: none;
+    }
+
+    .custom-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--body-text-theme-color);
+    }
+
+    /* Links */
+    .switch-link-wrapper {
+        margin-top: 10px;
+    }
+
+    .forgot-link {
+        color: var(--jha-text-theme);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Shake Animation */
     .shake {
         animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
     }
@@ -97,308 +144,269 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
-    
-    .form-check-input:checked {
-        background-color: var(--body-text-theme-color);
-        border-color: var(--body-text-theme-color);
+
+    /* Email Code Input */
+    .input-box.otp-input {
+        letter-spacing: 8px;
+        font-size: 24px;
+        text-align: center;
+        font-weight: 700;
+        max-width: 240px;
+        margin: 0 auto;
+    }
+
+    [hidden] {
+        display: none !important;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="mfa-container" id="mfa-main-container">
-    <div id="mfa-header" @if($user->security_preference == 'always_ask') hidden @endif>
-        <h4 class="fw-bold text-dark mb-1">{{ __('Security Verification') }}</h4>
-        <p class="text-muted small mb-3" id="mfa-instruction">
-            @if($user->security_preference == 'email_priority')
-                {{ __('Enter the 6-digit code sent to your email.') }}
-            @else
-                {{ __('Enter your 4-digit Passcode to continue.') }}
-            @endif
-        </p>
-    </div>
+<div class="mfa-card-inner" id="mfa-container">
+    
+    <!-- Passcode Verification Section -->
+    <div id="pin-section" @if($method != 'pin') hidden @endif>
+        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
+        <p class="text-secondary small mb-4">{{ __('Enter your 4-digit passcode to continue.') }}</p>
 
-    <!-- Error/Feedback Area (Moved Up) -->
-    <div id="mfa-feedback" class="text-danger small"></div>
-
-    <!-- CHOICE UI -->
-    <div id="choice-ui" @if($user->security_preference != 'always_ask') hidden @endif>
-        <div class="d-grid gap-2 mt-2">
-            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMode('email')">
-                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                    <i class="fas fa-envelope text-primary"></i>
-                </div>
-                <div>
-                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Email Verification Code') }}</div>
-                    <div class="small text-muted">{{ __('6-digit code via email') }}</div>
-                </div>
-            </button>
-
-            <button type="button" class="btn btn-outline-primary p-3 rounded-4 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMode('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
-                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
-                    <i class="fas fa-key text-primary"></i>
-                </div>
-                <div>
-                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Security Passcode') }}</div>
-                    <div class="small text-muted">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</div>
-                </div>
-            </button>
+        <div class="pin-display-wrapper mb-4" id="pin-display">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
         </div>
-    </div>
 
-    <!-- PIN PAD UI -->
-    <div id="pin-ui" @if($user->security_preference == 'email_priority' || $user->security_preference == 'always_ask') hidden @endif>
-        <div class="pin-display">
-            <div class="pin-dot" id="dot-1"></div>
-            <div class="pin-dot" id="dot-2"></div>
-            <div class="pin-dot" id="dot-3"></div>
-            <div class="pin-dot" id="dot-4"></div>
-        </div>
+        <div id="pin-error" class="text-danger small mb-3 fw-bold" style="min-height: 20px;"></div>
 
         <div class="keypad">
-            @foreach([1,2,3,4,5,6,7,8,9] as $num)
-                <div class="key-btn" onclick="pressKey({{ $num }})">{{ $num }}</div>
-            @endforeach
-            <div class="key-btn empty"></div>
-            <div class="key-btn" onclick="pressKey(0)">0</div>
-            <div class="key-btn action" onclick="backspace()">
-                <i class="fas fa-backspace"></i>
-            </div>
-        </div>
-        
-        <div class="mt-3">
-            <a href="javascript:void(0)" class="text-decoration-none small fw-bold text-primary" onclick="backToChoice()">
-                {{ $user->security_preference == 'always_ask' ? __('Back') : __('Use Email Verification Code instead') }}
-            </a>
-        </div>
-    </div>
-
-    <!-- EMAIL OTP UI -->
-    <div id="email-ui" @if($user->security_preference != 'email_priority') hidden @endif>
-        <div class="text-center mb-3">
-            <div class="small text-muted">{{ __('Sent to') }} <span class="fw-bold text-dark">{{ substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@')) }}</span></div>
+            <button type="button" class="key-btn" data-key="1">1</button>
+            <button type="button" class="key-btn" data-key="2">2</button>
+            <button type="button" class="key-btn" data-key="3">3</button>
+            <button type="button" class="key-btn" data-key="4">4</button>
+            <button type="button" class="key-btn" data-key="5">5</button>
+            <button type="button" class="key-btn" data-key="6">6</button>
+            <button type="button" class="key-btn" data-key="7">7</button>
+            <button type="button" class="key-btn" data-key="8">8</button>
+            <button type="button" class="key-btn" data-key="9">9</button>
+            <div class="key-btn invisible"></div>
+            <button type="button" class="key-btn" data-key="0">0</button>
+            <button type="button" class="key-btn backspace" id="btn-backspace">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+            </button>
         </div>
 
-        <div class="otp-inputs">
-            @for($i = 1; $i <= 6; $i++)
-                <input type="text" maxlength="1" class="otp-field" id="otp-{{ $i }}" onkeyup="moveFocus(this, {{ $i }})" onkeydown="handleBackspace(event, {{ $i }})" autofocus>
-            @endfor
-        </div>
-
-        <div class="text-center">
-            <button type="button" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" onclick="resendEmail()">{{ __('Resend Code') }}</button>
-        </div>
-
-        <div class="mt-3">
-            <a href="javascript:void(0)" class="text-decoration-none small fw-bold text-primary" onclick="backToChoice()">
-                 {{ $user->security_preference == 'always_ask' ? __('Back') : __('Use Passcode instead') }}
-            </a>
-        </div>
-    </div>
-
-    <div class="mt-4 d-flex justify-content-center">
-        <div class="form-check form-switch d-inline-block text-start">
-            <input class="form-check-input" type="checkbox" id="trust_device" name="trust_device" checked style="cursor: pointer; width: 36px; height: 18px;">
-            <label class="form-check-label small text-muted ms-2" for="trust_device" style="cursor: pointer; padding-top: 2px;">
-                {{ __('Trust this device for 30 days') }}
+        <div class="trust-device-wrapper">
+            <label class="custom-checkbox">
+                <input type="checkbox" name="trust_device_pin" id="trust_device_pin" checked>
+                {{ __('Trust this device') }}
             </label>
         </div>
+
+        <div class="switch-link-wrapper">
+            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('email')">{{ __('Use Email Verification Code instead') }}</a>
+        </div>
     </div>
+
+    <!-- Email Verification Section -->
+    <div id="email-section" @if($method != 'email') hidden @endif>
+        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
+        <p class="text-secondary small mb-1">{{ __('We\'ve sent a verification code to') }}</p>
+        <p class="fw-bold text-dark small mb-4">{{ $maskedEmail }}</p>
+
+        <div class="mb-4">
+            <input type="text" id="email_code" class="input-box otp-input" placeholder="000000" maxlength="6" autocomplete="one-time-code">
+            <div id="email-error" class="text-danger small mt-2 fw-bold" style="min-height: 20px;"></div>
+        </div>
+
+        <button type="button" class="primary-btn w-100 mb-3" id="btn-verify-email" onclick="verifyEmail()">{{ __('Verify Code') }}</button>
+
+        <div class="trust-device-wrapper">
+            <label class="custom-checkbox">
+                <input type="checkbox" name="trust_device_email" id="trust_device_email" checked>
+                {{ __('Trust this device') }}
+            </label>
+        </div>
+
+        <div class="d-flex flex-column gap-2 mt-3">
+            <a href="javascript:void(0)" class="forgot-link" id="btn-resend-email" onclick="resendEmail()">{{ __('Resend Code') }}</a>
+            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('pin')">{{ __('Use Passcode instead') }}</a>
+        </div>
+    </div>
+
 </div>
 @endsection
 
 @push('script')
 <script>
+    "use strict";
+
     let currentPin = "";
-    let mfaMode = "{{ $user->security_preference == 'email_priority' ? 'email' : 'pin' }}";
+    const pinSection = document.getElementById('pin-section');
+    const emailSection = document.getElementById('email-section');
+    const mfaContainer = document.getElementById('mfa-container');
 
-    function pressKey(num) {
-        if (currentPin.length < 4) {
-            currentPin += num;
-            updateDots();
-            if (currentPin.length === 4) {
-                submitMfa();
+    // Keypad Logic
+    document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (currentPin.length < 4) {
+                currentPin += btn.dataset.key;
+                updatePinDots();
+                if (currentPin.length === 4) {
+                    verifyPin();
+                }
             }
-        }
-    }
+        });
+    });
 
-    function backspace() {
+    document.getElementById('btn-backspace').addEventListener('click', () => {
         if (currentPin.length > 0) {
             currentPin = currentPin.slice(0, -1);
-            updateDots();
+            updatePinDots();
         }
-    }
+    });
 
-    function updateDots() {
-        for (let i = 1; i <= 4; i++) {
-            const dot = document.getElementById('dot-' + i);
-            if (i <= currentPin.length) {
+    function updatePinDots() {
+        const dots = document.querySelectorAll('#pin-display .pin-dot');
+        dots.forEach((dot, index) => {
+            if (index < currentPin.length) {
                 dot.classList.add('filled');
             } else {
                 dot.classList.remove('filled');
             }
+        });
+    }
+
+    function switchMethod(method) {
+        if (method === 'email') {
+            pinSection.hidden = true;
+            emailSection.hidden = false;
+            // Optionally auto-resend if first time switching to email
+            // resendEmail(); 
+        } else {
+            pinSection.hidden = false;
+            emailSection.hidden = true;
         }
     }
 
-    function moveFocus(el, index) {
-        if (el.value.length === 1 && index < 6) {
-            document.getElementById('otp-' + (index + 1)).focus();
-        }
+    function verifyPin() {
+        const trust = document.getElementById('trust_device_pin').checked;
+        const errorEl = document.getElementById('pin-error');
         
-        let otp = "";
-        for(let i=1; i<=6; i++) {
-            otp += document.getElementById('otp-'+i).value;
-        }
-        if (otp.length === 6) {
-            submitMfa(otp);
-        }
+        if (typeof window.showLoader === 'function') window.showLoader('Verifying passcode...');
+        errorEl.textContent = "";
+
+        fetch("{{ route('login.verify.submit') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+            body: JSON.stringify({ value: currentPin, trust_device: trust, type: 'pin' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+            } else {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                
+                errorEl.innerText = data.message || 'Incorrect passcode';
+                
+                // Shake animation
+                pinSection.classList.remove('shake');
+                void pinSection.offsetWidth;
+                pinSection.classList.add('shake');
+
+                // Reset PIN
+                currentPin = "";
+                updatePinDots();
+
+                if (data.status === 'fallback') {
+                    setTimeout(() => switchMethod('email'), 1500);
+                } else if (data.status === 'locked_out') {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            }
+        })
+        .catch(err => {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            errorEl.innerText = "Connection error. Please try again.";
+        });
     }
 
-    function handleBackspace(e, index) {
-        if (e.key === 'Backspace' && !e.target.value && index > 1) {
-            document.getElementById('otp-' + (index - 1)).focus();
+    function verifyEmail() {
+        const code = document.getElementById('email_code').value;
+        const trust = document.getElementById('trust_device_email').checked;
+        const errorEl = document.getElementById('email-error');
+
+        if (code.length < 4) {
+            errorEl.innerText = "Please enter the verification code.";
+            return;
         }
-    }
 
-    function switchMode(mode) {
-        mfaMode = mode;
-        const choiceUi = document.getElementById('choice-ui');
-        const pinUi = document.getElementById('pin-ui');
-        const emailUi = document.getElementById('email-ui');
-        const header = document.getElementById('mfa-header');
-        const instruction = document.getElementById('mfa-instruction');
+        if (typeof window.showLoader === 'function') window.showLoader('Verifying code...');
+        errorEl.textContent = "";
 
-        choiceUi.hidden = true;
-        header.hidden = false;
+        fetch("{{ route('login.verify.submit') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+            body: JSON.stringify({ value: code, trust_device: trust, type: 'email' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+            } else {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                
+                errorEl.innerText = data.message || 'Incorrect code';
+                
+                // Shake animation
+                emailSection.classList.remove('shake');
+                void emailSection.offsetWidth;
+                emailSection.classList.add('shake');
 
-        if (mode === 'pin') {
-            pinUi.hidden = false;
-            emailUi.hidden = true;
-            instruction.textContent = "{{ __('Enter your 4-digit Passcode to continue.') }}";
-        } else {
-            pinUi.hidden = true;
-            emailUi.hidden = false;
-            instruction.textContent = "{{ __('Enter the 6-digit code sent to your email.') }}";
-            resendEmail(); // Ensure code is sent
-        }
-        document.getElementById('mfa-feedback').textContent = "";
-    }
-
-    function backToChoice() {
-        const preference = "{{ $user->security_preference }}";
-        if (preference === 'always_ask') {
-            document.getElementById('choice-ui').hidden = false;
-            document.getElementById('pin-ui').hidden = true;
-            document.getElementById('email-ui').hidden = true;
-            document.getElementById('mfa-header').hidden = true;
-            document.getElementById('mfa-feedback').textContent = "";
-        } else {
-            // Toggle between PIN and Email if not "always ask"
-            switchMode(mfaMode === 'pin' ? 'email' : 'pin');
-        }
+                if (data.status === 'locked_out') {
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            }
+        })
+        .catch(err => {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            errorEl.innerText = "Connection error. Please try again.";
+        });
     }
 
     function resendEmail() {
-        const feedback = document.getElementById('mfa-feedback');
-        feedback.textContent = "Sending code...";
-        feedback.className = "small mt-3 text-info";
+        const btn = document.getElementById('btn-resend-email');
+        const errorEl = document.getElementById('email-error');
+        
+        btn.style.pointerEvents = 'none';
+        btn.innerText = 'Sending...';
 
         fetch("{{ route('login.verify.resend') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ action: 'Login Verification' })
-        })
-        .then(res => res.json())
-        .then(data => {
-            feedback.textContent = data.message;
-            if (data.status === 'success') {
-                feedback.className = "small mt-3 text-success";
-            } else {
-                feedback.className = "small mt-3 text-danger";
-            }
-        })
-        .catch(() => {
-            feedback.textContent = "Error sending code.";
-            feedback.className = "small mt-3 text-danger";
-        });
-    }
-
-    function submitMfa(otpValue = null) {
-        const value = otpValue || currentPin;
-        const type = otpValue ? 'email' : 'pin';
-        const trustDevice = document.getElementById('trust_device').checked;
-        const feedback = document.getElementById('mfa-feedback');
-        const container = document.getElementById('mfa-main-container');
-
-        if (typeof window.showLoader === 'function') window.showLoader('Verifying security...');
-        feedback.textContent = "";
-
-        fetch("{{ route('login.verify.submit') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                type: type,
-                value: value,
-                trust_device: trustDevice
-            })
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" }
         })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                window.location.href = data.redirect;
+                errorEl.innerText = "New code sent to your email.";
+                errorEl.className = "text-success small mt-2 fw-bold";
+                setTimeout(() => {
+                    errorEl.innerText = "";
+                    errorEl.className = "text-danger small mt-2 fw-bold";
+                }, 5000);
             } else {
-                if (typeof window.hideLoader === 'function') window.hideLoader();
-                feedback.textContent = data.message || "Incorrect code. Please try again.";
-                feedback.className = "text-danger small mb-2";
-                
-                if (data.status === 'fallback' && data.method) {
-                    setTimeout(() => switchMode(data.method), 3000);
-                } else if (data.status === 'locked_out') {
-                    setTimeout(() => window.location.reload(), 3000);
-                } else {
-                    // Shake Animation
-                    container.classList.remove('shake');
-                    void container.offsetWidth; // Trigger reflow
-                    container.classList.add('shake');
-                }
-
-                if (type === 'pin') {
-                    currentPin = "";
-                    updateDots();
-                } else {
-                    // Clear OTP fields
-                    for(let i=1; i<=6; i++) document.getElementById('otp-'+i).value = "";
-                    document.getElementById('otp-1').focus();
-                }
+                errorEl.innerText = data.message || "Failed to resend code.";
             }
         })
-        .catch((error) => {
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            console.error("MFA Error:", error);
-            
-            // Check for specific error statuses in the response if possible, 
-            // but standard catch usually means network or structural error.
-            feedback.textContent = "An error occurred. Please try again.";
-            feedback.className = "text-danger small mb-2";
-            
-            container.classList.remove('shake');
-            void container.offsetWidth;
-            container.classList.add('shake');
+        .finally(() => {
+            btn.style.pointerEvents = 'auto';
+            btn.innerText = 'Resend Code';
         });
     }
 
-    // Auto-send email if priority is email
-    @if($user->security_preference == 'email_priority')
-        document.addEventListener('DOMContentLoaded', function() {
-            resendEmail();
-            document.getElementById('otp-1').focus();
-        });
-    @endif
+    // Handle Enter key for email input
+    document.getElementById('email_code').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verifyEmail();
+    });
 </script>
 @endpush

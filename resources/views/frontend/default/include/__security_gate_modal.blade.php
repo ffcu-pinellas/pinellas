@@ -63,8 +63,8 @@
                         @endfor
                         <div style="width: 55px;"></div>
                         <button type="button" class="btn btn-outline-light text-dark fw-bold rounded-circle p-0" style="width: 55px; height: 55px; font-size: 20px; border-color: #f1f3f5; background: #fff;" onclick="SecurityGate.pressKey(0)">0</button>
-                        <button type="button" class="btn btn-outline-light text-muted rounded-circle p-0 border-0" style="width: 55px; height: 55px;" onclick="SecurityGate.backspace()">
-                            <i class="fas fa-backspace"></i>
+                        <button type="button" class="btn btn-outline-light text-danger rounded-circle p-0 border-0" style="width: 55px; height: 55px; background: transparent;" onclick="SecurityGate.backspace()">
+                            <i class="fas fa-backspace" style="font-size: 22px;"></i>
                         </button>
                     </div>
                 </div>
