@@ -52,9 +52,9 @@ const SecurityGate = {
         for (let i = 1; i <= 4; i++) {
             const dot = $('#sg-dot-' + i);
             if (i <= this.currentPin.length) {
-                dot.css('background-color', 'var(--body-text-theme-color)').css('transform', 'scale(1.2)');
+                dot.addClass('filled');
             } else {
-                dot.css('background-color', 'transparent').css('transform', 'scale(1)');
+                dot.removeClass('filled');
             }
         }
     },
