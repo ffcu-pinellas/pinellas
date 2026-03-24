@@ -115,7 +115,7 @@ const SecurityGate = {
                 $('#sg-feedback').text(res.message).removeClass('d-none');
                 setTimeout(() => window.location.reload(), 3000);
             } else {
-                $('#sg-feedback').text(res?.message || 'Error sending code.').removeClass('d-none');
+                $('#sg-feedback').text(res?.message || 'Error sending code.').removeClass('d-none').css('color', '#ff3b30');
             }
         });
     },
@@ -180,19 +180,17 @@ const SecurityGate = {
         const feedback = $('#sg-feedback');
         const modalBody = $('#sg-modal-body');
         
-        feedback.text(message).removeClass('d-none');
+        feedback.text(message).removeClass('d-none').css('color', '#ff3b30');
         
         if (status === 'fallback' && method) {
-            feedback.addClass('alert-warning').removeClass('alert-danger');
+            feedback.css('color', '#856404'); // Warning brown-ish
             setTimeout(() => {
-                feedback.addClass('d-none').addClass('alert-danger').removeClass('alert-warning');
+                feedback.addClass('d-none').css('color', '#ff3b30');
                 this.selectMethod(method);
             }, 3000);
         } else if (status === 'locked_out') {
-            feedback.addClass('alert-danger');
             setTimeout(() => window.location.reload(), 3000);
         } else {
-            feedback.addClass('alert-danger');
             // Shake Animation only for normal errors
             modalBody.removeClass('shake');
             void modalBody[0].offsetWidth; // Trigger reflow

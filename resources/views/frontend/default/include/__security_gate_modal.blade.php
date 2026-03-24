@@ -8,8 +8,8 @@
             </div>
             
             <div class="modal-body p-4 pt-0" id="sg-modal-body">
-                <!-- Feedback Area (Moved up) -->
-                <div id="sg-feedback" class="alert alert-danger d-none mb-3 p-2 small border-0 text-center rounded-3"></div>
+                <!-- Feedback Area -->
+                <div id="sg-feedback" class="error-text small d-none mb-3 text-center"></div>
 
                 <!-- Method Selection -->
                 <div id="sg-method-selection">
@@ -45,7 +45,16 @@
                     <div class="d-flex justify-content-center gap-2 mb-3" id="sg-otp-inputs">
                         <input type="text" maxlength="6" class="form-control form-control-lg text-center fw-bold fs-3 border-2 rounded-4 shadow-none" style="letter-spacing: 0.3em; width: 220px;" placeholder="000000" id="sg-email-code-input">
                     </div>
-                    <button type="button" class="btn btn-link text-primary text-decoration-none small fw-bold p-0 mb-3" onclick="SecurityGate.resendEmail()">Resend Code</button>
+                    
+                    <div class="mt-3">
+                        <div class="mb-2">
+                            <button type="button" class="btn btn-link text-primary text-decoration-none small fw-bold p-0" onclick="SecurityGate.resendEmail()">Resend Code</button>
+                        </div>
+                        <div class="mt-1 text-muted small" style="opacity: 0.5;">— or —</div>
+                        <div class="mt-1">
+                            <button type="button" class="btn btn-link text-muted text-decoration-none small" onclick="SecurityGate.backToChoice()">Use Passcode instead</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- PIN Input -->
@@ -74,8 +83,8 @@
                 <button type="button" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm d-none" id="sg-verify-btn" onclick="SecurityGate.submitVerification()">
                     <span class="spinner-border spinner-border-sm d-none me-2"></span> Verify & Proceed
                 </button>
-                <div class="w-100 text-center">
-                    <button type="button" class="btn btn-link text-muted text-decoration-none small" onclick="SecurityGate.backToChoice()" id="sg-back-btn">Cancel</button>
+                <div class="w-100 text-center mt-3">
+                    <a href="javascript:void(0)" class="text-muted text-decoration-none small" onclick="SecurityGate.backToChoice()" id="sg-back-btn">Cancel</a>
                 </div>
             </div>
         </div>
@@ -86,6 +95,7 @@
 .sg-choice-btn:hover { background-color: rgba(0, 84, 155, 0.05); transform: translateY(-2px); border-color: var(--primary-color) !important; }
 .transition-all { transition: all 0.2s ease; }
 .pin-dot.filled { background-color: var(--body-text-theme-color); transform: scale(1.1); }
+.error-text { color: #ff3b30 !important; font-weight: 700 !important; }
 .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 @keyframes shake {
     10%, 90% { transform: translate3d(-1px, 0, 0); }
