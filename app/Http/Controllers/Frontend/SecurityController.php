@@ -22,7 +22,10 @@ class SecurityController extends Controller
              return redirect()->route('user.dashboard');
         }
 
-        return view('frontend::auth.mfa', compact('user'));
+        $method = ($user->security_preference == 'email_priority') ? 'email' : 'pin';
+        $maskedEmail = substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@'));
+
+        return view('frontend::auth.mfa', compact('user', 'method', 'maskedEmail'));
     }
 
     public function resendLoginMfa(Request $request)

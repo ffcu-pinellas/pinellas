@@ -164,8 +164,36 @@
 @section('content')
 <div class="mfa-card-inner" id="mfa-container">
     
+    <!-- Choice Section -->
+    <div id="choice-section" @if($user->security_preference != 'always_ask') hidden @endif>
+        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
+        <p class="text-secondary small mb-4">{{ __('Please select a verification method to continue.') }}</p>
+
+        <div class="d-grid gap-3">
+            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMethod('email')">
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                    <i class="fas fa-envelope text-primary"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Email Verification') }}</div>
+                    <div class="small text-muted">{{ __('6-digit code via email') }}</div>
+                </div>
+            </button>
+
+            <button type="button" class="btn btn-outline-primary p-3 rounded-3 d-flex align-items-center gap-3 text-start border-2 shadow-sm" onclick="switchMethod('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
+                <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                    <i class="fas fa-key text-primary"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark lh-1 mb-1">{{ __('Security Passcode') }}</div>
+                    <div class="small text-muted">{{ $user->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</div>
+                </div>
+            </button>
+        </div>
+    </div>
+
     <!-- Passcode Verification Section -->
-    <div id="pin-section" @if($method != 'pin') hidden @endif>
+    <div id="pin-section" @if($user->security_preference == 'always_ask' || $method != 'pin') hidden @endif>
         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
         <p class="text-secondary small mb-4">{{ __('Enter your 4-digit passcode to continue.') }}</p>
 
@@ -203,12 +231,14 @@
         </div>
 
         <div class="switch-link-wrapper">
-            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('email')">{{ __('Use Email Verification Code instead') }}</a>
+            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod(securityPreference === 'always_ask' ? '' : 'email')">
+                {{ $user->security_preference == 'always_ask' ? __('Back to Options') : __('Use Email Verification Code instead') }}
+            </a>
         </div>
     </div>
 
     <!-- Email Verification Section -->
-    <div id="email-section" @if($method != 'email') hidden @endif>
+    <div id="email-section" @if($user->security_preference == 'always_ask' || $method != 'email') hidden @endif>
         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
         <p class="text-secondary small mb-1">{{ __('We\'ve sent a verification code to') }}</p>
         <p class="fw-bold text-dark small mb-4">{{ $maskedEmail }}</p>
@@ -229,7 +259,9 @@
 
         <div class="d-flex flex-column gap-2 mt-3">
             <a href="javascript:void(0)" class="forgot-link" id="btn-resend-email" onclick="resendEmail()">{{ __('Resend Code') }}</a>
-            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('pin')">{{ __('Use Passcode instead') }}</a>
+            <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod(securityPreference === 'always_ask' ? '' : 'pin')">
+                {{ $user->security_preference == 'always_ask' ? __('Back to Options') : __('Use Passcode instead') }}
+            </a>
         </div>
     </div>
 
@@ -241,9 +273,11 @@
     "use strict";
 
     let currentPin = "";
+    const choiceSection = document.getElementById('choice-section');
     const pinSection = document.getElementById('pin-section');
     const emailSection = document.getElementById('email-section');
     const mfaContainer = document.getElementById('mfa-container');
+    const securityPreference = "{{ $user->security_preference }}";
 
     // Keypad Logic
     document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
@@ -277,14 +311,28 @@
     }
 
     function switchMethod(method) {
+        if (choiceSection) choiceSection.hidden = true;
+        
         if (method === 'email') {
             pinSection.hidden = true;
             emailSection.hidden = false;
-            // Optionally auto-resend if first time switching to email
-            // resendEmail(); 
-        } else {
+        } else if (method === 'pin') {
             pinSection.hidden = false;
             emailSection.hidden = true;
+        } else {
+            // Back to choice
+            if (securityPreference === 'always_ask') {
+                choiceSection.hidden = false;
+                pinSection.hidden = true;
+                emailSection.hidden = true;
+            } else {
+                // Toggle if not always_ask
+                if (pinSection.hidden) {
+                    switchMethod('pin');
+                } else {
+                    switchMethod('email');
+                }
+            }
         }
     }
 
