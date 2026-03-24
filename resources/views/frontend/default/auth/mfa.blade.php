@@ -172,7 +172,7 @@
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
         padding: 10px 6px;
-        margin: -25px -25px 15px -25px;
+        margin: -20px -20px 12px -20px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
     }
@@ -186,7 +186,7 @@
     .user-id {
         color: #64748b;
         font-size: 0.75rem;
-        margin-top: 1px;
+        margin-top: 0.3px;
         font-weight: 500;
     }
 
