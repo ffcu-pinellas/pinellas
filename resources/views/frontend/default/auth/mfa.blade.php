@@ -13,7 +13,7 @@
     
     .logo-container {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .logo-container img {
@@ -167,7 +167,7 @@
     .user-branding {
         background: #f1f4f8;
         border-bottom: 1px solid #e2e8f0;
-        padding: 15px 10px;
+        padding: 12px 8px;
         margin: -40px -40px 20px -40px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
@@ -213,7 +213,7 @@
     
     <!-- Choice Section -->
     <div id="choice-section" @if($user->security_preference != 'always_ask') hidden @endif>
-        <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
+        
         <p class="text-secondary small mb-4">{{ __('Please select a verification method to continue.') }}</p>
 
         <div class="d-grid gap-3">
