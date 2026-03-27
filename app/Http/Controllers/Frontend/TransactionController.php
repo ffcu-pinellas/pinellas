@@ -32,6 +32,16 @@ class TransactionController extends Controller
             default => request('type')
         };
 
+        $wallet = request('wallet');
+        $walletTypes = null;
+        if ($wallet) {
+            if ($wallet === 'checking') {
+                $walletTypes = ['default', null];
+            } else {
+                $walletTypes = [$wallet];
+            }
+        }
+
         $transactions = Transaction::where('user_id', auth()->id())
             ->with('userWallet')
             ->search(request('trx'))
@@ -45,6 +55,9 @@ class TransactionController extends Controller
                 } else {
                     $query->where('type', $types);
                 }
+            })
+            ->when($walletTypes, function ($query) use ($walletTypes) {
+                $query->whereIn('wallet_type', $walletTypes);
             })
             ->latest();
         if ($export) {

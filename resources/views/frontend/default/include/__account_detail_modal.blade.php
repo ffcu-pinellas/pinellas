@@ -92,7 +92,7 @@
             <div class="px-4 pb-4 pt-2">
                 <div class="row g-3">
                     <div class="col-6">
-                        <a href="{{ route('user.transactions') }}" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px;">View Activity</a>
+                        <a href="{{ route('user.transactions') }}" id="btnViewActivity" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px;">View Activity</a>
                     </div>
                     <div class="col-6">
                         <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: #00549b; border: none;">Transfer Funds</a>
@@ -103,10 +103,41 @@
     </div>
 </div>
 
+<!-- Premium Toast Notification -->
+<div id="copyToast" class="premium-toast">
+    <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-check-circle text-success"></i>
+        <span>Copied to clipboard</span>
+    </div>
+</div>
+
 <style>
     #accountDetailModal .metric-card { transition: all 0.2s ease; }
     #accountDetailModal .metric-card:hover { transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; }
     .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+
+    .premium-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: rgba(13, 30, 58, 0.95);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        z-index: 9999;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        backdrop-filter: blur(8px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0;
+        pointer-events: none;
+    }
+    .premium-toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
 </style>
 
 @push('js')
@@ -119,24 +150,32 @@
         if (!el) return;
         const accNum = el.getAttribute('data-full-number') || el.innerText.replace('x', '');
         
+        const showToast = () => {
+            const toast = document.getElementById('copyToast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(accNum).then(() => {
-                if (typeof Notify !== 'undefined' && Notify.success) {
-                    Notify.success("Full account number copied to clipboard");
-                } else {
-                    alert("Account number copied: " + accNum);
-                }
+                showToast();
             }).catch(err => {
                 console.error('Clipboard error:', err);
+                // Fallback inside catch
+                copyFallback(accNum);
             });
         } else {
+            copyFallback(accNum);
+        }
+        
+        function copyFallback(text) {
             const textArea = document.createElement("textarea");
-            textArea.value = accNum;
+            textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            alert("Account number copied: " + accNum);
+            showToast();
         }
     };
 
@@ -155,6 +194,13 @@
         numEl.innerText = 'x' + number.toString().slice(-4);
         numEl.setAttribute('data-full-number', number);
         
+        // Update View Activity Link
+        const baseActivityUrl = "{{ route('user.transactions') }}";
+        const viewActivityBtn = document.getElementById('btnViewActivity');
+        if (viewActivityBtn) {
+            viewActivityBtn.href = baseActivityUrl + "?wallet=" + type;
+        }
+
         const currency = "{{ setting('currency_symbol','$') }}";
         const fmt = (val) => currency + new Intl.NumberFormat().format(parseFloat(val || 0).toFixed(2));
 

@@ -105,9 +105,9 @@
             </div>
         </div>
 
-        <!-- Filters Section -->
         <div class="site-card mb-4 p-4">
             <form id="filterForm">
+                <input type="hidden" name="wallet" value="{{ request('wallet') }}">
                 <div class="row g-3 align-items-end">
                     <div class="col-lg-4">
                         <label class="small text-muted mb-1 fw-bold">SEARCH</label>
@@ -139,6 +139,19 @@
                 </div>
             </form>
         </div>
+
+        @if(request('wallet'))
+            <div class="mb-4 d-flex align-items-center gap-2">
+                <div class="filter-chip active d-flex align-items-center gap-2" style="background: #00549b; border-color: #00549b; color: white;">
+                    <i class="fas fa-university small opacity-75"></i>
+                    <span>{{ strtoupper(request('wallet')) }} Account</span>
+                    <a href="{{ request()->fullUrlWithQuery(['wallet' => null]) }}" class="text-white ms-1 hover-opacity">
+                        <i class="fas fa-times-circle"></i>
+                    </a>
+                </div>
+                <div class="text-muted small">Showing results for this account only</div>
+            </div>
+        @endif
 
         <!-- Activity List -->
         <div class="site-card overflow-hidden">
