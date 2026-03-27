@@ -239,6 +239,7 @@
 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
 @include('frontend::include.__script')
+<script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=1.1"></script>
 @include('frontend::include.__security_gate_modal')
 @include('frontend::include.__auto_refresh')
 

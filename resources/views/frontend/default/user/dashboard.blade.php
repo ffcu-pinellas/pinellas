@@ -24,7 +24,8 @@
                 <!-- Dynamic Accounts Carousel -->
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;" 
+                        onclick="showAccountDetails('0010 CHECKING', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance }}, 0, 'checking')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
@@ -38,7 +39,8 @@
                     </div>
 
                     <!-- Primary Savings Account -->
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%;">
+                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
+                        onclick="showAccountDetails('0000 SAVINGS', '{{ $savingsAccountNumber ?? auth()->user()->account_number }}', {{ auth()->user()->savings_balance }}, 0, 'savings')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>

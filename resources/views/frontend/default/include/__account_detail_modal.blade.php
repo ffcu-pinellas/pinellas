@@ -1,90 +1,113 @@
-<!-- Premium Account Details Modal -->
-<div class="modal fade" id="accountDetailModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="accountDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 30px; background: #fff; overflow: hidden;">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <div class="d-flex align-items-center">
-                    <div class="account-icon-wrap me-3" style="width: 50px; height: 50px; background: #f0f7ff; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: var(--account-card-primary-background-color);">
-                        <i class="fas fa-university fa-lg"></i>
+        <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 28px; background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);">
+            <!-- Modal Header -->
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; background: rgba(0, 84, 155, 0.1); color: #00549b;">
+                        <i class="fas fa-university"></i>
                     </div>
                     <div>
-                        <h4 class="modal-title fw-bold m-0" id="detailModalTitle" style="color: #1a1a1a;">Account Name</h4>
-                        <div class="text-muted small" id="detailModalAccNum">Account Number</div>
+                        <h5 class="modal-title fw-bold mb-0" id="modalAccountTitle" style="color: #0d1e3a; font-size: 1.25rem;">Account Details</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small" id="modalAccountNumber" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
+                            <button type="button" class="btn btn-link p-0 text-primary text-decoration-none small fw-bold" onclick="copyAccountNumber()" style="font-size: 0.75rem;">
+                                <i class="far fa-copy me-1"></i>Copy
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgba(0,0,0,0.05); border-radius: 50%; padding: 0.75rem;"></button>
             </div>
-            <div class="modal-body p-4">
+
+            <div class="modal-body p-4 pt-2">
                 <div class="row align-items-center">
-                    <!-- Chart Column -->
-                    <div class="col-lg-6 col-12 text-center mb-4 mb-lg-0">
-                        <div id="accountDonutChart" style="min-height: 250px;"></div>
-                        <div class="chart-center-label" style="margin-top: -150px; padding-bottom: 120px;">
-                            <div class="text-muted small fw-bold text-uppercase" id="chartLabelText">Total Limit</div>
-                            <div class="h4 fw-bold m-0" id="chartLabelValue">$0.00</div>
-                        </div>
+                    <!-- Donut Chart Column -->
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <div id="accountChart" style="min-height: 250px;"></div>
                     </div>
-                    <!-- Data Column -->
-                    <div class="col-lg-6 col-12">
-                        <div class="detail-metrics-grid d-flex flex-column gap-3">
-                            <!-- Balance Card -->
-                            <div class="metric-card p-3" style="background: #f8fbfe; border-radius: 20px; border: 1px solid #eef4f9;">
+                    
+                    <!-- Metrics Column -->
+                    <div class="col-md-6">
+                        <div class="metrics-container d-flex flex-column gap-3">
+                            <!-- Card 1 -->
+                            <div class="metric-card p-3 rounded-4 shadow-sm border border-white" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="m-icon" style="color: #00ce8d;"><i class="fas fa-wallet"></i></div>
+                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card1-icon" style="width: 40px; height: 40px; background: rgba(0, 206, 141, 0.1); color: #00ce8d;">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
                                     <div>
-                                        <div class="text-muted small fw-600" id="metric1Label">Current Balance</div>
-                                        <div class="h5 fw-bold m-0" id="metric1Value">$0.00</div>
+                                        <div class="text-muted small fw-semibold" id="card1-label">Current Balance</div>
+                                        <div class="h5 fw-bold mb-0 text-dark" id="card1-value">$0.00</div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Available Card -->
-                            <div class="metric-card p-3" style="background: #f8fbfe; border-radius: 20px; border: 1px solid #eef4f9;">
+                            
+                            <!-- Card 2 -->
+                            <div class="metric-card p-3 rounded-4 shadow-sm border border-white" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="m-icon" style="color: var(--account-card-primary-background-color);"><i class="fas fa-check-circle"></i></div>
+                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card2-icon" style="width: 40px; height: 40px; background: rgba(0, 84, 155, 0.1); color: #00549b;">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
                                     <div>
-                                        <div class="text-muted small fw-600" id="metric2Label">Available Funds</div>
-                                        <div class="h5 fw-bold m-0" id="metric2Value">$0.00</div>
+                                        <div class="text-muted small fw-semibold" id="card2-label">Available Credit</div>
+                                        <div class="h5 fw-bold mb-0 text-dark" id="card2-value">$0.00</div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Helper Text -->
-                            <div class="p-2 text-center mt-2">
-                                <p class="text-muted small mb-0"><i class="fas fa-info-circle me-1 opacity-75"></i> As of {{ date('M j, Y') }}</p>
+
+                            <!-- Expandable Account Info -->
+                            <div class="mt-2">
+                                <button class="btn btn-light w-100 rounded-pill py-2 text-start px-3 shadow-none border-0 d-flex align-items-center justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#accountInfoCollapse">
+                                    <span class="small fw-bold text-secondary"><i class="fas fa-info-circle me-2 opacity-75"></i>Account Information</span>
+                                    <i class="fas fa-chevron-down small text-muted"></i>
+                                </button>
+                                <div class="collapse mt-2" id="accountInfoCollapse">
+                                    <div class="bg-white rounded-4 p-3 border shadow-sm">
+                                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                                            <span class="small text-muted">Interest Rate (APY)</span>
+                                            <span class="small fw-bold text-dark">0.25%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
+                                            <span class="small text-muted">Routing Number</span>
+                                            <span class="small fw-bold text-dark">063192257</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="small text-muted">Next Statement</span>
+                                            <span class="small fw-bold text-dark">{{ \Carbon\Carbon::now()->endOfMonth()->format('M j, Y') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <div class="p-2 text-center mt-3">
+                    <p class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1 opacity-50"></i> Last updated: {{ date('M j, Y g:i A') }}</p>
+                </div>
             </div>
-            <div class="modal-footer border-0 p-4 bg-light bg-opacity-50">
-                <div class="d-flex gap-2 w-100">
-                    <a href="{{ route('user.transactions') }}" class="btn btn-outline-primary flex-grow-1 rounded-pill py-2 fw-bold" style="border-width: 2px;">View Activity</a>
-                    <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary flex-grow-1 rounded-pill py-2 fw-bold shadow-sm">Transfer Funds</a>
+
+            <!-- Footer-like Actions -->
+            <div class="px-4 pb-4 pt-2">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a href="{{ route('user.transactions') }}" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px;">View Activity</a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: #00549b; border: none;">Transfer Funds</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@push('style')
 <style>
-    .m-icon {
-        width: 40px;
-        height: 40px;
-        background: #fff;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    }
-    .metric-card {
-        transition: transform 0.2s ease;
-    }
-    .metric-card:hover {
-        transform: scale(1.02);
-    }
+    #accountDetailModal .metric-card { transition: all 0.2s ease; }
+    #accountDetailModal .metric-card:hover { transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
 </style>
-@endpush
 
 @push('js')
 <script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
@@ -93,106 +116,137 @@
         var accountChart = null;
     }
 
-    function showAccountDetails(title, accNum, balance, limit, type) {
-        const modalEl = document.getElementById('accountDetailModal');
-        const modal = new bootstrap.Modal(modalEl);
-        
-        document.getElementById('detailModalTitle').innerText = title;
-        document.getElementById('detailModalAccNum').innerText = accNum;
-        
-        const currency = "{{ setting('currency_symbol','$') }}";
-        
-        // Populate Metrics
-        if (type === 'loan') {
-            document.getElementById('metric1Label').innerText = "Remaining Balance";
-            document.getElementById('metric2Label').innerText = "Paid Principal";
-            document.getElementById('metric1Value').innerText = currency + balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('metric2Value').innerText = currency + (limit - balance).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('chartLabelText').innerText = "Original Loan";
-            document.getElementById('chartLabelValue').innerText = currency + limit.toLocaleString('en-US', {minimumFractionDigits: 2});
-        } else if (type === 'ira') {
-            document.getElementById('metric1Label').innerText = "Current Balance";
-            document.getElementById('metric2Label').innerText = "Available Cash";
-            document.getElementById('metric1Value').innerText = currency + balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('metric2Value').innerText = currency + balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('chartLabelText').innerText = "Total Value";
-            document.getElementById('chartLabelValue').innerText = currency + balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-        } else {
-            // HELOC or CC
-            document.getElementById('metric1Label').innerText = "Current Balance";
-            document.getElementById('metric2Label').innerText = "Available Credit";
-            document.getElementById('metric1Value').innerText = currency + balance.toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('metric2Value').innerText = currency + (limit - balance).toLocaleString('en-US', {minimumFractionDigits: 2});
-            document.getElementById('chartLabelText').innerText = "Total Line";
-            document.getElementById('chartLabelValue').innerText = currency + limit.toLocaleString('en-US', {minimumFractionDigits: 2});
-        }
-
-        modal.show();
-
-        // Render Chart
-        setTimeout(() => {
-            renderDonutChart(balance, limit, type);
-        }, 350);
+    function copyAccountNumber() {
+        const accNum = document.getElementById('modalAccountNumber').innerText.replace('x', '');
+        navigator.clipboard.writeText(accNum).then(() => {
+            if (typeof Notify !== 'undefined') {
+                Notify.success("Account number copied to clipboard");
+            } else {
+                alert("Account number copied to clipboard");
+            }
+        });
     }
 
-    function renderDonutChart(balance, limit, type) {
-        if (accountChart) {
-            accountChart.destroy();
-        }
+    function showAccountDetails(title, number, balance, limit, type) {
+        document.getElementById('modalAccountTitle').innerText = title;
+        document.getElementById('modalAccountNumber').innerText = 'x' + number.toString().slice(-4);
+        
+        const currency = "{{ setting('currency_symbol','$') }}";
+        const fmt = (val) => currency + new Intl.NumberFormat().format(val.toFixed(2));
 
+        // Logic for different account types
         let series = [];
         let labels = [];
         let colors = [];
+        let totalValue = balance;
+        let totalLabel = "Total Value";
 
-        if (type === 'loan') {
-            series = [limit - balance, balance];
-            labels = ["Paid", "Remaining"];
-            colors = ['#00ce8d', '#00549b']; // Green/Blue
-        } else if (type === 'ira') {
-            series = [balance];
-            labels = ["Total Value"];
-            colors = ['#00549b'];
+        if (type === 'cc' || type === 'heloc') {
+            const spent = balance;
+            const available = limit - balance;
+            series = [spent, available];
+            labels = ['Used', 'Available'];
+            colors = ['#e31837', '#00ce8d'];
+            totalValue = limit;
+            totalLabel = "Credit Line";
+            document.getElementById('card1-label').innerText = "Current Balance";
+            document.getElementById('card1-value').innerText = fmt(spent);
+            document.getElementById('card1-icon').style.color = "#e31837";
+            document.getElementById('card1-icon').style.background = "rgba(227, 24, 55, 0.1)";
+            document.getElementById('card2-label').innerText = "Available Credit";
+            document.getElementById('card2-value').innerText = fmt(available);
+            document.getElementById('card2-icon').style.color = "#00ce8d";
+            document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
+        } else if (type === 'loan') {
+            const paid = limit - balance;
+            const remaining = balance;
+            series = [paid, remaining];
+            labels = ['Paid Off', 'Remaining'];
+            colors = ['#00ce8d', '#00549b'];
+            totalValue = limit;
+            totalLabel = "Original Loan";
+            document.getElementById('card1-label').innerText = "Remaining Principal";
+            document.getElementById('card1-value').innerText = fmt(remaining);
+            document.getElementById('card1-icon').style.color = "#00549b";
+            document.getElementById('card1-icon').style.background = "rgba(0, 84, 155, 0.1)";
+            document.getElementById('card2-label').innerText = "Amount Paid";
+            document.getElementById('card2-value').innerText = fmt(paid);
+            document.getElementById('card2-icon').style.color = "#00ce8d";
+            document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
         } else {
-            series = [balance, limit - balance];
-            labels = ["Spent", "Available"];
-            colors = ['#ff3b30', '#00ce8d']; // Red/Green
+            // IRA, Checking, Savings
+            series = [balance];
+            labels = ['Total Balance'];
+            colors = ['#00549b'];
+            totalValue = balance;
+            totalLabel = "Total Value";
+            document.getElementById('card1-label').innerText = "Current Balance";
+            document.getElementById('card1-value').innerText = fmt(balance);
+            document.getElementById('card1-icon').style.color = "#00ce8d";
+            document.getElementById('card1-icon').style.background = "rgba(0, 206, 141, 0.1)";
+            document.getElementById('card2-label').innerText = "Available Cash";
+            document.getElementById('card2-value').innerText = fmt(balance);
+            document.getElementById('card2-icon').style.color = "#00549b";
+            document.getElementById('card2-icon').style.background = "rgba(0, 84, 155, 0.1)";
         }
 
+        // Render Chart
+        if (window.accountChartInstance) window.accountChartInstance.destroy();
+        
         const options = {
             series: series,
             chart: {
                 type: 'donut',
-                height: 250,
-                animations: {
-                    enabled: true,
-                    easing: 'easeinout',
-                    speed: 800,
-                }
+                height: 280,
+                animations: { enabled: true, easing: 'easeinout', speed: 800 }
             },
             labels: labels,
             colors: colors,
-            legend: {
-                show: true,
-                position: 'bottom'
-            },
-            dataLabels: {
-                enabled: false
-            },
+            legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '12px' },
+            stroke: { show: false },
+            dataLabels: { enabled: false },
             plotOptions: {
                 pie: {
                     donut: {
-                        size: '75%',
-                        background: 'transparent',
+                        size: '80%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: totalLabel,
+                                fontSize: '14px',
+                                color: '#64748b',
+                                fontWeight: 600,
+                                formatter: function () {
+                                    return fmt(totalValue);
+                                }
+                            },
+                            value: {
+                                fontSize: totalValue > 1000000 ? '18px' : '22px',
+                                fontWeight: 700,
+                                color: '#0d1e3a',
+                                offsetY: 5,
+                                formatter: function (val) {
+                                    return fmt(parseFloat(val));
+                                }
+                            }
+                        }
                     }
                 }
             },
-            stroke: {
-                width: 0
+            tooltip: {
+                y: {
+                    formatter: function (val) { return fmt(val); }
+                }
             }
         };
 
-        accountChart = new ApexCharts(document.querySelector("#accountDonutChart"), options);
-        accountChart.render();
+        window.accountChartInstance = new ApexCharts(document.querySelector("#accountChart"), options);
+        window.accountChartInstance.render();
+
+        const modalElem = document.getElementById('accountDetailModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElem);
+        modal.show();
     }
 </script>
 @endpush
