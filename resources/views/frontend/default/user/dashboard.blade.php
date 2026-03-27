@@ -25,7 +25,7 @@
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;" 
-                        onclick="showAccountDetails('0010 CHECKING', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance }}, 0, 'checking')">
+                        onclick="showAccountDetails('0010 CHECKING', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
@@ -40,7 +40,7 @@
 
                     <!-- Primary Savings Account -->
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="showAccountDetails('0000 SAVINGS', '{{ $savingsAccountNumber ?? auth()->user()->account_number }}', {{ auth()->user()->savings_balance }}, 0, 'savings')">
+                        onclick="showAccountDetails('0000 SAVINGS', '{{ $savingsAccountNumber ?? auth()->user()->account_number }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>
@@ -56,7 +56,7 @@
                     <!-- IRA Account -->
                     @if(auth()->user()->ira_status == 1)
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;" 
-                        onclick="showAccountDetails('IRA ACCOUNT', 'x{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I00', {{ auth()->user()->ira_balance }}, 0, 'ira')">
+                        onclick="showAccountDetails('IRA ACCOUNT', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>IRA ACCOUNT</span>
@@ -73,7 +73,7 @@
                     <!-- HELOC Account -->
                     @if(auth()->user()->heloc_status == 1)
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="showAccountDetails('HELOC', 'x{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H00', {{ auth()->user()->heloc_balance }}, {{ auth()->user()->heloc_credit_limit }}, 'heloc')">
+                        onclick="showAccountDetails('HELOC', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>HELOC</span>
@@ -90,7 +90,7 @@
                     <!-- Credit Card -->
                     @if(auth()->user()->cc_status == 1)
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="showAccountDetails('CREDIT CARD', 'x{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}', {{ auth()->user()->cc_balance }}, {{ auth()->user()->cc_credit_limit }}, 'cc')">
+                        onclick="showAccountDetails('CREDIT CARD', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>CREDIT CARD</span>
@@ -107,7 +107,7 @@
                     <!-- Loan Account -->
                     @if(auth()->user()->loan_account_status == 1)
                     <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="showAccountDetails('LOAN ACCOUNT', 'x{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L00', {{ auth()->user()->loan_balance }}, {{ auth()->user()->loan_original_amount }}, 'loan')">
+                        onclick="showAccountDetails('LOAN ACCOUNT', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>LOAN ACCOUNT</span>

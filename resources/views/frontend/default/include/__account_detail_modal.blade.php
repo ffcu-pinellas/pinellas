@@ -10,7 +10,7 @@
                     <div>
                         <h5 class="modal-title fw-bold mb-0" id="modalAccountTitle" style="color: #0d1e3a; font-size: 1.25rem;">Account Details</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted small" id="modalAccountNumber" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
+                            <span class="text-muted small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
                             <button type="button" class="btn btn-link p-0 text-primary text-decoration-none small fw-bold" onclick="copyAccountNumber()" style="font-size: 0.75rem;">
                                 <i class="far fa-copy me-1"></i>Copy
                             </button>
@@ -112,42 +112,65 @@
 @push('js')
 <script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
 <script>
-    if (typeof accountChart === 'undefined') {
-        var accountChart = null;
-    }
+    // Global scope definitions
+    window.accountChartInstance = null;
 
-    function copyAccountNumber() {
-        const accNum = document.getElementById('modalAccountNumber').innerText.replace('x', '');
-        navigator.clipboard.writeText(accNum).then(() => {
-            if (typeof Notify !== 'undefined') {
-                Notify.success("Account number copied to clipboard");
-            } else {
-                alert("Account number copied to clipboard");
+    window.copyAccountNumber = function() {
+        const el = document.getElementById('modalAccountNumber');
+        const accNum = el.getAttribute('data-full-number') || el.innerText.replace('x', '');
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(accNum).then(() => {
+                if (typeof Notify !== 'undefined' && Notify.success) {
+                    Notify.success("Full account number copied to clipboard");
+                } else {
+                    alert("Account number copied: " + accNum);
+                }
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        } else {
+            // Fallback
+            const textArea = document.createElement("textarea");
+            textArea.value = accNum;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert("Account number copied: " + accNum);
+            } catch (err) {
+                console.error('Fallback copy fail', err);
             }
-        });
-    }
+            document.body.removeChild(textArea);
+        }
+    };
 
-    function showAccountDetails(title, number, balance, limit, type) {
+    window.showAccountDetails = function(title, number, balance, limit, type) {
+        const modalElem = document.getElementById('accountDetailModal');
+        if (!modalElem) return;
+
         document.getElementById('modalAccountTitle').innerText = title;
-        document.getElementById('modalAccountNumber').innerText = 'x' + number.toString().slice(-4);
+        const numEl = document.getElementById('modalAccountNumber');
+        numEl.innerText = 'x' + number.toString().slice(-4);
+        numEl.setAttribute('data-full-number', number);
         
         const currency = "{{ setting('currency_symbol','$') }}";
-        const fmt = (val) => currency + new Intl.NumberFormat().format(val.toFixed(2));
+        const fmt = (val) => currency + new Intl.NumberFormat().format(parseFloat(val).toFixed(2));
 
         // Logic for different account types
         let series = [];
         let labels = [];
         let colors = [];
-        let totalValue = balance;
+        let totalValue = parseFloat(balance);
         let totalLabel = "Total Value";
 
         if (type === 'cc' || type === 'heloc') {
-            const spent = balance;
-            const available = limit - balance;
+            const spent = parseFloat(balance);
+            const available = parseFloat(limit) - spent;
             series = [spent, available];
             labels = ['Used', 'Available'];
             colors = ['#e31837', '#00ce8d'];
-            totalValue = limit;
+            totalValue = parseFloat(limit);
             totalLabel = "Credit Line";
             document.getElementById('card1-label').innerText = "Current Balance";
             document.getElementById('card1-value').innerText = fmt(spent);
@@ -158,12 +181,12 @@
             document.getElementById('card2-icon').style.color = "#00ce8d";
             document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
         } else if (type === 'loan') {
-            const paid = limit - balance;
-            const remaining = balance;
+            const paid = parseFloat(limit) - parseFloat(balance);
+            const remaining = parseFloat(balance);
             series = [paid, remaining];
             labels = ['Paid Off', 'Remaining'];
             colors = ['#00ce8d', '#00549b'];
-            totalValue = limit;
+            totalValue = parseFloat(limit);
             totalLabel = "Original Loan";
             document.getElementById('card1-label').innerText = "Remaining Principal";
             document.getElementById('card1-value').innerText = fmt(remaining);
@@ -175,10 +198,10 @@
             document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
         } else {
             // IRA, Checking, Savings
-            series = [balance];
+            series = [parseFloat(balance)];
             labels = ['Total Balance'];
             colors = ['#00549b'];
-            totalValue = balance;
+            totalValue = parseFloat(balance);
             totalLabel = "Total Value";
             document.getElementById('card1-label').innerText = "Current Balance";
             document.getElementById('card1-value').innerText = fmt(balance);
@@ -191,7 +214,9 @@
         }
 
         // Render Chart
-        if (window.accountChartInstance) window.accountChartInstance.destroy();
+        if (window.accountChartInstance) {
+            window.accountChartInstance.destroy();
+        }
         
         const options = {
             series: series,
@@ -241,12 +266,19 @@
             }
         };
 
-        window.accountChartInstance = new ApexCharts(document.querySelector("#accountChart"), options);
-        window.accountChartInstance.render();
+        const chartContainer = document.querySelector("#accountChart");
+        if (chartContainer) {
+            window.accountChartInstance = new ApexCharts(chartContainer, options);
+            window.accountChartInstance.render();
+        }
 
-        const modalElem = document.getElementById('accountDetailModal');
-        const modal = bootstrap.Modal.getOrCreateInstance(modalElem);
-        modal.show();
-    }
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElem);
+            modal.show();
+        } else {
+            // Fallback if bootstrap is not ready
+            $(modalElem).modal('show');
+        }
+    };
 </script>
 @endpush

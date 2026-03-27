@@ -27,9 +27,9 @@
             
             <!-- Checking Account Card -->
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
-                    style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('Personal Checking', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance }}, 0, 'checking')">
+                    <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
+                        style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                        onclick="showAccountDetails('Personal Checking', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -58,7 +58,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('Primary Savings', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance }}, 0, 'savings')">
+                    onclick="showAccountDetails('Primary Savings', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -117,7 +117,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('IRA Account', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance }}, 0, 'ira')">
+                    onclick="showAccountDetails('IRA Account', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -148,7 +148,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('HELOC Account', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance }}, {{ auth()->user()->heloc_credit_limit }}, 'heloc')">
+                    onclick="showAccountDetails('HELOC Account', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -180,7 +180,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance }}, {{ auth()->user()->cc_credit_limit }}, 'cc')">
+                    onclick="showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -212,7 +212,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance }}, {{ auth()->user()->loan_original_amount }}, 'loan')">
+                    onclick="showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
