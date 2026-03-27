@@ -248,19 +248,6 @@
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
-</div>
-
-@include('frontend::user.include.__account_detail_modal')
-@endsection
-
-@section('style')
-<style>
-    .accounts-header-banno h1 {
-        letter-spacing: -1px;
-    }
     .fw-600 { font-weight: 600; }
     .site-card:hover {
         transform: translateY(-8px);

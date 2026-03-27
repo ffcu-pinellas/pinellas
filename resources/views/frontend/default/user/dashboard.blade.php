@@ -366,7 +366,7 @@
                  <button type="button" class="btn btn-link text-primary fw-bold text-decoration-none" id="save-dashboard-order-btn">Done</button>
             </div>
         </div>
-    @include('frontend::user.include.__account_detail_modal')
+    @include('frontend::include.__account_detail_modal')
 @endsection
 
 @push('js')
