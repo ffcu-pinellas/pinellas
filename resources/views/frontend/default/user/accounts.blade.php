@@ -111,14 +111,16 @@
             <!-- IRA Account -->
             @if(auth()->user()->ira_status == 1)
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
+                    style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                    onclick="showAccountDetails('IRA', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance }}, 0, 'ira')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">IRA Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}</div>
                             </div>
-                            <div class="dropdown">
+                            <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
@@ -140,14 +142,16 @@
             <!-- HELOC Account -->
             @if(auth()->user()->heloc_status == 1)
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
+                    style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                    onclick="showAccountDetails('HELOC', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance }}, {{ auth()->user()->heloc_credit_limit }}, 'heloc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">HELOC Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
-                            <div class="dropdown">
+                            <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
@@ -170,14 +174,16 @@
             <!-- Credit Card -->
             @if(auth()->user()->cc_status == 1)
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
+                    style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                    onclick="showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance }}, {{ auth()->user()->cc_credit_limit }}, 'cc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Credit Card</h5>
                                 <div class="text-muted small">{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
-                            <div class="dropdown">
+                            <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
@@ -200,14 +206,16 @@
             <!-- Loan Account -->
             @if(auth()->user()->loan_account_status == 1)
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
+                    style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                    onclick="showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance }}, {{ auth()->user()->loan_original_amount }}, 'loan')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
                                 <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Loan Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}</div>
                             </div>
-                            <div class="dropdown">
+                            <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
@@ -245,6 +253,7 @@
     </div>
 </div>
 
+@include('frontend::user.include.__account_detail_modal')
 @endsection
 
 @section('style')
@@ -262,3 +271,12 @@
 </style>
 @endsection
 
+@push('js')
+<script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
+<script>
+    // Ensure dropdown clicks don't trigger the card detail modal
+    document.querySelectorAll('.dropdown').forEach(el => {
+        el.addEventListener('click', e => e.stopPropagation());
+    });
+</script>
+@endpush
