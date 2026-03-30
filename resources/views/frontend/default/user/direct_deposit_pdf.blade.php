@@ -28,8 +28,8 @@
         .section { margin-bottom: 25px; clear: both; }
         .section-title { font-size: 14px; font-weight: bold; color: #00549b; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; }
         
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        td { padding: 8px 0; font-size: 13px; vertical-align: top; }
+        table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        table.data-table td { padding: 8px 0; font-size: 13px; vertical-align: top; }
         .label { font-weight: bold; width: 35%; color: #555; }
         .value { border-bottom: 1px solid #ccc; font-weight: 500; font-size: 14px; }
         
@@ -40,86 +40,51 @@
         .date-line { border-top: 1.5px solid #333; width: 28%; float: right; }
         .sig-label { font-size: 10px; color: #444; padding-top: 6px; text-transform: uppercase; font-weight: 900; }
 
-        /* Page 2 - Hyper-Realistic Void Check */
+        /* Page 2 - Hyper-Realistic Void Check (Table Based) */
         .page-break { page-break-before: always; padding-top: 40px; }
         
-        .check-shell {
-            margin-top: 20px;
-            border: 1px solid #999;
-            padding: 30px;
-            background: #fff;
+        table.check-grid {
             width: 100%;
-            height: 3.65in;
+            height: 3.6in;
+            border: 1px solid #999;
+            background: #fff;
+            padding: 25px;
             box-sizing: border-box;
+            border-radius: 4px;
             position: relative;
-            overflow: hidden;
+            background-color: #fdfdfd;
             background-image: 
-                linear-gradient(rgba(0, 84, 155, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 84, 155, 0.04) 1px, transparent 1px);
-            background-size: 12px 12px;
+                radial-gradient(circle at center, rgba(0, 84, 155, 0.05) 0%, transparent 80%),
+                repeating-linear-gradient(45deg, rgba(0, 84, 155, 0.02) 0px, rgba(0, 84, 155, 0.02) 1px, transparent 1px, transparent 10px);
         }
 
-        .void-watermark-huge {
+        .void-huge {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-10deg);
-            font-size: 150px;
-            color: rgba(0, 0, 0, 0.04);
+            font-size: 140px;
+            color: rgba(0, 0, 0, 0.05);
             font-weight: 900;
             z-index: 0;
             white-space: nowrap;
             letter-spacing: 25px;
-            pointer-events: none;
         }
 
-        /* Check Top Section */
-        .check-top-left { float: left; width: 330px; position: relative; z-index: 2; }
-        .check-top-right { float: right; text-align: right; width: 300px; position: relative; z-index: 2; }
-        .fractional-routing { font-size: 12px; color: #333; margin-bottom: 2px; letter-spacing: 0.5px; }
-        .sentry-shield { font-size: 14px; font-weight: bold; color: #333; display: inline-flex; align-items: center; align-content: center; position: relative; top: -2px; }
-        .check-number-big { font-size: 22px; font-weight: bold; color: #000; margin-top: 10px; clear: both; }
+        .check-content-table { width: 100%; position: relative; z-index: 2; border-collapse: collapse; }
+        .member-header-name { font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .member-header-addr { font-size: 11px; color: #333; font-family: 'Courier New', Courier, monospace; line-height: 1.2; }
+        
+        .fractional-rtn { font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #444; }
+        .sentry-shield-box { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: inline-block; vertical-align: middle; }
+        .check-num-bold { font-size: 24px; font-weight: bold; color: #000; }
 
-        /* Check Body Lines */
-        .pay-to-the-order { margin-top: 20px; position: relative; z-index: 2; border-bottom: 1.5px solid #000; height: 35px; line-height: 50px; }
-        .pay-label-bold { font-size: 11px; font-weight: bold; position: absolute; left: 0; top: 15px; width: 100px; line-height: 1.2; text-transform: uppercase; }
-        .payee-line-void { position: absolute; left: 105px; bottom: 4px; font-size: 15px; font-weight: bold; color: #999; letter-spacing: 1px; }
-        .amount-box-check { position: absolute; right: 0; bottom: 5px; border: 2.5px solid #000; background: white; padding: 4px 10px; width: 130px; font-weight: bold; font-size: 16px; min-height: 25px; }
+        .line-underline { border-bottom: 1.5px solid #000; }
+        .label-cell { font-size: 11px; font-weight: bold; text-transform: uppercase; padding-top: 5px; }
 
-        .dollars-line { margin-top: 40px; border-bottom: 1.5px solid #000; position: relative; z-index: 2; height: 25px; }
-        .dollars-label-right { float: right; font-size: 11px; font-weight: bold; margin-left: 5px; margin-top: 10px; text-transform: uppercase; }
+        .micr-container { text-align: center; margin-top: 40px; font-family: 'Courier New', Courier, monospace; font-size: 24px; font-weight: bold; letter-spacing: 4px; }
+        .micr-glyph { display: inline-block; vertical-align: middle; height: 26px; }
 
-        .bank-info-check { margin-top: 25px; position: relative; z-index: 2; }
-        .bank-name-bold { font-size: 16px; font-weight: bold; text-transform: uppercase; color: #000; }
-        .bank-url-check { font-size: 12px; font-weight: bold; text-transform: uppercase; color: #000; }
-
-        /* Date & Signature */
-        .date-line-check { float: right; border-bottom: 1.5px solid #000; width: 180px; position: absolute; right: 0; top: 85px; padding-bottom: 2px; font-size: 13px; text-align: center; }
-        .date-label-check { position: absolute; right: 185px; top: 88px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-
-        .memo-signature-row { margin-top: 35px; position: relative; z-index: 2; clear: both; }
-        .memo-blk { float: left; width: 380px; position: relative; }
-        .memo-line-check { border-bottom: 1.5px solid #000; width: 100%; margin-top: 10px; padding-bottom: 2px; font-size: 12px; }
-        .memo-label-check { position: absolute; left: 0; top: -15px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-
-        .sig-blk { float: right; width: 320px; position: relative; text-align: center; }
-        .sig-line-check-shell { border-bottom: 1.5px solid #000; width: 100%; margin-top: 10px; height: 1px; }
-        .sig-label-check-shell { font-size: 10px; font-weight: bold; display: block; margin-top: 5px; text-transform: uppercase; }
-
-        .micr-line-perfect {
-            position: absolute;
-            bottom: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 24px;
-            letter-spacing: 6px;
-            font-weight: 900;
-            color: #000;
-            white-space: nowrap;
-        }
-
-        .shield-icon { display: inline-block; width: 16px; height: 16px; background: #333; margin-right: 5px; -webkit-clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 70%, 50% 100%, 0% 70%); clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 70%, 50% 100%, 0% 70%); }
     </style>
 </head>
 <body>
@@ -156,7 +121,7 @@
 
         <div class="section">
             <div class="section-title">Employer / Payer Information</div>
-            <table>
+            <table class="data-table">
                 <tr>
                     <td class="label">Employer / Payer Name:</td>
                     <td class="value">_____________________________________________________</td>
@@ -166,7 +131,7 @@
 
         <div class="section">
             <div class="section-title">Employee / Member Information</div>
-            <table>
+            <table class="data-table">
                 <tr>
                     <td class="label">Member Name:</td>
                     <td class="value">{{ strtoupper($user->full_name) }}</td>
@@ -189,26 +154,26 @@
         </div>
 
         <div class="section" style="margin-top: 30px;">
-            <div class="section-title">Pinellas FCU Account Details</div>
-            <table style="border: 2px solid #00549b; padding: 15px; border-radius: 8px;">
+            <div class="section-title">Account Detail / Allocation</div>
+            <table style="width: 100%; border: 2.5px solid #00549b; padding: 20px; border-radius: 8px;">
                 <tr>
-                    <td class="label" style="padding-left: 10px;">Bank Name:</td>
+                    <td class="label">Bank Name:</td>
                     <td class="value">Pinellas Federal Credit Union</td>
                 </tr>
                 <tr>
-                    <td class="label" style="padding-left: 10px;">Routing (Transit):</td>
+                    <td class="label">Routing (Transit):</td>
                     <td class="value" style="font-weight: bold; color: #00549b; font-size: 16px;">{{ $routingNumber }}</td>
                 </tr>
                 <tr>
-                    <td class="label" style="padding-left: 10px;">Account Number:</td>
+                    <td class="label">Account Number:</td>
                     <td class="value" style="font-weight: bold; color: #00549b; font-family: 'JetBrains Mono', monospace; font-size: 16px;">{{ $accountNumber }}</td>
                 </tr>
                 <tr>
-                    <td class="label" style="padding-left: 10px;">Account Type:</td>
+                    <td class="label">Account Type:</td>
                     <td class="value">{{ strtoupper($accountTitle) }}</td>
                 </tr>
                 <tr>
-                    <td class="label" style="padding-left: 10px;">Allocation:</td>
+                    <td class="label">Net Amount:</td>
                     <td class="value">FULL NET PAY (OR $___________ / ________%)</td>
                 </tr>
             </table>
@@ -226,67 +191,121 @@
         <!-- PAGE 2: Digital Void Check -->
         <div class="page-break"></div>
         
-        <div class="section-title" style="margin-top: 10px; border-bottom: 2px solid #00549b;">Digitally Generated Voided Check for Reference</div>
+        <div class="section-title" style="margin-top: 10px; border-bottom: 2px solid #00549b; text-align: center;">Digitally Generated Voided Check (Direct Deposit Authorization Only)</div>
         
-        <div class="check-shell">
-            <div class="void-watermark-huge">VOID</div>
+        <div class="check-grid">
+            <div class="void-huge">VOID</div>
             
-            <div class="check-top-left">
-                <div class="check-member-name">{{ strtoupper($user->full_name) }}</div>
-                <div class="check-member-addr">
-                    {{ strtoupper($user->address) }}<br>
-                    {{ strtoupper($user->city) }}, {{ $user->zip_code }}
-                </div>
-            </div>
-
-            <div class="check-top-right">
-                <div class="fractional-routing">63-9225/2631</div>
-                <div class="sentry-shield">
-                    <span class="shield-icon"></span> SentryShield℠
-                </div>
-                <div class="check-number-big">1001</div>
+            <table class="check-content-table">
+                <!-- Row 1: Member Info & Check Metadata -->
+                <tr>
+                    <td width="55%">
+                        <div class="member-header-name">{{ strtoupper($user->full_name) }}</div>
+                        <div class="member-header-addr">
+                            {{ strtoupper($user->address) }}<br>
+                            {{ strtoupper($user->city) }}, {{ $user->zip_code }}
+                        </div>
+                    </td>
+                    <td width="45%" style="text-align: right; vertical-align: top;">
+                        <div class="fractional-rtn">63-9225/2631</div>
+                        <div class="sentry-shield-box">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
+                                <path d="M12 2L4 5V11C4 16.03 7.41 20.72 12 22C16.59 20.72 20 16.03 20 11V5L12 2Z" fill="#333"/>
+                            </svg>
+                            SentryShield℠
+                        </div>
+                        <div class="check-num-bold">1001</div>
+                    </td>
+                </tr>
                 
-                <div class="date-label-check">DATE</div>
-                <div class="date-line-check">________________</div>
-            </div>
+                <!-- Row 2: Date -->
+                <tr>
+                    <td colspan="2" style="text-align: right; padding-top: 15px;">
+                        <table style="width: 220px; float: right; border-collapse: collapse;">
+                            <tr>
+                                <td style="font-size: 11px; font-weight: bold; padding-right: 10px; width: 40px;">DATE</td>
+                                <td class="line-underline" style="height: 25px; padding-bottom: 2px; text-align: center;">________________</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-            <div class="pay-to-the-order">
-                <div class="pay-label-bold">PAY TO THE<br>ORDER OF</div>
-                <div class="payee-line-void">VOID - NOT FOR NEGOTIATION / DIRECT DEPOSIT ONLY</div>
-                <div class="amount-box-check">
-                    <span style="font-size: 14px; position: relative; top: -2px;">$</span>
-                    <span style="float: right; color: #000;">VOID</span>
-                </div>
-            </div>
+                <!-- Row 3: Payee & Amount Box -->
+                <tr>
+                    <td colspan="2" style="padding-top: 25px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="font-size: 11px; font-weight: bold; width: 100px; vertical-align: bottom; padding-bottom: 5px;">PAY TO THE<br>ORDER OF</td>
+                                <td class="line-underline" style="padding-bottom: 5px; font-size: 15px; font-weight: bold; color: #999;">VOID - NON-NEGOTIABLE / DIRECT DEPOSIT ONLY</td>
+                                <td width="10px"></td>
+                                <td style="width: 140px; border: 3px solid #000; padding: 6px 12px; font-weight: bold; font-size: 18px; background: white; text-align: center;">
+                                    <span style="float: left; font-size: 15px;">$</span> VOID
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-            <div class="dollars-line">
-                <div class="dollars-label-right">DOLLARS</div>
-            </div>
+                <!-- Row 4: Legal Amount -->
+                <tr>
+                    <td colspan="2" style="padding-top: 15px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td class="line-underline" style="height: 30px;"></td>
+                                <td style="width: 80px; font-size: 11px; font-weight: bold; padding-left: 10px; vertical-align: bottom; padding-bottom: 5px;">DOLLARS</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-            <div class="bank-info-check">
-                <div class="bank-name-bold">PINELLAS FEDERAL CREDIT UNION</div>
-                <div class="bank-url-check">PINELLASCU.COM</div>
-            </div>
+                <!-- Row 5: Bank Name -->
+                <tr>
+                    <td style="padding-top: 20px;">
+                        <div style="font-size: 16px; font-weight: bold; color: #00549b;">PINELLAS FEDERAL CREDIT UNION</div>
+                        <div style="font-size: 11px; font-weight: bold;">PINELLASCU.COM</div>
+                    </td>
+                    <td></td>
+                </tr>
 
-            <div class="memo-signature-row">
-                <div class="memo-blk">
-                    <div class="memo-label-check">MEMO</div>
-                    <div class="memo-line-check"><u>Direct Deposit Authorization</u></div>
-                </div>
-                <div class="sig-blk">
-                    <div class="sig-line-check-shell"></div>
-                    <div class="sig-label-check-shell">AUTHORIZED SIGNATURE</div>
-                </div>
-            </div>
+                <!-- Row 6: Memo & Signature -->
+                <tr>
+                    <td style="padding-top: 25px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="width: 50px; font-size: 11px; font-weight: bold; vertical-align: bottom;">MEMO</td>
+                                <td class="line-underline" style="padding-bottom: 2px;"><u>Direct Deposit Setup</u></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td style="padding-top: 25px; vertical-align: bottom;">
+                        <div style="border-top: 2px solid #000; width: 100%; text-align: center; padding-top: 4px;">
+                            <span style="font-size: 10px; font-weight: bold;">AUTHORIZED SIGNATURE</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
 
-            <div class="micr-line-perfect">
-                ⑆{{ $routingNumber }}⑆  {{ $accountNumber }}⑈  1001
+            <!-- MICR Section with SVG Glyphs -->
+            <div class="micr-container">
+                <svg class="micr-glyph" width="16" height="26" viewBox="0 0 24 24" style="margin-right: -4px;">
+                    <path d="M18 6v12M6 6v12M6 6h12" stroke="#333" stroke-width="4"/>
+                </svg>{{ $routingNumber }}<svg class="micr-glyph" width="16" height="26" viewBox="0 0 24 24" style="margin-left: -4px; margin-right: 20px;">
+                    <path d="M18 6v12M6 6v12M6 6h12" stroke="#333" stroke-width="4"/>
+                </svg>
+                
+                {{ $accountNumber }}<svg class="micr-glyph" width="16" height="26" viewBox="0 0 24 24" style="margin-left: -4px; margin-right: 20px;">
+                    <path d="M12 6v12M6 12h12" stroke="#333" stroke-width="4"/>
+                </svg>
+                
+                1001
             </div>
+            
+            <div style="position: absolute; bottom: 85px; right: 25px; border: 1px solid #999; padding: 4px 10px; font-size: 9px; font-weight: bold; color: #666; border-radius: 3px;">SECURITY FEATURES INCLUDED</div>
         </div>
 
         <p style="font-size: 10px; color: #718096; text-align: center; margin-top: 50px; border-top: 1px solid #edf2f7; padding-top: 15px;">
             This document is an official Direct Deposit Authorization request generated by Pinellas FCU Online Banking.<br>
-            <strong>Report any suspicious activity or discrepancies immediately.</strong>
+            <strong>For security purposes, this voided check is digitally generated and non-negotiable.</strong>
         </p>
     </div>
 </body>
