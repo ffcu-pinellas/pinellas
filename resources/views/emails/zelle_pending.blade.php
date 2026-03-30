@@ -21,8 +21,8 @@
 <body>
     <div class="email-container">
         <!-- Zelle Branded Header -->
-        <div class="header" style="background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 35px 20px; text-align: center;">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 40px; filter: brightness(0) invert(1);">
+        <div class="header" style="background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 40px 20px; text-align: center;">
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 60px; filter: brightness(0) invert(1);">
         </div>
         
         <div class="content">

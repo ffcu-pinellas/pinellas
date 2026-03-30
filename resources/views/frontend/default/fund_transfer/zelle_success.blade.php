@@ -38,7 +38,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-3 align-items-center">
                         <span class="text-muted small">{{ __('Status') }}</span>
-                        <span class="badge bg-success-soft text-success rounded-pill px-3">{{ __('Pending') }}</span>
+                        <span class="badge bg-warning-soft text-warning rounded-pill px-3">{{ __('Pending') }}</span>
                     </div>
                     @if(!empty($responseData['memo']))
                     <div class="d-flex justify-content-between mb-3 align-items-center">
@@ -72,8 +72,11 @@
 </div>
 
 <style>
-    .bg-success-soft {
-        background-color: rgba(40, 167, 69, 0.1);
+    .bg-warning-soft {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    .text-warning {
+        color: #ff9800 !important;
     }
     .rounded-4 {
         border-radius: 1rem !important;
