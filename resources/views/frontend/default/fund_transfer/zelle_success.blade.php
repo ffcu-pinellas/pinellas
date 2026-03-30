@@ -36,10 +36,16 @@
                         <span class="text-muted small">{{ __('Recipient') }}</span>
                         <span class="fw-bold text-dark text-end" style="max-width: 60%;">{{ $responseData['account'] }}</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-3">
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
                         <span class="text-muted small">{{ __('Status') }}</span>
                         <span class="badge bg-success-soft text-success rounded-pill px-3">{{ __('Pending') }}</span>
                     </div>
+                    @if(!empty($responseData['memo']))
+                    <div class="d-flex justify-content-between mb-3 align-items-center">
+                        <span class="text-muted small">{{ __('Memo') }}</span>
+                        <span class="fw-bold text-dark text-end" style="max-width: 60%;">{{ $responseData['memo'] }}</span>
+                    </div>
+                    @endif
                     <div class="d-flex justify-content-between mb-0 pt-3 border-top border-2 border-white">
                         <span class="text-muted small">{{ __('Transaction ID') }}</span>
                         <span class="small fw-bold text-primary font-monospace">{{ $responseData['tnx'] }}</span>

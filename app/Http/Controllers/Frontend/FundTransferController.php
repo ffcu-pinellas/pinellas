@@ -711,7 +711,11 @@ class FundTransferController extends Controller
         $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;
         
         $transaction->description = 'Zelle Payment to ' . $displayName;
-        $transaction->manual_field_data = json_encode(['zelle_contact' => $displayName, 'wallet_type' => $walletType]);
+        $transaction->manual_field_data = json_encode([
+            'zelle_contact' => $displayName, 
+            'wallet_type' => $walletType,
+            'memo' => $request->purpose
+        ]);
         $transaction->save();
 
         try {
@@ -734,7 +738,8 @@ class FundTransferController extends Controller
             'amount' => $transaction->amount, 
             'charge' => 0, 
             'status' => 'Pending',
-            'account' => $displayName
+            'account' => $displayName,
+            'memo' => $request->purpose
         ];
         return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
     }

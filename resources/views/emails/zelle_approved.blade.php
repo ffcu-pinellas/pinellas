@@ -19,8 +19,10 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="header">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="filter: brightness(0) invert(1);">
+        <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 40px; filter: brightness(0) invert(1);">
+            <div style="width: 1px; height: 30px; background-color: rgba(255,255,255,0.3);"></div>
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 30px; filter: brightness(0) invert(1);">
         </div>
         
         <div class="content">
@@ -48,6 +50,14 @@
                     <span class="label">Transaction ID:</span>
                     <span class="value">{{ $transaction->tnx }}</span>
                 </div>
+                @if($manual = json_decode($transaction->manual_field_data, true))
+                    @if(!empty($manual['memo']))
+                    <div class="details-row" style="border-top: 1px solid #eeeeee; margin-top: 10px; padding-top: 10px;">
+                        <span class="label">Memo:</span>
+                        <span class="value">{{ $manual['memo'] }}</span>
+                    </div>
+                    @endif
+                @endif
             </div>
 
             <p style="font-size: 14px; color: #666;">

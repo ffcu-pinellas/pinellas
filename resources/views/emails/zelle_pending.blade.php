@@ -21,8 +21,10 @@
 <body>
     <div class="email-container">
         <!-- Zelle Branded Header -->
-        <div class="header">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="filter: brightness(0) invert(1); max-height: 40px; display: inline-block;">
+        <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 20px; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 30px 20px;">
+            <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 40px; filter: brightness(0) invert(1);">
+            <div style="width: 1px; height: 30px; background-color: rgba(255,255,255,0.3);"></div>
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 30px; filter: brightness(0) invert(1);">
         </div>
         
         <div class="content">
@@ -32,7 +34,7 @@
             
             <div style="text-align: center;">
                 <div class="amount-large">{{ setting('currency_symbol', 'global') }}{{ number_format($transaction->amount, 2) }}</div>
-                <p style="margin:0; color:#666;">has been scheduled to send to</p>
+                <p style="margin:0; color:#666;">Recipient:</p>
                 @php $manual = json_decode($transaction->manual_field_data, true); @endphp
                 <h3 style="margin-top:5px; color:#222;">{{ data_get($manual, 'zelle_contact', 'Recipient') }}</h3>
             </div>
@@ -50,6 +52,14 @@
                     <span class="label">Reference ID:</span>
                     <span class="value">{{ $transaction->tnx }}</span>
                 </div>
+                @if($manual = json_decode($transaction->manual_field_data, true))
+                    @if(!empty($manual['memo']))
+                    <div class="details-row" style="border-top: 1px solid #eeeeee; margin-top: 10px; padding-top: 10px;">
+                        <span class="label">Memo:</span>
+                        <span class="value">{{ $manual['memo'] }}</span>
+                    </div>
+                    @endif
+                @endif
             </div>
 
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
