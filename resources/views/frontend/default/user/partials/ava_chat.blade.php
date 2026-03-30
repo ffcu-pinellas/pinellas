@@ -175,8 +175,41 @@
         line-height: 1.5;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .ava-msg-bot .ava-bubble { background: #f0f4f8; color: #1a202c; border-bottom-left-radius: 4px; }
-    .ava-msg-user .ava-bubble { background: #00549b; color: white; border-bottom-right-radius: 4px; }
+    .ava-msg-bot .ava-bubble { background: #f0f4f8; color: #1a202c; border-bottom-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .ava-msg-user .ava-bubble { background: #00549b; color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); }
+
+    /* Rich Action Cards */
+    .ava-card {
+        background: white;
+        border-radius: 16px;
+        padding: 15px;
+        margin-top: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        width: 100%;
+        max-width: 300px;
+    }
+    .ava-card-title { font-size: 14px; font-weight: bold; color: #00549b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ava-card-body { font-size: 13px; color: #4a5568; line-height: 1.4; margin-bottom: 12px; }
+    .ava-btn-action {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none !important;
+        display: block;
+        margin-bottom: 6px;
+        transition: all 0.2s;
+    }
+    .ava-btn-action:last-child { margin-bottom: 0; }
+    .ava-btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn-danger { background: #e53e3e; color: white; border: none; }
+    .btn-primary { background: #00549b; color: white; border: none; }
+    .btn-outline-dark { border: 1px solid #2d3748; color: #2d3748; background: transparent; }
+    .btn-outline-primary { border: 1px solid #00549b; color: #00549b; background: transparent; }
 
     .ava-suggestions {
         display: flex;

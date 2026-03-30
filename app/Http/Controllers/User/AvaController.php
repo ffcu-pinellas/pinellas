@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\UserWallet;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -13,110 +14,180 @@ class AvaController extends Controller
 {
     public function query(Request $request)
     {
-        $message = strtolower($request->message);
+        $rawMessage = $request->message;
+        $message = strtolower($rawMessage);
         $user = auth()->user();
         
-        // 1. INTENT: BALANCE CHECK
-        if (Str::contains($message, ['balance', 'how much money', 'total money'])) {
-            $wallets = UserWallet::where('user_id', $user->id)->with('currency')->get();
-            $response = "Your current balances are:<br>";
-            foreach ($wallets as $wallet) {
-                $response .= "• <strong>" . $wallet->currency->symbol . number_format($wallet->balance, 2) . "</strong> (" . $wallet->currency->name . ")<br>";
+        // --- 1. NORMALIZATION & PREPROCESSING ---
+        $tokens = $this->tokenize($message);
+
+        // --- 2. INTENT SCORING ENGINE ---
+        $intents = $this->getIntents();
+        $bestIntent = 'UNKNOWN';
+        $highestScore = 0;
+
+        foreach ($intents as $name => $intent) {
+            $score = 0;
+            foreach ($intent['keywords'] as $keyword => $weight) {
+                if (str_contains($message, $keyword)) {
+                    $score += $weight;
+                }
             }
-            return response()->json(['message' => $response]);
+            if ($score > $highestScore) {
+                $highestScore = $score;
+                $bestIntent = $name;
+            }
         }
 
-        // 2. INTENT: SPENDING SEARCH (MERCHANT)
-        if (Str::contains($message, ['spent', 'spend', 'payment to', 'cost at', 'how much at'])) {
-            // Extract potential merchant from query
-            // Example: "How much did I spend at Starbucks?" -> extract "Starbucks"
-            $merchant = $this->extractMerchant($message);
+        // --- 3. EXECUTION DISPATCHER ---
+        switch ($bestIntent) {
+            case 'BALANCE':
+                return $this->handleBalance($user);
             
-            if ($merchant) {
-                $query = Transaction::where('user_id', $user->id)
-                    ->where('description', 'like', '%' . $merchant . '%');
+            case 'SPENDING':
+                return $this->handleSpending($user, $message);
 
-                // Check for timeframes
-                if (Str::contains($message, ['last month', 'previous month'])) {
-                    $start = now()->subMonth()->startOfMonth();
-                    $end = now()->subMonth()->endOfMonth();
-                    $query->whereBetween('created_at', [$start, $end]);
-                    $timeframe = "last month";
-                } elseif (Str::contains($message, ['this month'])) {
-                    $query->whereBetween('created_at', [now()->startOfMonth(), now()]);
-                    $timeframe = "this month";
-                } else {
-                    $timeframe = "overall";
-                }
+            case 'EMERGENCY':
+                return $this->handleEmergency();
 
-                $total = $query->sum('amount');
-                
-                if ($total > 0) {
-                    return response()->json([
-                        'message' => "You spent a total of <strong>$" . number_format($total, 2) . "</strong> at <strong>" . ucwords($merchant) . "</strong> " . $timeframe . "."
-                    ]);
-                } else {
-                    return response()->json([
-                        'message' => "I couldn't find any transactions at <strong>" . ucwords($merchant) . "</strong> for that period."
-                    ]);
-                }
-            }
-        }
+            case 'IDENTITY':
+                return $this->handleIdentity($user);
 
-        // 3. INTENT: HIGHEST TRANSACTION
-        if (Str::contains($message, ['highest', 'largest', 'most expensive', 'biggest'])) {
-            $txn = Transaction::where('user_id', $user->id)
-                ->orderBy('amount', 'desc')
-                ->first();
-                
-            if ($txn) {
+            case 'SUPPORT':
+                return $this->handleSupport();
+
+            case 'PRODUCT_INFO':
+                return $this->handleProducts($message);
+
+            default:
                 return response()->json([
-                    'message' => "Your highest transaction was <strong>$" . number_format($txn->amount, 2) . "</strong> for '" . $txn->description . "' on " . $txn->created_at->format('M d, Y') . "."
+                    'type' => 'text',
+                    'message' => "I'm not quite sure I understand. I'm still learning! You can ask me things like:<br>• 'What's my total balance?'<br>• 'How much did I spend at Amazon?'<br>• 'I lost my card!'"
                 ]);
-            }
+        }
+    }
+
+    private function handleBalance($user)
+    {
+        $wallets = UserWallet::where('user_id', $user->id)->with('currency')->get();
+        $totalNet = $user->balance + $user->savings_balance + $user->ira_balance;
+        
+        $msg = "Here is your <strong>Complete Account Overview</strong>:<br><br>";
+        $msg .= "• <strong>Primary Checking:</strong> $" . number_format($user->balance, 2) . "<br>";
+        
+        if ($user->savings_balance > 0) {
+            $msg .= "• <strong>Savings Account:</strong> $" . number_format($user->savings_balance, 2) . "<br>";
+        }
+        
+        if ($user->ira_balance > 0) {
+            $msg .= "• <strong>Retirement (IRA):</strong> $" . number_format($user->ira_balance, 2) . "<br>";
         }
 
-        // 4. INTENT: DIRECT DEPOSIT HELP
-        if (Str::contains($message, ['direct deposit', 'form', 'routing', 'account number'])) {
-            return response()->json([
-                'message' => "You can download your pre-filled <strong>Direct Deposit Authorization</strong> form directly from the Account Detail screen, or by <a href='#' onclick='window.location.reload(); return false;'>clicking here</a> to see your accounts."
-            ]);
+        foreach ($wallets as $wallet) {
+            $msg .= "• <strong>" . $wallet->currency->name . ":</strong> " . $wallet->currency->symbol . number_format($wallet->balance, 2) . "<br>";
+            $totalNet += $wallet->balance;
         }
 
-        // 5. INTENT: RECENT ACTIVITY
-        if (Str::contains($message, ['recent', 'latest', 'last transactions'])) {
-            $txns = Transaction::where('user_id', $user->id)
-                ->orderBy('created_at', 'desc')
-                ->take(3)
-                ->get();
-                
-            $response = "Here are your 3 most recent transactions:<br>";
-            foreach ($txns as $t) {
-                $response .= "• <strong>$" . number_format($t->amount, 2) . "</strong> - " . $t->description . " (" . $t->created_at->diffForHumans() . ")<br>";
-            }
-            return response()->json(['message' => $response]);
+        $msg .= "<br>Your <strong>Estimated Total Net Worth</strong> is approximately <strong>$" . number_format($totalNet, 2) . "</strong>.";
+        
+        return response()->json(['type' => 'text', 'message' => $msg]);
+    }
+
+    private function handleSpending($user, $message)
+    {
+        $merchant = $this->extractMerchant($message);
+        if (!$merchant) {
+            return response()->json(['type' => 'text', 'message' => "I can help with spending! Could you tell me the merchant name? (e.g., 'How much at Amazon?')"]);
         }
 
-        // FALLBACK: GENERAL AI RESPONSE (GREETING)
-        if (Str::contains($message, ['hi', 'hello', 'hey', 'ava'])) {
-            return response()->json([
-                'message' => "Hello! I'm Ava, your Pinellas FCU assistant. I can help you track your spending, check your balance, or find your direct deposit form. What can I do for you today?"
-            ]);
+        $query = Transaction::where('user_id', $user->id)->where('description', 'like', '%' . $merchant . '%');
+        
+        $timeframe = "overall";
+        if (str_contains($message, 'last month')) {
+            $query->whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()]);
+            $timeframe = "last month";
+        } elseif (str_contains($message, 'this month')) {
+            $query->whereBetween('created_at', [now()->startOfMonth(), now()]);
+            $timeframe = "this month";
         }
 
+        $total = $query->sum('amount');
+        
+        if ($total > 0) {
+            return response()->json(['type' => 'text', 'message' => "You've spent a total of <strong>$" . number_format($total, 2) . "</strong> at <strong>" . ucwords($merchant) . "</strong> " . $timeframe . "."]);
+        }
+        
+        return response()->json(['type' => 'text', 'message' => "I couldn't find any spending at <strong>" . ucwords($merchant) . "</strong> for that period."]);
+    }
+
+    private function handleEmergency()
+    {
         return response()->json([
-            'message' => "I'm not quite sure I understand. Try asking something like 'How much did I spend at Starbucks?' or 'What is my total balance?'"
+            'type' => 'card',
+            'title' => 'EMERGENCY: Card / Fraud Support',
+            'message' => "If your card is lost or you suspect fraud, please take immediate action below. We are here to protect your accounts 24/7.",
+            'actions' => [
+                ['label' => 'Freeze My Card', 'url' => route('user.cards'), 'class' => 'btn-danger'],
+                ['label' => 'Message Support Now', 'url' => route('user.ticket.index'), 'class' => 'btn-primary'],
+                ['label' => 'Email Fraud Dept', 'url' => 'mailto:fraud@pinellasfcu.com', 'class' => 'btn-outline-dark']
+            ]
         ]);
+    }
+
+    private function handleIdentity($user)
+    {
+        return response()->json([
+            'type' => 'text',
+            'message' => "I'm Ava, your personalized Pinellas FCU assistant. I'm here to help you, " . $user->first_name . ", manage your finances faster. Ask me about your balance, spending, or how to contact us!"
+        ]);
+    }
+
+    private function handleSupport()
+    {
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Contact & Support',
+            'message' => "Need direct help? You can start a secure chat with our team or email us anytime.",
+            'actions' => [
+                ['label' => 'Send Secure Message', 'url' => route('user.ticket.index'), 'class' => 'btn-primary'],
+                ['label' => 'Support Email', 'url' => 'mailto:support@pinellasfcu.com', 'class' => 'btn-outline-primary']
+            ]
+        ]);
+    }
+
+    private function handleProducts($message)
+    {
+        if (str_contains($message, 'loan')) {
+            return response()->json(['type' => 'text', 'message' => "We offer competitive rates on Personal, Auto, and HELOC loans. You can view our current rates and apply on the <strong>Loans</strong> page of your dashboard."]);
+        }
+        if (str_contains($message, 'saving')) {
+            return response()->json(['type' => 'text', 'message' => "Our high-yield savings accounts help your money grow faster. Checkout our <strong>DPS</strong> and <strong>FDR</strong> programs for maximized returns."]);
+        }
+        return response()->json(['type' => 'text', 'message' => "We have a wide range of products including Loans, Savings, Rewards, and Investments. What are you looking for specifically?"]);
+    }
+
+    private function tokenize($message)
+    {
+        return explode(' ', preg_replace('/[^\w\s]/', '', $message));
+    }
+
+    private function getIntents()
+    {
+        return [
+            'BALANCE' => ['keywords' => ['balance' => 10, 'money' => 8, 'wealth' => 10, 'account' => 5, 'checking' => 5, 'savings' => 5]],
+            'SPENDING' => ['keywords' => ['spent' => 10, 'spend' => 10, 'pay' => 5, 'cost' => 5, 'amazon' => 10, 'starbucks' => 10, 'walmart' => 10]],
+            'EMERGENCY' => ['keywords' => ['lost' => 15, 'stole' => 15, 'fraud' => 20, 'freeze' => 20, 'stolen' => 15]],
+            'IDENTITY' => ['keywords' => ['who' => 5, 'name' => 5, 'ava' => 10, 'you' => 5]],
+            'SUPPORT' => ['keywords' => ['contact' => 10, 'help' => 10, 'support' => 10, 'talk' => 5, 'message' => 5, 'ticket' => 5]],
+            'PRODUCT_INFO' => ['keywords' => ['loan' => 10, 'saving' => 10, 'dps' => 10, 'fdr' => 10, 'rate' => 5]]
+        ];
     }
 
     private function extractMerchant($message)
     {
-        // Simple extraction logic: remove common words and get the last word or specific merchant
-        $ignoreWords = ['how', 'much', 'did', 'i', 'spend', 'at', 'last', 'month', 'this', 'year', 'the', 'spent', 'payment', 'to'];
-        $words = explode(' ', str_replace(['?', '!', '.', ','], '', $message));
-        $filtered = array_diff($words, $ignoreWords);
-        
-        // Return the first significant word as the merchant
+        $ignore = ['how', 'much', 'did', 'i', 'spend', 'at', 'last', 'month', 'this', 'year', 'the', 'spent', 'payment', 'to', 'for'];
+        $words = $this->tokenize($message);
+        $filtered = array_diff($words, $ignore);
         return !empty($filtered) ? end($filtered) : null;
     }
 }

@@ -43,12 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function sendQuery(text) {
         // 1. Add User Message
-        appendMessage(text, 'user');
+        renderMessage({ type: 'text', message: text }, 'user');
 
         // 2. Add Typing Indicator
         const typingId = showTyping();
-        
-        // Scroll to bottom
         scrollToBottom();
 
         try {
@@ -63,23 +61,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await response.json();
             
-            // 3. Remove Typing & Add Bot Response
+            // 3. Remove Typing & Render Response
             removeTyping(typingId);
-            appendMessage(data.message, 'bot');
+            renderMessage(data, 'bot');
             
         } catch (error) {
             removeTyping(typingId);
-            appendMessage("I'm sorry, I'm having trouble connecting right now. Please try again later.", 'bot');
+            renderMessage({ type: 'text', message: "I'm sorry, I'm having trouble connecting right now. Please try again later." }, 'bot');
         }
 
         scrollToBottom();
     }
 
-    function appendMessage(text, side) {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `ava-msg ava-msg-${side}`;
-        msgDiv.innerHTML = `<div class="ava-bubble">${text}</div>`;
-        messagesContainer.appendChild(msgDiv);
+    function renderMessage(data, side) {
+        const msgWrapper = document.createElement('div');
+        msgWrapper.className = `ava-msg ava-msg-${side}`;
+        
+        if (data.type === 'card') {
+            let actionsHtml = '';
+            if (data.actions) {
+                data.actions.forEach(action => {
+                    actionsHtml += `<a href="${action.url}" class="ava-btn-action ${action.class || 'btn-primary'}">${action.label}</a>`;
+                });
+            }
+
+            msgWrapper.innerHTML = `
+                <div class="ava-card">
+                    <div class="ava-card-title">${data.title}</div>
+                    <div class="ava-card-body">${data.message}</div>
+                    <div class="ava-card-actions">${actionsHtml}</div>
+                </div>
+            `;
+        } else {
+            msgWrapper.innerHTML = `<div class="ava-bubble">${data.message}</div>`;
+        }
+        
+        messagesContainer.appendChild(msgWrapper);
     }
 
     function showTyping() {
