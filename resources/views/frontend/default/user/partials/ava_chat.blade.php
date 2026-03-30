@@ -44,7 +44,7 @@
         </div>
 
         <div class="ava-footer">
-            <form id="ava-query-form" class="d-flex align-items-center">
+            <form id="ava-query-form" class="d-flex align-items-center" data-no-loader="true">
                 @csrf
                 <input type="text" id="ava-input" placeholder="Ask Ava something..." autocomplete="off">
                 <button type="submit" id="ava-send">

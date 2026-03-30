@@ -41,6 +41,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Click outside to close (Mobile optimization)
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth < 768) {
+            const isClickInside = chatWindow.contains(e.target) || trigger.contains(e.target);
+            if (!isClickInside && chatWindow.style.display === 'flex') {
+                chatWindow.style.display = 'none';
+            }
+        }
+    });
+
     async function sendQuery(text) {
         // 1. Add User Message
         renderMessage({ type: 'text', message: text }, 'user');
@@ -49,25 +59,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const typingId = showTyping();
         scrollToBottom();
 
+        // 3. Artificial "Thinking" Delay (Humanization)
+        let artificialDelay = new Promise(resolve => setTimeout(resolve, 800));
+
         try {
-            const response = await fetch('/user/ava/query', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-                },
-                body: JSON.stringify({ message: text })
-            });
+            // Run fetch and delay concurrently, wait for both
+            const [response] = await Promise.all([
+                fetch('/user/ava/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify({ message: text })
+                }),
+                artificialDelay
+            ]);
 
             const data = await response.json();
             
-            // 3. Remove Typing & Render Response
+            // 4. Remove Typing & Render Response
             removeTyping(typingId);
             renderMessage(data, 'bot');
             
         } catch (error) {
             removeTyping(typingId);
-            renderMessage({ type: 'text', message: "I'm sorry, I'm having trouble connecting right now. Please try again later." }, 'bot');
+            renderMessage({ type: 'text', message: "I'm sorry, I'm having trouble connecting right now. Please check your connection." }, 'bot');
         }
 
         scrollToBottom();
