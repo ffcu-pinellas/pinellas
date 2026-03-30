@@ -452,7 +452,25 @@ class UserController extends Controller
             default => 'Checking Account',
         };
 
-        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type'));
+        // SSN Masking (Last 4 digits)
+        $ssn = $user->ssn ? '***-**-' . substr($user->ssn, -4) : '***-**-****';
+
+        // Address Formatting
+        $fullAddress = trim(($user->address ?? '') . ', ' . ($user->city ?? '') . ' ' . ($user->zip_code ?? ''), ', ');
+
+        // Base64 Logo for PDF rendering
+        $logoBase64 = null;
+        try {
+            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
+            $logoData = curl_get_file_contents($logoUrl);
+            if ($logoData) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            }
+        } catch (\Exception $e) {
+            \Log::error("DD PDF Logo Fetch Error: " . $e->getMessage());
+        }
+
+        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type', 'ssn', 'fullAddress', 'logoBase64'));
         
         $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
         return $pdf->download($filename);

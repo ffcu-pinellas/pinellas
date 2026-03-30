@@ -4,79 +4,119 @@
     <meta charset="utf-8">
     <title>Direct Deposit Authorization - Pinellas FCU</title>
     <style>
-        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; line-height: 1.4; margin: 0; padding: 0; }
-        .container { padding: 30px; }
-        .header { border-bottom: 2px solid #00549b; pb: 15px; mb: 20px; overflow: hidden; }
-        .logo { float: left; width: 220px; }
-        .bank-info { float: right; text-align: right; font-size: 11px; color: #666; }
-        .title { text-align: center; font-size: 22px; font-weight: bold; color: #00549b; margin: 25px 0; text-transform: uppercase; }
+        @page { margin: 0.5in; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; line-height: 1.4; margin: 0; padding: 0; background: white; }
+        .container { padding: 20px; }
+        .header { border-bottom: 2px solid #00549b; padding-bottom: 15px; margin-bottom: 20px; box-sizing: border-box; }
+        .logo { width: 220px; display: block; margin-bottom: 10px; }
+        .bank-info { text-align: right; font-size: 11px; color: #666; position: absolute; top: 20px; right: 20px; }
+        .title { text-align: center; font-size: 24px; font-weight: bold; color: #00549b; margin: 30px 0; text-transform: uppercase; letter-spacing: 1px; }
         
-        .section { margin-bottom: 25px; }
+        .section { margin-bottom: 25px; clear: both; }
         .section-title { font-size: 14px; font-weight: bold; color: #00549b; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; text-transform: uppercase; }
         
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        td { padding: 8px 0; font-size: 13px; }
+        td { padding: 8px 0; font-size: 13px; vertical-align: top; }
         .label { font-weight: bold; width: 35%; color: #555; }
-        .value { border-bottom: 1px solid #ccc; }
+        .value { border-bottom: 1px solid #ccc; font-weight: 500; }
         
-        .authorization-text { font-size: 12px; text-align: justify; margin-bottom: 20px; color: #444; }
+        .authorization-text { font-size: 12px; text-align: justify; margin-bottom: 25px; color: #444; line-height: 1.6; }
         
-        .signature-box { border-top: 1px solid #333; width: 60%; margin-top: 40px; }
-        .date-box { border-top: 1px solid #333; width: 30%; float: right; margin-top: 40px; }
+        .signature-section { margin-top: 40px; }
+        .sig-line { border-top: 1px solid #333; width: 60%; display: inline-block; }
+        .date-line { border-top: 1px solid #333; width: 30%; float: right; }
+        .sig-label { font-size: 10px; color: #666; padding-top: 5px; text-transform: uppercase; font-weight: bold; }
+
+        /* Page 2 - Void Check */
+        .page-break { page-break-before: always; }
         
-        /* Void Check Graphic */
-        .void-check {
+        .check-wrapper {
             margin-top: 50px;
-            border: 2px solid #999;
-            border-radius: 8px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            padding: 25px;
+            background: #fff;
             width: 100%;
+            height: 3.5in;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background-image: linear-gradient(rgba(0, 84, 155, 0.03) 1px, transparent 1px);
+            background-size: 100% 20px;
         }
-        .void-watermark {
+
+        .void-overlay {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-15deg);
-            font-size: 110px;
-            color: rgba(0, 0, 0, 0.05);
-            font-weight: bold;
+            font-size: 120px;
+            color: rgba(0, 0, 0, 0.04);
+            font-weight: 900;
             z-index: 0;
             white-space: nowrap;
+            letter-spacing: 15px;
+            pointer-events: none;
         }
-        .check-content { position: relative; z-index: 1; }
-        .check-header { font-size: 14px; font-weight: bold; margin-bottom: 30px; }
-        .check-date { float: right; border-bottom: 1px solid #333; width: 120px; text-align: center; }
-        .check-pay-to { margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .check-amount { float: right; border: 1px solid #333; padding: 5px 15px; width: 100px; text-align: right; background: white; }
+
+        .check-header { margin-bottom: 30px; position: relative; z-index: 1; }
+        .check-member-name { font-size: 14px; font-weight: bold; margin: 0; text-transform: uppercase; }
+        .check-member-addr { font-size: 11px; margin: 2px 0; color: #555; width: 250px; }
+        .check-number { position: absolute; right: 0; top: 0; font-size: 18px; font-weight: bold; color: #333; }
+        .check-date-box { position: absolute; right: 0; top: 35px; border-bottom: 1px solid #333; width: 140px; text-align: center; padding-bottom: 2px; font-size: 12px; }
         
-        .micr-line {
+        .pay-row { margin-top: 20px; border-bottom: 1px solid #333; height: 35px; position: relative; }
+        .pay-label { font-size: 12px; font-weight: bold; position: absolute; bottom: 5px; left: 0; }
+        .pay-value { font-size: 14px; font-weight: bold; position: absolute; bottom: 5px; left: 160px; color: #888; }
+        .amount-box { border: 2px solid #333; background: white; padding: 5px 15px; position: absolute; right: 0; top: -5px; width: 120px; line-height: 1.5; }
+        
+        .memo-row { margin-top: 50px; position: relative; }
+        .memo-line { border-bottom: 1px solid #333; width: 250px; padding-bottom: 2px; font-size: 11px; }
+        .sig-line-check { border-bottom: 1px solid #333; width: 300px; float: right; position: relative; top: -5px; }
+
+        .micr-line-final {
+            position: absolute;
+            bottom: 20px;
+            left: 50px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 18px;
-            margin-top: 40px;
-            letter-spacing: 2px;
+            font-size: 22px;
+            letter-spacing: 5px;
+            font-weight: bold;
             color: #000;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- PAGE 1: Authorization Letter -->
         <div class="header">
-            <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" class="logo">
+            @if(isset($logoBase64) && $logoBase64)
+                <img src="{{ $logoBase64 }}" class="logo">
+            @else
+                <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" class="logo">
+            @endif
             <div class="bank-info">
                 Pinellas Federal Credit Union<br>
                 P.O. Box 2270<br>
                 Largo, FL 33779-2270<br>
-                www.pinellasfcu.org | (727) 586-4422
+                (727) 586-4422 | Pinellasfcu.org
             </div>
         </div>
 
         <div class="title">Direct Deposit Authorization</div>
 
         <div class="authorization-text">
-            I hereby authorize my employer/payer, listed below, to deposit my net pay or a portion thereof automatically to my account(s) indicated below each pay period. This authorization is to remain in full force and effect until Pinellas Federal Credit Union has received written notification from me of its termination in such time and in such manner as to afford Pinellas Federal Credit Union and my employer a reasonable opportunity to act on it.
+            I hereby authorize my employer/payer, listed below, to deposit my net pay or a portion thereof automatically to my account(s) at Pinellas Federal Credit Union each pay period. This authorization is to remain in effect until Pinellas Federal Credit Union has received written notification from me of its termination in such time as to afford Pinellas Federal Credit Union and my employer a reasonable opportunity to act on it.
+        </div>
+
+        <div class="section">
+            <div class="section-title">Employer / Payer Information</div>
+            <table>
+                <tr>
+                    <td class="label">Employer / Payer Name:</td>
+                    <td class="value">_____________________________________________________</td>
+                </tr>
+            </table>
         </div>
 
         <div class="section">
@@ -88,17 +128,23 @@
                 </tr>
                 <tr>
                     <td class="label">Social Security Number:</td>
-                    <td class="value">*** - ** - ****</td>
+                    <td class="value">{{ $ssn ?? '*** - ** - ****' }}</td>
                 </tr>
+                <tr>
+                    <td class="label">Member Address:</td>
+                    <td class="value">{{ $fullAddress ?? $user->address }}</td>
+                </tr>
+                @if($user->phone)
                 <tr>
                     <td class="label">Phone Number:</td>
                     <td class="value">{{ $user->phone }}</td>
                 </tr>
+                @endif
             </table>
         </div>
 
         <div class="section">
-            <div class="section-title">Account Information</div>
+            <div class="section-title">Account Details</div>
             <table>
                 <tr>
                     <td class="label">Financial Institution:</td>
@@ -110,7 +156,7 @@
                 </tr>
                 <tr>
                     <td class="label">Account Number:</td>
-                    <td class="value" style="font-weight: bold; color: #00549b; font-family: monospace; font-size: 15px;">{{ $accountNumber }}</td>
+                    <td class="value" style="font-weight: bold; color: #00549b; font-family: 'JetBrains Mono', monospace; font-size: 15px;">{{ $accountNumber }}</td>
                 </tr>
                 <tr>
                     <td class="label">Account Type:</td>
@@ -118,47 +164,62 @@
                 </tr>
                 <tr>
                     <td class="label">Deposit Amount:</td>
-                    <td class="value">Full Net Pay (or $___________ / ________%)</td>
+                    <td class="value">FULL NET PAY (OR $___________ / ________%)</td>
                 </tr>
             </table>
         </div>
 
-        <div style="margin-top: 30px; overflow: hidden;">
-            <div class="signature-box">
-                <div style="font-size: 10px; color: #666; margin-top: 5px;">Member Signature</div>
+        <div class="signature-section">
+            <div class="sig-line">
+                <div class="sig-label">Member Signature</div>
             </div>
-            <div class="date-box">
-                <div style="font-size: 10px; color: #666; margin-top: 5px;">Date</div>
-            </div>
-        </div>
-
-        <div class="void-check">
-            <div class="void-watermark">VOID VOID VOID</div>
-            <div class="check-content">
-                <div class="check-header">
-                    {{ strtoupper($user->full_name) }}<br>
-                    <span style="font-size: 10px; font-weight: normal;">123 MEMBER ADDRESS ST.<br>LARGO, FL 33770</span>
-                    <div class="check-date">DATE: _________</div>
-                </div>
-                
-                <div class="check-pay-to">
-                    PAY TO THE ORDER OF: <span style="font-weight: bold; color: #999;">VOID - DIRECT DEPOSIT AUTHORIZATION</span>
-                    <div class="check-amount">$ **VOID**</div>
-                </div>
-
-                <div style="margin-top: 10px;">
-                    <span style="font-size: 12px; font-weight: bold;">Pinellas Federal Credit Union</span><br>
-                    <span style="font-size: 10px;">MEMO: <u>Direct Deposit Setup</u></span>
-                </div>
-
-                <div class="micr-line">
-                    ⑆{{ $routingNumber }}⑆  {{ $accountNumber }}⑈  0001
-                </div>
+            <div class="date-line">
+                <div class="sig-label">Date</div>
             </div>
         </div>
+
+        <!-- PAGE 2: Void Check Graphic -->
+        <div class="page-break"></div>
         
-        <p style="font-size: 9px; color: #888; text-align: center; margin-top: 30px;">
-            Generated via Pinellas FCU Digital Banking on {{ date('M j, Y g:i A') }}
+        <div class="section-title" style="margin-top: 30px;">Member Voided Check (Direct Deposit Reference Only)</div>
+        
+        <div class="check-wrapper">
+            <div class="void-overlay">VOID</div>
+            
+            <div class="check-header">
+                <div class="check-member-name">{{ $user->full_name }}</div>
+                <div class="check-member-addr">
+                    {{ $user->address }}<br>
+                    {{ $user->city }}, {{ $user->zip_code }}
+                </div>
+                <div class="check-number">0001</div>
+                <div class="check-date-box">DATE: ________________</div>
+            </div>
+
+            <div class="pay-row">
+                <div class="pay-label">PAY TO THE<br>ORDER OF</div>
+                <div class="pay-value">VOID - NOT FOR NEGOTIATION</div>
+                <div class="amount-box">
+                    <span style="font-size: 14px; color: #333;">$</span>
+                    <span style="float: right; color: #999; font-weight: bold;">**VOID**</span>
+                </div>
+            </div>
+
+            <div class="memo-row">
+                <div style="font-size: 14px; font-weight: bold; color: #00549b; margin-bottom: 5px;">Pinellas Federal Credit Union</div>
+                <div class="memo-line">MEMO: <u>Direct Deposit Authorization</u></div>
+                <div class="sig-line-check"></div>
+                <div style="float: right; font-size: 10px; text-transform: uppercase; font-weight: bold; margin-top: 5px; margin-right: 20px;">MP SIGNATURE REQUIRED</div>
+            </div>
+
+            <div class="micr-line-final">
+                ⑆{{ $routingNumber }}⑆  {{ $accountNumber }}⑈  0001
+            </div>
+        </div>
+
+        <p style="font-size: 10px; color: #999; text-align: center; margin-top: 40px; border-top: 1px dotted #ccc; padding-top: 10px;">
+            This document is a formal authorization request generated via Pinellas FCU Digital Banking on {{ date('M d, Y') }}.<br>
+            Financial Institution: Pinellas Federal Credit Union | Routing (ABA): {{ $routingNumber }}
         </p>
     </div>
 </body>
