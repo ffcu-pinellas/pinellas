@@ -737,10 +737,10 @@ class FundTransferController extends Controller
         $responseData = [
             'tnx' => $tnx, 
             'amount' => $transaction->amount, 
-            'charge' => 0, 
             'status' => 'Pending',
             'account' => $displayName,
-            'memo' => $request->purpose
+            'memo' => $request->purpose,
+            'date' => \Carbon\Carbon::now()->format('M d, Y')
         ];
         return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
     }

@@ -19,12 +19,42 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="header" style="background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 40px 20px; text-align: center;">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 60px; filter: brightness(0) invert(1);">
+        <!-- Co-Branded Header -->
+        <div class="header">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                <tr>
+                    <td style="text-align: center;">
+                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 38px; display: inline-block; vertical-align: middle;">
+                        <span style="display: inline-block; width: 1px; height: 30px; background-color: #ced4da; margin: 0 15px; vertical-align: middle;"></span>
+                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 25px; display: inline-block; vertical-align: middle;">
+                    </td>
+                </tr>
+            </table>
         </div>
         
-        <div class="content">
-            <h3>Payment Cancelled</h3>
+        <div class="content" style="padding-top: 20px;">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px;">
+                <tr>
+                    <td style="font-weight: bold; color: #333; font-size: 14px;">Pinellas Alerts</td>
+                    <td style="text-align: right; color: #888; font-size: 13px;">{{ $transaction->updated_at->format('h:i A') }}</td>
+                </tr>
+            </table>
+
+            @php 
+                $manual = json_decode($transaction->manual_field_data, true);
+                $recipient = data_get($manual, 'zelle_contact', 'Recipient');
+            @endphp
+            
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
+                <tr>
+                    <td width="35" style="vertical-align: top; padding-top: 3px;">
+                        <img src="https://img.icons8.com/material-rounded/24/fc8e0b/appointment-reminders.png" alt="Alert" width="24">
+                    </td>
+                    <td style="font-size: 20px; font-weight: bold; color: #111; line-height: 1.3;">
+                        {{ __('A Zelle® payment was not delivered') }}
+                    </td>
+                </tr>
+            </table>
             <p>Hi {{ $user->first_name }},</p>
             <p>Your Zelle® payment could not be processed and has been cancelled. Any funds deducted from your account have been returned to your balance.</p>
             
@@ -39,7 +69,7 @@
                     <span class="value">{{ data_get($manual, 'zelle_contact', 'Recipient') }}</span>
                 </div>
                 <div class="details-row">
-                    <span class="label">Reference ID:</span>
+                    <span class="label">Confirmation #:</span>
                     <span class="value">{{ $transaction->tnx }}</span>
                 </div>
                 @if($manual = json_decode($transaction->manual_field_data, true))
