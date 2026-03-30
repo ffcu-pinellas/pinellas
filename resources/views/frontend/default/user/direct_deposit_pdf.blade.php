@@ -222,22 +222,22 @@
                         </div>
                     </td>
                     <td width="45%" style="text-align: right; vertical-align: top;">
+                        <div class="check-num-big" style="margin-bottom: 5px;">1001</div>
                         <div class="fractional-rtn">63-9225/2631</div>
                         @if(isset($sentryShieldBase64) && $sentryShieldBase64)
-                            <img src="{{ $sentryShieldBase64 }}" class="sentry-logo">
+                            <img src="{{ $sentryShieldBase64 }}" class="sentry-logo" style="float: right; margin-top: 5px;">
                         @else
                             <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">SentryShield℠</div>
                         @endif
-                        <div class="check-num-big">1001</div>
                     </td>
                 </tr>
                 
                 <tr>
-                    <td colspan="2" style="text-align: right; padding-top: 15px;">
-                        <table style="width: 220px; float: right;">
+                    <td colspan="2" style="text-align: right; padding-top: 5px;">
+                        <table style="width: 240px; float: right; border-collapse: collapse;">
                             <tr>
-                                <td style="font-size: 11px; font-weight: bold; width: 40px; text-align: right; padding-right: 10px;">DATE</td>
-                                <td class="line-under" style="height: 25px;"></td>
+                                <td style="font-size: 11px; font-weight: bold; width: 40px; text-align: right; padding-right: 15px; vertical-align: bottom; padding-bottom: 5px;">DATE</td>
+                                <td class="line-under" style="height: 25px; width: 160px;"></td>
                             </tr>
                         </table>
                     </td>
@@ -245,13 +245,13 @@
 
                 <tr>
                     <td colspan="2" style="padding-top: 30px;">
-                        <table style="width: 100%;">
+                        <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td style="font-size: 10px; font-weight: bold; width: 110px; padding-bottom: 5px;">PAY TO THE<br>ORDER OF</td>
-                                <td class="line-under" style="padding-bottom: 5px; font-size: 15px; font-weight: bold; color: #a0aec0;">VOID - NON-NEGOTIABLE / FOR DIRECT DEPOSIT ONLY</td>
+                                <td style="font-size: 13px; font-weight: bold; width: 110px; padding-bottom: 5px; line-height: 1.1;">PAY TO THE<br>ORDER OF</td>
+                                <td class="line-under" style="padding-bottom: 5px; font-size: 16px; font-weight: bold; color: #a0aec0; vertical-align: bottom;">VOID - NON-NEGOTIABLE / FOR DIRECT DEPOSIT ONLY</td>
                                 <td style="width: 10px;"></td>
-                                <td style="width: 140px; border: 3px solid #000; padding: 6px; font-weight: bold; font-size: 20px; text-align: center; background: white;">
-                                    <span style="float: left; font-size: 16px;">$</span> VOID
+                                <td style="width: 150px; border: 3px solid #000; padding: 10px; font-weight: bold; font-size: 22px; text-align: center; background: white; vertical-align: middle;">
+                                    <span style="float: left; font-size: 18px; margin-top: 2px;">$</span> VOID
                                 </td>
                             </tr>
                         </table>
@@ -259,11 +259,11 @@
                 </tr>
 
                 <tr>
-                    <td colspan="2" style="padding-top: 20px;">
-                        <table style="width: 100%;">
+                    <td colspan="2" style="padding-top: 15px;">
+                        <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="line-under" style="height: 30px;"></td>
-                                <td style="width: 80px; font-size: 11px; font-weight: bold; padding-left: 10px; padding-bottom: 5px; vertical-align: bottom;">DOLLARS</td>
+                                <td class="line-under" style="height: 35px;"></td>
+                                <td style="width: 90px; font-size: 13px; font-weight: bold; padding-left: 10px; padding-bottom: 5px; vertical-align: bottom;">DOLLARS</td>
                             </tr>
                         </table>
                     </td>
@@ -271,37 +271,43 @@
 
                 <tr>
                     <td style="padding-top: 25px;">
-                        <div style="font-size: 16px; font-weight: bold; color: #00549b;">PINELLAS FEDERAL CREDIT UNION</div>
-                        <div style="font-size: 12px; font-weight: bold;">WWW.PINELLASCU.COM</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #00549b;">PINELLAS FEDERAL CREDIT UNION</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #4a5568;">WWW.PINELLASCU.COM</div>
                     </td>
                     <td></td>
                 </tr>
 
                 <tr>
-                    <td style="padding-top: 30px;">
-                        <table style="width: 95%;">
+                    <td style="padding-top: 35px;">
+                        <table style="width: 95%; border-collapse: collapse;">
                             <tr>
-                                <td style="width: 50px; font-size: 12px; font-weight: bold; vertical-align: bottom;">MEMO</td>
-                                <td class="line-under" style="padding-bottom: 2px; font-size: 11px; font-style: italic;">Direct Deposit Setup Authorization</td>
+                                <td style="width: 50px; font-size: 13px; font-weight: bold; vertical-align: bottom;">MEMO</td>
+                                <td class="line-under" style="padding-bottom: 2px; font-size: 12px; font-style: italic;">Direct Deposit Setup Authorization</td>
                             </tr>
                         </table>
                     </td>
-                    <td style="padding-top: 30px; vertical-align: bottom;">
-                        <div style="border-top: 2px solid #000; width: 100%; text-align: center; padding-top: 5px;">
-                            <span style="font-size: 10px; font-weight: bold; text-transform: uppercase;">Authorized Signature Required</span>
+                    <td style="padding-top: 35px; vertical-align: bottom;">
+                        <div style="border-top: 2.5px solid #000; width: 100%; text-align: center; padding-top: 6px;">
+                            <span style="font-size: 11px; font-weight: bold; text-transform: uppercase;">Authorized Signature Required</span>
                         </div>
                     </td>
                 </tr>
             </table>
 
-            <div class="micr-line-vfont">
-                @foreach (str_split($micrString) as $char)
-                    @if (isset($micrSymbols[$char]) && $char != ' ')
-                        <svg class="micr-char" width="16" viewBox="0 0 24 24"><path d="{{ $micrSymbols[$char] }}"/></svg>
-                    @else
-                        <span style="display:inline-block; width: 10px;"></span>
-                    @endif
-                @endforeach
+            <div class="micr-line-vfont" style="margin-top: 50px; text-align: center; height: 35px;">
+                <svg width="600" height="35" viewBox="0 0 600 35" xmlns="http://www.w3.org/2000/svg">
+                    @php
+                        $xCursor = 80;
+                    @endphp
+                    @foreach (str_split($micrString) as $char)
+                        @if (isset($micrSymbols[$char]) && $char != ' ')
+                            <path d="{{ $micrSymbols[$char] }}" transform="translate({{ $xCursor }}, 5) scale(1.2)" fill="#000" />
+                            @php $xCursor += 22; @endphp
+                        @else
+                            @php $xCursor += 15; @endphp
+                        @endif
+                    @endforeach
+                </svg>
             </div>
             
             <div style="position: absolute; bottom: 85px; right: 25px; border: 1.5px solid #a0aec0; padding: 4px 10px; font-size: 9px; font-weight: bold; color: #718096; border-radius: 4px; background: white;">SECURITY FEATURES INCLUDED</div>
