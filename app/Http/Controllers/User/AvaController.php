@@ -273,7 +273,8 @@ class AvaController extends Controller
             $msg .= "• <strong>Savings Account:</strong> " . $user->savings_account_number . "<br>";
         }
         
-        $routing = setting('routing_number', '123456789');
+        // Use 'global' as the namespace parameter for the setting helper
+        $routing = setting('routing_number', 'global') ?? '063107513';
         $msg .= "• <strong>Routing Transit #:</strong> " . $routing . "<br>";
 
         $msg .= "<br><small><i>You can also download a formal Direct Deposit form by clicking 'Direct Deposit PDF' under your account actions.</i></small>";
