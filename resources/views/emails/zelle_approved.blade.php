@@ -4,7 +4,7 @@
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-        .header { background-color: #6d1ed4; background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .header { background-color: #6d1ed4; background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px 25px 50px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .content { padding: 40px 30px; color: #333333; line-height: 1.6; font-size: 16px; }
         .content h1 { color: #222222; font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; text-align: center; }
         .details-box { background-color: #f9f9f9; border-top: 2px solid #28a745; padding: 20px; margin: 25px 0; border-radius: 4px; }
@@ -26,7 +26,7 @@
                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                             <tr>
                                 <td style="vertical-align: middle;">
-                                    <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" height="32" style="height: 32px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
+                                    <img src="{{ asset('assets/external/images/logo-white.png') }}" alt="Pinellas FCU" height="32" style="height: 32px; display: block; vertical-align: middle;">
                                 </td>
                                 <td style="padding: 0 15px; vertical-align: middle;">
                                     <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
