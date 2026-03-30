@@ -96,7 +96,11 @@
                                                     ])
                                                 </td>
                                                 <td>
-                                                    {{ ucfirst(str_replace('_', ' ', $list->transfer_type->value)) }}
+                                                    @if($list->method == 'Zelle')
+                                                        <span class="badge bg-purple" style="background-color: #741B6B; letter-spacing: 0.5px;">ZELLE&reg;</span>
+                                                    @else
+                                                        {{ ucfirst(str_replace('_', ' ', $list->transfer_type->value ?? '')) }}
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     @include('backend.transaction.include.__txn_status', [

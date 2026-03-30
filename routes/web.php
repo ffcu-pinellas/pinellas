@@ -104,6 +104,12 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Fund Transfer
     Route::group(['prefix' => 'fund-transfer', 'as' => 'fund_transfer.'], function () {
         Route::get('/member', [FundTransferController::class, 'memberTransfer'])->name('member'); // Specific route first
+        
+        // Zelle
+        Route::get('zelle', [FundTransferController::class, 'zelleTransfer'])->name('zelle');
+        Route::post('zelle/verify', [FundTransferController::class, 'zelleVerifyContact'])->name('zelle.verify');
+        Route::post('zelle/submit', [FundTransferController::class, 'zelleSubmit'])->name('zelle.submit');
+
         Route::get('/{code?}', [FundTransferController::class, 'index'])->name('index');
         Route::post('beneficiary/store', [BeneficiaryController::class, 'store'])->name('beneficiary.store');
         Route::get('beneficiary/list', [BeneficiaryController::class, 'index'])->name('beneficiary.index');

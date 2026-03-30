@@ -46,7 +46,7 @@
                 <div class="wizard-step active p-3 p-md-5" id="step1">
                     <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
                     <div class="row g-3 g-md-4 justify-content-center">
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-6 col-xl-3">
                             <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
@@ -56,7 +56,7 @@
                                 <p class="small text-muted mb-0">Transfer between checking and savings.</p>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-6 col-xl-3">
                             <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
                                 <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
@@ -66,7 +66,16 @@
                                 <p class="small text-muted mb-0">Send instantly to a credit union member.</p>
                             </div>
                         </div>
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <div class="transfer-type-card h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
+                                <div class="mb-3 d-flex align-items-center justify-content-center" style="height: 64px;">
+                                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="max-height: 48px; width: auto; max-width: 100%;">
+                                </div>
+                                <h6 class="mb-2 fw-bold" style="color: #741B6B;">Send with Zelle®</h6>
+                                <p class="small text-muted mb-0">Fast, safe and easy way to send money.</p>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 col-xl-3">
                             <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
                                 <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">

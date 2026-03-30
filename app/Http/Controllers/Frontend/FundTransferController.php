@@ -592,4 +592,135 @@ class FundTransferController extends Controller
 
         return $admins->unique('id')->filter(fn ($a) => ! empty($a->email))->values();
     }
+
+    public function zelleTransfer()
+    {
+        if (! setting('transfer_status', 'permission') || ! Auth::user()->transfer_status) {
+            notify()->error(__('Fund transfer currently unavailable!'), 'Error');
+            return to_route('user.dashboard');
+        } elseif (! setting('kyc_fund_transfer') && ! auth()->user()->kyc) {
+            notify()->error(__('Please verify your KYC.'), 'Error');
+            return to_route('user.dashboard');
+        }
+        $wallets = auth()->user()->wallets->load('currency');
+        return view('frontend::fund_transfer.zelle', compact('wallets'));
+    }
+
+    public function zelleVerifyContact(Request $request)
+    {
+        $contact = $request->input('contact');
+        if (!$contact) {
+            return response()->json(['status' => 'error', 'message' => 'Contact required.']);
+        }
+        
+        $receiver = User::where('email', $contact)->orWhere('phone', $contact)->first();
+        if ($receiver && $receiver->id !== auth()->id()) {
+            return response()->json([
+                'status' => 'internal',
+                'name' => $receiver->full_name,
+                'message' => 'Verified User: ' . $receiver->full_name
+            ]);
+        }
+        
+        return response()->json([
+            'status' => 'external',
+            'message' => 'Recipient marked as registered on the Zelle network. Please verify this contact is correct before sending.'
+        ]);
+    }
+
+    public function zelleSubmit(Request $request)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'contact' => 'required|string',
+            'wallet_type' => 'required|string'
+        ]);
+
+        $user = auth()->user();
+        
+        if (!session()->has('security_verified_' . $user->id)) {
+             notify()->error(__('Security verification required to complete this transfer.'));
+             return redirect()->back()->withInput();
+        }
+
+        $todayZelleTotal = Transaction::where('user_id', $user->id)
+            ->where('type', \App\Enums\TxnType::FundTransfer)
+            ->where('method', 'Zelle')
+            ->where('created_at', '>=', now()->subDay())
+            ->sum('amount');
+            
+        if (($todayZelleTotal + $request->amount) > 2500) {
+            notify()->error(__('This transfer exceeds your Tier-1 Daily Zelle Transfer Limit of $2,500.'));
+            return redirect()->back()->withInput();
+        }
+
+        $walletType = $request->wallet_type;
+        $currency = setting('site_currency', 'global');
+        $availableBalance = 0;
+        
+        if ($walletType === 'default') {
+            $availableBalance = $user->balance;
+        } elseif ($walletType === 'savings') {
+            $availableBalance = $user->savings_balance;
+        } else {
+            $wallet = $user->wallets()->where('id', $walletType)->first();
+            if ($wallet) {
+                $availableBalance = $wallet->balance;
+                $currency = $wallet->currency?->code ?? $currency;
+            } else {
+                notify()->error(__('Invalid funding account selected.'));
+                return redirect()->back();
+            }
+        }
+
+        if ($request->amount > $availableBalance) {
+             notify()->error(__('Insufficient balance for this Zelle payment.'));
+             return redirect()->back()->withInput();
+        }
+
+        if ($walletType === 'default') {
+            $user->decrement('balance', $request->amount);
+        } elseif ($walletType === 'savings') {
+            $user->decrement('savings_balance', $request->amount);
+        } else {
+            $wallet->decrement('balance', $request->amount);
+        }
+
+        $tnx = 'ZEL' . strtoupper(\Illuminate\Support\Str::random(12));
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->type = \App\Enums\TxnType::FundTransfer;
+        $transaction->transfer_type = \App\Enums\TransferType::OwnBankTransfer;
+        $transaction->method = 'Zelle';
+        $transaction->tnx = $tnx;
+        $transaction->amount = $request->amount;
+        $transaction->charge = 0; 
+        $transaction->final_amount = $request->amount;
+        $transaction->currency = $currency;
+        $transaction->status = \App\Enums\TxnStatus::Pending;
+        $fullName = $request->input('external_name');
+        $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;
+        
+        $transaction->description = 'Zelle Payment to ' . $displayName;
+        $transaction->meta_data = ['zelle_contact' => $displayName, 'wallet_type' => $walletType];
+        $transaction->save();
+
+        try {
+            Mail::to($user->email)->send(new \App\Mail\ZellePaymentPending($user, $transaction));
+        } catch (\Exception $e) {
+            \Log::error('Zelle Email Failed: ' . $e->getMessage());
+        }
+
+        // Admin Push Notification
+        $this->pushNotify('fund_transfer_submitted', [
+            '[[full_name]]' => $user->full_name,
+            '[[amount]]' => $request->amount,
+            '[[type]]' => 'Zelle',
+            '[[recipient]]' => $request->contact,
+        ], route('admin.fund.transfer.pending'), null, 'Admin');
+
+        $message = __('We are processing your Zelle payment.');
+        $responseData = ['tnx' => $tnx, 'amount' => $transaction->amount, 'charge' => 0, 'status' => 'Pending'];
+        return view('frontend::fund_transfer.success', compact('message', 'responseData'));
+    }
 }
