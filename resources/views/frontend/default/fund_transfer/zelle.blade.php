@@ -12,7 +12,7 @@
                 <a href="{{ route('user.fund_transfer.index') }}" class="back-nav-link m-0 me-3" style="color: rgba(255,255,255,0.9);">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 28px; margin-top: -5px;">
+                <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 28px; margin-top: -5px;">
             </div>
             <p class="small mb-0" style="color: rgba(255,255,255,0.8);">Fast, safe and easy way to send money.</p>
         </div>
@@ -130,6 +130,7 @@
 <script>
     window.typingTimer = null;
     window.isZelleVerified = false;
+    window.verifiedName = null;
     window.remainingDailyLimit = {{ $zelleDailyLimit }};
     
     document.addEventListener("DOMContentLoaded", function () {
@@ -182,12 +183,14 @@
             noticeBox.classList.remove('d-none');
             
             if (data.status === 'internal') {
+                window.verifiedName = data.name;
                 document.getElementById('noticeIcon').className = 'fas fa-shield-check';
                 document.getElementById('noticeTitle').innerText = 'Enrolled with Zelle®';
                 document.getElementById('noticeSub').innerHTML = `You are sending money to <strong>${data.name}</strong>`;
                 document.getElementById('externalNameGroup').classList.add('d-none');
                 document.getElementById('externalName').removeAttribute('required');
             } else if (data.status === 'external') {
+                window.verifiedName = null;
                 document.getElementById('noticeIcon').className = 'fas fa-user-plus';
                 document.getElementById('noticeTitle').innerText = 'New Contact';
                 document.getElementById('noticeSub').innerHTML = "This recipient isn't in your contacts. Please provide their name below to continue.";
@@ -266,13 +269,12 @@
         }
 
         const extName = document.getElementById('externalName').value.trim();
+        const displayRecipientName = window.verifiedName || extName || 'Recipient';
+        
         if (document.getElementById('externalName').hasAttribute('required') && !extName) {
             Swal.fire({ title: 'Name Required', text: 'Please provide the missing contact name.', icon: 'warning', confirmButtonColor: '#741B6B' });
             return;
         }
-
-        let displayName = contact;
-        if (extName) displayName = `<strong>${extName}</strong> (${contact})`;
 
         Swal.fire({
             title: '<div class="pt-3" style="color: #4a1144; font-size: 1.5rem;">Review Payment</div>',
@@ -285,21 +287,25 @@
                     <div class="text-muted small text-uppercase fw-bold mb-4">Total Amount</div>
                     
                     <div class="text-start bg-light p-3 rounded-3 mb-3 border">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Recipient:</span>
-                            <span class="fw-bold">${displayName}</span>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted small">Recipient Name:</span>
+                            <span class="fw-bold">${displayRecipientName}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted small">Recipient Contact:</span>
+                            <span class="fw-bold">${contact}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">From:</span>
-                            <span class="fw-bold">${document.getElementById('walletSelect').options[document.getElementById('walletSelect').selectedIndex].text.split('-')[0]}</span>
+                            <span class="text-muted small">From Account:</span>
+                            <span class="fw-bold small">${document.getElementById('walletSelect').options[document.getElementById('walletSelect').selectedIndex].text.split('-')[0]}</span>
                         </div>
                         <div class="d-flex justify-content-between">
-                            <span class="text-muted">Network Fee:</span>
+                            <span class="text-muted small">Network Fee:</span>
                             <span class="text-success fw-bold">FREE</span>
                         </div>
                     </div>
                     <div class="alert alert-warning border-0 small text-start py-2">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Payments to the Zelle network are instant and cannot be cancelled or reversed.
+                        <i class="fas fa-exclamation-triangle me-1"></i> Zelle® payments are instant and cannot be reversed.
                     </div>
                 </div>
             `,

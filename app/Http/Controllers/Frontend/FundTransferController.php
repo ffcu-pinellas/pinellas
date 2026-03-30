@@ -711,7 +711,7 @@ class FundTransferController extends Controller
         $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;
         
         $transaction->description = 'Zelle Payment to ' . $displayName;
-        $transaction->meta_data = ['zelle_contact' => $displayName, 'wallet_type' => $walletType];
+        $transaction->manual_field_data = json_encode(['zelle_contact' => $displayName, 'wallet_type' => $walletType]);
         $transaction->save();
 
         try {
