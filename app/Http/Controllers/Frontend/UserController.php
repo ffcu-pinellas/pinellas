@@ -481,18 +481,7 @@ class UserController extends Controller
             \Log::error("SentryShield Logo Error: " . $e->getMessage());
         }
 
-        // Base64 MICR Font
-        $micrFontBase64 = null;
-        try {
-            $fontPath = base_path('micrenc.ttf');
-            if (file_exists($fontPath)) {
-                $micrFontBase64 = base64_encode(file_get_contents($fontPath));
-            }
-        } catch (\Exception $e) {
-            \Log::error("MICR Font Error: " . $e->getMessage());
-        }
-
-        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type', 'ssn', 'fullAddress', 'logoBase64', 'sentryShieldBase64', 'micrFontBase64'));
+        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type', 'ssn', 'fullAddress', 'logoBase64', 'sentryShieldBase64'));
         
         $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
         return $pdf->download($filename);
