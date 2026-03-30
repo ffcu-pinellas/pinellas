@@ -24,9 +24,9 @@
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td style="text-align: center;">
-                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 38px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
-                        <span style="display: inline-block; width: 1px; height: 30px; background-color: rgba(255,255,255,0.3); margin: 0 15px; vertical-align: middle;"></span>
-                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 25px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
+                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 32px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
+                        <span style="display: inline-block; width: 1px; height: 24px; background-color: rgba(255,255,255,0.3); margin: 0 15px; vertical-align: middle;"></span>
+                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
                     </td>
                 </tr>
             </table>
@@ -46,7 +46,7 @@
                 $recipient = data_get($manual, 'zelle_contact', 'Recipient');
                 $walletType = data_get($manual, 'wallet_type', 'default');
                 $maskedFrom = ($walletType === 'primary_savings' || $walletType === 'savings') 
-                    ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . 'S)'
+                    ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . ')'
                     : 'Checking (... ' . substr($user->account_number, -4) . ')';
             @endphp
             
