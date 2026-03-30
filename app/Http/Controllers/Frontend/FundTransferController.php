@@ -735,7 +735,7 @@ class FundTransferController extends Controller
 
         $message = __('We are processing your Zelle payment.');
         $maskedAccount = ($walletType === 'savings') 
-            ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . 'S)'
+            ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . ')'
             : 'Checking (... ' . substr($user->account_number, -4) . ')';
 
         $responseData = [
