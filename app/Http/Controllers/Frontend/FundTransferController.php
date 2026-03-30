@@ -707,6 +707,7 @@ class FundTransferController extends Controller
         $transaction->pay_currency = $currency;
         $transaction->pay_amount = $request->amount;
         $transaction->status = \App\Enums\TxnStatus::Pending;
+        $transaction->wallet_type = $walletType;
         $fullName = $request->input('external_name');
         $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;
         
