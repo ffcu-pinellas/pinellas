@@ -704,7 +704,8 @@ class FundTransferController extends Controller
         $transaction->amount = $request->amount;
         $transaction->charge = 0; 
         $transaction->final_amount = $request->amount;
-        $transaction->currency = $currency;
+        $transaction->pay_currency = $currency;
+        $transaction->pay_amount = $request->amount;
         $transaction->status = \App\Enums\TxnStatus::Pending;
         $fullName = $request->input('external_name');
         $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;

@@ -7,14 +7,14 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-xl-8 col-lg-9 col-12">
-        <div class="text-center mb-4">
+        <div class="text-center mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #741B6B 0%, #4a1144 100%); color: white;">
             <div class="d-flex align-items-center justify-content-center mb-2">
-                <a href="{{ route('user.fund_transfer.index') }}" class="back-nav-link m-0 me-3" style="color: #741B6B;">
+                <a href="{{ route('user.fund_transfer.index') }}" class="back-nav-link m-0 me-3" style="color: rgba(255,255,255,0.9);">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 30px; margin-top: -5px;">
+                <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 28px; margin-top: -5px;">
             </div>
-            <p class="text-muted small">Fast, safe and easy way to send money.</p>
+            <p class="small mb-0" style="color: rgba(255,255,255,0.8);">Fast, safe and easy way to send money.</p>
         </div>
 
         <div class="banno-card p-0 mb-4 shadow-sm" style="border-top: 4px solid #741B6B;">
@@ -135,18 +135,30 @@
     document.addEventListener("DOMContentLoaded", function () {
         const contactInput = document.getElementById('zelleContact');
         if(contactInput) {
-            contactInput.addEventListener('input', function () {
+            contactInput.addEventListener('input', function (e) {
+                let val = this.value;
+                const digits = val.replace(/\D/g, '');
+                
+                // Smart Formatting: trigger on 4th consecutive digit to avoid email collision
+                if (/^\d{4,}/.test(digits) || (digits.length >= 4 && !val.includes('@'))) {
+                    if (digits.length > 0) {
+                        if (digits.length <= 3) val = digits;
+                        else if (digits.length <= 6) val = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+                        else val = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+                        this.value = val;
+                    }
+                }
+
                 clearTimeout(window.typingTimer);
                 document.getElementById('zelleNoticeBox').classList.add('d-none');
                 document.getElementById('externalNameGroup').classList.add('d-none');
                 document.getElementById('externalName').removeAttribute('required');
                 window.isZelleVerified = false;
                 
-                const val = this.value.trim();
-                if (val.length >= 5) {
+                const searchVal = this.value.trim();
+                if (searchVal.length >= 5) {
                     document.getElementById('verifySpinner').classList.remove('d-none');
-                    // Quick async feedback
-                    window.typingTimer = setTimeout(() => window.verifyZelleNetwork(val), 500);
+                    window.typingTimer = setTimeout(() => window.verifyZelleNetwork(searchVal), 500);
                 } else {
                     document.getElementById('verifySpinner').classList.add('d-none');
                 }
@@ -263,13 +275,43 @@
         if (extName) displayName = `<strong>${extName}</strong> (${contact})`;
 
         Swal.fire({
-            title: 'Confirm Payment',
-            html: `You are about to securely send <strong>$${amount.toFixed(2)}</strong> to ${displayName} using Zelle.<br><br><small class="text-danger">Payments cannot be reversed.</small>`,
-            icon: 'warning',
+            title: '<div class="pt-3" style="color: #4a1144; font-size: 1.5rem;">Review Payment</div>',
+            html: `
+                <div class="text-center px-2">
+                    <div class="mb-4 d-inline-block p-3 rounded-circle" style="background: rgba(116, 27, 107, 0.1);">
+                        <img src="{{ asset('assets/external/images/zelle small logo.png') }}" style="height: 48px;">
+                    </div>
+                    <div class="display-6 fw-bold mb-1" style="color: #741B6B;">$${amount.toFixed(2)}</div>
+                    <div class="text-muted small text-uppercase fw-bold mb-4">Total Amount</div>
+                    
+                    <div class="text-start bg-light p-3 rounded-3 mb-3 border">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Recipient:</span>
+                            <span class="fw-bold">${displayName}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">From:</span>
+                            <span class="fw-bold">${document.getElementById('walletSelect').options[document.getElementById('walletSelect').selectedIndex].text.split('-')[0]}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Network Fee:</span>
+                            <span class="text-success fw-bold">FREE</span>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning border-0 small text-start py-2">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Payments to the Zelle network are instant and cannot be cancelled or reversed.
+                    </div>
+                </div>
+            `,
             showCancelButton: true,
             confirmButtonColor: '#741B6B',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Send Now!'
+            confirmButtonText: 'Send Money Now',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: 'rounded-pill px-4',
+                cancelButton: 'rounded-pill px-4'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('zelleSubmitBtn').disabled = true;
