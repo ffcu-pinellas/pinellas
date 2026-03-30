@@ -7,7 +7,7 @@
         .header { background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 30px 20px; text-align: center; }
         .header img { max-width: 180px; height: auto; }
         .content { padding: 40px 30px; color: #333333; line-height: 1.6; font-size: 16px; }
-        .content h2 { color: #d93025; font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; text-align: center; }
+        .content h3 { color: #d93025; font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; text-align: center; }
         .details-box { background-color: #f9f9f9; border-top: 2px solid #d93025; padding: 20px; margin: 25px 0; border-radius: 4px; }
         .details-row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px; }
         .details-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
@@ -24,7 +24,7 @@
         </div>
         
         <div class="content">
-            <h2>Payment Cancelled</h2>
+            <h3>Payment Cancelled</h3>
             <p>Hi {{ $user->first_name }},</p>
             <p>Your Zelle® payment could not be processed and has been cancelled. Any funds deducted from your account have been returned to your balance.</p>
             
