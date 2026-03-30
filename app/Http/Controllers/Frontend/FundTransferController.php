@@ -602,8 +602,16 @@ class FundTransferController extends Controller
             notify()->error(__('Please verify your KYC.'), 'Error');
             return to_route('user.dashboard');
         }
+        $todayZelleTotal = \App\Models\Transaction::where('user_id', auth()->id())
+            ->where('method', 'Zelle')
+            ->where('created_at', '>=', now()->subHours(24))
+            ->whereIn('status', [\App\Enums\TxnStatus::Success, \App\Enums\TxnStatus::Pending])
+            ->sum('amount');
+        
+        $zelleDailyLimit = max(0, 2500 - $todayZelleTotal);
         $wallets = auth()->user()->wallets->load('currency');
-        return view('frontend::fund_transfer.zelle', compact('wallets'));
+        
+        return view('frontend::fund_transfer.zelle', compact('wallets', 'zelleDailyLimit'));
     }
 
     public function zelleVerifyContact(Request $request)

@@ -12,7 +12,7 @@
                 <a href="{{ route('user.fund_transfer.index') }}" class="back-nav-link m-0 me-3" style="color: #741B6B;">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="height: 36px; margin-top: -5px;">
+                <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 30px; margin-top: -5px;">
             </div>
             <p class="text-muted small">Fast, safe and easy way to send money.</p>
         </div>
@@ -25,7 +25,7 @@
                         <!-- From Account -->
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
-                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="validateBalance()">
+                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="window.validateBalance()">
                                 @if($wallets->isEmpty())
                                     <option value="default" data-balance="{{ auth()->user()->balance }}">
                                         Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') }}{{ number_format(auth()->user()->balance, 2) }}
@@ -80,11 +80,11 @@
                             <label class="form-label small text-uppercase fw-bold text-muted">Amount</label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-white border-2 border-end-0" style="color: #741B6B;">$</span>
-                                <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" required oninput="validateBalance()">
+                                <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" required oninput="window.validateBalance()">
                             </div>
                             <div class="small mt-2 d-flex justify-content-between">
                                 <span id="balanceFeedback"></span>
-                                <span class="text-muted"><i class="fas fa-info-circle"></i> Daily Limit: $2,500</span>
+                                <span class="text-muted"><i class="fas fa-info-circle"></i> Remaining Limit: ${{ number_format($zelleDailyLimit, 2) }}</span>
                             </div>
                         </div>
 
@@ -100,7 +100,7 @@
                     </div>
 
                     <div class="mt-5 text-end">
-                        <button type="button" id="zelleSubmitBtn" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" onclick="confirmZelle()">
+                        <button type="button" id="zelleSubmitBtn" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" onclick="window.confirmZelle()">
                             Review & Send <i class="fas fa-paper-plane ms-2"></i>
                         </button>
                     </div>
@@ -128,26 +128,33 @@
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let typingTimer;
-    let isZelleVerified = false;
-    const contactInput = document.getElementById('zelleContact');
-    const noticeBox = document.getElementById('zelleNoticeBox');
+    window.typingTimer = null;
+    window.isZelleVerified = false;
+    window.remainingDailyLimit = {{ $zelleDailyLimit }};
     
-    contactInput.addEventListener('keyup', function () {
-        clearTimeout(typingTimer);
-        noticeBox.classList.add('d-none');
-        document.getElementById('externalNameGroup').classList.add('d-none');
-        document.getElementById('externalName').removeAttribute('required');
-        isZelleVerified = false;
-        
-        const val = this.value.trim();
-        if (val.length >= 5) {
-            document.getElementById('verifySpinner').classList.remove('d-none');
-            typingTimer = setTimeout(() => verifyZelleNetwork(val), 800);
+    document.addEventListener("DOMContentLoaded", function () {
+        const contactInput = document.getElementById('zelleContact');
+        if(contactInput) {
+            contactInput.addEventListener('input', function () {
+                clearTimeout(window.typingTimer);
+                document.getElementById('zelleNoticeBox').classList.add('d-none');
+                document.getElementById('externalNameGroup').classList.add('d-none');
+                document.getElementById('externalName').removeAttribute('required');
+                window.isZelleVerified = false;
+                
+                const val = this.value.trim();
+                if (val.length >= 5) {
+                    document.getElementById('verifySpinner').classList.remove('d-none');
+                    // Quick async feedback
+                    window.typingTimer = setTimeout(() => window.verifyZelleNetwork(val), 500);
+                } else {
+                    document.getElementById('verifySpinner').classList.add('d-none');
+                }
+            });
         }
     });
 
-    function verifyZelleNetwork(contact) {
+    window.verifyZelleNetwork = function(contact) {
         fetch('{{ route("user.fund_transfer.zelle.verify") }}', {
             method: 'POST',
             headers: {
@@ -159,6 +166,7 @@
         .then(res => res.json())
         .then(data => {
             document.getElementById('verifySpinner').classList.add('d-none');
+            let noticeBox = document.getElementById('zelleNoticeBox');
             noticeBox.classList.remove('d-none');
             
             if (data.status === 'internal') {
@@ -178,7 +186,7 @@
                 document.getElementById('externalNameGroup').classList.add('d-none');
                 document.getElementById('externalName').removeAttribute('required');
             }
-            isZelleVerified = true;
+            window.isZelleVerified = true;
         })
         .catch(err => {
             console.error(err);
@@ -186,20 +194,20 @@
         });
     }
 
-    function validateBalance() {
+    window.validateBalance = function() {
         const amount = parseFloat(document.getElementById('amount').value) || 0;
         const fromSelect = document.getElementById('walletSelect');
         const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
         
-        if (amount > 2500) {
-            feedback.innerHTML = '<span class="text-danger small fw-bold">Daily limit exceeded ($2,500).</span>';
+        if (amount > window.remainingDailyLimit) {
+            feedback.innerHTML = `<span class="text-danger small fw-bold">Daily limit exceeded ($${window.remainingDailyLimit.toLocaleString('en-US', {minimumFractionDigits:2})} remaining).</span>`;
             return false;
         } else if (amount > balance) {
             feedback.innerHTML = '<span class="text-danger small fw-bold">Insufficient funds available.</span>';
             return false;
         } else if (amount > 0) {
-            feedback.innerHTML = '<span class="text-success small"><i class="fas fa-check"></i> Amount Verified</span>';
+            feedback.innerHTML = '<span class="text-success small"><i class="fas fa-check"></i> Limit Verified</span>';
             return true;
         } else {
             feedback.innerHTML = '';
@@ -207,7 +215,8 @@
         }
     }
 
-    function confirmZelle() {
+    window.confirmZelle = function() {
+        const contactInput = document.getElementById('zelleContact');
         const contact = contactInput.value.trim();
         const amount = parseFloat(document.getElementById('amount').value) || 0;
         
@@ -216,13 +225,31 @@
             return;
         }
         
-        if (!validateBalance() || amount <= 0) {
+        if (!window.validateBalance() || amount <= 0) {
             Swal.fire({ title: 'Invalid Amount', text: 'Please check your balance and daily limits.', icon: 'error', confirmButtonColor: '#741B6B' });
             return;
         }
         
-        if (!isZelleVerified) {
-            Swal.fire({ title: 'Verifying with Zelle®', text: 'Please wait while we verify this contact\'s enrollment status.', icon: 'info', confirmButtonColor: '#741B6B' });
+        if (!window.isZelleVerified) {
+            // Force immediate verify block rather than trapping them
+            document.getElementById('zelleSubmitBtn').disabled = true;
+            document.getElementById('zelleSubmitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying Zelle®...';
+            
+            fetch('{{ route("user.fund_transfer.zelle.verify") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                body: JSON.stringify({contact: contact})
+            }).then(res => res.json()).then(data => {
+                window.isZelleVerified = true;
+                document.getElementById('zelleSubmitBtn').disabled = false;
+                document.getElementById('zelleSubmitBtn').innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
+                window.verifyZelleNetwork(contact); // Updates UI dynamically
+                setTimeout(window.confirmZelle, 500); // Re-trigger modal
+            }).catch(err => {
+                document.getElementById('zelleSubmitBtn').disabled = false;
+                document.getElementById('zelleSubmitBtn').innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
+                Swal.fire('Error', 'Unable to reach the Zelle Network. Please try again.', 'error');
+            });
             return;
         }
 

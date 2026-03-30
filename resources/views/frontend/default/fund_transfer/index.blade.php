@@ -68,8 +68,8 @@
                         </div>
                         <div class="col-12 col-md-6 col-xl-3">
                             <div class="transfer-type-card h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
-                                <div class="mb-3 d-flex align-items-center justify-content-center" style="height: 64px;">
-                                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="max-height: 48px; width: auto; max-width: 100%;">
+                                <div class="icon-circle mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px; background-color: rgba(116, 27, 107, 0.1);">
+                                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" style="max-height: 32px; width: auto;">
                                 </div>
                                 <h6 class="mb-2 fw-bold" style="color: #741B6B;">Send with Zelle®</h6>
                                 <p class="small text-muted mb-0">Fast, safe and easy way to send money.</p>
