@@ -98,6 +98,9 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('/{code?}', [DepositController::class, 'deposit'])->name('amount');
     });
 
+    // Ava Assistant
+    Route::post('/ava/query', [\App\Http\Controllers\User\AvaController::class, 'query'])->name('ava.query');
+
     // Fund Transfer
     Route::group(['prefix' => 'fund-transfer', 'as' => 'fund_transfer.'], function () {
         Route::get('/member', [FundTransferController::class, 'memberTransfer'])->name('member'); // Specific route first

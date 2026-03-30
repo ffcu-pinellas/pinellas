@@ -9,11 +9,11 @@
         
         /* Master Container */
         .page-wrapper { width: 8.5in; height: 11in; position: relative; overflow: hidden; }
-        .inner-shell { width: 7.0in; margin: 0 auto; padding-top: 50pt; }
+        .inner-shell { width: 7.0in; margin: 0 auto; padding-top: 30pt; }
 
         /* Watermark */
-        .watermark-overlay { position: absolute; top: 15%; left: 1.25in; width: 6.0in; opacity: 0.08; z-index: -1; text-align: center; }
-        .watermark-overlay img { width: 5.0in; }
+        .watermark-overlay { position: absolute; top: 18%; left: 1.25in; width: 6.0in; opacity: 0.08; z-index: -1; text-align: center; }
+        .watermark-overlay img { width: 4.5in; }
 
         /* Typography & Utilities */
         .bold { font-weight: bold; }
@@ -22,19 +22,19 @@
         .text-center { text-align: center; }
         
         /* Header Components */
-        .bank-header-row { border-bottom: 2pt solid #00549b; padding-bottom: 12pt; margin-bottom: 25pt; position: relative; }
-        .bank-logo-img { width: 200pt; }
-        .bank-contact { position: absolute; top: 0; right: 0; text-align: right; font-size: 9pt; color: #333; line-height: 1.3; }
+        .bank-header-row { border-bottom: 2pt solid #00549b; padding-bottom: 10pt; margin-bottom: 20pt; position: relative; }
+        .bank-logo-img { width: 180pt; }
+        .bank-contact { position: absolute; top: 0; right: 0; text-align: right; font-size: 8.5pt; color: #333; line-height: 1.25; }
 
         /* Document Body */
-        .letter-title { font-size: 24pt; font-weight: bold; color: #00549b; text-align: center; margin: 30pt 0; }
-        .letter-para { font-size: 11pt; line-height: 1.6; text-align: justify; margin-bottom: 20pt; }
+        .letter-title { font-size: 20pt; font-weight: bold; color: #00549b; text-align: center; margin: 20pt 0; }
+        .letter-para { font-size: 10.5pt; line-height: 1.5; text-align: justify; margin-bottom: 15pt; }
         
-        table.data-grid { width: 100%; border-collapse: collapse; margin-bottom: 30pt; }
-        table.data-grid td { padding: 10pt 0; font-size: 11pt; border-bottom: 0.5pt solid #eee; }
+        table.data-grid { width: 100%; border-collapse: collapse; margin-bottom: 20pt; }
+        table.data-grid td { padding: 8pt 0; font-size: 10.5pt; border-bottom: 0.5pt solid #eee; }
         .label-cell { width: 35%; font-weight: bold; color: #444; }
 
-        .highlight-box { border: 2pt solid #00549b; background: #f9fbff; padding: 20pt; border-radius: 6pt; margin-bottom: 40pt; }
+        .highlight-box { border: 2pt solid #00549b; background: #f9fbff; padding: 15pt; border-radius: 6pt; margin-bottom: 30pt; }
 
     </style>
 </head>
