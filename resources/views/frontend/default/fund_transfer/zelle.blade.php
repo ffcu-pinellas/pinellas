@@ -12,7 +12,7 @@
                 <a href="{{ route('user.fund_transfer.index') }}" class="back-nav-link m-0 me-3" style="color: rgba(255,255,255,0.9);">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 28px; margin-top: -5px;">
+                <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 38px; margin-top: -5px;">
             </div>
             <p class="small mb-0" style="color: rgba(255,255,255,0.8);">Fast, safe and easy way to send money.</p>
         </div>
@@ -109,7 +109,7 @@
         </div>
         
         <div class="text-center mt-4">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 25px; opacity: 0.8; filter: grayscale(100%);">
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%);">
             <p class="small text-muted mt-2">Zelle and the Zelle related marks are wholly owned by<br>Early Warning Services, LLC and are used herein under license.</p>
         </div>
     </div>

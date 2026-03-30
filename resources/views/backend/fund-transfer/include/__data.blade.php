@@ -93,6 +93,12 @@
                     <div class="attribute">{{ __('Branch Name') }}:</div>
                     <div class="value">{{ $transaction->beneficiary->branch_name ?? data_get($manual_field, 'branch_name') }}</div>
                 </div>
+                @if($transaction->method == 'Zelle')
+                <div class="profile-text-data">
+                    <div class="attribute">{{ __('Zelle Recipient') }}:</div>
+                    <div class="value fw-bold text-primary">{{ data_get($manual_field, 'zelle_contact') }}</div>
+                </div>
+                @endif
                 @elseif(isset($manual_field) && is_array($manual_field))
                     @foreach ($manual_field as $key => $data)
                         <div class="profile-text-data">

@@ -729,7 +729,13 @@ class FundTransferController extends Controller
         ], route('admin.fund.transfer.pending'), null, 'Admin');
 
         $message = __('We are processing your Zelle payment.');
-        $responseData = ['tnx' => $tnx, 'amount' => $transaction->amount, 'charge' => 0, 'status' => 'Pending'];
+        $responseData = [
+            'tnx' => $tnx, 
+            'amount' => $transaction->amount, 
+            'charge' => 0, 
+            'status' => 'Pending',
+            'account' => $displayName
+        ];
         return view('frontend::fund_transfer.success', compact('message', 'responseData'));
     }
 }

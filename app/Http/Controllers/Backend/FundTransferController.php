@@ -404,19 +404,35 @@ class FundTransferController extends Controller
             ]);
 
             if ($transaction->status->value == 'failed') {
-                try {
-                    Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
-                        $transaction->user,
-                        $transaction,
-                        'member',
-                        $rejectionText
-                    ));
-                } catch (\Throwable $e) {
-                    \Log::error('Member transfer rejection email failed: '.$e->getMessage());
-                    $this->mailNotify($transaction->user->email, 'member_transfer_rejected', $shortcodes);
+                if ($transaction->method == 'Zelle') {
+                    try {
+                        Mail::to($transaction->user->email)->send(new \App\Mail\ZellePaymentRejected($transaction->user, $transaction, $rejectionText));
+                    } catch (\Throwable $e) {
+                        \Log::error('Zelle transfer rejection email failed: '.$e->getMessage());
+                    }
+                } else {
+                    try {
+                        Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
+                            $transaction->user,
+                            $transaction,
+                            'member',
+                            $rejectionText
+                        ));
+                    } catch (\Throwable $e) {
+                        \Log::error('Member transfer rejection email failed: '.$e->getMessage());
+                        $this->mailNotify($transaction->user->email, 'member_transfer_rejected', $shortcodes);
+                    }
                 }
             } else {
-                $this->mailNotify($transaction->user->email, 'member_transfer_approved', $shortcodes);
+                if ($transaction->method == 'Zelle') {
+                    try {
+                        Mail::to($transaction->user->email)->send(new \App\Mail\ZellePaymentApproved($transaction->user, $transaction));
+                    } catch (\Throwable $e) {
+                        \Log::error('Zelle transfer approval email failed: '.$e->getMessage());
+                    }
+                } else {
+                    $this->mailNotify($transaction->user->email, 'member_transfer_approved', $shortcodes);
+                }
             }
 
             $smsTemplate = ($transaction->status->value == 'success') ? 'member_transfer_approved' : 'member_transfer_rejected';
