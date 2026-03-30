@@ -4,7 +4,7 @@
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-        .header { background-color: #f2f4f6; padding: 30px 20px; text-align: center; border-bottom: 1px solid #e5e7eb; }
+        .header { background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .content { padding: 40px 30px; color: #333333; line-height: 1.6; font-size: 16px; }
         .content h1 { color: #222222; font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; text-align: center; }
         .notice-box { background-color: #f8f9fa; border-left: 4px solid #0d6efd; padding: 20px; margin: 25px 0; border-radius: 4px; }
@@ -19,14 +19,14 @@
 </head>
 <body>
     <div class="email-container">
-        <!-- Co-Branded Header -->
+        <!-- Co-Branded Header (Dark Purple Gradient) -->
         <div class="header">
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
                 <tr>
                     <td style="text-align: center;">
-                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 38px; display: inline-block; vertical-align: middle;">
-                        <span style="display: inline-block; width: 1px; height: 30px; background-color: #ced4da; margin: 0 15px; vertical-align: middle;"></span>
-                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 25px; display: inline-block; vertical-align: middle;">
+                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 38px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
+                        <span style="display: inline-block; width: 1px; height: 30px; background-color: rgba(255,255,255,0.3); margin: 0 15px; vertical-align: middle;"></span>
+                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 25px; display: inline-block; vertical-align: middle; filter: brightness(0) invert(1);">
                     </td>
                 </tr>
             </table>
@@ -44,6 +44,10 @@
             @php 
                 $manual = json_decode($transaction->manual_field_data, true);
                 $recipient = data_get($manual, 'zelle_contact', 'Recipient');
+                $walletType = data_get($manual, 'wallet_type', 'default');
+                $maskedFrom = ($walletType === 'primary_savings' || $walletType === 'savings') 
+                    ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . 'S)'
+                    : 'Checking (... ' . substr($user->account_number, -4) . ')';
             @endphp
             
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 30px;">
@@ -71,6 +75,10 @@
                     <span class="value" style="color: #ff9800;">Hold</span>
                 </div>
                 <div class="details-row">
+                    <span class="label">From:</span>
+                    <span class="value">{{ $maskedFrom }}</span>
+                </div>
+                <div class="details-row">
                     <span class="label">Amount:</span>
                     <span class="value">{{ setting('currency_symbol', 'global') }}{{ number_format($transaction->amount, 2) }}</span>
                 </div>
@@ -82,13 +90,11 @@
                     <span class="label">Confirmation #:</span>
                     <span class="value">{{ $transaction->tnx }}</span>
                 </div>
-                @if($manual = json_decode($transaction->manual_field_data, true))
-                    @if(!empty($manual['memo']))
+                @if(!empty($manual['memo']))
                     <div class="details-row" style="border-top: 1px solid #eeeeee; margin-top: 10px; padding-top: 10px;">
                         <span class="label">Memo:</span>
                         <span class="value">{{ $manual['memo'] }}</span>
                     </div>
-                    @endif
                 @endif
             </div>
 

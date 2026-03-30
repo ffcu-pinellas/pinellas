@@ -7,15 +7,15 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-lg-7 col-md-10 col-12">
-        <div class="site-card border-0 shadow-sm overflow-hidden" style="border-radius: 12px; background: #fff;">
-            <!-- Co-Branded Header -->
-            <div style="background-color: #f2f4f6; padding: 20px 24px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between;">
+        <div class="site-card border-0 shadow-lg overflow-hidden" style="border-radius: 12px; background: #fff;">
+            <!-- Co-Branded Header (Official Zelle Purple) -->
+            <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 32px;">
-                    <div style="width: 1px; height: 24px; background-color: #ced4da;"></div>
-                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px;">
+                    <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 32px; filter: brightness(0) invert(1);">
+                    <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
+                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
                 </div>
-                <a href="{{ route('user.dashboard') }}" class="text-primary text-decoration-none fw-bold small">{{ __('Close') }}</a>
+                <a href="{{ route('user.dashboard') }}" class="text-white text-decoration-none fw-bold small" style="opacity: 0.8;">{{ __('Close') }}</a>
             </div>
             
             <div class="p-4 p-md-5">
@@ -41,10 +41,20 @@
                             <span class="text-muted small">{{ __('Zelle® payment') }}</span>
                         </div>
                     </div>
+
+                    <div class="detail-item py-3 d-flex justify-content-between align-items-start border-bottom">
+                        <span class="text-muted">{{ __('Recipient') }}</span>
+                        <div class="text-end">
+                            <span class="fw-bold text-dark d-block" style="font-size: 1.05rem;">{{ $responseData['account'] }}</span>
+                        </div>
+                    </div>
                     
                     <div class="detail-item py-3 d-flex justify-content-between align-items-center border-bottom">
                         <span class="text-muted">{{ __('From') }}</span>
-                        <span class="fw-bold text-dark text-end" style="font-size: 1.05rem;">{{ strtoupper(auth()->user()->full_name) }}</span>
+                        <div class="text-end">
+                            <span class="fw-bold text-dark d-block" style="font-size: 1.05rem;">{{ $responseData['from_account'] }}</span>
+                            <span class="text-muted small">{{ strtoupper(auth()->user()->full_name) }}</span>
+                        </div>
                     </div>
 
                     <div class="detail-item py-3 d-flex justify-content-between align-items-center border-bottom">

@@ -734,11 +734,16 @@ class FundTransferController extends Controller
         ], route('admin.fund.transfer.pending'), null, 'Admin');
 
         $message = __('We are processing your Zelle payment.');
+        $maskedAccount = ($walletType === 'savings') 
+            ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . 'S)'
+            : 'Checking (... ' . substr($user->account_number, -4) . ')';
+
         $responseData = [
             'tnx' => $tnx, 
             'amount' => $transaction->amount, 
             'status' => 'Pending',
             'account' => $displayName,
+            'from_account' => $maskedAccount,
             'memo' => $request->purpose,
             'date' => \Carbon\Carbon::now()->format('M d, Y')
         ];
