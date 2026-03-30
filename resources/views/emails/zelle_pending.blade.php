@@ -4,10 +4,10 @@
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0; }
         .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
-        .header { background-color: #741B6B; padding: 25px 20px; text-align: center; }
-        .header img { max-width: 120px; }
+        .header { background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); padding: 30px 20px; text-align: center; }
+        .header img { max-width: 180px; height: auto; }
         .content { padding: 40px 30px; color: #333333; line-height: 1.6; font-size: 16px; }
-        .content h1 { color: #222222; font-size: 24px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; }
+        .content h1 { color: #222222; font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.2; text-align: center; }
         .details-box { background-color: #f9f9f9; border-top: 2px solid #741B6B; padding: 20px; margin: 25px 0; border-radius: 4px; }
         .details-row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px; }
         .details-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
@@ -21,8 +21,8 @@
 <body>
     <div class="email-container">
         <!-- Zelle Branded Header -->
-        <div class="header" style="background-color: #741B6B; padding: 30px; text-align: center;">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 40px; display: inline-block;">
+        <div class="header">
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="filter: brightness(0) invert(1); max-height: 40px; display: inline-block;">
         </div>
         
         <div class="content">

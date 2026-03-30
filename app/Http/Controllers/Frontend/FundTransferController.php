@@ -736,6 +736,6 @@ class FundTransferController extends Controller
             'status' => 'Pending',
             'account' => $displayName
         ];
-        return view('frontend::fund_transfer.success', compact('message', 'responseData'));
+        return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
     }
 }
