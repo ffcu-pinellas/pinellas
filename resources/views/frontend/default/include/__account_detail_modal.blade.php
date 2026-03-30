@@ -98,6 +98,11 @@
                         <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: #00549b; border: none;">Transfer Funds</a>
                     </div>
                 </div>
+                <div id="directDepositRow" class="mt-3 d-none">
+                    <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;">
+                        <i class="fas fa-file-invoice me-2"></i>Set up Direct Deposit
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -199,6 +204,20 @@
         const viewActivityBtn = document.getElementById('btnViewActivity');
         if (viewActivityBtn) {
             viewActivityBtn.href = baseActivityUrl + "?wallet=" + type;
+        }
+
+        // Direct Deposit Button logic
+        const ddRow = document.getElementById('directDepositRow');
+        const ddBtn = document.getElementById('btnDirectDeposit');
+        const showDD = ['checking', 'savings', 'ira', 'default'].includes(type);
+        
+        if (ddRow && ddBtn) {
+            if (showDD) {
+                ddRow.classList.remove('d-none');
+                ddBtn.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', type);
+            } else {
+                ddRow.classList.add('d-none');
+            }
         }
 
         const currency = "{{ setting('currency_symbol','$') }}";

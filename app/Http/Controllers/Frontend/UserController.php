@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\NotifyTrait;
 use Session;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserController extends Controller
 {
@@ -419,5 +420,41 @@ class UserController extends Controller
 
         notify()->success('Test notification sent! Check your device.', 'Success');
         return back();
+    }
+
+    /**
+     * Download Direct Deposit Authorization Form (Combination Letter + Void Check)
+     */
+    public function downloadDirectDeposit($type)
+    {
+        $user = auth()->user();
+        $accountNumber = match($type) {
+            'savings' => $user->savings_account_number,
+            'ira' => $user->ira_account_number,
+            'heloc' => $user->heloc_account_number,
+            'cc' => $user->cc_account_number,
+            'loan' => $user->loan_account_number,
+            default => $user->account_number,
+        };
+
+        if (!$accountNumber) {
+            notify()->error('Account number not found for this account type.', 'Error');
+            return back();
+        }
+
+        $routingNumber = '063192257'; // Pinellas FCU Routing Number
+        $accountTitle = match($type) {
+            'savings' => 'Savings Account',
+            'ira' => 'IRA Account',
+            'heloc' => 'HELOC',
+            'cc' => 'Credit Card',
+            'loan' => 'Loan Account',
+            default => 'Checking Account',
+        };
+
+        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type'));
+        
+        $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
+        return $pdf->download($filename);
     }
 }
