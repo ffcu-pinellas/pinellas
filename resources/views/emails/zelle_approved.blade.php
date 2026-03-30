@@ -19,11 +19,19 @@
 </head>
 <body>
     <div class="email-container">
-        <div class="header" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-            <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 40px; filter: brightness(0) invert(1);">
-            <div style="width: 1px; height: 30px; background-color: rgba(255,255,255,0.3);"></div>
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 30px; filter: brightness(0) invert(1);">
-        </div>
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+            <tr>
+                <td width="48%" style="background-color: #ffffff; text-align: center; padding: 25px 15px;">
+                    <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="max-height: 45px; display: inline-block;">
+                </td>
+                <td width="4%" style="background-color: #ffffff; text-align: center; color: #741B6B; font-weight: bold; font-size: 22px; padding: 0;">
+                    +
+                </td>
+                <td width="48%" style="background-color: #741B6B; background: linear-gradient(135deg, #741B6B 0%, #4B1045 100%); text-align: center; padding: 25px 15px;">
+                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 35px; filter: brightness(0) invert(1); display: inline-block;">
+                </td>
+            </tr>
+        </table>
         
         <div class="content">
             <h1 style="color: #28a745;">Money Sent!</h1>
