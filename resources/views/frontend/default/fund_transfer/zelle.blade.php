@@ -1,5 +1,11 @@
 @extends('frontend::layouts.user')
 
+@php
+    $fullName = auth()->user()->full_name;
+    $nameParts = explode(' ', $fullName);
+    $initials = strtoupper(substr($nameParts[0], 0, 1) . (count($nameParts) > 1 ? substr($nameParts[count($nameParts) - 1], 0, 1) : ''));
+@endphp
+
 @section('title')
     {{ __('Send Money with Zelle®') }}
 @endsection
@@ -143,31 +149,38 @@
 
                     <!-- Receive Tab -->
                     <div id="section-receive" class="zelle-section d-none">
-                        <div class="text-center py-4">
-                            <div class="mb-4 p-4 border-dashed rounded-4 bg-light d-inline-block position-relative shadow-sm" style="border: 2px dashed #ddd;">
-                                <div id="zelle-qr-code" class="qr-container bg-white p-3 rounded-4">
-                                    <!-- QR Code will be injected here -->
+                        <div class="d-flex flex-column align-items-center py-5">
+                            <div class="qr-card shadow-lg p-0 text-center position-relative bg-white mb-4" style="width: 100%; max-width: 320px; border: 2px solid #333; border-radius: 24px; overflow: visible;">
+                                <!-- Initials Circle -->
+                                <div class="initials-avatar position-absolute top-0 start-50 translate-middle shadow-sm" style="width: 80px; height: 80px; background: #717171; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; border: 4px solid #fff; font-weight: 500;">
+                                    {{ $initials }}
                                 </div>
-                                <div class="mt-3">
-                                    <div class="fw-bold fs-5 text-dark">{{ auth()->user()->full_name }}</div>
-                                    <div class="text-muted small">{{ auth()->user()->email }} / {{ auth()->user()->mobile ?? 'Mobile not linked' }}</div>
-                                </div>
-                                <div class="position-absolute top-50 start-50 translate-middle opacity-10" style="z-index: 0;">
-                                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" style="width: 150px; filter: grayscale(1);">
+                                
+                                <div class="px-4 pb-4 pt-5 mt-2">
+                                    <h3 class="fw-bold mb-1 text-dark" style="letter-spacing: 0.5px; font-family: sans-serif;">{{ strtoupper($fullName) }}</h3>
+                                    <p class="text-secondary small mb-4" style="font-size: 0.9rem;">{{ auth()->user()->email }}</p>
+                                    
+                                    <div id="zelle-qr-code" class="d-flex justify-content-center mb-4 p-3 bg-white rounded-4 shadow-sm mx-3" style="border: 1px solid #f0f0f0;">
+                                        <!-- QR Code will be injected here -->
+                                    </div>
+                                    
+                                    <div class="mb-5">
+                                        <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="height: 38px;">
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-center gap-5 pt-3 border-top mx-4">
+                                        <a href="javascript:void(0)" onclick="window.saveZelleQRAsImage()" class="text-dark opacity-75 d-flex flex-column align-items-center text-decoration-none" title="Save to Gallery">
+                                            <i class="fas fa-download fs-2 mb-1"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="window.shareZelleQR()" class="text-dark opacity-75 d-flex flex-column align-items-center text-decoration-none" title="Share Code">
+                                            <i class="fas fa-share-alt fs-2 mb-1"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info border-0 rounded-4 p-3 small mb-4 mx-auto" style="max-width: 400px; background: #eef2ff; color: #4338ca;">
+                            <div class="alert alert-info border-0 rounded-4 p-3 small mx-3" style="max-width: 400px; background: #eef2ff; color: #4338ca;">
                                 <i class="fas fa-info-circle me-2"></i> Others can scan this code to send you money quickly and securely with Zelle®.
-                            </div>
-
-                            <div class="d-grid gap-3 d-sm-flex justify-content-center">
-                                <button type="button" onclick="window.saveZelleQRAsImage()" class="btn btn-outline-primary rounded-pill px-4">
-                                    <i class="fas fa-download me-2"></i> Save to Gallery
-                                </button>
-                                <button type="button" onclick="window.shareZelleQR()" class="btn btn-outline-dark rounded-pill px-4">
-                                    <i class="fas fa-share-alt me-2"></i> Share Code
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -455,18 +468,78 @@
 
     window.saveZelleQRAsImage = function() {
         const qrCanvas = document.querySelector('#zelle-qr-code canvas');
-        if (!qrCanvas) return;
-        const link = document.createElement('a');
-        link.download = 'My_Zelle_Code.png';
-        link.href = qrCanvas.toDataURL('image/png');
-        link.click();
+        if (!qrCanvas) {
+            Swal.fire('Error', 'QR code not ready.', 'error');
+            return;
+        }
+
+        // Create high-quality card canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 600;
+        canvas.height = 850;
+
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.roundRect(0, 0, canvas.width, canvas.height, 40);
+        ctx.fill();
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Initials Circle
+        ctx.beginPath();
+        ctx.arc(300, 0, 80, 0, Math.PI * 2);
+        ctx.fillStyle = '#717171';
+        ctx.fill();
+        ctx.font = 'bold 60px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.fillText("{{ $initials }}", 300, 45);
+
+        // Name
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 42px sans-serif';
+        ctx.fillText("{{ strtoupper($fullName) }}", 300, 160);
+
+        // Contact
+        ctx.fillStyle = '#666666';
+        ctx.font = '28px sans-serif';
+        ctx.fillText("{{ auth()->user()->email }}", 300, 210);
+
+        // QR Code (scaled up)
+        ctx.drawImage(qrCanvas, 100, 280, 400, 400);
+
+        // Zelle Logo
+        const zelleImg = new Image();
+        zelleImg.src = "{{ asset('assets/external/images/zelle.png') }}";
+        zelleImg.onload = function() {
+            const logoWidth = 150;
+            const logoHeight = (zelleImg.height / zelleImg.width) * logoWidth;
+            ctx.drawImage(zelleImg, (canvas.width - logoWidth) / 2, 730, logoWidth, logoHeight);
+
+            // Trigger Download
+            const link = document.createElement('a');
+            link.download = 'Pay_Me_With_Zelle.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            Swal.fire({ title: 'Saved!', text: 'Your Zelle card has been saved to gallery.', icon: 'success', timer: 1500, showConfirmButton: false });
+        };
     }
 
     window.shareZelleQR = function() {
-        const textToCopy = "Pay me with Zelle®: {{ auth()->user()->email }}";
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            Swal.fire({ title: 'Info Copied', text: 'Your Zelle® info has been copied to clipboard.', icon: 'success' });
-        });
+        const shareText = "Pay me with Zelle®: {{ $fullName }} ({{ auth()->user()->email }})";
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Zelle® Code',
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(shareText).then(() => {
+                Swal.fire({ title: 'Info Copied', text: 'Payment info copied to clipboard.', icon: 'success', timer: 1500, showConfirmButton: false });
+            });
+        }
     }
 
     window.zelleScanner = null;
