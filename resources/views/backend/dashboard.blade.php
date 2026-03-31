@@ -12,7 +12,6 @@
                         <div class="title-content">
                             <h2 class="title">{{ setting('site_title', 'global') }} {{ __('Dashboard') }}</h2>
                             <a href="{{ route('admin.clear-cache') }}" class="title-btn red-btn"><i data-lucide="refresh-cw"></i>{{ __('Clear Site Cache') }}</a>
-                            <a href="{{ route('admin.run-migration') }}" class="title-btn primary-btn"><i data-lucide="database"></i>{{ __('Run Database Migration') }}</a>
                         </div>
                         
                     </div>

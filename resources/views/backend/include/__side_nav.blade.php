@@ -780,10 +780,6 @@
                                 <a href="{{ route('admin.clear-cache') }}"><i
                                         data-lucide="trash-2"></i><span>{{ __('Clear Cache') }}</span></a>
                             </li>
-                            <li class="{{ isActive('admin.run-migration') }}">
-                                <a href="{{ route('admin.run-migration') }}"><i
-                                        data-lucide="database"></i><span>{{ __('Run Migration') }}</span></a>
-                            </li>
                         @endcan
                         @can('application-details')
                             <li class="{{ isActive('admin.application-info') }}">
