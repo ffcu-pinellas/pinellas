@@ -26,7 +26,7 @@
                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                             <tr>
                                 <td style="vertical-align: middle;">
-                                    <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" height="32" style="height: 32px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
+                                    <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" height="32" style="height: 32px; display: block; vertical-align: middle;">
                                 </td>
                                 <td style="padding: 0 15px; vertical-align: middle;">
                                     <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
