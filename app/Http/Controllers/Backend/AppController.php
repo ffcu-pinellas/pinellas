@@ -171,6 +171,18 @@ class AppController extends Controller
         return redirect()->back();
     }
 
+    public function runMigration()
+    {
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            notify()->success(__('Database migration completed successfully!'), 'Success');
+        } catch (\Exception $e) {
+            notify()->error(__('Migration failed: ') . $e->getMessage(), 'Error');
+        }
+
+        return redirect()->back();
+    }
+
     public function pushTest()
     {
         $admin = auth('admin')->user();
