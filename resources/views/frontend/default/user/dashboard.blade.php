@@ -161,11 +161,9 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row g-4 centering-fix">
     <!-- Left Column: Accounts & Transactions -->
-<div class="row">
-    <!-- Left Column: Accounts & Transactions -->
-    <div class="col-lg-6 col-12 mb-4">
+    <div class="col-lg-6 col-12">
 
         <!-- Recent Transactions -->
                         <!-- Recent Transactions (Widget Index: transactions) -->

@@ -20,7 +20,29 @@
         <div class="banno-card p-0 mb-4 shadow-sm" style="border-top: 4px solid #741B6B;">
             <form action="{{ route('user.fund_transfer.zelle.submit') }}" method="POST" id="zelleForm">
                 @csrf
-                <div class="p-4 p-md-5">
+            <div class="p-4 p-md-5">
+                <!-- Zelle Tabs -->
+                <div class="d-flex border-bottom mb-4 justify-content-center" style="gap: 1.5rem;">
+                    <a href="javascript:void(0)" onclick="window.switchZelleTab('send')" class="zelle-tab active pb-2 text-decoration-none fw-bold" id="tab-send">Send</a>
+                    <a href="javascript:void(0)" onclick="window.switchZelleTab('receive')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-receive">Receive</a>
+                    <a href="javascript:void(0)" onclick="window.switchZelleTab('activity')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-activity">Activity</a>
+                </div>
+
+                <!-- Send Tab -->
+                <div id="zelle-send-content">
+                    <div class="text-end mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="window.startZelleScanner()">
+                            <i class="fas fa-qrcode me-1"></i> Scan to Pay
+                        </button>
+                    </div>
+                    
+                    <div id="zelle-scanner-container" class="mb-4 d-none">
+                        <div id="zelle-reader" style="width: 100%; border-radius: 12px; overflow: hidden;"></div>
+                        <div class="text-center mt-2">
+                            <button type="button" class="btn btn-link text-danger text-decoration-none small" onclick="window.stopZelleScanner()">Cancel Scan</button>
+                        </div>
+                    </div>
+
                     <div class="row g-4">
                         <!-- From Account -->
                         <div class="col-12">
@@ -103,6 +125,46 @@
                         <button type="button" id="zelleSubmitBtn" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" onclick="window.confirmZelle()">
                             Review & Send <i class="fas fa-paper-plane ms-2"></i>
                         </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receive Tab -->
+                <div id="zelle-receive-content" class="d-none text-center">
+                    <div class="p-4">
+                        <div class="mb-4 d-inline-block p-4 rounded-circle" style="background: rgba(116, 27, 107, 0.05);">
+                            <img src="{{ asset('assets/external/images/zelle small logo.png') }}" style="height: 54px;">
+                        </div>
+                        <h3 class="fw-bold mb-1" style="color: #741B6B;">My Zelle® Code</h3>
+                        <p class="text-muted small mb-4">Show this code to a friend to receive money instantly.</p>
+                        
+                        <div class="qr-container p-4 bg-white shadow-sm border rounded-4 d-inline-block mb-4" style="border: 2px solid #741B6B !important;">
+                            <div id="zelle-qr-code"></div>
+                        </div>
+
+                        <div class="user-info-card bg-light p-3 rounded-4 mb-4" style="max-width: 320px; margin: 0 auto;">
+                            <h5 class="fw-bold mb-1">{{ auth()->user()->full_name }}</h5>
+                            <div class="text-muted small">{{ safe(auth()->user()->email) }}</div>
+                            <div class="text-muted small">{{ auth()->user()->phone ?? 'No phone linked' }}</div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-3">
+                            <button type="button" onclick="window.smartPrint()" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+                                <i class="fas fa-print me-2"></i> Print or Save
+                            </button>
+                            <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" onclick="navigator.share({ title: 'My Zelle Code', text: 'Scan to pay me with Zelle', url: window.location.href })">
+                                <i class="fas fa-share-alt me-2"></i> Share
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Tab -->
+                <div id="zelle-activity-content" class="d-none">
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-3x text-muted mb-3 opacity-25"></i>
+                        <h5 class="text-muted">No recent Zelle activity</h5>
+                        <p class="small text-muted">Your Zelle payments and requests will appear here.</p>
                     </div>
                 </div>
             </form>
@@ -122,11 +184,17 @@
         border-color: #741B6B !important;
         box-shadow: 0 0 0 0.25rem rgba(116, 27, 107, 0.1) !important;
     }
+    .zelle-tab { border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; }
+    .zelle-tab.active { border-bottom-color: #741B6B; color: #741B6B !important; }
+    .zelle-tab:hover { color: #741B6B; }
+    .qr-container canvas { max-width: 100% !important; height: auto !important; }
 </style>
 @endsection
 
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 <script>
     window.typingTimer = null;
     window.isZelleVerified = false;
@@ -325,6 +393,118 @@
                 SecurityGate.gate(document.getElementById('zelleForm'));
             }
         });
+    }
+
+    window.switchZelleTab = function(tab) {
+        document.querySelectorAll('.zelle-tab').forEach(el => {
+            el.classList.add('text-muted');
+            el.classList.remove('active');
+        });
+        document.getElementById('tab-' + tab).classList.remove('text-muted');
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        document.getElementById('zelle-send-content').classList.add('d-none');
+        document.getElementById('zelle-receive-content').classList.add('d-none');
+        document.getElementById('zelle-activity-content').classList.add('d-none');
+        
+        document.getElementById('zelle-' + tab + '-content').classList.remove('d-none');
+
+        if(tab === 'receive') {
+            window.generateZelleQR();
+        }
+    }
+
+    window.generateZelleQR = function() {
+        const qrContainer = document.getElementById('zelle-qr-code');
+        if(qrContainer.innerHTML !== '') return; // Already generated
+
+        const userData = {
+            service: 'zelle',
+            n: "{{ auth()->user()->full_name }}",
+            c: "{{ auth()->user()->email }}",
+            p: "{{ auth()->user()->phone ?? '' }}"
+        };
+
+        new QRCode(qrContainer, {
+            text: JSON.stringify(userData),
+            width: 200,
+            height: 200,
+            colorDark : "#741B6B",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
+
+    window.smartPrint = function() {
+        if (typeof window.print === 'function' && !/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+            window.print();
+        } else {
+            window.print();
+        }
+    }
+
+    window.zelleScanner = null;
+
+    window.startZelleScanner = function() {
+        document.getElementById('zelle-scanner-container').classList.remove('d-none');
+        window.zelleScanner = new Html5Qrcode("zelle-reader");
+        
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        window.zelleScanner.start(
+            { facingMode: "environment" }, 
+            config,
+            (decodedText, decodedResult) => {
+                window.stopZelleScanner();
+                window.handleScannedData(decodedText);
+            }
+        ).catch(err => {
+            console.error(err);
+            Swal.fire('Scanner Error', 'Could not access camera. Please check permissions.', 'error');
+            window.stopZelleScanner();
+        });
+    }
+
+    window.stopZelleScanner = function() {
+        if (window.zelleScanner) {
+            window.zelleScanner.stop().then(() => {
+                document.getElementById('zelle-scanner-container').classList.add('d-none');
+            }).catch(err => console.error(err));
+        }
+    }
+
+    window.handleScannedData = function(data) {
+        try {
+            const parsed = JSON.parse(data);
+            if (parsed.service === 'zelle') {
+                document.getElementById('zelleContact').value = parsed.c;
+                if (parsed.n) {
+                    // Populate name if it's an external contact check
+                    // We trigger the input event to start the verification logic
+                    const event = new Event('input', { bubbles: true });
+                    document.getElementById('zelleContact').dispatchEvent(event);
+                    
+                    // Wait a bit for verification to start, then force name if needed
+                    setTimeout(() => {
+                        const nameField = document.getElementById('externalName');
+                        if (nameField) nameField.value = parsed.n;
+                    }, 800);
+                }
+                Swal.fire({ title: 'Contact Scanned', text: `Recipient set to ${parsed.n || parsed.c}`, icon: 'success', timer: 2000, showConfirmButton: false });
+            } else {
+                Swal.fire('Invalid QR', 'This does not appear to be a Zelle® QR code.', 'error');
+            }
+        } catch (e) {
+            // Check if it's a plain email or phone
+            if (data.includes('@') || /^\d{10,15}$/.test(data.replace(/\D/g, ''))) {
+                 document.getElementById('zelleContact').value = data;
+                 const event = new Event('input', { bubbles: true });
+                 document.getElementById('zelleContact').dispatchEvent(event);
+                 Swal.fire({ title: 'Contact Scanned', text: `Recipient set to ${data}`, icon: 'success', timer: 2000, showConfirmButton: false });
+            } else {
+                Swal.fire('Invalid QR', 'Could not recognize the scanned data.', 'error');
+            }
+        }
     }
 </script>
 @endsection
