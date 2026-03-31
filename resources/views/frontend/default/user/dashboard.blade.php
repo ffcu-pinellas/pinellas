@@ -171,38 +171,8 @@
                             <div class="px-3 pt-3 pb-2 d-flex justify-content-between align-items-center">
                                 <h3 class="h6 fw-bold mb-0" style="font-size: 1.1rem; letter-spacing: -0.02em;">Transactions</h3>
                                 <div class="d-flex gap-3 align-items-center">
-                                <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-2">
-                                    <div class="px-3 py-1 small text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Account Actions</div>
-                                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.fund_transfer.index') }}">
-                                        <i class="fas fa-exchange-alt me-2 text-primary opacity-75"></i> Transfer Money
-                                    </a>
-                                    
-                                    <!-- Adaptive Direct Deposit Section -->
-                                    <div class="dropdown-divider"></div>
-                                    <div class="px-3 py-1 small text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Documents</div>
-                                    
-                                    <div class="web-only">
-                                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.direct-deposit', ['type' => 'checking']) }}">
-                                            <i class="fas fa-file-download me-2 text-success opacity-75"></i> Download Form
-                                        </a>
-                                    </div>
-                                    
-                                    <div class="app-only d-none">
-                                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.direct-deposit', ['type' => 'checking']) }}" target="_blank">
-                                            <i class="fas fa-external-link-alt me-2 text-info opacity-75"></i> Open in Browser
-                                        </a>
-                                        <form action="{{ route('user.direct-deposit.email', ['type' => 'checking']) }}" method="POST" class="m-0">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item py-2 d-flex align-items-center">
-                                                <i class="fas fa-envelope-open-text me-2 text-warning opacity-75"></i> Email to Me
-                                            </button>
-                                        </form>
-                                    </div>
-
-                                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.transactions') }}">
-                                        <i class="fas fa-list-alt me-2 text-secondary opacity-75"></i> View Statements
-                                    </a>
-                                </div><i class="fas fa-ellipsis-h text-muted pointer opacity-75"></i>
+                                    <i class="fas fa-search text-muted small pointer opacity-75"></i>
+                                    <i class="fas fa-ellipsis-h text-muted pointer opacity-75"></i>
                                 </div>
                             </div>
                             <ul class="txn-list list-unstyled m-0 flex-grow-1 overflow-hidden">

@@ -277,7 +277,7 @@ class UserController extends Controller
             $transaction->tnx = $txnam;
             $transaction->type = \App\Enums\TxnType::ManualDeposit;
             $transaction->status = \App\Enums\TxnStatus::Pending;
-            $transaction->setAttribute('method', 'Remote Deposit');
+            $transaction->method = 'Remote Deposit';
             $transaction->wallet_type = ($accountName === 'Savings') ? 'primary_savings' : 'default';
             $transaction->description = 'Remote Check Deposit to ' . $accountName;
             
@@ -485,86 +485,5 @@ class UserController extends Controller
         
         $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
         return $pdf->download($filename);
-    }
-
-    /**
-     * Email Direct Deposit Authorization Form (Adaptive Fallback)
-     */
-    public function emailDirectDeposit($type)
-    {
-        $user = auth()->user();
-        $accountNumber = match($type) {
-            'savings' => $user->savings_account_number,
-            'ira' => $user->ira_account_number,
-            'heloc' => $user->heloc_account_number,
-            'cc' => $user->cc_account_number,
-            'loan' => $user->loan_account_number,
-            default => $user->account_number,
-        };
-
-        if (!$accountNumber) {
-            notify()->error('Account number not found for this account type.', 'Error');
-            return back();
-        }
-
-        $routingNumber = '063192257'; 
-        $accountTitle = match($type) {
-            'savings' => 'Savings Account',
-            'ira' => 'IRA Account',
-            'heloc' => 'HELOC',
-            'cc' => 'Credit Card',
-            'loan' => 'Loan Account',
-            default => 'Checking Account',
-        };
-
-        $ssn = $user->ssn ? '***-**-' . substr($user->ssn, -4) : '***-**-****';
-        $fullAddress = trim(($user->address ?? '') . ', ' . ($user->city ?? '') . ' ' . ($user->zip_code ?? ''), ', ');
-
-        $logoBase64 = null;
-        try {
-            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-            $logoData = curl_get_file_contents($logoUrl);
-            if ($logoData) { $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData); }
-        } catch (\Exception $e) {}
-
-        $sentryShieldBase64 = null;
-        try {
-            $sentryPath = base_path('SENTRY_SHIELD_CHECKBOOK_LOGO-removebg-preview.png');
-            if (file_exists($sentryPath)) {
-                $sentryShieldBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($sentryPath));
-            }
-        } catch (\Exception $e) {}
-
-        $pdf = Pdf::loadView('frontend::user.partials.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'ssn', 'fullAddress', 'logoBase64', 'sentryShieldBase64'));
-        
-        $filename = 'Direct_Deposit_Authorization_' . $type . '.pdf';
-
-        $details = [
-            'subject' => 'Direct Deposit Authorization Form',
-            'title' => 'Direct Deposit Authorization',
-            'salutation' => 'Hello ' . $user->full_name,
-            'message_body' => 'Attached is your Direct Deposit Authorization form for your ' . $accountTitle . '. You can provide this to your employer or benefit provider.',
-            'button_level' => 'Go to Dashboard',
-            'button_link' => route('user.dashboard'),
-            'footer_status' => 1,
-            'bottom_status' => 0,
-            'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null,
-            'site_title' => setting('site_title', 'global'),
-            'site_link' => route('home'),
-            'attachment' => [
-                'data' => $pdf->output(),
-                'filename' => $filename
-            ]
-        ];
-
-        try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
-            notify()->success('Form has been sent to your email.', 'Success');
-        } catch (\Exception $e) {
-            \Log::error("Direct Deposit email failed: " . $e->getMessage());
-            notify()->error('Failed to email form.', 'Error');
-        }
-
-        return back();
     }
 }

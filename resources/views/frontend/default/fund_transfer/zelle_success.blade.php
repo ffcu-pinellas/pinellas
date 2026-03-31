@@ -9,38 +9,21 @@
     <div class="col-lg-7 col-md-10 col-12">
         <div class="site-card border-0 shadow-lg overflow-hidden" style="border-radius: 12px; background: #fff;">
             <!-- Co-Branded Header (Official Zelle Purple) -->
-            <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-direction: column; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
                 <div class="d-flex align-items-center gap-3">
                     <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" style="height: 32px;">
-                    <span class="text-white opacity-50 fs-4 mx-1">|</span>
+                    <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
                     <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
                 </div>
-                <div class="text-white opacity-75 small fw-bold">Fast, safe and easy way to send money.</div>
+                <a href="{{ route('user.dashboard') }}" class="text-white text-decoration-none fw-bold small" style="opacity: 0.8;">{{ __('Close') }}</a>
             </div>
             
             <div class="p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-dark m-0">{{ __('Details') }}</h2>
-                    <div class="adaptive-receipt-actions">
-                        <!-- Web: Standard Link -->
-                        <div class="web-only">
-                            <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" class="text-primary text-decoration-none fw-bold small">
-                                <i class="fas fa-file-pdf me-1"></i> {{ __('Print or Save') }}
-                            </a>
-                        </div>
-                        <!-- App: Adaptive Links -->
-                        <div class="app-only d-none d-flex gap-3">
-                            <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" target="_blank" class="text-info text-decoration-none fw-bold small">
-                                <i class="fas fa-external-link-alt me-1"></i> {{ __('Browser') }}
-                            </a>
-                            <form action="{{ route('user.transactions.email-receipt', $responseData['tnx']) }}" method="POST" class="m-0">
-                                @csrf
-                                <button type="submit" class="p-0 border-0 bg-transparent text-warning fw-bold small">
-                                    <i class="fas fa-envelope me-1"></i> {{ __('Email') }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" class="text-primary text-decoration-none fw-bold small">
+                        <i class="fas fa-file-pdf me-1"></i> {{ __('Print or Save') }}
+                    </a>
                 </div>
 
                 <div class="p-4 rounded-3 mb-5" style="background-color: #f8f9fa; border-left: 5px solid #0d6efd;">

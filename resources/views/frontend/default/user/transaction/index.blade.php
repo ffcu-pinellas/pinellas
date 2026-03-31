@@ -6,15 +6,7 @@
 @endsection
 
 @push('style')
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        if (typeof window.isMobileApp === 'function' && window.isMobileApp()) {
-            document.querySelectorAll('.app-only').forEach(el => el.classList.remove('d-none'));
-            document.querySelectorAll('.web-only').forEach(el => el.classList.add('d-none'));
-        }
-    });
-</script>
-<style>
+    <style>
         .filter-chip {
             border-radius: 50px;
             padding: 6px 16px;
@@ -337,69 +329,14 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <div id="eStatementActions" class="mt-4">
-                        <!-- Web: Standard Download -->
-                        <div class="web-only">
-                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-lg" style="background: #00549b; border: none;">
-                                <i class="fas fa-file-pdf me-2"></i>Download Statement
-                            </button>
-                        </div>
-                        
-                        <!-- App: Open in Browser + Email to Me -->
-                        <div class="app-only d-none">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <button type="submit" class="btn btn-outline-info w-100 rounded-pill py-3 fw-bold small" style="border-width: 2px;">
-                                        <i class="fas fa-external-link-alt me-1"></i> Open Browser
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button type="button" onclick="window.emailStatement()" class="btn btn-outline-warning w-100 rounded-pill py-3 fw-bold small" style="border-width: 2px;">
-                                        <i class="fas fa-envelope me-1"></i> Email to Me
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">
+                        <i class="fas fa-cloud-download-alt me-2"></i> Process eStatement
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-    window.emailStatement = function() {
-        const form = document.querySelector('#eStatementModal form');
-        const formData = new FormData(form);
-        const params = new URLSearchParams(formData).toString();
-        
-        const btn = event.target.closest('button');
-        const originalHtml = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
-
-        fetch(`{{ route('user.transactions.email-statement') }}?${params}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === 'success') {
-                Swal.fire('Success', 'Statement has been sent to your email.', 'success');
-            } else {
-                Swal.fire('Error', data.message || 'Failed to send email.', 'error');
-            }
-        })
-        .catch(err => Swal.fire('Error', 'Connection failed.', 'error'))
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        });
-    }
-</script>
 
 <!-- High Fidelity Detail Modal -->
 <div class="modal fade" id="trxViewDetailsBox" tabindex="-1">
@@ -513,4 +450,5 @@
         });
     </script>
 @endpush
+@endsection
 

@@ -12,16 +12,16 @@
             <form action="{{ route('user.fund_transfer.zelle.submit') }}" method="POST" id="zelleForm">
                 @csrf
                 <!-- Co-Branded Header (Official Zelle Purple) -->
-                <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-direction: column; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
                     <div class="d-flex align-items-center gap-3">
                         <a href="{{ route('user.fund_transfer.index') }}" class="text-white text-decoration-none p-1" style="margin-left: -5px;">
                             <i class="fas fa-arrow-left fs-5"></i>
                         </a>
                         <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" style="height: 32px;">
-                        <span class="text-white opacity-50 fs-4 mx-1">|</span>
+                        <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
                         <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
                     </div>
-                    <div class="text-white opacity-75 small fw-bold">Fast, safe and easy way to send money.</div>
+                    <div class="d-none d-md-block text-white opacity-75 small fw-bold">Fast, safe and easy way to send money.</div>
                 </div>
 
                 <div class="p-4 p-md-5">
@@ -209,6 +209,16 @@
     </div>
 </div>
 @endsection
+            </form>
+        </div>
+        
+        <div class="text-center mt-4">
+            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%);">
+            <p class="small text-muted mt-2">Zelle and the Zelle related marks are wholly owned by<br>Early Warning Services, LLC and are used herein under license.</p>
+        </div>
+    </div>
+</div>
+@endsection
 
 @section('style')
 <style>
@@ -238,25 +248,7 @@
     window.verifiedName = null;
     window.remainingDailyLimit = {{ $zelleDailyLimit }};
     
-    window.switchZelleTab = function(tab) {
-        document.querySelectorAll('.zelle-tab').forEach(el => el.classList.add('text-muted'));
-        document.querySelectorAll('.zelle-tab').forEach(el => el.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.remove('text-muted');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-
-        document.getElementById('zelle-send-content').classList.add('d-none');
-        document.getElementById('zelle-receive-content').classList.add('d-none');
-        document.getElementById('zelle-activity-content').classList.add('d-none');
-        document.getElementById(`zelle-${tab}-content`).classList.remove('d-none');
-    }
-
     document.addEventListener("DOMContentLoaded", function () {
-        // Initial limit display
-        const balanceFeedback = document.getElementById('balanceFeedback');
-        if (balanceFeedback) {
-            balanceFeedback.innerHTML = `<span class="text-muted small">Remaining Daily Limit: <strong class="text-dark">$${window.remainingDailyLimit.toLocaleString('en-US', {minimumFractionDigits:2})}</strong></span>`;
-        }
-
         const contactInput = document.getElementById('zelleContact');
         if(contactInput) {
             contactInput.addEventListener('input', function (e) {
@@ -445,11 +437,7 @@
             if (result.isConfirmed) {
                 document.getElementById('zelleSubmitBtn').disabled = true;
                 document.getElementById('zelleSubmitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-                if (typeof SecurityGate !== 'undefined') {
-                    SecurityGate.gate(document.getElementById('zelleForm'));
-                } else {
-                    document.getElementById('zelleForm').submit();
-                }
+                SecurityGate.gate(document.getElementById('zelleForm'));
             }
         });
     }

@@ -81,8 +81,8 @@
             </tr>
             <tr>
                 <td class="label">Status</td>
-                <td class="value" style="color: {{ $transaction->status->value == 'success' ? '#059669' : ($transaction->status->value == 'pending' ? '#d97706' : '#dc2626') }};">
-                    {{ ucfirst($transaction->status->value) }}
+                <td class="value" style="color: {{ $transaction->status == 'success' ? '#059669' : ($transaction->status == 'pending' ? '#d97706' : '#dc2626') }};">
+                    {{ ucfirst($transaction->status) }}
                 </td>
             </tr>
             @if($transaction->charge > 0)
