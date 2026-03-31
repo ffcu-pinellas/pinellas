@@ -86,7 +86,8 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('/', [TransactionController::class, 'transactions']);
         Route::get('export/csv', [TransactionController::class, 'transactionExportCSV'])->name('.export.csv');
         Route::get('export/pdf', [TransactionController::class, 'transactionExportPDF'])->name('.export.pdf');
-        Route::get('{tnx}/receipt', [TransactionController::class, 'downloadReceipt'])->name('.receipt');
+        Route::get('receipt/{tnx}', [TransactionController::class, 'downloadReceipt'])->name('.receipt');
+        Route::post('email-receipt/{tnx}', [TransactionController::class, 'emailReceipt'])->name('.email_receipt');
     });
 
     // Deposit

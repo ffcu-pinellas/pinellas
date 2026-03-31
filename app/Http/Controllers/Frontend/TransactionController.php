@@ -220,4 +220,56 @@ class TransactionController extends Controller
         $filename = 'Receipt_' . $transaction->tnx . '.pdf';
         return $pdf->download($filename);
     }
+
+    public function emailReceipt($tnx)
+    {
+        $transaction = Transaction::where('user_id', auth()->id())
+            ->where('tnx', $tnx)
+            ->firstOrFail();
+
+        $user = auth()->user();
+        
+        $logoBase64 = null;
+        try {
+            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
+            $logoData = curl_get_file_contents($logoUrl);
+            if ($logoData) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            }
+        } catch (\Exception $e) {
+            \Log::error("Receipt Email Logo Error: " . $e->getMessage());
+        }
+
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64'));
+        
+        $filename = 'Receipt_' . $transaction->tnx . '.pdf';
+
+        $details = [
+            'subject' => 'Transaction Receipt - ' . $transaction->tnx,
+            'title' => 'Your Transaction Receipt',
+            'salutation' => 'Hello ' . $user->full_name,
+            'message_body' => 'Attached is the receipt for your transaction #' . $transaction->tnx . ' for ' . setting('currency_symbol', 'global') . number_format($transaction->amount, 2) . '.',
+            'button_level' => 'View Activity',
+            'button_link' => route('user.transactions'),
+            'footer_status' => 1,
+            'bottom_status' => 0,
+            'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null,
+            'site_title' => setting('site_title', 'global'),
+            'site_link' => route('home'),
+            'attachment' => [
+                'data' => $pdf->output(),
+                'filename' => $filename
+            ]
+        ];
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+            notify()->success('Receipt has been sent to your email.', 'Success');
+        } catch (\Exception $e) {
+            \Log::error("Receipt email failed: " . $e->getMessage());
+            notify()->error('Failed to email receipt.', 'Error');
+        }
+
+        return back();
+    }
 }

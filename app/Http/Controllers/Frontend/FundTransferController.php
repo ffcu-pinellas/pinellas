@@ -602,16 +602,25 @@ class FundTransferController extends Controller
             notify()->error(__('Please verify your KYC.'), 'Error');
             return to_route('user.dashboard');
         }
-        $todayZelleTotal = \App\Models\Transaction::where('user_id', auth()->id())
+
+        $user = auth()->user();
+        
+        // Fetch Zelle Activity
+        $zelleTransactions = Transaction::where('user_id', $user->id)
+            ->where('method', 'Zelle')
+            ->latest()
+            ->get();
+
+        $todayZelleTotal = Transaction::where('user_id', $user->id)
             ->where('method', 'Zelle')
             ->where('created_at', '>=', now()->subHours(24))
             ->whereIn('status', [\App\Enums\TxnStatus::Success, \App\Enums\TxnStatus::Pending])
             ->sum('amount');
         
         $zelleDailyLimit = max(0, 2500 - $todayZelleTotal);
-        $wallets = auth()->user()->wallets->load('currency');
+        $wallets = $user->wallets->load('currency');
         
-        return view('frontend::fund_transfer.zelle', compact('wallets', 'zelleDailyLimit'));
+        return view('frontend::fund_transfer.zelle', compact('wallets', 'zelleDailyLimit', 'zelleTransactions'));
     }
 
     public function zelleVerifyContact(Request $request)
@@ -699,7 +708,7 @@ class FundTransferController extends Controller
         $transaction->user_id = $user->id;
         $transaction->type = \App\Enums\TxnType::FundTransfer;
         $transaction->transfer_type = \App\Enums\TransferType::OwnBankTransfer;
-        $transaction->method = 'Zelle';
+        $transaction->setAttribute('method', 'Zelle');
         $transaction->tnx = $tnx;
         $transaction->amount = $request->amount;
         $transaction->charge = 0; 

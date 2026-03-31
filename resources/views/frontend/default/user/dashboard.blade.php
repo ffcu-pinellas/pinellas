@@ -24,8 +24,8 @@
                 <!-- Dynamic Accounts Carousel -->
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;" 
-                        onclick="window.showAccountDetails('0010 CHECKING', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" 
+                        data-title="0010 CHECKING" data-account="{{ auth()->user()->account_number }}" data-balance="{{ auth()->user()->balance ?? 0 }}" data-limit="0" data-type="checking">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
@@ -39,8 +39,8 @@
                     </div>
 
                     <!-- Primary Savings Account -->
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="window.showAccountDetails('0000 SAVINGS', '{{ $savingsAccountNumber ?? auth()->user()->account_number }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;"
+                        data-title="0000 SAVINGS" data-account="{{ $savingsAccountNumber ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->savings_balance ?? 0 }}" data-limit="0" data-type="savings">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>
@@ -55,8 +55,8 @@
 
                     <!-- IRA Account -->
                     @if(auth()->user()->ira_status == 1)
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;" 
-                        onclick="window.showAccountDetails('IRA ACCOUNT', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" 
+                        data-title="IRA ACCOUNT" data-account="{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->ira_balance ?? 0 }}" data-limit="0" data-type="ira">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>IRA ACCOUNT</span>
@@ -72,8 +72,8 @@
 
                     <!-- HELOC Account -->
                     @if(auth()->user()->heloc_status == 1)
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="window.showAccountDetails('HELOC', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;"
+                        data-title="HELOC" data-account="{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->heloc_balance ?? 0 }}" data-limit="{{ auth()->user()->heloc_credit_limit ?? 0 }}" data-type="heloc">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>HELOC</span>
@@ -89,8 +89,8 @@
 
                     <!-- Credit Card -->
                     @if(auth()->user()->cc_status == 1)
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="window.showAccountDetails('CREDIT CARD', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;"
+                        data-title="CREDIT CARD" data-account="{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->cc_balance ?? 0 }}" data-limit="{{ auth()->user()->cc_credit_limit ?? 0 }}" data-type="cc">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>CREDIT CARD</span>
@@ -106,8 +106,8 @@
 
                     <!-- Loan Account -->
                     @if(auth()->user()->loan_account_status == 1)
-                    <div class="flex-grow-1" style="min-width: 280px; width: 100%; cursor: pointer;"
-                        onclick="window.showAccountDetails('LOAN ACCOUNT', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;"
+                        data-title="PERSONAL LOAN" data-account="{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->loan_balance ?? 0 }}" data-limit="{{ auth()->user()->loan_credit_limit ?? 0 }}" data-type="loan">
                         <div class="p-3 rounded-3 h-100" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>LOAN ACCOUNT</span>
@@ -370,6 +370,23 @@
 </div>
 
 @include('frontend::include.__account_detail_modal')
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.account-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.dataset.title;
+                const account = this.dataset.account;
+                const balance = parseFloat(this.dataset.balance);
+                const limit = parseFloat(this.dataset.limit);
+                const type = this.dataset.type;
+                if (window.showAccountDetails) {
+                    window.showAccountDetails(title, account, balance, limit, type);
+                }
+            });
+        });
+    });
+</script>
 @endsection
 
 @push('js')
