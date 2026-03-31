@@ -1,7 +1,7 @@
 @extends('backend.auth.index')
 
 @section('title')
-    {{ __('Access Security Gate') }}
+    {{ __('Security Gate') }}
 @endsection
 
 @section('style')
@@ -12,12 +12,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 15px;
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
 
     .mfa-container-box {
-        max-width: 520px; /* Wider card to reduce side space */
+        max-width: 480px; /* Adjusted width for optimal balance */
         width: 100%;
         margin: 0 auto;
     }
@@ -25,39 +25,39 @@
     .mfa-card-inner {
         text-align: center;
         background: #ffffff;
-        padding: 45px 35px;
-        border-radius: 24px;
+        padding: 30px 25px; /* Compressed padding */
+        border-radius: 20px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         position: relative;
     }
     
     .logo-container {
-        margin-bottom: 30px;
+        margin-bottom: 20px; /* Compressed margin */
     }
 
     .logo-container img {
-        max-width: 200px; /* Slightly larger logo */
+        max-width: 150px; /* Compressed logo */
         height: auto;
     }
 
     .security-header {
         background: #f8fafc;
-        padding: 15px;
-        border-radius: 16px;
-        margin-bottom: 25px;
+        padding: 10px 15px; /* Compressed padding */
+        border-radius: 12px;
+        margin-bottom: 15px; /* Compressed margin */
         border: 1px solid #e2e8f0;
     }
 
     .security-header h5 {
         color: #0f172a;
         font-weight: 800;
-        margin-bottom: 4px;
-        font-size: 1.25rem;
+        margin-bottom: 0px;
+        font-size: 1.1rem;
     }
 
     .security-header p {
         color: #64748b;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 500;
     }
 
@@ -65,13 +65,13 @@
     .pin-display-wrapper {
         display: flex;
         justify-content: center;
-        gap: 25px;
-        margin: 30px 0;
+        gap: 20px;
+        margin: 15px 0; /* Compressed margin */
     }
     .pin-dot {
-        width: 22px;
-        height: 22px;
-        border: 2.5px solid #e2e8f0;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #e2e8f0;
         border-radius: 50%;
         background-color: transparent;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -79,25 +79,25 @@
     .pin-dot.filled {
         background-color: #003d73;
         border-color: #003d73;
-        transform: scale(1.25);
-        box-shadow: 0 0 15px rgba(0, 61, 115, 0.3);
+        transform: scale(1.15);
+        box-shadow: 0 0 10px rgba(0, 61, 115, 0.2);
     }
 
     /* Keypad Grid */
     .keypad {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        max-width: 340px;
-        margin: 0 auto 30px auto;
+        gap: 12px; /* Compressed gap */
+        max-width: 300px;
+        margin: 0 auto 15px auto; /* Compressed margin */
     }
 
     .key-btn {
         background: #fdfdfd;
         border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 15px;
-        font-size: 26px;
+        border-radius: 12px;
+        padding: 8px;
+        font-size: 22px;
         font-weight: 700;
         color: #1e293b;
         cursor: pointer;
@@ -105,17 +105,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 65px;
+        height: 52px; /* Compressed height */
         user-select: none;
         touch-action: manipulation;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     .key-btn:hover {
         background: #f1f5f9;
         border-color: #cbd5e1;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
     }
 
     .key-btn:active {
@@ -131,18 +130,18 @@
     .error-text {
         color: #ef4444;
         font-weight: 700;
-        height: 30px;
-        font-size: 15px;
-        margin-bottom: 10px;
+        height: 20px;
+        font-size: 14px;
+        margin-bottom: 5px;
     }
 
     .logout-link {
         color: #64748b;
-        font-size: 1rem;
+        font-size: 0.9rem;
         text-decoration: none;
         font-weight: 600;
-        padding: 10px 20px;
-        border-radius: 12px;
+        padding: 6px 12px;
+        border-radius: 8px;
         transition: all 0.2s;
     }
 
@@ -172,8 +171,22 @@
         align-items: center;
         justify-content: center;
         z-index: 100;
-        border-radius: 24px;
+        border-radius: 20px;
         display: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+        .mfa-card-inner {
+            padding: 25px 20px;
+        }
+        .key-btn {
+            height: 48px;
+            font-size: 20px;
+        }
+        .logo-container img {
+            max-width: 130px;
+        }
     }
 </style>
 @endsection
@@ -183,8 +196,8 @@
     <div class="mfa-card-inner" id="mfa-card">
         
         <div id="verify-loader">
-            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-            <p class="h6 fw-bold text-primary">{{ __('Securing Connection...') }}</p>
+            <div class="spinner-border text-primary mb-2" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
+            <p class="small fw-bold text-primary">{{ __('Verifying...') }}</p>
         </div>
 
         <div class="logo-container">
@@ -196,7 +209,7 @@
             <p class="mb-0 text-primary">{{ auth('admin')->user()->name }}</p>
         </div>
         
-        <p class="text-secondary fw-bold">{{ __('Enter your 4-digit security PIN') }}</p>
+        <p class="text-secondary small fw-bold mb-1">{{ __('Enter your 4-digit security PIN') }}</p>
 
         <div class="pin-display-wrapper" id="pin-display">
             <div class="pin-dot"></div>
@@ -220,14 +233,14 @@
             <div style="visibility: hidden;"></div>
             <button type="button" class="key-btn" data-key="0">0</button>
             <button type="button" class="key-btn backspace" id="btn-backspace">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
             </button>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-1">
             <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="logout-link border-0 bg-transparent">{{ __('Logout & Exit') }}</button>
+                <button type="submit" class="logout-link border-0 bg-transparent py-0">{{ __('Logout & Exit') }}</button>
             </form>
         </div>
     </div>
@@ -252,7 +265,7 @@
                         adminPinValue += key;
                         updateDotsVisuals();
                         if (adminPinValue.length === 4) {
-                            setTimeout(submitMFA, 200);
+                            setTimeout(submitMFA, 150);
                         }
                     }
                 });
@@ -316,13 +329,12 @@
             })
             .catch(err => {
                 if (loaderEl) loaderEl.style.display = 'none';
-                if (errorEl) errorEl.innerText = "Connection error. Please try again.";
+                if (errorEl) errorEl.innerText = "Error verifying PIN.";
                 adminPinValue = "";
                 updateDotsVisuals();
             });
         }
 
-        // Initialize on load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initMFA);
         } else {
