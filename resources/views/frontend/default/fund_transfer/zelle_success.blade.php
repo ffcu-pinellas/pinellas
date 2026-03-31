@@ -33,7 +33,7 @@
                             <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" target="_blank" class="text-info text-decoration-none fw-bold small">
                                 <i class="fas fa-external-link-alt me-1"></i> {{ __('Browser') }}
                             </a>
-                            <form action="{{ route('user.transactions.receipt.email', $responseData['tnx']) }}" method="POST" class="m-0">
+                            <form action="{{ route('user.transactions.email-receipt', $responseData['tnx']) }}" method="POST" class="m-0">
                                 @csrf
                                 <button type="submit" class="p-0 border-0 bg-transparent text-warning fw-bold small">
                                     <i class="fas fa-envelope me-1"></i> {{ __('Email') }}

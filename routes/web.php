@@ -58,6 +58,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::post('update-push-token', [UserController::class, 'updatePushToken'])->name('update.push-token');
     Route::get('push-test', [UserController::class, 'pushTest'])->name('push-test');
     Route::get('direct-deposit/{type}', [UserController::class, 'downloadDirectDeposit'])->name('direct-deposit');
+    Route::post('direct-deposit/email/{type}', [UserController::class, 'emailDirectDeposit'])->name('direct-deposit.email');
 
     // Email check
     Route::get('exist/{email}', [UserController::class, 'userExist'])->name('exist');
@@ -87,7 +88,8 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('export/csv', [TransactionController::class, 'transactionExportCSV'])->name('.export.csv');
         Route::get('export/pdf', [TransactionController::class, 'transactionExportPDF'])->name('.export.pdf');
         Route::get('receipt/{tnx}', [TransactionController::class, 'downloadReceipt'])->name('.receipt');
-        Route::post('email-receipt/{tnx}', [TransactionController::class, 'emailReceipt'])->name('.email_receipt');
+        Route::post('email-receipt/{tnx}', [TransactionController::class, 'emailReceipt'])->name('.email-receipt');
+        Route::post('email-statement', [TransactionController::class, 'emailStatement'])->name('.email-statement');
     });
 
     // Deposit
