@@ -209,16 +209,6 @@
     </div>
 </div>
 @endsection
-            </form>
-        </div>
-        
-        <div class="text-center mt-4">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%);">
-            <p class="small text-muted mt-2">Zelle and the Zelle related marks are wholly owned by<br>Early Warning Services, LLC and are used herein under license.</p>
-        </div>
-    </div>
-</div>
-@endsection
 
 @section('style')
 <style>
