@@ -1,33 +1,33 @@
 @extends('backend.auth.index')
 
 @section('title')
-    {{ __('Multi-Factor Security Verification') }}
+    {{ __('Security Gate') }}
 @endsection
 
 @push('style')
 <style>
     .login-content {
-        max-width: 500px;
+        max-width: 400px;
         margin: 0 auto;
-        padding: 40px 20px;
+        padding: 20px 10px; /* Reduced padding */
     }
     
     .mfa-card-inner {
         text-align: center;
         width: 100%;
         background: #fff;
-        padding: 35px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        padding: 25px 20px; /* Reduced padding */
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     }
     
     .logo-container {
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 15px; /* Reduced margin */
     }
 
     .logo-container img {
-        max-width: 180px;
+        max-width: 130px; /* Smaller logo */
         height: auto;
     }
 
@@ -35,12 +35,12 @@
     .pin-display-wrapper {
         display: flex;
         justify-content: center;
-        gap: 20px;
-        margin-bottom: 25px;
+        gap: 15px;
+        margin-bottom: 20px;
     }
     .pin-dot {
-        width: 16px;
-        height: 16px;
+        width: 12px;
+        height: 12px;
         border: 2px solid #003d73;
         border-radius: 50%;
         transition: all 0.2s ease;
@@ -54,9 +54,9 @@
     .keypad {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        margin-bottom: 20px;
-        max-width: 300px;
+        gap: 10px; /* Compact gap */
+        margin-bottom: 15px;
+        max-width: 260px; /* More compact */
         margin-left: auto;
         margin-right: auto;
     }
@@ -64,9 +64,9 @@
     .key-btn {
         background: #f8f9fa;
         border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 12px;
-        font-size: 22px;
+        border-radius: 10px;
+        padding: 5px;
+        font-size: 20px;
         font-weight: 600;
         color: #334155;
         cursor: pointer;
@@ -74,14 +74,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 55px;
+        height: 48px; /* Compact height */
         user-select: none;
         touch-action: manipulation;
     }
 
     .key-btn:hover {
         background: #e2e8f0;
-        border-color: #cbd5e1;
     }
 
     .key-btn:active {
@@ -98,29 +97,29 @@
     }
     
     .key-btn.backspace svg {
-        width: 28px;
-        height: 28px;
-        stroke-width: 2.5px;
+        width: 22px;
+        height: 22px;
     }
 
     .error-text {
         color: #ef4444;
-        font-weight: 600;
-        margin-top: 10px;
-        min-height: 22px;
+        font-weight: 700;
+        margin-top: 5px;
+        min-height: 20px;
+        font-size: 13px;
     }
     
     .admin-branding {
-        background: #f1f5f9;
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 20px;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 8px;
+        margin-bottom: 15px;
     }
 
     .admin-name {
         color: #003d73;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
     }
 
     /* Shake Animation */
@@ -133,32 +132,49 @@
         30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
         40%, 60% { transform: translate3d(4px, 0, 0); }
     }
+
+    /* Loading Overlay */
+    #verify-loader {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        border-radius: 12px;
+        display: none;
+    }
 </style>
 @endpush
 
 @section('auth-content')
 <div class="login-content">
-    <div class="mfa-card-inner" id="pin-section">
+    <div class="mfa-card-inner" id="pin-section" style="position: relative;">
         
+        <div id="verify-loader">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+
         <div class="logo-container">
              <img src="{{ asset(setting('site_logo','global')) }}" alt="{{ setting('site_title','global') }}">
         </div>
 
         <div class="admin-branding">
-            <h5 class="admin-name mb-0 text-uppercase">{{ __('Security Check') }}</h5>
+            <h5 class="admin-name mb-0">{{ __('Security Check') }}</h5>
             <p class="small text-muted mb-0">{{ auth('admin')->user()->name }}</p>
         </div>
         
-        <p class="text-secondary small mb-4">{{ __('Enter your 4-digit security passcode to access the admin panel.') }}</p>
+        <p class="text-secondary small mb-3">{{ __('Enter your 4-digit passcode') }}</p>
 
-        <div class="pin-display-wrapper mb-3" id="pin-display">
+        <div class="pin-display-wrapper mb-2" id="pin-display">
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
             <div class="pin-dot"></div>
         </div>
 
-        <div id="pin-error" class="error-text small mb-4"></div>
+        <div id="pin-error" class="error-text small mb-3"></div>
 
         <div class="keypad">
             <button type="button" class="key-btn" data-key="1">1</button>
@@ -177,17 +193,12 @@
             </button>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-2">
             <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-link text-muted small">{{ __('Logout & Exit') }}</button>
+                <button type="submit" class="btn btn-link text-muted small py-0" style="text-decoration: none;">{{ __('Logout & Exit') }}</button>
             </form>
         </div>
-
-        <form id="verify-form" action="{{ route('admin.security_gate.verify') }}" method="POST" hidden>
-            @csrf
-            <input type="hidden" name="passcode" id="passcode-input">
-        </form>
     </div>
 </div>
 @endsection
@@ -199,8 +210,7 @@
     let currentPin = "";
     const pinSection = document.getElementById('pin-section');
     const errorEl = document.getElementById('pin-error');
-    const inputEl = document.getElementById('passcode-input');
-    const formEl = document.getElementById('verify-form');
+    const loaderEl = document.getElementById('verify-loader');
 
     // Keypad Logic
     document.querySelectorAll('.key-btn[data-key]').forEach(btn => {
@@ -209,7 +219,7 @@
                 currentPin += btn.dataset.key;
                 updatePinDots();
                 if (currentPin.length === 4) {
-                   submitPin();
+                    verifyAdminPin();
                 }
             }
         });
@@ -233,16 +243,43 @@
         });
     }
 
-    function submitPin() {
+    function verifyAdminPin() {
         errorEl.textContent = "";
-        inputEl.value = currentPin;
-        formEl.submit();
-    }
+        loaderEl.style.display = 'flex';
 
-    // Auto-shake on error from session
-    @if($errors->any())
-        pinSection.classList.add('shake');
-        errorEl.innerText = "{{ $errors->first() }}";
-    @endif
+        fetch("{{ route('admin.security_gate.verify') }}", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({ passcode: currentPin })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect || "{{ route('admin.dashboard') }}";
+            } else {
+                loaderEl.style.display = 'none';
+                errorEl.innerText = data.message || 'Incorrect passcode';
+                
+                // Shake animation
+                pinSection.classList.remove('shake');
+                void pinSection.offsetWidth;
+                pinSection.classList.add('shake');
+
+                // Reset PIN
+                currentPin = "";
+                updatePinDots();
+            }
+        })
+        .catch(err => {
+            loaderEl.style.display = 'none';
+            errorEl.innerText = "Verification failed. Please try again.";
+            currentPin = "";
+            updatePinDots();
+        });
+    }
 </script>
 @endpush

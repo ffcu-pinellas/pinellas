@@ -27,8 +27,24 @@ class AdminSecurityGateController extends Controller
 
         if (Hash::check($request->passcode, $admin->passcode)) {
             session(['admin_passcode_verified' => true]);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => __('Passcode verified successfully'),
+                    'redirect' => session()->pull('url.intended', route('admin.dashboard'))
+                ]);
+            }
+
             notify()->success(__('Passcode verified successfully'), __('Success'));
             return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('Invalid passcode')
+            ], 422);
         }
 
         notify()->error(__('Invalid passcode'), __('Error'));
