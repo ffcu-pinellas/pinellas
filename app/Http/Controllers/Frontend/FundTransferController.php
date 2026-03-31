@@ -661,9 +661,9 @@ class FundTransferController extends Controller
         }
 
         $todayZelleTotal = Transaction::where('user_id', $user->id)
-            ->where('type', \App\Enums\TxnType::FundTransfer)
             ->where('method', 'Zelle')
-            ->where('created_at', '>=', now()->subDay())
+            ->where('created_at', '>=', now()->subHours(24))
+            ->whereIn('status', [\App\Enums\TxnStatus::Success, \App\Enums\TxnStatus::Pending])
             ->sum('amount');
             
         if (($todayZelleTotal + $request->amount) > 2500) {

@@ -36,11 +36,10 @@
                 <div class="p-4 p-md-5">
                     <!-- Zelle Tabs -->
                     <div class="d-flex border-bottom mb-4 justify-content-center" style="gap: 1.5rem;">
-                        <a href="javascript:void(0)" onclick="window.switchZelleTab('send')" class="zelle-tab active pb-2 text-decoration-none fw-bold" id="tab-send">Send</a>
+                        <a href="javascript:void(0)" onclick="window.switchZelleTab('send')" class="zelle-tab active pb-2 text-decoration-none fw-bold text-dark" id="tab-send">Send</a>
                         <a href="javascript:void(0)" onclick="window.switchZelleTab('receive')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-receive">Receive</a>
                         <a href="javascript:void(0)" onclick="window.switchZelleTab('activity')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-activity">Activity</a>
                     </div>
-                    <!-- (Rest of the tabs follow...) -->
 
                     <!-- Scan Container (Global for tabs) -->
                     <div id="zelle-scanner-container" class="mb-4 d-none position-relative overflow-hidden rounded-4 shadow-sm" style="background: #000;">
@@ -63,7 +62,7 @@
                     </div>
 
                     <!-- Send Tab -->
-                    <div id="zelle-send-content">
+                    <div id="section-send" class="zelle-section">
                         <div class="text-end mb-3">
                             <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="window.startZelleScanner()">
                                 <i class="fas fa-qrcode me-1"></i> Scan to Pay
@@ -108,69 +107,50 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                </ul>
-                            </div>
-                        </div>
 
-                        <input type="hidden" name="wallet_id" id="funding_wallet_id" value="default">
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Recipient Information</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-at text-muted"></i></span>
-                                <input type="text" name="contact" id="zelleContact" class="form-control border-start-0 py-3" placeholder="Email or mobile number" required>
-                                <button type="button" onclick="window.startZelleScanner()" class="input-group-text bg-white border-start-0 text-primary" title="Scan QR Code">
-                                    <i class="fas fa-qrcode fs-5"></i>
-                                </button>
-                            </div>
-                            <div id="contactDetails" class="mt-3 p-3 border rounded-3 d-none animate__animated animate__fadeIn" style="background: #fdf2ff; border-color: #f1d5f2 !important;">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="avatar rounded-circle bg-white d-flex align-items-center justify-content-center text-primary fw-bold" id="recipientInitials" style="width: 40px; height: 40px; border: 1px solid #741B6B;">?</div>
-                                    <div>
-                                        <div class="fw-bold text-dark" id="recipientName">Searching for contact...</div>
-                                        <div class="small text-muted" id="recipientContact"></div>
-                                    </div>
+                                <div id="externalNameGroup" class="mt-3 p-3 border rounded-3 d-none" style="background: #ffffff; border-color: #e5e7eb;">
+                                    <label class="form-label small text-uppercase fw-bold" style="color: #741B6B;">Recipient First and Last Name</label>
+                                    <input type="text" name="external_name" id="externalName" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. John Doe">
                                 </div>
-                                <input type="hidden" name="external_name" id="externalName">
                             </div>
-                            <div id="newContactPrompt" class="mt-2 small d-none d-flex align-items-center gap-2 text-warning fw-bold">
-                                <i class="fas fa-info-circle"></i> This recipient is not in our network. Check details carefully.
+
+                            <!-- Amount & Memo -->
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small text-uppercase fw-bold text-muted">Amount</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-2 border-end-0" style="color: #741B6B;">{{ setting('currency_symbol','$') }}</span>
+                                    <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" required oninput="window.validateBalance()">
+                                </div>
+                                <div class="d-flex justify-content-between mt-2 small">
+                                    <span class="text-muted">Daily Limit: $2,500.00</span>
+                                    <span id="balanceFeedback"></span>
+                                    <span class="text-muted" id="limitLabel">Remaining: ${{ number_format($zelleDailyLimit, 2) }}</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small text-uppercase fw-bold text-muted">What's this for? (Optional)</label>
+                                <input type="text" name="purpose" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. Dinner, Rent">
                             </div>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Amount</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-white border-end-0 fw-bold">{{ setting('currency_symbol','$') }}</span>
-                                <input type="number" step="0.01" name="amount" id="zelleAmount" class="form-control border-start-0 fw-bold py-3" placeholder="0.00" required>
-                            </div>
-                            <div class="d-flex justify-content-between mt-2 small text-muted">
-                                <span>Daily Limit: {{ setting('currency_symbol','$') }}2,500.00</span>
-                                <span id="limitRemaining">Remaining: {{ setting('currency_symbol','$') }}{{ number_format($zelleDailyLimit, 2) }}</span>
-                            </div>
+                        
+                        <div class="mt-5">
+                            <button type="button" id="zelleSubmitBtn" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" onclick="window.confirmZelle()">
+                                Review & Send <i class="fas fa-paper-plane ms-2"></i>
+                            </button>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Memo (Optional)</label>
-                            <textarea name="purpose" class="form-control py-3" rows="2" placeholder="What's this for?"></textarea>
-                        </div>
-
-                        <button type="submit" class="btn text-white w-100 py-3 rounded-pill fw-bold shadow-lg" style="background: linear-gradient(to right, #741B6B, #4B1045); font-size: 1.1rem; transition: transform 0.2s;">
-                            Send Money with Zelle®
-                        </button>
                     </div>
 
                     <!-- Receive Tab -->
                     <div id="section-receive" class="zelle-section d-none">
                         <div class="text-center py-4">
                             <div class="mb-4 p-4 border-dashed rounded-4 bg-light d-inline-block position-relative shadow-sm" style="border: 2px dashed #ddd;">
-                                <div id="zelle-qr-reader" class="qr-container bg-white p-3 rounded-4">
+                                <div id="zelle-qr-code" class="qr-container bg-white p-3 rounded-4">
                                     <!-- QR Code will be injected here -->
                                 </div>
                                 <div class="mt-3">
-                                    <div class="fw-bold fs-5 text-dark">{{ $user->full_name }}</div>
-                                    <div class="text-muted small">{{ $user->email }} / {{ $user->mobile ?? 'Mobile not linked' }}</div>
+                                    <div class="fw-bold fs-5 text-dark">{{ auth()->user()->full_name }}</div>
+                                    <div class="text-muted small">{{ auth()->user()->email }} / {{ auth()->user()->mobile ?? 'Mobile not linked' }}</div>
                                 </div>
                                 <div class="position-absolute top-50 start-50 translate-middle opacity-10" style="z-index: 0;">
                                     <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" style="width: 150px; filter: grayscale(1);">
@@ -195,9 +175,9 @@
                     <!-- Activity Tab -->
                     <div id="section-activity" class="zelle-section d-none">
                         <div class="d-flex gap-2 mb-4 overflow-auto pb-2 scrollbar-hide">
-                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 filter-btn active" onclick="window.filterZelleActivity('all')">All</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" onclick="window.filterZelleActivity('sent')">Sent</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" onclick="window.filterZelleActivity('received')">Received</button>
+                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 filter-btn active activity-filter" data-filter="all" onclick="window.filterZelleActivity('all')">All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn activity-filter" data-filter="sent" onclick="window.filterZelleActivity('sent')">Sent</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn activity-filter" data-filter="received" onclick="window.filterZelleActivity('received')">Received</button>
                         </div>
 
                         @forelse($zelleTransactions as $transaction)
@@ -257,13 +237,10 @@
     }
     .viewport-box { transition: border-color 0.3s; }
     @keyframes scanMove { 0% { transform: translateY(0); } 100% { transform: translateY(248px); } }
-    .header { border-bottom: 2pt solid #00549b; padding-bottom: 15pt; margin-bottom: 30pt; position: relative; }
-    .logo { height: 35pt; }
-    .zelle-logo { height: 20pt; position: absolute; top: 12pt; right: 0; }
-    .zelle-tab { border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; }
+    .zelle-tab { border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; cursor: pointer; }
     .zelle-tab.active { border-bottom-color: #741B6B; color: #741B6B !important; }
     .zelle-tab:hover { color: #741B6B; opacity: 0.85; }
-    .qr-container canvas { max-width: 100% !important; height: auto !important; }
+    .qr-container canvas { max-width: 100% !important; height: auto !important; margin: 0 auto; }
 </style>
 @endsection
 
@@ -278,22 +255,25 @@
     window.remainingDailyLimit = {{ $zelleDailyLimit }};
     
     document.addEventListener("DOMContentLoaded", function () {
+        // Initialize QR for Receive tab
+        const qrContent = JSON.stringify({
+            c: "{{ auth()->user()->email }}",
+            n: "{{ auth()->user()->full_name }}"
+        });
+        
+        new QRCode(document.getElementById("zelle-qr-code"), {
+            text: qrContent,
+            width: 200,
+            height: 200,
+            colorDark: "#4B1045",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Search recipient input logic
         const contactInput = document.getElementById('zelleContact');
         if(contactInput) {
             contactInput.addEventListener('input', function (e) {
-                let val = this.value;
-                const digits = val.replace(/\D/g, '');
-                
-                // Smart Formatting: trigger on 4th consecutive digit to avoid email collision
-                if (/^\d{4,}/.test(digits) || (digits.length >= 4 && !val.includes('@'))) {
-                    if (digits.length > 0) {
-                        if (digits.length <= 3) val = digits;
-                        else if (digits.length <= 6) val = `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-                        else val = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-                        this.value = val;
-                    }
-                }
-
                 clearTimeout(window.typingTimer);
                 document.getElementById('zelleNoticeBox').classList.add('d-none');
                 document.getElementById('externalNameGroup').classList.add('d-none');
@@ -303,13 +283,30 @@
                 const searchVal = this.value.trim();
                 if (searchVal.length >= 5) {
                     document.getElementById('verifySpinner').classList.remove('d-none');
-                    window.typingTimer = setTimeout(() => window.verifyZelleNetwork(searchVal), 500);
+                    window.typingTimer = setTimeout(() => window.verifyZelleNetwork(searchVal), 600);
                 } else {
                     document.getElementById('verifySpinner').classList.add('d-none');
                 }
             });
         }
     });
+
+    window.switchZelleTab = function(tab) {
+        document.querySelectorAll('.zelle-section').forEach(s => s.classList.add('d-none'));
+        document.querySelectorAll('.zelle-tab').forEach(t => {
+            t.classList.remove('active', 'text-dark');
+            t.classList.add('text-muted');
+        });
+        
+        const section = document.getElementById('section-' + tab);
+        if (section) section.classList.remove('d-none');
+        
+        const activeTab = document.getElementById('tab-' + tab);
+        if (activeTab) {
+            activeTab.classList.add('active', 'text-dark');
+            activeTab.classList.remove('text-muted');
+        }
+    }
 
     window.verifyZelleNetwork = function(contact) {
         fetch('{{ route("user.fund_transfer.zelle.verify") }}', {
@@ -324,26 +321,24 @@
         .then(data => {
             document.getElementById('verifySpinner').classList.add('d-none');
             let noticeBox = document.getElementById('zelleNoticeBox');
+            if (!noticeBox) return;
+
             noticeBox.classList.remove('d-none');
             
-            if (data.status === 'internal') {
+            if (data.status === 'success' || data.status === 'internal') {
                 window.verifiedName = data.name;
                 document.getElementById('noticeIcon').className = 'fas fa-shield-check';
                 document.getElementById('noticeTitle').innerText = 'Enrolled with Zelle®';
                 document.getElementById('noticeSub').innerHTML = `You are sending money to <strong>${data.name}</strong>`;
                 document.getElementById('externalNameGroup').classList.add('d-none');
                 document.getElementById('externalName').removeAttribute('required');
-            } else if (data.status === 'external') {
+            } else {
                 window.verifiedName = null;
                 document.getElementById('noticeIcon').className = 'fas fa-user-plus';
                 document.getElementById('noticeTitle').innerText = 'New Contact';
                 document.getElementById('noticeSub').innerHTML = "This recipient isn't in your contacts. Please provide their name below to continue.";
                 document.getElementById('externalNameGroup').classList.remove('d-none');
                 document.getElementById('externalName').setAttribute('required', 'required');
-            } else {
-                noticeBox.classList.add('d-none');
-                document.getElementById('externalNameGroup').classList.add('d-none');
-                document.getElementById('externalName').removeAttribute('required');
             }
             window.isZelleVerified = true;
         })
@@ -363,10 +358,10 @@
             feedback.innerHTML = `<span class="text-danger small fw-bold">Daily limit exceeded ($${window.remainingDailyLimit.toLocaleString('en-US', {minimumFractionDigits:2})} remaining).</span>`;
             return false;
         } else if (amount > balance) {
-            feedback.innerHTML = '<span class="text-danger small fw-bold">Insufficient funds available.</span>';
+            feedback.innerHTML = '<span class="text-danger small fw-bold">Insufficient funds.</span>';
             return false;
         } else if (amount > 0) {
-            feedback.innerHTML = '<span class="text-success small"><i class="fas fa-check"></i> Limit Verified</span>';
+            feedback.innerHTML = '<span class="text-success small"><i class="fas fa-check"></i> Verified</span>';
             return true;
         } else {
             feedback.innerHTML = '';
@@ -380,35 +375,19 @@
         const amount = parseFloat(document.getElementById('amount').value) || 0;
         
         if (!contact || contact.length < 5) {
-            Swal.fire({ title: 'Recipient Required', text: 'Please enter an Email or U.S Mobile Number', icon: 'warning', confirmButtonColor: '#741B6B' });
+            Swal.fire({ title: 'Recipient Required', text: 'Please enter an Email or U.S Mobile Number', icon: 'warning' });
             return;
         }
         
         if (!window.validateBalance() || amount <= 0) {
-            Swal.fire({ title: 'Invalid Amount', text: 'Please check your balance and daily limits.', icon: 'error', confirmButtonColor: '#741B6B' });
+            Swal.fire({ title: 'Invalid Amount', text: 'Please check your balance and daily limits.', icon: 'error' });
             return;
         }
         
         if (!window.isZelleVerified) {
-            // Force immediate verify block rather than trapping them
-            document.getElementById('zelleSubmitBtn').disabled = true;
-            document.getElementById('zelleSubmitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying Zelle®...';
-            
-            fetch('{{ route("user.fund_transfer.zelle.verify") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({contact: contact})
-            }).then(res => res.json()).then(data => {
-                window.isZelleVerified = true;
-                document.getElementById('zelleSubmitBtn').disabled = false;
-                document.getElementById('zelleSubmitBtn').innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
-                window.verifyZelleNetwork(contact); // Updates UI dynamically
-                setTimeout(window.confirmZelle, 500); // Re-trigger modal
-            }).catch(err => {
-                document.getElementById('zelleSubmitBtn').disabled = false;
-                document.getElementById('zelleSubmitBtn').innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
-                Swal.fire('Error', 'Unable to reach the Zelle Network. Please try again.', 'error');
-            });
+            // Re-trigger verification if they click too fast
+            window.verifyZelleNetwork(contact);
+            setTimeout(window.confirmZelle, 800);
             return;
         }
 
@@ -416,64 +395,54 @@
         const displayRecipientName = window.verifiedName || extName || 'Recipient';
         
         if (document.getElementById('externalName').hasAttribute('required') && !extName) {
-            Swal.fire({ title: 'Name Required', text: 'Please provide the missing contact name.', icon: 'warning', confirmButtonColor: '#741B6B' });
+            Swal.fire({ title: 'Name Required', text: 'Please provide the missing contact name.', icon: 'warning' });
             return;
         }
 
         Swal.fire({
-            title: '<div class="pt-3" style="color: #4a1144; font-size: 1.5rem;">Review Payment</div>',
+            title: '<div class="pt-3" style="color: #4a1144;">Review Payment</div>',
             html: `
                 <div class="text-center px-2">
-                    <div class="mb-4 d-inline-block p-3 rounded-circle" style="background: rgba(116, 27, 107, 0.1);">
-                        <img src="{{ asset('assets/external/images/zelle small logo.png') }}" style="height: 48px;">
-                    </div>
                     <div class="display-6 fw-bold mb-1" style="color: #741B6B;">$${amount.toFixed(2)}</div>
                     <div class="text-muted small text-uppercase fw-bold mb-4">Total Amount</div>
                     
                     <div class="text-start bg-light p-3 rounded-3 mb-3 border">
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted small">Recipient Name:</span>
+                            <span class="text-muted small">To:</span>
                             <span class="fw-bold">${displayRecipientName}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted small">Recipient Contact:</span>
+                            <span class="text-muted small">Contact:</span>
                             <span class="fw-bold">${contact}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted small">From Account:</span>
-                            <span class="fw-bold small">${document.getElementById('walletSelect').options[document.getElementById('walletSelect').selectedIndex].text.split('-')[0]}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span class="text-muted small">Network Fee:</span>
-                            <span class="text-success fw-bold">FREE</span>
-                        </div>
-                    </div>
-                    <div class="alert alert-warning border-0 small text-start py-2">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Zelle® payments are instant and cannot be reversed.
                     </div>
                 </div>
             `,
             showCancelButton: true,
             confirmButtonColor: '#741B6B',
-            cancelButtonColor: '#6c757d',
             confirmButtonText: 'Send Money Now',
             cancelButtonText: 'Cancel',
-            customClass: {
-                confirmButton: 'rounded-pill px-4',
-                cancelButton: 'rounded-pill px-4'
-            }
+            customClass: { confirmButton: 'rounded-pill px-4', cancelButton: 'rounded-pill px-4' }
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('zelleSubmitBtn').disabled = true;
                 document.getElementById('zelleSubmitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-                SecurityGate.gate(document.getElementById('zelleForm'));
+                document.getElementById('zelleForm').submit();
             }
         });
     }
 
     window.filterZelleActivity = function(filter) {
-        document.querySelectorAll('.activity-filter').forEach(el => el.classList.remove('active'));
-        document.querySelector(`.activity-filter[data-filter="${filter}"]`).classList.add('active');
+        document.querySelectorAll('.activity-filter').forEach(el => {
+            el.classList.remove('btn-dark', 'active');
+            el.classList.add('btn-outline-secondary');
+        });
+        
+        const activeBtn = document.querySelector(`.activity-filter[data-filter="${filter}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('btn-dark', 'active');
+            activeBtn.classList.remove('btn-outline-secondary');
+        }
 
         document.querySelectorAll('.activity-item').forEach(el => {
             if (filter === 'all' || el.getAttribute('data-type') === filter) {
@@ -486,113 +455,35 @@
 
     window.saveZelleQRAsImage = function() {
         const qrCanvas = document.querySelector('#zelle-qr-code canvas');
-        if (!qrCanvas) {
-            Swal.fire('Error', 'Please generate the QR code first.', 'error');
-            return;
-        }
-
-        // Create a larger high-quality canvas for the card
-        const cardWidth = 600;
-        const cardHeight = 850;
-        const canvas = document.createElement('canvas');
-        canvas.width = cardWidth;
-        canvas.height = cardHeight;
-        const ctx = canvas.getContext('2d');
-
-        // Draw Background (Zelle Card Style)
-        const gradient = ctx.createLinearGradient(0, 0, cardWidth, cardHeight);
-        gradient.addColorStop(0, '#6d1ed4');
-        gradient.addColorStop(1, '#4B1045');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
-
-        // Draw Card Content Area
-        ctx.fillStyle = '#ffffff';
-        const margin = 40;
-        ctx.roundRect(margin, margin, cardWidth - (margin * 2), cardHeight - (margin * 2), 30);
-        ctx.fill();
-
-        // Draw Zelle Logo
-        const zelleLogo = new Image();
-        zelleLogo.src = "{{ asset('assets/external/images/zelle logo2025.png') }}";
-        zelleLogo.onload = function() {
-            ctx.drawImage(zelleLogo, (cardWidth/2) - 60, 80, 120, 30);
-            
-            // Draw QR Code
-            ctx.drawImage(qrCanvas, (cardWidth/2) - 150, 200, 300, 300);
-
-            // User Info
-            ctx.fillStyle = '#4a1144';
-            ctx.font = 'bold 36px Helvetica';
-            ctx.textAlign = 'center';
-            ctx.fillText("{{ auth()->user()->full_name }}", cardWidth/2, 580);
-            
-            ctx.fillStyle = '#666666';
-            ctx.font = '24px Helvetica';
-            ctx.fillText("{{ auth()->user()->email }}", cardWidth/2, 625);
-            ctx.fillText("{{ auth()->user()->phone ?? 'Zelle®' }}", cardWidth/2, 660);
-
-            // Footer instructions
-            ctx.fillStyle = '#741B6B';
-            ctx.font = 'italic 18px Helvetica';
-            ctx.fillText("Scan with your mobile banking app to pay.", cardWidth/2, 750);
-
-            // Export
-            const link = document.createElement('a');
-            link.download = 'My_Zelle_Code.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            
-            Swal.fire({ title: 'Success', text: 'Zelle QR Code saved to your photos.', icon: 'success', timer: 1500, showConfirmButton: false });
-        };
+        if (!qrCanvas) return;
+        const link = document.createElement('a');
+        link.download = 'My_Zelle_Code.png';
+        link.href = qrCanvas.toDataURL('image/png');
+        link.click();
     }
 
     window.shareZelleQR = function() {
-        const qrCanvas = document.querySelector('#zelle-qr-code canvas');
-        if (!qrCanvas) return;
-
-        qrCanvas.toBlob(blob => {
-            const filesArray = [new File([blob], 'zelle-qr.png', { type: 'image/png' })];
-            const shareData = {
-                title: 'My Zelle® Code',
-                text: 'Scan this code to pay me with Zelle® at Pinellas Federal Credit Union.',
-                files: filesArray
-            };
-
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                navigator.share(shareData).catch(err => console.error(err));
-            } else {
-                // Fallback: Copy info to clipboard
-                const textToCopy = "Pay me with Zelle®: {{ auth()->user()->email }}";
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    Swal.fire({ title: 'Info Copied', text: 'Sharing is not supported on this browser. Your Zelle® info has been copied to clipboard.', icon: 'info' });
-                });
-            }
+        const textToCopy = "Pay me with Zelle®: {{ auth()->user()->email }}";
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            Swal.fire({ title: 'Info Copied', text: 'Your Zelle® info has been copied to clipboard.', icon: 'success' });
         });
     }
-
-    // Replace the old smartPrint in Receive tab
-    document.querySelector('#zelle-receive-content button[onclick="window.smartPrint()"]').setAttribute('onclick', 'window.saveZelleQRAsImage()');
-    document.querySelector('#zelle-receive-content button[onclick*="navigator.share"]').setAttribute('onclick', 'window.shareZelleQR()');
 
     window.zelleScanner = null;
 
     window.startZelleScanner = function() {
         document.getElementById('zelle-scanner-container').classList.remove('d-none');
         window.zelleScanner = new Html5Qrcode("zelle-reader");
-        
-        const config = { fps: 20, qrbox: { width: 250, height: 250 } };
-
         window.zelleScanner.start(
             { facingMode: "environment" }, 
-            config,
-            (decodedText, decodedResult) => {
+            { fps: 20, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
                 window.stopZelleScanner();
                 window.handleScannedData(decodedText);
             }
         ).catch(err => {
             console.error(err);
-            Swal.fire('Scanner Error', 'Please enable camera permissions in your settings.', 'error');
+            Swal.fire('Scanner Error', 'Camera permission required.', 'error');
             window.stopZelleScanner();
         });
     }
@@ -606,43 +497,15 @@
     }
 
     window.handleScannedData = function(data) {
-        let contact = null;
-        let name = null;
-
+        let contact = data;
         try {
-            // Pattern 1: JSON Format
             const parsed = JSON.parse(data);
             if (parsed.c) contact = parsed.c;
-            if (parsed.n) name = parsed.n;
-        } catch (e) {
-            // Pattern 2: Zelle URI (e.g. zelle://... - though not standard, banks might use it)
-            if (data.startsWith('zelle:')) {
-                contact = data.split(':')[1];
-            } 
-            // Pattern 3: Plain text email or phone
-            else if (data.includes('@')) {
-                contact = data.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0];
-            } else {
-                const phoneMatch = data.replace(/\D/g, '').match(/\d{10,15}/);
-                if (phoneMatch) contact = phoneMatch[0];
-            }
-        }
+        } catch (e) {}
 
         if (contact) {
             document.getElementById('zelleContact').value = contact;
-            const event = new Event('input', { bubbles: true });
-            document.getElementById('zelleContact').dispatchEvent(event);
-            
-            if (name) {
-                setTimeout(() => {
-                    const nameField = document.getElementById('externalName');
-                    if (nameField) nameField.value = name;
-                }, 800);
-            }
-            
-            Swal.fire({ title: 'Contact Scanned', text: `Recipient set to ${name || contact}`, icon: 'success', timer: 2000, showConfirmButton: false });
-        } else {
-            Swal.fire('Invalid QR', 'This code was recognized but did not contain valid Zelle® contact information.', 'error');
+            window.verifyZelleNetwork(contact);
         }
     }
 </script>
