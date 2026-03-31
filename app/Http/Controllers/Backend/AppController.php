@@ -87,7 +87,12 @@ class AppController extends Controller
 
     public function profileUpdate(Request $request)
     {
-        $user = auth()->user();
+        $user = auth('admin')->user();
+        if (!$user) {
+            notify()->error('User not found', 'Error');
+            return redirect()->back();
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required',
             'email' => 'required|email|unique:admins,email,'.$user->id,
@@ -144,7 +149,13 @@ class AppController extends Controller
             return redirect()->back();
         }
 
-        auth()->user()->update(['password' => Hash::make($request->new_password)]);
+        $admin = auth('admin')->user();
+        if (!$admin) {
+            notify()->error('User not found', 'Error');
+            return redirect()->back();
+        }
+
+        $admin->update(['password' => Hash::make($request->new_password)]);
         notify()->success('Password Changed Successfully');
 
         return redirect()->back();

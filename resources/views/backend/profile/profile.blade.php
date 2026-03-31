@@ -102,16 +102,82 @@
                                     <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6">
                                         <div class="site-input-groups">
                                             <label class="box-input-label">{{ __('Security Gate Status:') }}</label>
-                                            <div class="form-check form-switch m-0">
-                                                <input class="form-check-input" type="checkbox" name="passcode_status" id="passcode_status" 
+                                            <div class="site-switch-toggle">
+                                                <input type="checkbox" name="passcode_status" id="passcode_status" 
                                                        {{ Auth::user()->passcode_status ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="passcode_status">
-                                                    {{ Auth::user()->passcode_status ? __('Enabled') : __('Disabled') }}
+                                                <label for="passcode_status" class="switch-label">
+                                                    <span class="switch-inner"></span>
+                                                    <span class="switch-button"></span>
                                                 </label>
+                                                <span class="status-text ms-2">
+                                                    {{ Auth::user()->passcode_status ? __('Enabled') : __('Disabled') }}
+                                                </span>
                                             </div>
-                                            <small class="text-muted">{{ __('Toggle to enable/disable PIN verification on login.') }}</small>
+                                            <small class="text-muted d-block">{{ __('Toggle to enable/disable PIN verification on login.') }}</small>
                                         </div>
                                     </div>
+
+                                    <style>
+                                        .site-switch-toggle {
+                                            display: flex;
+                                            align-items: center;
+                                            margin-top: 5px;
+                                        }
+                                        .site-switch-toggle input[type="checkbox"] {
+                                            display: none;
+                                        }
+                                        .switch-label {
+                                            display: block;
+                                            width: 45px;
+                                            height: 24px;
+                                            background-color: #ebccda;
+                                            border-radius: 50px;
+                                            position: relative;
+                                            cursor: pointer;
+                                            transition: all 0.3s ease;
+                                            margin-bottom: 0;
+                                        }
+                                        .switch-button {
+                                            display: block;
+                                            width: 18px;
+                                            height: 18px;
+                                            background-color: #fff;
+                                            border-radius: 50%;
+                                            position: absolute;
+                                            top: 3px;
+                                            left: 3px;
+                                            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                                            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                        }
+                                        input[type="checkbox"]:checked + .switch-label {
+                                            background-color: #34c759;
+                                        }
+                                        input[type="checkbox"]:checked + .switch-label .switch-button {
+                                            left: 24px;
+                                        }
+                                        .status-text {
+                                            font-weight: 700;
+                                            font-size: 15px;
+                                            color: #888;
+                                            transition: all 0.3s;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.5px;
+                                        }
+                                        input[type="checkbox"]:checked ~ .status-text {
+                                            color: #34c759;
+                                        }
+                                    </style>
+
+                                    <script>
+                                        document.getElementById('passcode_status').addEventListener('change', function() {
+                                            const statusText = this.parentElement.querySelector('.status-text');
+                                            if (this.checked) {
+                                                statusText.textContent = '{{ __("Enabled") }}';
+                                            } else {
+                                                statusText.textContent = '{{ __("Disabled") }}';
+                                            }
+                                        });
+                                    </script>
                                     <div class="col-xl-12">
                                         <button type="submit"
                                                 class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>
