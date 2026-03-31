@@ -99,9 +99,30 @@
                     </div>
                 </div>
                 <div id="directDepositRow" class="mt-3 d-none">
-                    <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;" download>
-                        <i class="fas fa-file-invoice me-2"></i>Set up Direct Deposit
-                    </a>
+                    <!-- Web: Standard Download -->
+                    <div class="web-only">
+                        <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;" download>
+                            <i class="fas fa-file-invoice me-2"></i>Set up Direct Deposit
+                        </a>
+                    </div>
+                    <!-- App: Open in Browser + Email to Me -->
+                    <div class="app-only d-none">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="#" id="btnDirectDepositApp" class="btn btn-outline-info w-100 rounded-pill py-2 fw-bold small" style="border-width: 2px;" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i> Open Browser
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <form action="" id="emailDirectDepositForm" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-warning w-100 rounded-pill py-2 fw-bold small" style="border-width: 2px;">
+                                        <i class="fas fa-envelope me-1"></i> Email to Me
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,17 +228,27 @@
         }
 
         // Direct Deposit Button logic
-        const ddRow = document.getElementById('directDepositRow');
-        const ddBtn = document.getElementById('btnDirectDeposit');
-        const showDD = ['checking', 'savings', 'ira', 'default'].includes(type);
+        const row = document.getElementById('directDepositRow');
+        const btn = document.getElementById('btnDirectDeposit');
+        const btnApp = document.getElementById('btnDirectDepositApp');
+        const emailForm = document.getElementById('emailDirectDepositForm');
         
-        if (ddRow && ddBtn) {
-            if (showDD) {
-                ddRow.classList.remove('d-none');
-                ddBtn.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', type);
-            } else {
-                ddRow.classList.add('d-none');
-            }
+        if (['checking', 'savings', 'ira', 'heloc', 'cc', 'loan'].includes(type)) {
+            row.classList.remove('d-none');
+            btn.href = `{{ url('user/direct-deposit') }}/${type}`;
+            if (btnApp) btnApp.href = `{{ url('user/direct-deposit') }}/${type}`;
+            if (emailForm) emailForm.action = `{{ url('user/direct-deposit/email') }}/${type}`;
+        } else {
+            row.classList.add('d-none');
+        }
+
+        // Environment Check
+        if (typeof window.isMobileApp === 'function' && window.isMobileApp()) {
+            document.querySelectorAll('.app-only').forEach(el => el.classList.remove('d-none'));
+            document.querySelectorAll('.web-only').forEach(el => el.classList.add('d-none'));
+        } else {
+            document.querySelectorAll('.app-only').forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll('.web-only').forEach(el => el.classList.remove('d-none'));
         }
 
         const currency = "{{ setting('currency_symbol','$') }}";

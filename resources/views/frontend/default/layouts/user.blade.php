@@ -476,5 +476,14 @@
     </script>
     @include('frontend.default.user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
+    <script>
+        window.isMobileApp = function() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            // Check for common mobile app WebView signatures or if it's running as a standalone web app
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua) || /\bwv\b/i.test(ua) || /Android.*Version\/[.0-9]+/i.test(ua);
+            return isStandalone || isWebView;
+        };
+    </script>
 </body>
 </html>

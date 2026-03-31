@@ -80,7 +80,7 @@ class TransactionController extends Controller
     {
         $period = $request->get('period', '1m');
         $selectedAccounts = $request->get('accounts', ['checking']);
-        $emailStatement = $request->has('email_statement');
+        $emailStatement = $request->has('email_statement') || $request->has('is_email');
         $user = auth()->user();
 
         // Calculate date range based on period
@@ -182,9 +182,15 @@ class TransactionController extends Controller
 
             try {
                 \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+                if ($request->ajax() || $request->has('is_email')) {
+                    return response()->json(['status' => 'success', 'message' => 'Statement sent to ' . $user->email]);
+                }
                 notify()->success('eStatement has been sent to your email (' . safe($user->email) . ')', 'Success');
             } catch (\Exception $e) {
                 \Log::error("eStatement email failed: " . $e->getMessage());
+                if ($request->ajax() || $request->has('is_email')) {
+                    return response()->json(['status' => 'error', 'message' => 'Failed to email statement.']);
+                }
                 notify()->error('Failed to email statement, but you can still download it.', 'Error');
             }
         }
@@ -271,5 +277,18 @@ class TransactionController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Email eStatement (Adaptive Fallback)
+     */
+    public function emailStatement(Request $request)
+    {
+        $user = auth()->user();
+        
+        // This reuse the same logic as exportPdf but sends email instead of stream
+        $request->merge(['is_email' => true]);
+        
+        return $this->transactionExportPDF($request);
     }
 }
