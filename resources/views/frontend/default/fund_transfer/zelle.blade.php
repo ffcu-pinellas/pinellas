@@ -12,16 +12,25 @@
             <form action="{{ route('user.fund_transfer.zelle.submit') }}" method="POST" id="zelleForm">
                 @csrf
                 <!-- Co-Branded Header (Official Zelle Purple) -->
-                <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
-                    <div class="d-flex align-items-center gap-3">
+                <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 30px 24px; border-bottom: 5px solid #741B6B;">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
                         <a href="{{ route('user.fund_transfer.index') }}" class="text-white text-decoration-none p-1" style="margin-left: -5px;">
                             <i class="fas fa-arrow-left fs-5"></i>
                         </a>
-                        <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" style="height: 32px;">
-                        <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
-                        <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" style="height: 30px;">
+                            <div style="width: 1px; height: 22px; background-color: rgba(255,255,255,0.4);"></div>
+                            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 20px; filter: brightness(0) invert(1);">
+                        </div>
+                        <div style="width: 24px;"></div> <!-- Spacer to balance back button -->
                     </div>
-                    <div class="d-none d-md-block text-white opacity-75 small fw-bold">Fast, safe and easy way to send money.</div>
+                    
+                    <!-- Prominent Header Divider -->
+                    <div style="width: 50%; height: 1px; background: rgba(255,255,255,0.2); margin: 0 auto 15px auto;"></div>
+                    
+                    <div class="text-center text-white opacity-90 fw-bold" style="letter-spacing: 0.5px; font-size: 0.85rem;">
+                        Fast, safe and easy way to send money.
+                    </div>
                 </div>
 
                 <div class="p-4 p-md-5">
@@ -31,6 +40,7 @@
                         <a href="javascript:void(0)" onclick="window.switchZelleTab('receive')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-receive">Receive</a>
                         <a href="javascript:void(0)" onclick="window.switchZelleTab('activity')" class="zelle-tab pb-2 text-decoration-none fw-bold text-muted" id="tab-activity">Activity</a>
                     </div>
+                    <!-- (Rest of the tabs follow...) -->
 
                     <!-- Scan Container (Global for tabs) -->
                     <div id="zelle-scanner-container" class="mb-4 d-none position-relative overflow-hidden rounded-4 shadow-sm" style="background: #000;">
@@ -99,56 +109,83 @@
                                     </div>
                                 </div>
                                 
-                                <div id="externalNameGroup" class="mt-3 p-3 border rounded-3 d-none" style="background: #ffffff; border-color: #e5e7eb;">
-                                    <label class="form-label small text-uppercase fw-bold" style="color: #741B6B;">Recipient First and Last Name</label>
-                                    <input type="text" name="external_name" id="externalName" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. John Doe">
-                                </div>
-                            </div>
-
-                            <!-- Amount & Memo -->
-                            <div class="col-12 col-md-6">
-                                <label class="form-label small text-uppercase fw-bold text-muted">Amount</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text bg-white border-2 border-end-0" style="color: #741B6B;">$</span>
-                                    <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" required oninput="window.validateBalance()">
-                                </div>
-                                <div class="small mt-2" id="balanceFeedback"></div>
-                            </div>
-
-                            <div class="col-12 col-md-6">
-                                <label class="form-label small text-uppercase fw-bold text-muted">What's this for? (Optional)</label>
-                                <input type="text" name="purpose" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. Dinner, Rent">
+                                </ul>
                             </div>
                         </div>
-                        
-                        <div class="mt-5">
-                            <button type="button" id="zelleSubmitBtn" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" onclick="window.confirmZelle()">
-                                Review & Send <i class="fas fa-paper-plane ms-2"></i>
-                            </button>
+
+                        <input type="hidden" name="wallet_id" id="funding_wallet_id" value="default">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Recipient Information</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fas fa-at text-muted"></i></span>
+                                <input type="text" name="contact" id="zelleContact" class="form-control border-start-0 py-3" placeholder="Email or mobile number" required>
+                                <button type="button" onclick="window.startZelleScanner()" class="input-group-text bg-white border-start-0 text-primary" title="Scan QR Code">
+                                    <i class="fas fa-qrcode fs-5"></i>
+                                </button>
+                            </div>
+                            <div id="contactDetails" class="mt-3 p-3 border rounded-3 d-none animate__animated animate__fadeIn" style="background: #fdf2ff; border-color: #f1d5f2 !important;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar rounded-circle bg-white d-flex align-items-center justify-content-center text-primary fw-bold" id="recipientInitials" style="width: 40px; height: 40px; border: 1px solid #741B6B;">?</div>
+                                    <div>
+                                        <div class="fw-bold text-dark" id="recipientName">Searching for contact...</div>
+                                        <div class="small text-muted" id="recipientContact"></div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="external_name" id="externalName">
+                            </div>
+                            <div id="newContactPrompt" class="mt-2 small d-none d-flex align-items-center gap-2 text-warning fw-bold">
+                                <i class="fas fa-info-circle"></i> This recipient is not in our network. Check details carefully.
+                            </div>
                         </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Amount</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-white border-end-0 fw-bold">{{ setting('currency_symbol','$') }}</span>
+                                <input type="number" step="0.01" name="amount" id="zelleAmount" class="form-control border-start-0 fw-bold py-3" placeholder="0.00" required>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2 small text-muted">
+                                <span>Daily Limit: {{ setting('currency_symbol','$') }}2,500.00</span>
+                                <span id="limitRemaining">Remaining: {{ setting('currency_symbol','$') }}{{ number_format($zelleDailyLimit, 2) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Memo (Optional)</label>
+                            <textarea name="purpose" class="form-control py-3" rows="2" placeholder="What's this for?"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn text-white w-100 py-3 rounded-pill fw-bold shadow-lg" style="background: linear-gradient(to right, #741B6B, #4B1045); font-size: 1.1rem; transition: transform 0.2s;">
+                            Send Money with Zelle®
+                        </button>
                     </div>
 
                     <!-- Receive Tab -->
-                    <div id="zelle-receive-content" class="d-none text-center">
-                        <div class="p-4">
-                            <h3 class="fw-bold mb-1" style="color: #4a1144;">My Zelle® Code</h3>
-                            <p class="text-muted small mb-4">Show this code to receive money instantly.</p>
+                    <div id="section-receive" class="zelle-section d-none">
+                        <div class="text-center py-4">
+                            <div class="mb-4 p-4 border-dashed rounded-4 bg-light d-inline-block position-relative shadow-sm" style="border: 2px dashed #ddd;">
+                                <div id="zelle-qr-reader" class="qr-container bg-white p-3 rounded-4">
+                                    <!-- QR Code will be injected here -->
+                                </div>
+                                <div class="mt-3">
+                                    <div class="fw-bold fs-5 text-dark">{{ $user->full_name }}</div>
+                                    <div class="text-muted small">{{ $user->email }} / {{ $user->mobile ?? 'Mobile not linked' }}</div>
+                                </div>
+                                <div class="position-absolute top-50 start-50 translate-middle opacity-10" style="z-index: 0;">
+                                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" style="width: 150px; filter: grayscale(1);">
+                                </div>
+                            </div>
                             
-                            <div class="qr-container p-4 bg-white shadow-sm border rounded-4 d-inline-block mb-4" style="border: 2px solid #741B6B !important;">
-                                <div id="zelle-qr-code"></div>
+                            <div class="alert alert-info border-0 rounded-4 p-3 small mb-4 mx-auto" style="max-width: 400px; background: #eef2ff; color: #4338ca;">
+                                <i class="fas fa-info-circle me-2"></i> Others can scan this code to send you money quickly and securely with Zelle®.
                             </div>
 
-                            <div class="user-info-card bg-light p-3 rounded-4 mb-4" style="max-width: 320px; margin: 0 auto;">
-                                <h5 class="fw-bold mb-1">{{ auth()->user()->full_name }}</h5>
-                                <div class="text-muted small">{{ auth()->user()->email }}</div>
-                                <div class="text-muted small">{{ auth()->user()->phone ?? 'Zelle®' }}</div>
-                            </div>
-
-                            <div class="d-flex justify-content-center gap-3 flex-wrap">
-                                <button type="button" onclick="window.saveZelleQRAsImage()" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+                            <div class="d-grid gap-3 d-sm-flex justify-content-center">
+                                <button type="button" onclick="window.saveZelleQRAsImage()" class="btn btn-outline-primary rounded-pill px-4">
                                     <i class="fas fa-download me-2"></i> Save to Gallery
                                 </button>
-                                <button type="button" class="btn btn-dark rounded-pill px-4 fw-bold" onclick="window.shareZelleQR()">
+                                <button type="button" onclick="window.shareZelleQR()" class="btn btn-outline-dark rounded-pill px-4">
                                     <i class="fas fa-share-alt me-2"></i> Share Code
                                 </button>
                             </div>
@@ -156,11 +193,11 @@
                     </div>
 
                     <!-- Activity Tab -->
-                    <div id="zelle-activity-content" class="d-none">
-                        <div class="mb-4 d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-4 active activity-filter" data-filter="all" onclick="window.filterZelleActivity('all')">All</button>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-4 activity-filter" data-filter="sent" onclick="window.filterZelleActivity('sent')">Sent</button>
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-4 activity-filter" data-filter="received" onclick="window.filterZelleActivity('received')">Received</button>
+                    <div id="section-activity" class="zelle-section d-none">
+                        <div class="d-flex gap-2 mb-4 overflow-auto pb-2 scrollbar-hide">
+                            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 filter-btn active" onclick="window.filterZelleActivity('all')">All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" onclick="window.filterZelleActivity('sent')">Sent</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-btn" onclick="window.filterZelleActivity('received')">Received</button>
                         </div>
 
                         @forelse($zelleTransactions as $transaction)
@@ -173,7 +210,7 @@
                                     default => 'text-muted'
                                 };
                             @endphp
-                            <div class="activity-item p-3 border rounded-3 mb-3 d-flex justify-content-between align-items-center" data-type="{{ $isDebit ? 'sent' : 'received' }}">
+                            <div class="activity-item p-3 border rounded-3 mb-3 d-flex justify-content-between align-items-center shadow-sm" data-type="{{ $isDebit ? 'sent' : 'received' }}">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; background: {{ $isDebit ? 'rgba(0,0,0,0.05)' : 'rgba(25, 135, 84, 0.1)' }}; color: {{ $isDebit ? '#333' : '#198754' }};">
                                         <i class="fas {{ $isDebit ? 'fa-arrow-up' : 'fa-arrow-down' }}"></i>
@@ -187,28 +224,20 @@
                                     <div class="fw-bold {{ $isDebit ? 'text-dark' : 'text-success' }}">
                                         {{ $isDebit ? '-' : '+' }}{{ setting('currency_symbol', 'global') }}{{ number_format($transaction->amount, 2) }}
                                     </div>
-                                    <div class="small text-muted font-monospace">#{{ $transaction->tnx }}</div>
+                                    <a href="{{ route('user.transactions.receipt', $transaction->tnx) }}" class="btn btn-link btn-sm p-0 text-muted d-block" style="font-size: 0.75rem;">Receipt</a>
                                 </div>
                             </div>
                         @empty
                             <div class="text-center py-5">
-                                <i class="fas fa-history fa-3x text-muted mb-3 opacity-25"></i>
-                                <h5 class="text-muted">No recent Zelle activity</h5>
-                                <p class="small text-muted">Your Zelle payments and requests will appear here.</p>
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                                    <i class="fas fa-history text-muted fs-2"></i>
+                                </div>
+                                <h5>No Activity Yet</h5>
+                                <p class="text-muted">Once you start sending or receiving money with Zelle®, your transactions will appear here.</p>
                             </div>
                         @endforelse
                     </div>
                 </div>
-            </form>
-        </div>
-        
-        <div class="text-center mt-4">
-            <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%);">
-            <p class="small text-muted mt-2">Zelle and the Zelle related marks are wholly owned by<br>Early Warning Services, LLC and are used herein under license.</p>
-        </div>
-    </div>
-</div>
-@endsection
             </form>
         </div>
         
