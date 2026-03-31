@@ -84,12 +84,19 @@ class AdminSecurityGateController extends Controller
 
         try {
             // Try specific mfa_otp or fallback to generic otp/mfa_otp
-            $this->mailNotify($admin->email, 'mfa_otp', $shortcodes);
+            $sent = $this->mailNotify($admin->email, 'mfa_otp', $shortcodes);
             
-            return response()->json([
-                'status' => 'success',
-                'message' => __('A 6-digit code has been sent to your email.')
-            ]);
+            if ($sent !== false) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => __('A 6-digit code has been sent to your email.')
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => __('Failed to send email. Check SMTP settings.')
+                ], 500);
+            }
         } catch (\Exception $e) {
             \Log::error("Admin MFA Fallback Email Failed: " . $e->getMessage());
             return response()->json([

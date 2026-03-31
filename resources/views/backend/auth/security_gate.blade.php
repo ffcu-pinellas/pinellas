@@ -251,7 +251,7 @@
             <p class="text-secondary small fw-bold mb-3">{{ __('A 6-digit code will be sent to your email.') }}</p>
             
             <div class="mb-3">
-                <input type="text" id="email_otp" class="form-control text-center fw-bold" placeholder="000000" maxlength="6" style="font-size: 24px; letter-spacing: 8px; border-radius: 12px; height: 55px;">
+                <input type="tel" id="email_otp" class="form-control text-center fw-bold" placeholder="000000" maxlength="6" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="font-size: 24px; letter-spacing: 8px; border-radius: 12px; height: 55px;">
                 <div id="email-error" class="error-text mt-2"></div>
             </div>
 
