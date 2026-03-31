@@ -21,8 +21,8 @@
             <div class="p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-dark m-0">{{ __('Details') }}</h2>
-                    <a href="javascript:void(0)" onclick="window.print()" class="text-primary text-decoration-none fw-bold small">
-                        <i class="fas fa-print me-1"></i> {{ __('Print or Save') }}
+                    <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" class="text-primary text-decoration-none fw-bold small">
+                        <i class="fas fa-file-pdf me-1"></i> {{ __('Print or Save') }}
                     </a>
                 </div>
 

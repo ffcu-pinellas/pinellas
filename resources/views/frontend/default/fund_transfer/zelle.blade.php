@@ -20,6 +20,15 @@
         <div class="banno-card p-0 mb-4 shadow-sm" style="border-top: 4px solid #741B6B;">
             <form action="{{ route('user.fund_transfer.zelle.submit') }}" method="POST" id="zelleForm">
                 @csrf
+            <!-- Co-Branded Header (Official Zelle Purple) -->
+            <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" style="height: 32px;">
+                    <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
+                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
+                </div>
+                <div class="d-none d-md-block text-white opacity-75 small fw-bold">Transfer Service</div>
+            </div>
             <div class="p-4 p-md-5">
                 <!-- Zelle Tabs -->
                 <div class="d-flex border-bottom mb-4 justify-content-center" style="gap: 1.5rem;">
@@ -184,9 +193,12 @@
         border-color: #741B6B !important;
         box-shadow: 0 0 0 0.25rem rgba(116, 27, 107, 0.1) !important;
     }
+    .header { border-bottom: 2pt solid #00549b; padding-bottom: 15pt; margin-bottom: 30pt; position: relative; }
+    .logo { height: 35pt; }
+    .zelle-logo { height: 20pt; position: absolute; top: 12pt; right: 0; }
     .zelle-tab { border-bottom: 3px solid transparent; color: #666; transition: all 0.2s; }
     .zelle-tab.active { border-bottom-color: #741B6B; color: #741B6B !important; }
-    .zelle-tab:hover { color: #741B6B; }
+    .zelle-tab:hover { color: #741B6B; opacity: 0.85; }
     .qr-container canvas { max-width: 100% !important; height: auto !important; }
 </style>
 @endsection

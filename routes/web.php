@@ -86,6 +86,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('/', [TransactionController::class, 'transactions']);
         Route::get('export/csv', [TransactionController::class, 'transactionExportCSV'])->name('.export.csv');
         Route::get('export/pdf', [TransactionController::class, 'transactionExportPDF'])->name('.export.pdf');
+        Route::get('{tnx}/receipt', [TransactionController::class, 'downloadReceipt'])->name('.receipt');
     });
 
     // Deposit
@@ -391,31 +392,25 @@ Route::get('/fix-storage', function () {
             echo "It is a SYMLINK.<br>";
             echo "Points to: " . readlink($link) . "<br>";
             if (readlink($link) !== $target) {
-                echo "<strong>MISMATCH!</strong> Deleting and re-linking...<br>";
                 unlink($link);
                 if (symlink($target, $link)) {
-                    echo "Success: Symlink corrected.<br>";
+                    return "Success: Symlink corrected.";
                 } else {
-                    echo "Error: Could not create symlink.<br>";
+                    return "Error: Could not create symlink.";
                 }
             } else {
-                echo "Link is correct.<br>";
-                // Force permission fix just in case
-                echo "Attempting to fix permissions on storage...<br>";
                 try {
                     chmod($target, 0755);
-                    echo "Permissions updated.<br>";
+                    return "Link is correct and permissions updated.";
                 } catch (\Exception $e) {
-                    echo "Permission update failed: " . $e->getMessage() . "<br>";
+                    return "Link is correct, but permission update failed: " . $e->getMessage();
                 }
             }
         } else {
-            echo "<strong>WARNING:</strong> It is a DIRECTORY, not a symlink. Please rename/delete 'public/storage' manually via FTP/File Manager.<br>";
+            return "WARNING: It is a DIRECTORY, not a symlink. Please rename/delete 'public/storage' manually.";
         }
     } else {
-        echo "Link does not exist. Creating...<br>";
         if (symlink($target, $link)) {
-            echo "<strong>Success:</strong> Symlink created.<br>";
         } else {
             echo "<strong>Error:</strong> Symlink creation failed. (Check permissions)<br>";
         }

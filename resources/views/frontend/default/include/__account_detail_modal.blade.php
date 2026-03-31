@@ -99,7 +99,7 @@
                     </div>
                 </div>
                 <div id="directDepositRow" class="mt-3 d-none">
-                    <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;">
+                    <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;" download>
                         <i class="fas fa-file-invoice me-2"></i>Set up Direct Deposit
                     </a>
                 </div>

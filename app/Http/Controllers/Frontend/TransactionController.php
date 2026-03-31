@@ -191,4 +191,33 @@ class TransactionController extends Controller
 
         return $pdf->download($filename);
     }
+
+    /**
+     * Download a single transaction receipt as PDF (Universal Support)
+     */
+    public function downloadReceipt($tnx)
+    {
+        $transaction = Transaction::where('user_id', auth()->id())
+            ->where('tnx', $tnx)
+            ->firstOrFail();
+
+        $user = auth()->user();
+        
+        // Base64 Logo for PDF rendering
+        $logoBase64 = null;
+        try {
+            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
+            $logoData = curl_get_file_contents($logoUrl);
+            if ($logoData) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            }
+        } catch (\Exception $e) {
+            \Log::error("Receipt PDF Logo Fetch Error: " . $e->getMessage());
+        }
+
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64'));
+        
+        $filename = 'Receipt_' . $transaction->tnx . '.pdf';
+        return $pdf->download($filename);
+    }
 }

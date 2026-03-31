@@ -369,8 +369,11 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-0 p-4 pt-0">
-                <button type="button" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer border-0 p-4 pt-0 gap-2 flex-column">
+                <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
+                    <i class="fas fa-file-pdf"></i> Download Receipt
+                </a>
+                <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-2 fw-bold" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -439,6 +442,10 @@
                 modal.find('.modal-trx-val').text(button.data('trx'));
                 modal.find('.modal-status-val').text(button.data('status'));
                 modal.find('.modal-method-val').text(button.data('method'));
+                
+                // Set Download Receipt Link (Universal Download Support)
+                var receiptUrl = "{{ route('user.transactions.receipt', ':tnx') }}".replace(':tnx', button.data('trx'));
+                modal.find('#btnDownloadReceipt').attr('href', receiptUrl);
             });
         });
     </script>

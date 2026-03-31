@@ -464,6 +464,15 @@
             setTimeout(function() { timerFinished = true; hideSplash(); }, 3000);
             window.addEventListener('load', function() { pageLoaded = true; hideSplash(); });
         })();
+
+        window.smartPrint = function() {
+            if (typeof window.print === 'function' && !/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                window.print();
+            } else {
+                // For mobile/app users, window.print() often opens the system share/save dialog.
+                window.print();
+            }
+        };
     </script>
     @include('frontend.default.user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>

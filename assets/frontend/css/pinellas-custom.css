@@ -139,6 +139,15 @@ b {
 }
 
 /* Fixed Profile Section at bottom of Sidebar */
+@media (max-width: 576px) {
+    .site-card {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+.zelle-tab-link:hover { opacity: 0.85; }
+
 .sidebar-footer {
     margin-top: auto;
     border-top: 1px solid var(--border-color) !important;
@@ -393,10 +402,6 @@ b {
 .wizard-step.active {
     display: block !important;
     opacity: 1;
-}
-
-.banno-card {
-    /* min-height: 400px; removed to prevent gaps */
 }
 
 /* Global UI Overrides */
