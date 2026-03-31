@@ -188,17 +188,28 @@
                                             $accountLabel = 'ACCOUNT';
                                         }
                                     @endphp
-                                    <li class="txn-item px-3 py-3 border-bottom d-flex justify-content-between align-items-start transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" onclick="window.location.href='{{ route('user.transactions') }}';">
+                                    <li class="txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" onclick="window.location.href='{{ route('user.transactions') }}';">
                                         <div style="min-width: 0;">
-                                            <div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.95rem; letter-spacing: 0.01em;">
+                                            <div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">
                                                 {{ $desc }}
                                             </div>
-                                            <div class="small text-muted" style="font-size: 0.8rem; font-weight: 500;">
-                                                {{ $transaction->created_at->format('M j, Y') }}, {{ $accountLabel }}
+                                            <div class="small text-muted" style="font-size: 0.75rem; font-weight: 500;">
+                                                {{ $transaction->created_at->format('M j, Y') }} • {{ $accountLabel }}
                                             </div>
                                         </div>
-                                        <div class="txn-amount fw-bold ms-3 {{ $isDebit ? 'text-dark' : 'text-success' }}" style="font-size: 0.95rem;">
-                                            {{ $isDebit ? '' : '+' }}${{ number_format($transaction->amount, 2) }}
+                                        <div class="text-end ms-3">
+                                            <div class="txn-amount fw-bold {{ $isDebit ? 'text-dark' : 'text-success' }}" style="font-size: 0.85rem;">
+                                                {{ $isDebit ? '' : '+' }}${{ number_format($transaction->amount, 2) }}
+                                            </div>
+                                            <div class="small" style="font-size: 0.7rem; font-weight: 600;">
+                                                @if($transaction->status->value == 'success')
+                                                    <span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>
+                                                @elseif($transaction->status->value == 'pending')
+                                                    <span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>
+                                                @else
+                                                    <span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </li>
                                 @empty
