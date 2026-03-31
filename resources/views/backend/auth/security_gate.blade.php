@@ -1,4 +1,4 @@
-@extends('backend.auth.layouts.app')
+@extends('backend.auth.index')
 
 @section('title')
     {{ __('Multi-Factor Security Verification') }}
@@ -6,24 +6,28 @@
 
 @push('style')
 <style>
+    .login-content {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    
     .mfa-card-inner {
         text-align: center;
         width: 100%;
+        background: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
     }
     
-    .login-card {
-        padding: 25px !important;
-        max-width: 400px;
-        margin: 0 auto;
-    }
-
     .logo-container {
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
     }
 
     .logo-container img {
-        max-width: 150px;
+        max-width: 180px;
         height: auto;
     }
 
@@ -109,14 +113,14 @@
     .admin-branding {
         background: #f1f5f9;
         border-radius: 12px;
-        padding: 10px;
+        padding: 12px;
         margin-bottom: 20px;
     }
 
     .admin-name {
         color: #003d73;
         font-weight: 700;
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     /* Shake Animation */
@@ -132,57 +136,59 @@
 </style>
 @endpush
 
-@section('content')
-<div class="mfa-card-inner" id="pin-section">
-    
-    <div class="logo-container">
-         <img src="{{ asset(setting('site_logo','global')) }}" alt="{{ setting('site_title','global') }}">
-    </div>
+@section('auth-content')
+<div class="login-content">
+    <div class="mfa-card-inner" id="pin-section">
+        
+        <div class="logo-container">
+             <img src="{{ asset(setting('site_logo','global')) }}" alt="{{ setting('site_title','global') }}">
+        </div>
 
-    <div class="admin-branding">
-        <h5 class="admin-name mb-0 text-uppercase">{{ __('Security Check') }}</h5>
-        <p class="small text-muted mb-0">{{ auth('admin')->user()->name }}</p>
-    </div>
-    
-    <p class="text-secondary small mb-4">{{ __('Enter your 4-digit security passcode to access the admin panel.') }}</p>
+        <div class="admin-branding">
+            <h5 class="admin-name mb-0 text-uppercase">{{ __('Security Check') }}</h5>
+            <p class="small text-muted mb-0">{{ auth('admin')->user()->name }}</p>
+        </div>
+        
+        <p class="text-secondary small mb-4">{{ __('Enter your 4-digit security passcode to access the admin panel.') }}</p>
 
-    <div class="pin-display-wrapper mb-3" id="pin-display">
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-        <div class="pin-dot"></div>
-    </div>
+        <div class="pin-display-wrapper mb-3" id="pin-display">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
 
-    <div id="pin-error" class="error-text small mb-4"></div>
+        <div id="pin-error" class="error-text small mb-4"></div>
 
-    <div class="keypad">
-        <button type="button" class="key-btn" data-key="1">1</button>
-        <button type="button" class="key-btn" data-key="2">2</button>
-        <button type="button" class="key-btn" data-key="3">3</button>
-        <button type="button" class="key-btn" data-key="4">4</button>
-        <button type="button" class="key-btn" data-key="5">5</button>
-        <button type="button" class="key-btn" data-key="6">6</button>
-        <button type="button" class="key-btn" data-key="7">7</button>
-        <button type="button" class="key-btn" data-key="8">8</button>
-        <button type="button" class="key-btn" data-key="9">9</button>
-        <div class="key-btn invisible"></div>
-        <button type="button" class="key-btn" data-key="0">0</button>
-        <button type="button" class="key-btn backspace" id="btn-backspace">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-        </button>
-    </div>
+        <div class="keypad">
+            <button type="button" class="key-btn" data-key="1">1</button>
+            <button type="button" class="key-btn" data-key="2">2</button>
+            <button type="button" class="key-btn" data-key="3">3</button>
+            <button type="button" class="key-btn" data-key="4">4</button>
+            <button type="button" class="key-btn" data-key="5">5</button>
+            <button type="button" class="key-btn" data-key="6">6</button>
+            <button type="button" class="key-btn" data-key="7">7</button>
+            <button type="button" class="key-btn" data-key="8">8</button>
+            <button type="button" class="key-btn" data-key="9">9</button>
+            <div class="key-btn invisible"></div>
+            <button type="button" class="key-btn" data-key="0">0</button>
+            <button type="button" class="key-btn backspace" id="btn-backspace">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+            </button>
+        </div>
 
-    <div class="mt-4">
-        <form action="{{ route('admin.logout') }}" method="POST">
+        <div class="mt-4">
+            <form action="{{ route('admin.logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-link text-muted small">{{ __('Logout & Exit') }}</button>
+            </form>
+        </div>
+
+        <form id="verify-form" action="{{ route('admin.security_gate.verify') }}" method="POST" hidden>
             @csrf
-            <button type="submit" class="btn btn-link text-muted small">{{ __('Logout & Exit') }}</button>
+            <input type="hidden" name="passcode" id="passcode-input">
         </form>
     </div>
-
-    <form id="verify-form" action="{{ route('admin.security_gate.verify') }}" method="POST" hidden>
-        @csrf
-        <input type="hidden" name="passcode" id="passcode-input">
-    </form>
 </div>
 @endsection
 
