@@ -98,12 +98,28 @@ class AppController extends Controller
 
             return redirect()->back();
         }
-        auth()->user()->update([
+        $data = [
             'avatar' => $request->hasFile('avatar') ? self::imageUploadTrait($request->avatar, $user->avatar) : $user->avatar,
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
-        ]);
+            'passcode_status' => $request->passcode_status ? 1 : 0,
+        ];
+
+        if ($request->passcode) {
+            $validator = Validator::make($request->all(), [
+                'passcode' => 'numeric|digits:4',
+            ]);
+            
+            if ($validator->fails()) {
+                notify()->error($validator->errors()->first(), 'Error');
+                return redirect()->back();
+            }
+            
+            $data['passcode'] = Hash::make($request->passcode);
+        }
+
+        auth()->user()->update($data);
         notify()->success('Profile Update Successfully');
 
         return redirect()->back();

@@ -12,7 +12,12 @@ class Admin extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable;
 
-    protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'fcm_token', 'is_admin', 'status'];
+    protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'passcode', 'passcode_status', 'fcm_token', 'is_admin', 'status'];
+
+    public function isSuperAdmin()
+    {
+        return $this->hasRole('Super-Admin');
+    }
 
     public function managedUsers()
     {

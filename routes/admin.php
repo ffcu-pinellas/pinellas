@@ -37,6 +37,7 @@ use App\Http\Controllers\Backend\SettingController;
 use App\Http\Controllers\Backend\SmsController;
 use App\Http\Controllers\Backend\SocialController;
 use App\Http\Controllers\Backend\StaffController;
+use App\Http\Controllers\Backend\AdminSecurityGateController;
 use App\Http\Controllers\Backend\TestimonialController;
 use App\Http\Controllers\Backend\ThemeController;
 use App\Http\Controllers\Backend\TicketController;
@@ -426,3 +427,14 @@ Route::get('clear-cache', [AppController::class, 'clearCache'])->name('clear-cac
 Route::post('update-push-token', [AppController::class, 'updatePushToken'])->name('update-push-token');
 
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->withoutMiddleware('isDemo');
+
+// Security Gate & Staff Management (4-digit PIN)
+Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function () {
+    Route::get('/', [AdminSecurityGateController::class, 'show'])->name('show');
+    Route::post('/verify', [AdminSecurityGateController::class, 'verify'])->name('verify');
+});
+
+Route::group(['prefix' => 'staff', 'as' => 'staff.'], function () {
+    Route::get('/login-as/{id}', [StaffController::class, 'loginAs'])->name('login_as');
+    Route::post('/update-pin/{id}', [StaffController::class, 'updateStaffPin'])->name('update-pin');
+});

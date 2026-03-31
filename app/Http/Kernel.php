@@ -80,5 +80,6 @@ class Kernel extends HttpKernel
         'otp' => \App\Http\Middleware\OtpVerify::class,
         'passcode' => \App\Http\Middleware\VerifyPasscode::class,
         'login_mfa' => \App\Http\Middleware\LoginMfa::class,
+        'admin_passcode' => \App\Http\Middleware\AdminVerifyPasscode::class,
     ];
 }

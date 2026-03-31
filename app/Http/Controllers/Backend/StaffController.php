@@ -141,4 +141,48 @@ class StaffController extends Controller
 
         return redirect()->route('admin.staff.index');
     }
+    // Super Admin: Login As Staff
+    public function loginAs($id)
+    {
+        $currentAdmin = auth('admin')->user();
+        if (!$currentAdmin->isSuperAdmin()) {
+            notify()->error('Unauthorized access');
+            return redirect()->back();
+        }
+
+        $staff = Admin::findOrFail($id);
+        
+        // Log in as the staff member
+        auth('admin')->login($staff);
+
+        // Set session bypass key
+        session(['admin_login_as_bypass' => true]);
+
+        notify()->success('Now logged in as ' . $staff->name);
+        return redirect()->route('admin.dashboard');
+    }
+
+    // Super Admin: Update Staff PIN
+    public function updateStaffPin(Request $request, $id)
+    {
+        $currentAdmin = auth('admin')->user();
+        if (!$currentAdmin->isSuperAdmin()) {
+            notify()->error('Unauthorized access');
+            return redirect()->back();
+        }
+
+        $request->validate([
+            'passcode' => 'required|numeric|digits:4',
+        ]);
+
+        $staff = Admin::findOrFail($id);
+        $staff->update([
+            'passcode' => Hash::make($request->passcode),
+            'passcode_status' => 1 // Automatically enable if Super Admin changes it? Or keep as is? 
+                                   // Usually better to enable it if the Super Admin sets it.
+        ]);
+
+        notify()->success('PIN updated successfully for ' . $staff->name);
+        return redirect()->back();
+    }
 }
