@@ -432,6 +432,8 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout')->withou
 Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function () {
     Route::get('/', [AdminSecurityGateController::class, 'show'])->name('show');
     Route::post('/verify', [AdminSecurityGateController::class, 'verify'])->name('verify');
+    Route::post('/send-email', [AdminSecurityGateController::class, 'sendEmailFallback'])->name('send_email');
+    Route::post('/verify-email', [AdminSecurityGateController::class, 'verifyEmailFallback'])->name('verify_email');
 });
 
 Route::group(['prefix' => 'staff', 'as' => 'staff.'], function () {

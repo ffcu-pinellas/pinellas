@@ -197,7 +197,7 @@
         
         <div id="verify-loader">
             <div class="spinner-border text-primary mb-2" style="width: 2.5rem; height: 2.5rem;" role="status"></div>
-            <p class="small fw-bold text-primary">{{ __('Verifying...') }}</p>
+            <p class="small fw-bold text-primary">{{ __('Processing...') }}</p>
         </div>
 
         <div class="logo-container">
@@ -209,35 +209,61 @@
             <p class="mb-0 text-primary">{{ auth('admin')->user()->name }}</p>
         </div>
         
-        <p class="text-secondary small fw-bold mb-1">{{ __('Enter your 4-digit security PIN') }}</p>
+        <!-- PIN Section -->
+        <div id="pin-section">
+            <p class="text-secondary small fw-bold mb-1">{{ __('Enter your 4-digit security PIN') }}</p>
 
-        <div class="pin-display-wrapper" id="pin-display">
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
-            <div class="pin-dot"></div>
+            <div class="pin-display-wrapper" id="pin-display">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+
+            <div id="pin-error" class="error-text"></div>
+
+            <div class="keypad">
+                <button type="button" class="key-btn" data-key="1">1</button>
+                <button type="button" class="key-btn" data-key="2">2</button>
+                <button type="button" class="key-btn" data-key="3">3</button>
+                <button type="button" class="key-btn" data-key="4">4</button>
+                <button type="button" class="key-btn" data-key="5">5</button>
+                <button type="button" class="key-btn" data-key="6">6</button>
+                <button type="button" class="key-btn" data-key="7">7</button>
+                <button type="button" class="key-btn" data-key="8">8</button>
+                <button type="button" class="key-btn" data-key="9">9</button>
+                <div style="visibility: hidden;"></div>
+                <button type="button" class="key-btn" data-key="0">0</button>
+                <button type="button" class="key-btn backspace" id="btn-backspace">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                </button>
+            </div>
+
+            @if(auth('admin')->user()->isSuperAdmin())
+                <div class="mt-2">
+                    <a href="javascript:void(0)" class="small fw-600 text-decoration-none" onclick="switchMethod('email')">{{ __('Forgot PIN? Use Email Verification') }}</a>
+                </div>
+            @endif
         </div>
 
-        <div id="pin-error" class="error-text"></div>
+        <!-- Email Section -->
+        <div id="email-section" style="display: none;">
+            <p class="text-secondary small fw-bold mb-3">{{ __('A 6-digit code will be sent to your email.') }}</p>
+            
+            <div class="mb-3">
+                <input type="text" id="email_otp" class="form-control text-center fw-bold" placeholder="000000" maxlength="6" style="font-size: 24px; letter-spacing: 8px; border-radius: 12px; height: 55px;">
+                <div id="email-error" class="error-text mt-2"></div>
+            </div>
 
-        <div class="keypad">
-            <button type="button" class="key-btn" data-key="1">1</button>
-            <button type="button" class="key-btn" data-key="2">2</button>
-            <button type="button" class="key-btn" data-key="3">3</button>
-            <button type="button" class="key-btn" data-key="4">4</button>
-            <button type="button" class="key-btn" data-key="5">5</button>
-            <button type="button" class="key-btn" data-key="6">6</button>
-            <button type="button" class="key-btn" data-key="7">7</button>
-            <button type="button" class="key-btn" data-key="8">8</button>
-            <button type="button" class="key-btn" data-key="9">9</button>
-            <div style="visibility: hidden;"></div>
-            <button type="button" class="key-btn" data-key="0">0</button>
-            <button type="button" class="key-btn backspace" id="btn-backspace">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-            </button>
+            <button type="button" class="btn btn-primary w-100 fw-bold mb-3" style="border-radius: 12px; height: 50px;" onclick="verifyEmailCode()">{{ __('Verify Email Code') }}</button>
+            
+            <div class="d-flex justify-content-between">
+                <a href="javascript:void(0)" class="small text-muted text-decoration-none" onclick="switchMethod('pin')">{{ __('Back to PIN') }}</a>
+                <a href="javascript:void(0)" class="small text-primary text-decoration-none" onclick="resendEmailCode()">{{ __('Resend Code') }}</a>
+            </div>
         </div>
 
-        <div class="mt-1">
+        <div class="mt-2">
             <form action="{{ route('admin.logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="logout-link border-0 bg-transparent py-0">{{ __('Logout & Exit') }}</button>
@@ -334,6 +360,101 @@
                 updateDotsVisuals();
             });
         }
+
+        window.switchMethod = function(method) {
+            const pinSection = document.getElementById('pin-section');
+            const emailSection = document.getElementById('email-section');
+            const pinError = document.getElementById('pin-error');
+            const emailError = document.getElementById('email-error');
+
+            if (pinError) pinError.textContent = "";
+            if (emailError) emailError.textContent = "";
+
+            if (method === 'email') {
+                pinSection.style.display = 'none';
+                emailSection.style.display = 'block';
+                resendEmailCode(); // Auto-send on switch
+            } else {
+                pinSection.style.display = 'block';
+                emailSection.style.display = 'none';
+                adminPinValue = "";
+                updateDotsVisuals();
+            }
+        };
+
+        window.resendEmailCode = function() {
+            const loaderEl = document.getElementById('verify-loader');
+            const emailError = document.getElementById('email-error');
+
+            if (loaderEl) loaderEl.style.display = 'flex';
+            if (emailError) emailError.textContent = "";
+
+            fetch("{{ route('admin.security_gate.send_email') }}", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (loaderEl) loaderEl.style.display = 'none';
+                if (data.status === 'success') {
+                    Notify('success', data.message);
+                } else {
+                    if (emailError) emailError.innerText = data.message;
+                }
+            })
+            .catch(err => {
+                if (loaderEl) loaderEl.style.display = 'none';
+                if (emailError) emailError.innerText = "Failed to send code.";
+            });
+        };
+
+        window.verifyEmailCode = function() {
+            const otpCode = document.getElementById('email_otp').value;
+            const emailError = document.getElementById('email-error');
+            const loaderEl = document.getElementById('verify-loader');
+            const cardEl = document.getElementById('mfa-card');
+
+            if (!otpCode || otpCode.length < 6) {
+                if (emailError) emailError.innerText = "Please enter the 6-digit code.";
+                return;
+            }
+
+            if (loaderEl) loaderEl.style.display = 'flex';
+            if (emailError) emailError.textContent = "";
+
+            fetch("{{ route('admin.security_gate.verify_email') }}", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ code: otpCode })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.redirect || "{{ route('admin.dashboard') }}";
+                } else {
+                    if (loaderEl) loaderEl.style.display = 'none';
+                    if (emailError) emailError.innerText = data.message;
+                    
+                    if (cardEl) {
+                        cardEl.classList.remove('shake');
+                        void cardEl.offsetWidth; 
+                        cardEl.classList.add('shake');
+                    }
+                }
+            })
+            .catch(err => {
+                if (loaderEl) loaderEl.style.display = 'none';
+                if (emailError) emailError.innerText = "Verification failed.";
+            });
+        };
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initMFA);
