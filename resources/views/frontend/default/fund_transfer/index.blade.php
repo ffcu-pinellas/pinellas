@@ -45,44 +45,48 @@
                 <!-- Step 1: Transfer Type -->
                 <div class="wizard-step active p-3 p-md-5" id="step1">
                     <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
-                    <div class="row g-3 g-md-4 justify-content-center">
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
+                    <div class="row g-2 g-md-4 justify-content-center px-2 px-md-0">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
-                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-wallet fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2 fw-bold">My Accounts</h6>
-                                <p class="small text-muted mb-0">Transfer between checking and savings.</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">My Accounts</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Transfer between checking and savings.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">My Accounts</p>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
-                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
+                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-users fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2 fw-bold">Another Member</h6>
-                                <p class="small text-muted mb-0">Send instantly to a credit union member.</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">Another Member</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Send instantly to a credit union member.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">Pinellas Member</p>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="transfer-type-card h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
-                                <div class="icon-circle mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px; background-color: rgba(116, 27, 107, 0.1);">
-                                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" style="max-height: 32px; width: auto;">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
+                                <div class="icon-circle mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive" style="background-color: rgba(116, 27, 107, 0.1);">
+                                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" class="img-responsive">
                                 </div>
-                                <h6 class="mb-2 fw-bold" style="color: #741B6B;">Send with Zelle®</h6>
-                                <p class="small text-muted mb-0">Fast, safe and easy way to send money.</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive" style="color: #741B6B;">Send with Zelle®</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Fast, safe and easy way to send money.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">Pay with Zelle</p>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
-                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs" style="width: 64px; height: 64px;">
+                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-university fa-lg"></i>
                                 </div>
-                                <h6 class="mb-2 fw-bold">External Bank</h6>
-                                <p class="small text-muted mb-0">Send via ACH or Wire to another bank.</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">External Bank</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Send via ACH or Wire to another bank.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">Another Bank</p>
                             </div>
                         </div>
                     </div>
@@ -347,11 +351,19 @@
 
     /* Mobile Refinements */
     @media (max-width: 768px) {
-        .wizard-step { padding: 1.5rem !important; }
-        .transfer-type-card { padding: 1.5rem !important; margin-bottom: 0.5rem; }
+        .wizard-step { padding: 1rem !important; }
+        .transfer-type-card { padding: 1rem 0.5rem !important; border-radius: 12px !important; }
+        .icon-responsive { width: 44px !important; height: 44px !important; }
+        .icon-responsive i { font-size: 1.1rem !important; }
+        .img-responsive { max-height: 22px !important; }
+        .title-responsive { font-size: 0.85rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .x-small { font-size: 0.7rem !important; }
         .form-control-lg, .form-select-lg { font-size: 1rem; padding: 0.75rem 1rem; }
-        h4 { font-size: 1.25rem; }
+        h4 { font-size: 1.15rem; }
     }
+
+    /* Fixed size for desktop to avoid jumping */
+    .icon-circle { width: 64px; height: 64px; }
     
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
     .form-control::-webkit-input-placeholder { font-size: 0.85rem !important; }
