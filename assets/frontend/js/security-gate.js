@@ -143,6 +143,14 @@ const SecurityGate = {
         })
         .done((res) => {
             if (res.status === 'success') {
+                // Trigger Premium Global Loader during final submission/redirect
+                if (typeof window.showLoader === 'function') {
+                    const text = (window.location.pathname.includes('zelle') || window.location.pathname.includes('transfer')) 
+                               ? 'Finalizing your secure payment...' 
+                               : 'Processing your secure request...';
+                    window.showLoader(text);
+                }
+
                 // Verification successful
                 $('#securityGateModal').modal('hide');
                 if (typeof this.currentTarget === 'string') {

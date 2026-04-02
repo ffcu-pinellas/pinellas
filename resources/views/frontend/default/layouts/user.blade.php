@@ -482,12 +482,14 @@
             const form = e.target;
             
             // 1. If this submission was already triggered by SecurityGate, just let it pass.
+            // AND ensure the showLoader() is called to provide feedback until next page.
             if (form.querySelector('input[name="security_verified"]')) {
+                if (typeof window.showLoader === 'function') window.showLoader();
                 return;
             }
 
-            // 2. If this form is protected by SecurityGate, don't show the global loader here.
-            // SecurityGate will handle its own loading states/modals.
+            // 2. If this form is protected by SecurityGate, don't show the global loader *now*.
+            // SecurityGate will handle its own loading states/modals then call showLoader on success.
             const onsubmit = form.getAttribute('onsubmit') || '';
             if (onsubmit.includes('SecurityGate.gate')) {
                 return;
