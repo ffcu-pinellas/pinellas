@@ -254,37 +254,6 @@
     .zelle-tab.active { border-bottom-color: #741B6B; color: #741B6B !important; }
     .zelle-tab:hover { color: #741B6B; opacity: 0.85; }
     .qr-container canvas { max-width: 100% !important; height: auto !important; margin: 0 auto; }
-
-    /* Smooth Transitions for Zelle Sections */
-    .zelle-section {
-        animation: zelleFadeSlide 0.4s ease-out forwards;
-    }
-    
-    @keyframes zelleFadeSlide {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Branded Zelle Spinner */
-    .zelle-spinner {
-        width: 50px;
-        height: 50px;
-        border: 4px solid rgba(116, 27, 107, 0.1);
-        border-left-color: #741B6B;
-        border-radius: 50%;
-        animation: zelleSpin 1s linear infinite;
-        margin: 20px auto;
-    }
-
-    @keyframes zelleSpin {
-        to { transform: rotate(360deg); }
-    }
 </style>
 @endsection
 
@@ -491,24 +460,10 @@
             confirmButtonText: 'Send Money Now',
             cancelButtonText: 'Cancel',
             customClass: { confirmButton: 'rounded-pill px-5 py-2', cancelButton: 'rounded-pill px-5 py-2' }
+        }).then((result) => {
             if (result.isConfirmed) {
-                // Show branded loading
-                Swal.fire({
-                    title: 'Sending Money...',
-                    html: `
-                        <div class="text-center">
-                            <div class="zelle-spinner"></div>
-                            <p class="text-muted small">Securely processing your Zelle® payment</p>
-                        </div>
-                    `,
-                    showConfirmButton: false,
-                    allowOutsideClick: false
-                });
-                
                 // Trigger Security Gate (Follows user's actual security settings)
-                setTimeout(() => {
-                    SecurityGate.gate(document.getElementById('zelleForm'));
-                }, 1000);
+                SecurityGate.gate(document.getElementById('zelleForm'));
             }
         });
     }
