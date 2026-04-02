@@ -20,13 +20,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.99); /* Slightly more opaque */
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10001; /* Max to stay above modals */
-            backdrop-filter: blur(8px);
+            z-index: 10001;
+            backdrop-filter: blur(12px); /* Stronger blur */
             transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -84,32 +84,44 @@
             animation: rotation 0.6s linear infinite;
         }
 
-        /* Premium Card Shimmer Effect */
+        /* Premium Card Shimmer Effect - Intensified */
         @keyframes premium-shimmer-kf {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% { transform: translateX(-150%) skewX(-20deg); }
+            100% { transform: translateX(250%) skewX(-20deg); }
         }
 
         .premium-shimmer {
             position: relative;
             overflow: hidden !important;
+            transition: all 0.3s ease;
         }
 
         .premium-shimmer::after {
             content: "";
             position: absolute;
             top: 0;
-            left: -100%;
+            left: -150%;
             width: 100%;
             height: 100%;
             background: linear-gradient(
                 90deg,
                 rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0.3) 40%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0.3) 60%,
                 rgba(255, 255, 255, 0) 100%
             );
-            animation: premium-shimmer-kf 4s infinite linear;
+            animation: premium-shimmer-kf 2.5s infinite ease-out;
             pointer-events: none;
+        }
+
+        @keyframes mainFadeIn {
+            from { opacity: 0; transform: scale(0.99); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .dashboard-wrapper {
+            animation: mainFadeIn 0.8s ease-out forwards;
         }
 
         /* Global Back Button Style */
