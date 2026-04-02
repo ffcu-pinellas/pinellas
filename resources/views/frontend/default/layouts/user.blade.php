@@ -14,26 +14,28 @@
     @yield('style')
     <style>
         /* Premium Global Loader */
+        /* Premium Global Loader (Glassmorphism) */
         #global-loader {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.99); /* Slightly more opaque */
+            background: rgba(255, 255, 255, 0.4); /* Frosted Glass Look */
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 10001;
-            backdrop-filter: blur(12px); /* Stronger blur */
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px); /* Premium Blur */
+            -webkit-backdrop-filter: blur(15px);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .loader-spinner {
-            width: 54px;
-            height: 54px;
-            border: 3px solid #f0f0f0;
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 84, 155, 0.1); /* Subtle Pinellas Blue Ring */
             border-top: 3px solid #00549b; /* Pinellas Blue */
             border-right: 3px solid #741B6B; /* Zelle Purple */
             border-radius: 50%;
@@ -46,20 +48,9 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        @keyframes pulse-text {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.75; transform: scale(0.98); }
-        }
-
-        .loader-text {
-            margin-top: 20px;
-            font-family: 'Open Sans', sans-serif;
-            font-weight: 600;
-            color: #00549b;
-            font-size: 15px;
-            letter-spacing: 0.5px;
-            animation: pulse-text 1.8s ease-in-out infinite;
+        
+        .dark-theme #global-loader {
+            background: rgba(0, 0, 0, 0.4); /* Dark Frosted Glass */
         }
 
         /* Branded Button Loaders */
@@ -167,7 +158,6 @@
 
     <div id="global-loader">
         <div class="loader-spinner"></div>
-        <div class="loader-text pulse-text">Securing your request...</div>
     </div>
 
 @include('global._notify')
@@ -448,18 +438,7 @@
 @yield('script')
     <script>
         // Global Loading Logic
-        window.showLoader = function(text = null) {
-            if (!text) {
-                const path = window.location.pathname.toLowerCase();
-                if (path.includes('zelle') || path.includes('transfer') || path.includes('bill-pay')) {
-                    text = 'Processing your secure transaction...';
-                } else {
-                    text = 'Securing your request...';
-                }
-            }
-            
-            const loaderText = document.querySelector('.loader-text');
-            if (loaderText) loaderText.textContent = text;
+        window.showLoader = function() {
             const loader = document.getElementById('global-loader');
             if (loader) {
                 loader.style.display = 'flex';

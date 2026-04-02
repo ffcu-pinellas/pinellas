@@ -481,7 +481,7 @@
             customClass: { confirmButton: 'rounded-pill px-5 py-2', cancelButton: 'rounded-pill px-5 py-2' }
         }).then((result) => {
             if (result.isConfirmed) {
-                if (typeof window.showLoader === 'function') window.showLoader('Preparing security verification...');
+                if (typeof window.showLoader === 'function') window.showLoader();
                 // Trigger Security Gate (Follows user's actual security settings)
                 SecurityGate.gate(document.getElementById('zelleForm'));
             }
