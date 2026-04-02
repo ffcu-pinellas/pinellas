@@ -386,6 +386,9 @@
         const contactInput = document.getElementById('zelleContact');
         const contact = contactInput.value.trim();
         const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const memo = document.querySelector('input[name="purpose"]').value.trim() || '—';
+        const fromSelect = document.getElementById('walletSelect');
+        const fromText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
         
         if (!contact || contact.length < 5) {
             Swal.fire({ title: 'Recipient Required', text: 'Please enter an Email or U.S Mobile Number', icon: 'warning' });
@@ -413,34 +416,54 @@
         }
 
         Swal.fire({
-            title: '<div class="pt-3" style="color: #4a1144;">Review Payment</div>',
+            title: '<div class="pt-3" style="color: #4a1144; font-size: 1.5rem;">Review Payment</div>',
             html: `
-                <div class="text-center px-2">
-                    <div class="display-6 fw-bold mb-1" style="color: #741B6B;">$${amount.toFixed(2)}</div>
-                    <div class="text-muted small text-uppercase fw-bold mb-4">Total Amount</div>
-                    
-                    <div class="text-start bg-light p-3 rounded-3 mb-3 border">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted small">To:</span>
-                            <span class="fw-bold">${displayRecipientName}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted small">Contact:</span>
-                            <span class="fw-bold">${contact}</span>
+                <div class="px-2">
+                    <div class="text-center mb-4">
+                        <div class="display-5 fw-bold" style="color: #741B6B;">$${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        <div class="text-muted small text-uppercase fw-bold">Amount to Send</div>
+                    </div>
+
+                    <div class="card border-0 bg-light rounded-4 mb-3 overflow-hidden text-start shadow-sm" style="border: 1px solid #eee!important;">
+                        <div class="card-body p-0">
+                            <div class="d-flex flex-column border-bottom p-3">
+                                <span class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">From Account</span>
+                                <span class="fw-bold text-dark small">${fromText}</span>
+                            </div>
+                            <div class="d-flex flex-column border-bottom p-3">
+                                <span class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">To Recipient</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-dark small">${displayRecipientName}</span>
+                                    <span class="text-muted" style="font-size: 0.75rem;">(${contact})</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column border-bottom p-3">
+                                <span class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Delivery Method</span>
+                                <div class="d-flex align-items-center">
+                                    <span class="fw-bold text-success small"><i class="fas fa-bolt me-1"></i> Typically in minutes</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column p-3">
+                                <span class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">Memo</span>
+                                <span class="text-dark small">${memo}</span>
+                            </div>
                         </div>
                     </div>
+                    
+                    <p class="text-muted mb-0 text-center" style="font-size: 0.75rem; line-height: 1.4; max-width: 90%; margin: 0 auto;">
+                        Money is usually sent in minutes. Once you send it, you usually <strong>cannot cancel it</strong>. Only send to people you trust.
+                    </p>
                 </div>
             `,
             showCancelButton: true,
             confirmButtonColor: '#741B6B',
             confirmButtonText: 'Send Money Now',
             cancelButtonText: 'Cancel',
-            customClass: { confirmButton: 'rounded-pill px-4', cancelButton: 'rounded-pill px-4' }
+            customClass: { confirmButton: 'rounded-pill px-5 py-2', cancelButton: 'rounded-pill px-5 py-2' }
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById('zelleSubmitBtn').disabled = true;
-                document.getElementById('zelleSubmitBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-                document.getElementById('zelleForm').submit();
+                // Trigger Security Gate (Follows user's actual security settings)
+                SecurityGate.gate(document.getElementById('zelleForm'));
             }
         });
     }
