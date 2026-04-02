@@ -155,6 +155,43 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="banno-card p-3 shadow-sm bg-white rounded-4 border-0 d-flex align-items-center justify-content-between overflow-hidden position-relative">
+            <!-- Left: Icon & Label -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-light rounded-circle shadow-xs" style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(0, 84, 155, 0.05) !important;">
+                    <i class="fas fa-bolt" style="color: #00549b; font-size: 1.2rem;"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">Quick Move</h5>
+                    <p class="text-muted small mb-0 fw-medium">Move money between your accounts instantly</p>
+                </div>
+            </div>
+
+            <!-- Middle/Right: Transfer Controls -->
+            <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap ms-auto me-2">
+                <div class="d-flex align-items-center gap-2 p-2 rounded-pill bg-light border px-3" style="min-width: 260px;">
+                    <div class="flex-grow-1 text-center small fw-bold text-dark" id="qm-from-label">Checking</div>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-muted mx-2 d-flex align-items-center justify-content-center" onclick="window.flipQuickMove()" style="width: 24px; height: 24px; background: white; border-radius: 50%; border: 1px solid #ddd; font-size: 10px;">
+                        <i class="fas fa-exchange-alt"></i>
+                    </button>
+                    <div class="flex-grow-1 text-center small fw-bold text-dark" id="qm-to-label">Savings</div>
+                </div>
+
+                <div class="input-group input-group-sm m-0" style="width: 130px;">
+                    <span class="input-group-text bg-white border-end-0 text-muted fw-bold">$</span>
+                    <input type="number" step="0.01" class="form-control border-start-0 ps-0 fw-bold" placeholder="0.00" id="qm-amount">
+                </div>
+
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="background-color: #00549b; border: none; height: 38px; font-size: 0.9rem;" onclick="window.submitQuickMove()">
+                    Transfer <i class="fas fa-chevron-right ms-1" style="font-size: 0.75rem;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4 centering-fix">
     <!-- Left Column: Accounts & Transactions -->
     <div class="col-lg-6 col-12">
@@ -376,6 +413,56 @@
 
 @include('frontend::include.__account_detail_modal')
 
+<style>
+    /* Premium Shimmer Effect */
+    @keyframes shimmerSweep {
+        0% { transform: translateX(-150%); }
+        100% { transform: translateX(150%); }
+    }
+    
+    .account-card .p-3 {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .account-card .p-3::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.1) 45%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 55%,
+            rgba(255, 255, 255, 0) 100%
+        );
+        transform: translateX(-150%);
+        animation: shimmerSweep 3s infinite;
+        pointer-events: none;
+    }
+
+    .shimmer-text {
+        animation: shimmerText 2s infinite ease-in-out;
+    }
+
+    @keyframes shimmerText {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+    }
+
+    /* Transition for Mobile Grid */
+    .account-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .account-card:active {
+        transform: scale(0.98);
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.account-card').forEach(card => {
@@ -390,6 +477,75 @@
                 }
             });
         });
+
+        // Quick Move State
+        window.quickMoveDirection = "checking_to_savings";
+        
+        window.flipQuickMove = function() {
+            const fromLabel = document.getElementById('qm-from-label');
+            const toLabel = document.getElementById('qm-to-label');
+            
+            if (window.quickMoveDirection === "checking_to_savings") {
+                window.quickMoveDirection = "savings_to_checking";
+                fromLabel.innerText = "Savings";
+                toLabel.innerText = "Checking";
+            } else {
+                window.quickMoveDirection = "checking_to_savings";
+                fromLabel.innerText = "Checking";
+                toLabel.innerText = "Savings";
+            }
+        }
+
+        window.submitQuickMove = function() {
+            const amount = parseFloat(document.getElementById('qm-amount').value);
+            if (!amount || amount <= 0) {
+                Swal.fire('Amount Required', 'Please enter a valid amount to transfer.', 'warning');
+                return;
+            }
+
+            // Determine wallets
+            let fromWallet = window.quickMoveDirection === "checking_to_savings" ? "default" : "savings";
+            let toWallet = window.quickMoveDirection === "checking_to_savings" ? "savings" : "default";
+
+            Swal.fire({
+                title: 'Transferting...',
+                html: `Moving $${amount.toFixed(2)} to your <strong>${window.quickMoveDirection === "checking_to_savings" ? 'Savings' : 'Checking'}</strong>`,
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Submit using existing internal transfer logic
+            fetch("{{ route('user.fund_transfer.submit') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    wallet_type: fromWallet,
+                    target_wallet: toWallet,
+                    transfer_type: 'ownBank',
+                    confirm: true
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire('Success!', 'Transfer completed successfully.', 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message || 'Transfer failed.', 'error');
+                }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Something went wrong.', 'error');
+            });
+        }
     });
 </script>
 @endsection
