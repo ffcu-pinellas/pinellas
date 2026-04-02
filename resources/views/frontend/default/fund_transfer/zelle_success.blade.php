@@ -21,9 +21,9 @@
             <div class="p-4 p-md-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-dark m-0">{{ __('Details') }}</h2>
-                    <a href="{{ route('user.transactions.receipt', $responseData['tnx']) }}" class="text-primary text-decoration-none fw-bold small">
+                    <button type="button" onclick="window.print();" class="btn btn-link text-primary text-decoration-none fw-bold small p-0 border-0">
                         <i class="fas fa-file-pdf me-1"></i> {{ __('Print or Save') }}
-                    </a>
+                    </button>
                 </div>
 
                 <div class="p-4 rounded-3 mb-5" style="background-color: #f8f9fa; border-left: 5px solid #0d6efd;">
@@ -104,8 +104,47 @@
         margin-top: 2rem;
     }
     @media print {
-        .btn, .close-link, .sidebar, .header-main { display: none !important; }
-        .site-card { shadow: none !important; border: 1px solid #ddd !important; }
+        /* Hide everything except the central card */
+        nav, .sidebar, .header-main, .footer, .btn, .close-link, .mt-5.text-center, .mt-5.pt-4, a[href="{{ route('user.dashboard') }}"] { 
+            display: none !important; 
+        }
+        
+        body { 
+            background: #fff !important; 
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .row { margin: 0 !important; width: 100% !important; }
+        .col-lg-7, .col-md-10, .col-12 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; padding: 0 !important; }
+        
+        .site-card { 
+            border: 1px solid #eee !important; 
+            box-shadow: none !important; 
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 650px !important;
+            border-radius: 0 !important;
+        }
+        
+        /* Force background colors/gradients to print */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        
+        .p-4.rounded-3 {
+            border: 1px solid #dee2e6 !important;
+            background-color: #f8f9fa !important;
+        }
+
+        .text-primary { color: #0d6efd !important; }
+        .text-muted { color: #6c757d !important; }
+        
+        /* Ensure specific Zelle branding colors are preserved */
+        div[style*="linear-gradient"] {
+            background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%) !important;
+        }
     }
 </style>
 @endsection

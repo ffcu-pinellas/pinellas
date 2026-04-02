@@ -76,6 +76,9 @@
                     @elseif(($transferPayload['transfer_type'] ?? '') === 'member')
                         <tr><td>Recipient account</td><td>{{ data_get($transferPayload, 'manual_data.account_number', '—') }}</td></tr>
                         <tr><td>Recipient name</td><td>{{ data_get($transferPayload, 'manual_data.account_name', '—') }}</td></tr>
+                    @elseif(($transferPayload['transfer_type'] ?? '') === 'zelle')
+                        <tr><td>Recipient name</td><td>{{ data_get($transferPayload, 'manual_data.account_name', '—') }}</td></tr>
+                        <tr><td>Zelle contact</td><td>{{ data_get($transferPayload, 'manual_data.account_number', '—') }}</td></tr>
                     @endif
                 </table>
             </div>

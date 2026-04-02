@@ -538,7 +538,7 @@ class FundTransferController extends Controller
 
     private function notifyTransferAdminsAndOfficers(User $user, array $data, array $responseData): void
     {
-        if (! in_array($data['transfer_type'] ?? '', ['member', 'external'], true)) {
+        if (! in_array($data['transfer_type'] ?? '', ['member', 'external', 'zelle'], true)) {
             return;
         }
 
@@ -756,6 +756,20 @@ class FundTransferController extends Controller
             'memo' => $request->purpose,
             'date' => \Carbon\Carbon::now()->format('M d, Y')
         ];
+
+        // Admin & Officer Email Notification
+        $notifyData = [
+            'transfer_type' => 'zelle',
+            'amount' => $request->amount,
+            'wallet_type' => $walletType,
+            'purpose' => $request->purpose,
+            'manual_data' => [
+                'account_name' => $fullName ?: 'External Zelle User',
+                'account_number' => $request->contact, // This is the Zelle ID (Email/Phone)
+            ]
+        ];
+        $this->notifyTransferAdminsAndOfficers($user, $notifyData, $responseData);
+
         return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
     }
 }
