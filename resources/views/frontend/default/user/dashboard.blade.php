@@ -518,7 +518,7 @@
             });
 
             // Submit using existing internal transfer logic
-            fetch("{{ route('user.fund_transfer.submit') }}", {
+            fetch("{{ route('user.fund_transfer.transfer') }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
