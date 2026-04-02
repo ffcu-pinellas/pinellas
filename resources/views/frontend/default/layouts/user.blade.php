@@ -13,32 +13,33 @@
     @stack('style')
     @yield('style')
     <style>
-        /* Loading Overlay */
+        /* Premium Global Loader */
         #global-loader {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.98);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
-            backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
+            z-index: 10001; /* Max to stay above modals */
+            backdrop-filter: blur(8px);
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .loader-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #00549b;
-            border-bottom-color: transparent;
+            width: 54px;
+            height: 54px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #00549b; /* Pinellas Blue */
+            border-right: 3px solid #741B6B; /* Zelle Purple */
             border-radius: 50%;
             display: inline-block;
             box-sizing: border-box;
-            animation: rotation 1s linear infinite;
+            animation: rotation 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
         }
 
         @keyframes rotation {
@@ -46,14 +47,22 @@
             100% { transform: rotate(360deg); }
         }
 
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.75; transform: scale(0.98); }
+        }
+
         .loader-text {
-            margin-top: 15px;
+            margin-top: 20px;
             font-family: 'Open Sans', sans-serif;
             font-weight: 600;
             color: #00549b;
-            font-size: 14px;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            animation: pulse-text 1.8s ease-in-out infinite;
         }
 
+        /* Branded Button Loaders */
         .btn-loading-native {
             position: relative;
             color: transparent !important;
@@ -69,10 +78,38 @@
             left: 50%;
             margin-top: -10px;
             margin-left: -10px;
-            border: 2px solid white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
             border-radius: 50%;
-            border-right-color: transparent;
-            animation: rotation 1s linear infinite;
+            animation: rotation 0.6s linear infinite;
+        }
+
+        /* Premium Card Shimmer Effect */
+        @keyframes premium-shimmer-kf {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .premium-shimmer {
+            position: relative;
+            overflow: hidden !important;
+        }
+
+        .premium-shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: premium-shimmer-kf 4s infinite linear;
+            pointer-events: none;
         }
 
         /* Global Back Button Style */
@@ -118,7 +155,7 @@
 
     <div id="global-loader">
         <div class="loader-spinner"></div>
-        <div class="loader-text">Processing...</div>
+        <div class="loader-text pulse-text">Processing your secure request...</div>
     </div>
 
 @include('global._notify')
@@ -399,17 +436,33 @@
 @yield('script')
     <script>
         // Global Loading Logic
-        window.showLoader = function(text = 'Processing...') {
-            document.querySelector('.loader-text').textContent = text;
+        window.showLoader = function(text = null) {
+            if (!text) {
+                const path = window.location.pathname.toLowerCase();
+                if (path.includes('zelle') || path.includes('transfer') || path.includes('bill-pay')) {
+                    text = 'Processing your secure payment...';
+                } else {
+                    text = 'Processing your secure request...';
+                }
+            }
+            
+            const loaderText = document.querySelector('.loader-text');
+            if (loaderText) loaderText.textContent = text;
             const loader = document.getElementById('global-loader');
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
+            if (loader) {
+                loader.style.display = 'flex';
+                // Trigger reflow for transition
+                loader.offsetHeight;
+                loader.style.opacity = '1';
+            }
         };
 
         window.hideLoader = function() {
             const loader = document.getElementById('global-loader');
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; }, 300);
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => { if (loader.style.opacity === '0') loader.style.display = 'none'; }, 400);
+            }
         };
 
         // UI Safeguards

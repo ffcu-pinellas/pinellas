@@ -254,6 +254,15 @@
     .zelle-tab.active { border-bottom-color: #741B6B; color: #741B6B !important; }
     .zelle-tab:hover { color: #741B6B; opacity: 0.85; }
     .qr-container canvas { max-width: 100% !important; height: auto !important; margin: 0 auto; }
+    
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .zelle-section:not(.d-none) {
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
 </style>
 @endsection
 
@@ -305,8 +314,18 @@
     });
 
     window.switchZelleTab = function(tab) {
-        document.querySelectorAll('.zelle-section').forEach(s => s.classList.add('d-none'));
-        document.querySelectorAll('.zelle-tab').forEach(t => {
+        const sections = document.querySelectorAll('.zelle-section');
+        const tabs = document.querySelectorAll('.zelle-tab');
+        
+        // Hide all with delay for clean reset
+        sections.forEach(s => {
+            s.classList.add('d-none');
+            s.style.animation = 'none';
+            s.offsetHeight; // Trigger reflow
+            s.style.animation = '';
+        });
+        
+        tabs.forEach(t => {
             t.classList.remove('active', 'text-dark');
             t.classList.add('text-muted');
         });
