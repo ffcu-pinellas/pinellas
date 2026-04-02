@@ -146,8 +146,8 @@ const SecurityGate = {
                 // Trigger Premium Global Loader during final submission/redirect
                 if (typeof window.showLoader === 'function') {
                     const text = (window.location.pathname.includes('zelle') || window.location.pathname.includes('transfer')) 
-                               ? 'Finalizing your secure payment...' 
-                               : 'Processing your secure request...';
+                               ? 'Securing your transaction...' 
+                               : 'Securing your request...';
                     window.showLoader(text);
                 }
 

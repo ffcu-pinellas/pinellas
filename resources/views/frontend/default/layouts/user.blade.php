@@ -167,7 +167,7 @@
 
     <div id="global-loader">
         <div class="loader-spinner"></div>
-        <div class="loader-text pulse-text">Processing your secure request...</div>
+        <div class="loader-text pulse-text">Securing your request...</div>
     </div>
 
 @include('global._notify')
@@ -452,9 +452,9 @@
             if (!text) {
                 const path = window.location.pathname.toLowerCase();
                 if (path.includes('zelle') || path.includes('transfer') || path.includes('bill-pay')) {
-                    text = 'Processing your secure payment...';
+                    text = 'Processing your secure transaction...';
                 } else {
-                    text = 'Processing your secure request...';
+                    text = 'Securing your request...';
                 }
             }
             
