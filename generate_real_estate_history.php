@@ -38,9 +38,17 @@ $vendors = [
     'Walmart Supercenter' => ['min' => 30, 'max' => 400, 'type' => 'subtract', 'method' => 'Debit Card'],
     'Uber Black Client' => ['min' => 45, 'max' => 350, 'type' => 'subtract', 'method' => 'Apple Pay'],
     'Netflix 4K' => ['min' => 20, 'max' => 25, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Spotify Premium' => ['min' => 10, 'max' => 15, 'type' => 'subtract', 'method' => 'Apple Pay'],
-    'Duke Energy' => ['min' => 200, 'max' => 600, 'type' => 'subtract', 'method' => 'ACH'],
-    'Verizon Business' => ['min' => 150, 'max' => 500, 'type' => 'subtract', 'method' => 'ACH'],
+    'Verizon Business' => ['min' => 150, 'max' => 550, 'type' => 'subtract', 'method' => 'ACH'],
+    'Sunpass / Tolls - Property Tours' => ['min' => 20, 'max' => 150, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'Attorney\'s Title Fund Services (FL)' => ['min' => 450, 'max' => 3500, 'type' => 'subtract', 'method' => 'ACH'],
+    'Stewart Title / Austin Regional (TX)' => ['min' => 600, 'max' => 4500, 'type' => 'subtract', 'method' => 'Wire'],
+    'Ebby Halliday / Dallas North Dues (TX)' => ['min' => 400, 'max' => 1200, 'type' => 'subtract', 'method' => 'ACH'],
+    'St. Petersburg Board of Realtors' => ['min' => 400, 'max' => 1200, 'type' => 'subtract', 'method' => 'ACH'],
+    'Harry Norman Realtors / ATL Ad (GA)' => ['min' => 150, 'max' => 850, 'type' => 'subtract', 'method' => 'Apple Pay'],
+    'LoopNet / Premium Listing' => ['min' => 600, 'max' => 2500, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'CoStar Group / Data Services' => ['min' => 800, 'max' => 3500, 'type' => 'subtract', 'method' => 'Wire'],
+    'Docusign / Annual Pro Plan' => ['min' => 250, 'max' => 480, 'type' => 'subtract', 'method' => 'Debit Card'],
+    'The Agency - Beverly Hills / Marketing (CA)' => ['min' => 1200, 'max' => 8000, 'type' => 'subtract', 'method' => 'Wire'],
     
     // Incoming Vendor Transactions (Refunds/Credits/Expanded)
     'Zillow / Lead Credit Refund' => ['min' => 100, 'max' => 1500, 'type' => 'deposit', 'method' => 'Debit Card'],
@@ -63,13 +71,24 @@ $highValueTypes = [
     'Berkshire Hathaway / Quarterly Dividend' => ['min' => 25000, 'max' => 75000, 'type' => 'deposit', 'method' => 'ACH'],
     'Property Acquisition / Deposit 456 Ocean Dr' => ['min' => 100000, 'max' => 250000, 'type' => 'subtract', 'method' => 'Wire'],
     'Luxury Listing Ad Campaign - WSJ / Mansion Global' => ['min' => 15000, 'max' => 45000, 'type' => 'subtract', 'method' => 'Wire'],
-    'Quarterly Tax Payout - IRS Business' => ['min' => 35000, 'max' => 110000, 'type' => 'subtract', 'method' => 'Wire'],
+    'Quarterly Tax Payout - IRS Business' => ['min' => 35000, 'max' => 125000, 'type' => 'subtract', 'method' => 'Wire'],
+    'Premier Sotheby\'s / 30A Beachfront Sale' => ['min' => 150000, 'max' => 650000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Ansley Real Estate / ATL Intown Closing (GA)' => ['min' => 85000, 'max' => 350000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Briggs Freeman / Sotheby\'s TX Payout (TX)' => ['min' => 45000, 'max' => 250000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Compass California / Palo Alto Closing (CA)' => ['min' => 120000, 'max' => 800000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Knight Frank / London Referral Fee' => ['min' => 25000, 'max' => 120000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Old Republic Title / Escrow Distribution' => ['min' => 45000, 'max' => 250000, 'type' => 'deposit', 'method' => 'Wire'],
+    'Construction Draw - Park Ave Remodel' => ['min' => 75000, 'max' => 500000, 'type' => 'subtract', 'method' => 'Wire'],
+    'Commercial Lease Payout - Regus Global' => ['min' => 12000, 'max' => 45000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Martha Turner / Houston Luxury Payout (TX)' => ['min' => 65000, 'max' => 450000, 'type' => 'deposit', 'method' => 'Wire'],
 ];
 
 $incomeTypes = [
     'Residential Commission - 789 Park Ave' => ['min' => 15000, 'max' => 65000, 'type' => 'deposit', 'method' => 'ACH'],
     'Rental Management Payout - Luxury Condos' => ['min' => 5000, 'max' => 18000, 'type' => 'deposit', 'method' => 'ACH'],
     'Referral Fee - Keller Williams NYC' => ['min' => 3500, 'max' => 12000, 'type' => 'deposit', 'method' => 'ACH'],
+    'Laundry Room Revenue - Multi-Unit' => ['min' => 450, 'max' => 2500, 'type' => 'deposit', 'method' => 'ACH'],
+    'Application Fee Credit - Tenant Smith' => ['min' => 100, 'max' => 850, 'type' => 'deposit', 'method' => 'ACH'],
     'MEMBER TRANSFER TO SAVINGS' => ['min' => 5000, 'max' => 45000, 'type' => 'fund_transfer', 'method' => 'Internal', 'transfer_type' => 'own_bank_transfer'],
 ];
 

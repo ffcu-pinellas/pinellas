@@ -71,13 +71,13 @@
                             </table>
                         </div>
 
-                        <div class="row mt-4">
-                            <div class="col-6">
+                        <div class="row mt-4 gy-2">
+                            <div class="col-xl-6 col-md-6 col-12">
                                 <button type="button" class="site-btn pe-4 w-100 dark-btn" data-bs-dismiss="modal">
                                     <i data-lucide="x"></i> {{ __('Cancel') }}
                                 </button>
                             </div>
-                            <div class="col-6">
+                            <div class="col-xl-6 col-md-6 col-12">
                                 <button type="submit" class="site-btn red-btn w-100">
                                     <i data-lucide="trash-2"></i> {{ __('Confirm & Delete') }}
                                 </button>

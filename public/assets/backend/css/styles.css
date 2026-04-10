@@ -3675,7 +3675,8 @@ img {
 
 /* Site Modal */
 .site-table-modal {
-    width: 780px;
+    width: 100%;
+    max-width: 780px;
     border-radius: 6px;
 }
 

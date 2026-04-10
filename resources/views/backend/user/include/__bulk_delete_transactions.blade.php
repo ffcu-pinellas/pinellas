@@ -64,7 +64,7 @@
                         </div>
 
                         <!-- Date Range and Direction -->
-                        <div class="col-xl-6 text-start">
+                        <div class="col-xl-6 col-md-6 col-12 text-start">
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Date Range') }}
@@ -82,7 +82,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-6 text-start">
+                        <div class="col-xl-6 col-md-6 col-12 text-start">
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Direction') }}
@@ -96,14 +96,14 @@
                         </div>
 
                         <!-- Status / Type filter -->
-                        <div class="col-xl-12 text-start">
+                        <div class="col-xl-12 col-12 text-start">
                             <div class="site-input-groups box-checkbox">
                                 <div class="form-check pt-2">
                                     <input class="form-check-input" type="checkbox" name="system_only" id="systemOnlyCheck" value="1" checked>
                                     <label class="form-check-label" for="systemOnlyCheck">
                                         {{ __('Only delete "System Generated" transactions') }}
                                     </label>
-                                    <p class="small text-muted mt-1">{{ __('Uncheck to allow deletion of actual user-initiated transactions.') }}</p>
+                                    <p class="small text-muted mt-1" style="white-space: normal;">{{ __('Uncheck to allow deletion of actual user-initiated transactions.') }}</p>
                                 </div>
                             </div>
                         </div>

@@ -112,32 +112,39 @@
                         </div>
 
                         <!-- Date Range and Theme -->
-                        <div class="col-xl-6 text-start">
+                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 text-start">
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
-                                    {{ __('Date History') }}
-                                    <span data-bs-toggle="tooltip" title="Spreads transactions randomly over this time period for a natural look." class="ms-1 cursor-pointer">
+                                    {{ __('From Date') }}
+                                    <span data-bs-toggle="tooltip" title="The earliest date for generated transactions." class="ms-1 cursor-pointer">
                                         <i data-lucide="info" class="icon-xs"></i>
                                     </span>
                                 </label>
-                                <select class="form-select" name="date_range">
-                                    <option value="0">{{ __('Today Only') }}</option>
-                                    <option value="3">{{ __('Past 3 Days') }}</option>
-                                    <option value="7">{{ __('Past 7 Days') }}</option>
-                                    <option value="30">{{ __('Past 30 Days') }}</option>
-                                </select>
+                                <input type="date" name="start_date" class="form-control" value="{{ now()->subDays(30)->format('Y-m-d') }}" required>
                             </div>
                         </div>
-                        <div class="col-xl-6 text-start">
+                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 text-start">
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
-                                    {{ __('Theme Style') }}
-                                    <span data-bs-toggle="tooltip" title="Sets the names/labels of transactions (e.g., Starbucks vs Rental Income)." class="ms-1 cursor-pointer">
+                                    {{ __('To Date') }}
+                                    <span data-bs-toggle="tooltip" title="The latest date for generated transactions." class="ms-1 cursor-pointer">
                                         <i data-lucide="info" class="icon-xs"></i>
                                     </span>
                                 </label>
-                                <select class="form-select" name="theme">
-                                    <option value="standard">{{ __('Standard Retail') }}</option>
+                                <input type="date" name="end_date" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 text-start">
+                            <div class="site-input-groups">
+                                <label class="input-label mb-1">
+                                    {{ __('Theme Style (Select Multiple)') }}
+                                    <span data-bs-toggle="tooltip" title="Select one or more professions/styles. Records will be mixed." class="ms-1 cursor-pointer">
+                                        <i data-lucide="info" class="icon-xs"></i>
+                                    </span>
+                                </label>
+                                <select class="form-select select2-hidden-accessible" name="theme[]" id="theme_select" multiple="multiple" style="width: 100%" required>
+                                    <option value="standard" selected>{{ __('Standard Retail') }}</option>
                                     <option value="crypto">{{ __('Crypto Markets') }}</option>
                                     <option value="military">{{ __('Military/Service') }}</option>
                                     <option value="real_estate">{{ __('Real Estate') }}</option>
@@ -146,6 +153,10 @@
                                     <option value="travel">{{ __('Travel/Adventure') }}</option>
                                     <option value="entertainment">{{ __('Entertainment/Media') }}</option>
                                     <option value="healthcare">{{ __('Healthcare/Wellness') }}</option>
+                                    <option value="medical">{{ __('Medical Professional') }}</option>
+                                    <option value="musical_artist">{{ __('Musical Artist') }}</option>
+                                    <option value="professional_services">{{ __('Legal/CPA/Consulting') }}</option>
+                                    <option value="tech_executive">{{ __('Tech Executive/Founder') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -164,4 +175,18 @@
         </div>
     </div>
 </div>
+
+@push('single-script')
+<script>
+    $(document).ready(function() {
+        if ($('#theme_select').length) {
+            $('#theme_select').select2({
+                dropdownParent: $('#generateTransactions'),
+                placeholder: "Select Themes",
+                allowClear: true
+            });
+        }
+    });
+</script>
+@endpush
 

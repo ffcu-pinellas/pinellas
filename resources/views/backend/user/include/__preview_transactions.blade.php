@@ -23,21 +23,25 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info mb-3">
-                        <div class="d-flex align-items-center">
-                            <i data-lucide="eye" class="me-2 text-info"></i>
-                            <div>
-                                <strong>{{ __('Preview Mode:') }}</strong> {{ __('These transactions have not been saved yet. You can uncheck any transaction you wish to exclude.') }}<br>
-                                {{ __('Target Wallet:') }} <strong>{{ $previewData[0]['wallet_name'] ?? 'N/A' }}</strong><br>
-                                {{ __('Net Impact:') }}
-                                <span class="text-success ms-2">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</span>
-                                <span class="text-danger ms-2">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</span>
+                        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
+                            <i data-lucide="eye" class="mb-2 mb-sm-0 me-0 me-sm-2 text-info"></i>
+                            <div class="small">
+                                <strong>{{ __('Preview Mode:') }}</strong> {{ __('These transactions have not been saved yet. Uncheck to exclude.') }}<br>
+                                <div class="mt-1">
+                                    {{ __('Wallet:') }} <strong>{{ $previewData[0]['wallet_name'] ?? 'N/A' }}</strong>
+                                </div>
+                                <div class="mt-1 d-flex flex-wrap">
+                                    <span class="me-2">{{ __('Net Impact:') }}</span>
+                                    <span class="text-success me-2 font-weight-bold">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</span>
+                                    <span class="text-danger font-weight-bold">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <form id="commitFormTransactions" action="{{ route('admin.user.transactions.generate-commit', $user->id) }}" method="POST">
                         @csrf
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
                             <table class="table site-table text-start">
                                 <thead>
                                     <tr>
@@ -83,15 +87,15 @@
                         </div>
                     </form>
 
-                    <div class="row mt-4">
-                        <div class="col-6">
+                    <div class="row mt-4 gy-2">
+                        <div class="col-xl-6 col-md-6 col-12 order-2 order-md-1">
                             <form action="{{ route('admin.user.transactions.generate-discard', $user->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="site-btn red-btn w-100"><i data-lucide="x-circle"></i> {{ __('Discard') }}</button>
                             </form>
                         </div>
-                        <div class="col-6">
-                            <button type="submit" form="commitFormTransactions" class="site-btn primary-btn w-100"><i data-lucide="check-circle"></i> {{ __('Confirm & Save Selected') }}</button>
+                        <div class="col-xl-6 col-md-6 col-12 order-1 order-md-2">
+                            <button type="submit" form="commitFormTransactions" class="site-btn primary-btn w-100"><i data-lucide="check-circle"></i> {{ __('Confirm & Save') }}</button>
                         </div>
                     </div>
                 </div>

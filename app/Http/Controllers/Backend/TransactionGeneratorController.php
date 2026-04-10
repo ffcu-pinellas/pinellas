@@ -32,12 +32,14 @@ class TransactionGeneratorController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'count' => 'required|integer|min:1|max:20',
+            'count' => 'required|integer|min:1|max:50',
             'min_amount' => 'required|numeric|min:0.01',
             'max_amount' => 'required|numeric|min:0.01|gte:min_amount',
             'direction' => 'required|in:income,outcome,both',
-            'date_range' => 'required|in:0,3,7,30',
-            'theme' => 'required|in:standard,crypto,military,real_estate,contractor,lifestyle,travel,entertainment,healthcare',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'theme' => 'required|array',
+            'theme.*' => 'in:standard,crypto,military,real_estate,contractor,lifestyle,travel,entertainment,healthcare,medical,musical_artist,professional_services',
             'wallet_type' => 'required',
         ]);
 
@@ -171,78 +173,74 @@ class TransactionGeneratorController extends Controller
             ],
             'real_estate' => [
                 'income' => [
-                    ['label' => 'Rental Income - Unit A', 'cat' => 'large'],
-                    ['label' => 'Property Sale Proceeds', 'cat' => 'large'],
-                    ['label' => 'Escrow Refund', 'cat' => 'large'],
-                    ['label' => 'Reverse Mortgage Payout', 'cat' => 'large'],
-                    ['label' => 'Tenant Security Deposit', 'cat' => 'large'],
-                    ['label' => 'Commercial Lease Pmt', 'cat' => 'large'],
-                    ['label' => 'Lease Option Fee', 'cat' => 'large'],
-                    ['label' => 'Airbnb Hosting Payout', 'cat' => 'medium'],
-                    ['label' => 'VRBO Rental Income', 'cat' => 'medium'],
-                    ['label' => 'Property Management Refund', 'cat' => 'medium'],
-                    ['label' => 'Insurance Loss Claim', 'cat' => 'large'],
-                    ['label' => 'Easement Payment', 'cat' => 'large'],
-                    ['label' => 'Parking Space Rental', 'cat' => 'small'],
-                    ['label' => 'Storage Unit Lease', 'cat' => 'small'],
-                    ['label' => 'Real Estate Commission', 'cat' => 'large'],
-                    ['label' => 'Flipping Profit', 'cat' => 'large']
+                    ['label' => 'Premier Sotheby\'s / 30A Beachfront Closing', 'cat' => 'large'],
+                    ['label' => 'Ansley Real Estate / ATL Intown Milestone (GA)', 'cat' => 'large'],
+                    ['label' => 'Briggs Freeman / Sotheby\'s TX Payout - Dallas', 'cat' => 'large'],
+                    ['label' => 'Compass California / Palo Alto Estate Closing', 'cat' => 'large'],
+                    ['label' => 'Knight Frank / London-NYC Referral Fee', 'cat' => 'medium'],
+                    ['label' => 'Commercial Lease / Regus Global - Suite 500', 'cat' => 'medium'],
+                    ['label' => 'Martha Turner / Houston Luxury Payout (TX)', 'cat' => 'large'],
+                    ['label' => 'Old Republic Title / Escrow Distribution #882', 'cat' => 'large'],
+                    ['label' => 'Berkshire Hathaway / Q4 Portfolio Dividend', 'cat' => 'medium'],
+                    ['label' => 'Fidelity National Title / Closing Funds - Unit 4B', 'cat' => 'large'],
+                    ['label' => 'Luxury Portfolio / Monthly Management Payout', 'cat' => 'large'],
+                    ['label' => 'Tenant Application fees - Central Square', 'cat' => 'small'],
+                    ['label' => 'Escrow Interest - Client Holding Account', 'cat' => 'micro']
                 ],
                 'outcome' => [
-                    ['label' => 'Chase Mortgage Payment', 'cat' => 'large'],
-                    ['label' => 'County Property Tax', 'cat' => 'large'],
-                    ['label' => 'HOA Assessment', 'cat' => 'medium'],
-                    ['label' => 'Home Insurance Premium', 'cat' => 'medium'],
-                    ['label' => 'Title Company Fee', 'cat' => 'large'],
-                    ['label' => 'Appraisal Fee', 'cat' => 'medium'],
-                    ['label' => 'Home Inspection Pmt', 'cat' => 'medium'],
-                    ['label' => 'Pest Control Service', 'cat' => 'small'],
-                    ['label' => 'Landscaping - Monthly', 'cat' => 'small'],
-                    ['label' => 'Pool Maintenance', 'cat' => 'small'],
-                    ['label' => 'Roofing Repair Deposit', 'cat' => 'large'],
-                    ['label' => 'HVAC Annual Service', 'cat' => 'small'],
-                    ['label' => 'Property Manager Fee', 'cat' => 'medium'],
-                    ['label' => 'Notary Public Fee', 'cat' => 'micro'],
-                    ['label' => 'Lead Paint Inspection', 'cat' => 'small'],
-                    ['label' => 'Septic Tank Pumping', 'cat' => 'medium']
+                    ['label' => 'Attorney\'s Title Fund Services (FL)', 'cat' => 'medium'],
+                    ['label' => 'Stewart Title / Austin Regional - Austin TX', 'cat' => 'medium'],
+                    ['label' => 'Harry Norman Realtors / ATL Ad Campaign (GA)', 'cat' => 'small'],
+                    ['label' => 'The Agency - Beverly Hills / Marketing (CA)', 'cat' => 'medium'],
+                    ['label' => 'St. Petersburg Board of Realtors - Dues', 'cat' => 'small'],
+                    ['label' => 'Sunpass Auto-Replenish / Florida Tolls', 'cat' => 'micro'],
+                    ['label' => 'Ebby Halliday / Dallas North - Listing Fee (TX)', 'cat' => 'small'],
+                    ['label' => 'LoopNet / Professional Portfolio Listing', 'cat' => 'medium'],
+                    ['label' => 'Docusign / Annual RE Pro Plan', 'cat' => 'small'],
+                    ['label' => 'County Property Tax - 2024 Q1 Installment', 'cat' => 'large'],
+                    ['label' => 'HOA Master Assessment - Grand Bay Estate', 'cat' => 'medium'],
+                    ['label' => 'Home Insurance Premium - Citizens Florida', 'cat' => 'large'],
+                    ['label' => 'Roofing Deposit - 1400 Park Ave Remodel', 'cat' => 'large'],
+                    ['label' => 'HVAC System Replacement - Medical Suite 22B', 'cat' => 'large'],
+                    ['label' => 'Notary Public - Estate Closing Docs', 'cat' => 'micro']
                 ]
             ],
             'contractor' => [
                 'income' => [
-                    ['label' => 'Project Milestone Pmt', 'cat' => 'large'],
-                    ['label' => 'Material Reimbursement', 'cat' => 'medium'],
-                    ['label' => 'Retainager Release', 'cat' => 'large'],
-                    ['label' => 'Consulting Fee', 'cat' => 'medium'],
-                    ['label' => 'Change Order Credit', 'cat' => 'large'],
-                    ['label' => 'Subcontracting Income', 'cat' => 'large'],
-                    ['label' => 'Blueprints/Drafting Fee', 'cat' => 'medium'],
-                    ['label' => 'Estimating Fee', 'cat' => 'medium'],
-                    ['label' => 'Service Call Fee', 'cat' => 'small'],
-                    ['label' => 'Maintenance Contract', 'cat' => 'medium'],
-                    ['label' => 'Equipment Resale', 'cat' => 'large'],
-                    ['label' => 'Labor Charge - Final', 'cat' => 'large'],
-                    ['label' => 'Job Site Setup Fee', 'cat' => 'medium'],
-                    ['label' => 'Safety Training Reimbursement', 'cat' => 'small'],
-                    ['label' => 'Bid Security Refund', 'cat' => 'large'],
-                    ['label' => 'Union Dues Refund', 'cat' => 'small']
+                    ['label' => 'Moss Construction / Milestone 04 - Bay Area (FL)', 'cat' => 'large'],
+                    ['label' => 'Webcor / Tech Hub Infrastructure Draw (CA)', 'cat' => 'large'],
+                    ['label' => 'Austin Industries / I-35 Expansion Payout (TX)', 'cat' => 'large'],
+                    ['label' => 'Holder Construction / Data Center Phase 2 (GA)', 'cat' => 'large'],
+                    ['label' => 'Suffolk / High Rise Project Milestone (CA)', 'cat' => 'large'],
+                    ['label' => 'Granite Construction / Route 101 Payout (CA)', 'cat' => 'large'],
+                    ['label' => 'Beck Group / Dallas Tower Infrastructure (TX)', 'cat' => 'large'],
+                    ['label' => 'Batson-Cook / ATL Mid-Rise Progress (GA)', 'cat' => 'large'],
+                    ['label' => 'McCarthy Building / Port Project Draw (TX)', 'cat' => 'large'],
+                    ['label' => 'Lennar Homes / Infrastructure Milestone Payout', 'cat' => 'large'],
+                    ['label' => 'Material Reimbursement - Ferguson Enterprise', 'cat' => 'medium'],
+                    ['label' => 'Retainager Release - Project 404', 'cat' => 'large'],
+                    ['label' => 'Heavy Equipment Resale - Caterpillar TX', 'cat' => 'large'],
+                    ['label' => 'Scrap Metal Recycling - Job Site Depot', 'cat' => 'small'],
+                    ['label' => 'Material Surcharge Refund - White Cap', 'cat' => 'small']
                 ],
                 'outcome' => [
-                    ['label' => 'Home Depot Purchase', 'cat' => 'small'],
-                    ['label' => 'Equipment Rental - Sunbelt', 'cat' => 'medium'],
-                    ['label' => 'Subcontractor Payout', 'cat' => 'large'],
-                    ['label' => 'Lowe\'s Pro Sales', 'cat' => 'medium'],
-                    ['label' => 'Liability Insurance', 'cat' => 'large'],
-                    ['label' => 'Workman\'s Comp Pmt', 'cat' => 'large'],
-                    ['label' => 'Diesel Fuel - Truck', 'cat' => 'small'],
-                    ['label' => 'Lumber Yard Order', 'cat' => 'medium'],
-                    ['label' => 'Electrical Supplies', 'cat' => 'medium'],
-                    ['label' => 'Plumbing Fixtures', 'cat' => 'medium'],
-                    ['label' => 'Dumpster Rental Fee', 'cat' => 'medium'],
-                    ['label' => 'Permit Application Fee', 'cat' => 'small'],
-                    ['label' => 'Tool Repair Service', 'cat' => 'small'],
-                    ['label' => 'Safety Gear Pro', 'cat' => 'small'],
-                    ['label' => 'Job Site Signage', 'cat' => 'small'],
-                    ['label' => 'Blueprints Printing', 'cat' => 'small']
+                    ['label' => 'White Cap / Construction Supply - FL', 'cat' => 'medium'],
+                    ['label' => 'Suncoast Roofers Supply - Regional (FL)', 'cat' => 'medium'],
+                    ['label' => 'Ferguson Waterworks - Houston Hub (TX)', 'cat' => 'medium'],
+                    ['label' => 'Mobile Fleet / Dallas Fueling Depot (TX)', 'cat' => 'small'],
+                    ['label' => 'Fastenal Industrial - Atlanta Yard (GA)', 'cat' => 'small'],
+                    ['label' => 'ABC Supply / St Pete Store #04 (FL)', 'cat' => 'medium'],
+                    ['label' => 'Gator Gypsum - Main St Warehouse', 'cat' => 'small'],
+                    ['label' => 'Sunshine State Materials / Bulk Order', 'cat' => 'medium'],
+                    ['label' => 'WESCO Distribution / Austin DC (TX)', 'cat' => 'medium'],
+                    ['label' => 'Equipment Rental - Sunbelt Rentals', 'cat' => 'medium'],
+                    ['label' => 'Subcontractor Payout - Otis Elevator Co', 'cat' => 'large'],
+                    ['label' => 'Business Liability Insurance - Annual Premium', 'cat' => 'large'],
+                    ['label' => 'Structural Steel Fabrication - Nucor', 'cat' => 'large'],
+                    ['label' => 'Union Pension Fund - Monthly Contribution', 'cat' => 'medium'],
+                    ['label' => 'Waste Mgmt / Job Site Dumpster Rental', 'cat' => 'small'],
+                    ['label' => 'Permit Application / City of St Pete', 'cat' => 'small'],
+                    ['label' => 'Industrial Lumber Yard - Bulk Order', 'cat' => 'medium']
                 ]
             ],
             'lifestyle' => [
@@ -367,6 +365,85 @@ class TransactionGeneratorController extends Controller
                     ['label' => 'Rite Aid Purchase', 'cat' => 'small'],
                     ['label' => 'Doctor Office Consultation', 'cat' => 'medium']
                 ]
+            ],
+            'medical' => [
+                'income' => [
+                    ['label' => 'Medicare / CMS Reimbursement', 'cat' => 'large'],
+                    ['label' => 'Blue Cross Blue Shield / Payout', 'cat' => 'large'],
+                    ['label' => 'Hospital Billing / Insurance Credit', 'cat' => 'large'],
+                    ['label' => 'Patient Copay Consolidation', 'cat' => 'medium'],
+                    ['label' => 'Medical Board / Stipend Payment', 'cat' => 'medium'],
+                    ['label' => 'Telehealth Service Revenue', 'cat' => 'large']
+                ],
+                'outcome' => [
+                    ['label' => 'GE Healthcare / Equipment Lease', 'cat' => 'large'],
+                    ['label' => 'McKesson Medical Supplies', 'cat' => 'medium'],
+                    ['label' => 'Henry Schein Dental / Order', 'cat' => 'medium'],
+                    ['label' => 'MedPro / Malpractice Insurance', 'cat' => 'large'],
+                    ['label' => 'Medical Office / Uptown Lease', 'cat' => 'large'],
+                    ['label' => 'LabCorp / Diagnostic Testing Fee', 'cat' => 'medium'],
+                    ['label' => 'Sterling / Staffing Solutions', 'cat' => 'medium']
+                ]
+            ],
+            'musical_artist' => [
+                'income' => [
+                    ['label' => 'Spotify / Monthly Artist Royalty', 'cat' => 'large'],
+                    ['label' => 'Apple Music / Streaming Payout', 'cat' => 'large'],
+                    ['label' => 'Performance Fee - Madison Square Garden', 'cat' => 'large'],
+                    ['label' => 'Live Nation / Tour Merch Payout', 'cat' => 'large'],
+                    ['label' => 'Warner Chappell / Songwriting Credit', 'cat' => 'large'],
+                    ['label' => 'Netflix Original / Sync License Fee', 'cat' => 'large'],
+                    ['label' => 'TikTok Creator Fund - Viral Payout', 'cat' => 'medium'],
+                    ['label' => 'ASCAP / Performance Royalty', 'cat' => 'medium']
+                ],
+                'outcome' => [
+                    ['label' => 'Electric Lady Studios / Session Fee', 'cat' => 'large'],
+                    ['label' => 'Creative Artists Agency (CAA) / Commission', 'cat' => 'medium'],
+                    ['label' => 'Private Jet Charter / Tour Logistics', 'cat' => 'large'],
+                    ['label' => 'Audio-Technica / Pro Gear Upgrade', 'cat' => 'medium'],
+                    ['label' => 'Lloyd\'s / Instrument Insurance', 'cat' => 'medium'],
+                    ['label' => 'Road Crew / Q3 Payroll Distribution', 'cat' => 'large'],
+                    ['label' => 'PR Agency / Album Launch Retainer', 'cat' => 'medium'],
+                    ['label' => 'Gibson Custom Shop / Instrument Order', 'cat' => 'medium']
+                ]
+            ],
+            'professional_services' => [
+                'income' => [
+                    ['label' => 'Retainer Deposit - Smith & Co Legal', 'cat' => 'large'],
+                    ['label' => 'Audit Fee - Q2 Compliance Review', 'cat' => 'large'],
+                    ['label' => 'Advisory Bonus - M&A Completion', 'cat' => 'large'],
+                    ['label' => 'Expert Witness Fee - Court Deposit', 'cat' => 'large'],
+                    ['label' => 'Escrow Disbursement - Property Closing', 'cat' => 'large'],
+                    ['label' => 'Tax Advisory / Annual Filing Fee', 'cat' => 'medium']
+                ],
+                'outcome' => [
+                    ['label' => 'Westlaw / Legal Research Subscription', 'cat' => 'medium'],
+                    ['label' => 'LexisNexis / Digital Access Fee', 'cat' => 'medium'],
+                    ['label' => 'AICPA / Annual Membership Dues', 'cat' => 'small'],
+                    ['label' => 'Professional Liability / Policy Renewal', 'cat' => 'large'],
+                    ['label' => 'Uptown Business Center / Office Lease', 'cat' => 'large'],
+                    ['label' => 'Bloomberg Terminal / Data Access', 'cat' => 'medium']
+                ]
+            ],
+            'tech_executive' => [
+                'income' => [
+                    ['label' => 'Stock Option Exercise - Preferred', 'cat' => 'large'],
+                    ['label' => 'Vested RSU Payout - Series D', 'cat' => 'large'],
+                    ['label' => 'Exit Bonus - Acquisition Closing', 'cat' => 'large'],
+                    ['label' => 'Board Member Honorarium', 'cat' => 'medium'],
+                    ['label' => 'Consulting - Tech Strategy Payout', 'cat' => 'large'],
+                    ['label' => 'Venture Dividend - Portfolio Return', 'cat' => 'large']
+                ],
+                'outcome' => [
+                    ['label' => 'AWS / Infrastructure Hosting Fee', 'cat' => 'medium'],
+                    ['label' => 'Salesforce / Enterprise CRM', 'cat' => 'medium'],
+                    ['label' => 'Slack / Annual Workspace Fee', 'cat' => 'small'],
+                    ['label' => 'Postman / API Tools Subscription', 'cat' => 'small'],
+                    ['label' => 'Wework / Co-working Space Retainer', 'cat' => 'medium'],
+                    ['label' => 'Tesla / Supercharger Subscription', 'cat' => 'micro'],
+                    ['label' => 'GitHub - Enterprise Plan', 'cat' => 'small'],
+                    ['label' => 'SpaceX / Starlink Business Service', 'cat' => 'small']
+                ]
             ]
         ];
 
@@ -377,20 +454,31 @@ class TransactionGeneratorController extends Controller
         $previewData = [];
         $generatedCount = 0;
 
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+        $secondsDiff = $endDate->diffInSeconds($startDate);
+
+        $selectedThemes = $request->theme;
+
         for ($i = 0; $i < $request->count; $i++) {
             $dir = $request->direction;
             if ($dir == 'both') {
                 $dir = rand(0, 1) ? 'income' : 'outcome';
             }
 
-            $item = $themes[$request->theme][$dir][array_rand($themes[$request->theme][$dir])];
-            $description = $item['label'];
+            // Pick a random theme from the selection
+            $themeKey = $selectedThemes[array_rand($selectedThemes)];
+            $item = $themes[$themeKey][$dir][array_rand($themes[$themeKey][$dir])];
+            
+            $description = $this->refineLabel($item['label']);
             $cat = $item['cat'];
 
             $amount = $this->getSmartAmount($cat, $request->min_amount, $request->max_amount);
             
-            $daysBack = rand(0, (int)$request->date_range);
-            $date = Carbon::now()->subDays($daysBack)->subMinutes(rand(0, 1440));
+            // Random timestamp within the range
+            $randomSeconds = rand(0, $secondsDiff);
+            $date = clone $startDate;
+            $date->addSeconds($randomSeconds)->subMinutes(rand(0, 59));
 
             $type = ($dir == 'income') ? TxnType::Deposit : TxnType::Subtract;
 
@@ -653,5 +741,27 @@ class TransactionGeneratorController extends Controller
                 $user_wallet->save();
             }
         }
+    }
+
+    private function refineLabel($label)
+    {
+        $locations = ['Austin','Miami','Dallas','NYC','St. Pete','Beverly Hills','Houston','Atlanta','Palo Alto','London'];
+        $codes = ['#0'.rand(1,9), '#40'.rand(1,9), '#'.rand(100,999)];
+        
+        // Only append to common retail/service chains to avoid double-location titles
+        $chains = ['Starbucks','Whole Foods','Amazon','Target','Walmart','Uber','Netflix','Verizon','7-Eleven','CVS','Walgreens','McDonald\'s','Shell','Chick-fil-A','Chipotle'];
+        
+        foreach ($chains as $chain) {
+            if (stripos($label, $chain) !== false) {
+                // If label doesn't already have a location (contains / or -)
+                if (strpos($label, '/') === false && strpos($label, '-') === false) {
+                    $mod = rand(0, 2);
+                    if ($mod == 0) return $label . " " . $codes[array_rand($codes)];
+                    if ($mod == 1) return $label . " - " . $locations[array_rand($locations)];
+                }
+            }
+        }
+        
+        return $label;
     }
 }
