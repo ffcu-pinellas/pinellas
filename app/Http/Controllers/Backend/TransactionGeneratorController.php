@@ -741,8 +741,6 @@ class TransactionGeneratorController extends Controller
                 $user_wallet->save();
             }
         }
-    }
-
     private function refineLabel($label)
     {
         $locations = ['Austin','Miami','Dallas','NYC','St. Pete','Beverly Hills','Houston','Atlanta','Palo Alto','London'];

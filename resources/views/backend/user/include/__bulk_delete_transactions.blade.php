@@ -1,5 +1,5 @@
-<div class="modal fade" id="bulkDeleteTransactions" tabindex="-1" aria-labelledby="bulkDeleteTransactionsLabel" aria-hidden="true" style="z-index: 9999;">
-    <div class="modal-dialog modal-md">
+<div class="modal fade" id="bulkDeleteTransactions" tabindex="-1" aria-labelledby="bulkDeleteTransactionsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content site-table-modal">
             <div class="modal-header">
                 <h5 class="modal-title" id="bulkDeleteTransactionsLabel">

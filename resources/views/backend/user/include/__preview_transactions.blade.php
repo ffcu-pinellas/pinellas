@@ -12,8 +12,8 @@
         }
     @endphp
     <!-- Preview Transactions Modal -->
-    <div class="modal fade" id="previewTransactionsModal" tabindex="-1" aria-labelledby="previewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999;">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="previewTransactionsModal" tabindex="-1" aria-labelledby="previewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content site-table-modal">
                 <div class="modal-header">
                     <h5 class="modal-title" id="previewTransactionsLabel">
