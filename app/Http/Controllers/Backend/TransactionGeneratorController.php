@@ -52,19 +52,6 @@ class TransactionGeneratorController extends Controller
         $themes = [
             'standard' => [
                 'income' => [
-                    ['label' => 'Payroll Deposit - ADP', 'cat' => 'large'],
-                    ['label' => 'Venmo Cashout - Transfer', 'cat' => 'flex'],
-                    ['label' => 'Zelle Transfer from Family', 'cat' => 'medium'],
-                    ['label' => 'Apple Pay Refund', 'cat' => 'small'],
-                    ['label' => 'Tax Refund - IRS TREAS', 'cat' => 'large'],
-                    ['label' => 'Interest Payment - Savings', 'cat' => 'micro'],
-                    ['label' => 'Cash Deposit - ATM', 'cat' => 'medium'],
-                    ['label' => 'Stripe Payout - Sales', 'cat' => 'large'],
-                    ['label' => 'Dividend Reinvestment', 'cat' => 'small'],
-                    ['label' => 'eBay Sale - Item Sold', 'cat' => 'medium'],
-                    ['label' => 'Poshmark Earnings', 'cat' => 'small'],
-                    ['label' => 'Work Bonus - Quarterly', 'cat' => 'large'],
-                    ['label' => 'Gig Economy Payout', 'cat' => 'small'],
                     ['label' => 'Rental Reimbursement', 'cat' => 'medium'],
                     ['label' => 'Insurance Claim Payout', 'cat' => 'large'],
                     ['label' => 'Gift - Birthday Funds', 'cat' => 'small']
@@ -455,8 +442,8 @@ class TransactionGeneratorController extends Controller
         $wallet_name = $this->getWalletName($user, $wallet_type);
 
         $count = $request->count;
-        $min = $request->min_amount;
-        $max = $request->max_amount;
+        $min = (float)$request->min_amount;
+        $max = (float)$request->max_amount;
         $direction = $request->direction;
         $targetNet = $request->filled('target_net') ? (float)$request->target_net : null;
         $startDate = \Carbon\Carbon::parse($request->start_date);
@@ -465,6 +452,7 @@ class TransactionGeneratorController extends Controller
 
         $previewData = [];
 
+        // --- Phase 1: Initial Generation ---
         for ($i = 0; $i < $count; $i++) {
             $themeKey = $selectedThemes[array_rand($selectedThemes)];
             $theme = $themes[$themeKey];
@@ -478,16 +466,16 @@ class TransactionGeneratorController extends Controller
                 }
             }
 
-            $options = $theme[$txnDir] ?? $themes['travel'][$txnDir];
+            $options = $theme[$txnDir] ?? $themes['standard'][$txnDir];
             $choice = $options[array_rand($options)];
-            
             $amount = round(mt_rand($min * 100, $max * 100) / 100, 2);
 
             $daysDiff = $startDate->diffInDays($endDate);
             $randomDate = (clone $startDate)->addDays(rand(0, $daysDiff))->addHours(rand(0, 23))->addMinutes(rand(0, 59));
 
             $previewData[] = [
-                'description' => $this->refineLabel($choice['label']),
+                'choice' => $choice, // Keep metadata for balancing
+                'description' => $this->refineLabel($choice),
                 'amount' => $amount,
                 'direction' => $txnDir,
                 'type' => ($txnDir == 'income') ? TxnType::Deposit : TxnType::Subtract,
@@ -497,6 +485,7 @@ class TransactionGeneratorController extends Controller
             ];
         }
 
+        // --- Phase 2: Audit-Grade Balancing ---
         if (!is_null($targetNet)) {
             $currentNet = 0;
             foreach ($previewData as $item) {
@@ -504,33 +493,86 @@ class TransactionGeneratorController extends Controller
             }
 
             $diff = $targetNet - $currentNet;
-            $perTxnDiff = round($diff / $count, 2);
+            
+            // To be realistic, we pick one "Heavy Lifter" (highest category) to take 60% of the diff
+            // and spread the rest. This prevents every transaction from looking the same.
+            $heavyLifterIdx = 0;
+            $maxCatValue = 0;
+            $catWeights = ['micro' => 1, 'small' => 2, 'medium' => 5, 'large' => 20, 'xl' => 100];
+            
+            foreach ($previewData as $idx => $txn) {
+                $weight = $catWeights[$txn['choice']['cat'] ?? 'small'] ?? 2;
+                if ($weight > $maxCatValue) {
+                    $maxCatValue = $weight;
+                    $heavyLifterIdx = $idx;
+                }
+            }
+
+            $perTxnDiff = round(($diff * 0.4) / $count, 2);
+            $heavyLiftAmount = $diff - ($perTxnDiff * ($count - 1));
             $runningTotal = 0;
 
             foreach ($previewData as $idx => &$txn) {
-                $adj = ($txn['direction'] == 'income' ? $perTxnDiff : -$perTxnDiff);
-                $newAmount = $txn['amount'] + $adj;
+                $adj = ($idx === $heavyLifterIdx) ? $heavyLiftAmount : $perTxnDiff;
+                
+                // If we are calculating impact on net, adding to income or subtracting from outcome both increase net.
+                // So for a positive diff, we increase income or decrease outcome.
+                $newImpactVal = ($txn['direction'] == 'income' ? $txn['amount'] : -$txn['amount']) + $adj;
+                
+                // Update amount and direction based on the new impact value
+                $oldDir = $txn['direction'];
+                $txn['amount'] = abs($newImpactVal);
+                $txn['direction'] = ($newImpactVal >= 0) ? 'income' : 'outcome';
+                $txn['type'] = ($txn['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
 
-                if ($idx === $count - 1) {
-                    $remainingTarget = $targetNet - $runningTotal;
-                    $txn['amount'] = abs($remainingTarget);
-                    $txn['direction'] = $remainingTarget >= 0 ? 'income' : 'outcome';
-                    $txn['type'] = ($txn['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
+                // --- Realism Check: Description Re-Sync ---
+                // If direction flipped OR if a micro/small txn is now huge (> $500), re-pick desc
+                $isMicroSmall = in_array($txn['choice']['cat'] ?? 'small', ['micro', 'small']);
+                if ($oldDir !== $txn['direction'] || ($isMicroSmall && $txn['amount'] > 500)) {
+                    $newChoice = $this->getRandomDescription($themes, $txn['direction'], $selectedThemes);
+                    $txn['choice'] = $newChoice;
+                    $txn['description'] = $this->refineLabel($newChoice);
                 } else {
-                    if ($newAmount < 0) {
-                        $txn['amount'] = abs($newAmount);
-                        $txn['direction'] = ($txn['direction'] == 'income' ? 'outcome' : 'income');
-                        $txn['type'] = ($txn['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
-                    } else {
-                        $txn['amount'] = $newAmount;
-                    }
-                    $runningTotal += ($txn['direction'] == 'income' ? $txn['amount'] : -$txn['amount']);
+                    // Regular label refresh to ensure prefixes (ACH/WIRE) match new amounts
+                    $txn['description'] = $this->refineLabel($txn['choice']);
                 }
+
+                $runningTotal += ($txn['direction'] == 'income' ? $txn['amount'] : -$txn['amount']);
                 $txn['amount'] = round($txn['amount'], 2);
+            }
+            
+            // Final precision adjustment on the heavy lifter to hit target perfectly
+            $finalDiff = $targetNet - $runningTotal;
+            if (abs($finalDiff) > 0) {
+                $h = &$previewData[$heavyLifterIdx];
+                $hImpact = ($h['direction'] == 'income' ? $h['amount'] : -$h['amount']) + $finalDiff;
+                $h['amount'] = round(abs($hImpact), 2);
+                $h['direction'] = ($hImpact >= 0) ? 'income' : 'outcome';
+                $h['type'] = ($h['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
+                $h['description'] = $this->refineLabel($h['choice']);
             }
         }
 
-        session()->put("txn_preview_{$id}", $previewData);
+        // --- Phase 3: FX Fees Injection ---
+        $finalData = [];
+        foreach ($previewData as $txn) {
+            $finalData[] = $txn;
+            if (isset($txn['choice']['intl']) && $txn['choice']['intl'] && $txn['direction'] == 'outcome') {
+                $feeAmount = round(mt_rand(100, 500) / 100, 2); // $1.00 - $5.00
+                $finalData[] = [
+                    'description' => 'FOREIGN TRANS FEE - ' . ($txn['choice']['label'] ?? 'INTL'),
+                    'amount' => $feeAmount,
+                    'direction' => 'outcome',
+                    'type' => TxnType::Subtract,
+                    'date' => $txn['date'],
+                    'wallet_type' => $txn['wallet_type'],
+                    'wallet_name' => $txn['wallet_name'],
+                    'is_fee' => true
+                ];
+            }
+        }
+
+        session()->put("txn_preview_{$id}", $finalData);
         session()->flash("show_preview_{$id}", true);
         
         return redirect()->back();
@@ -779,25 +821,45 @@ class TransactionGeneratorController extends Controller
         }
     }
 
-    private function refineLabel($label)
+    private function refineLabel($choice)
     {
-        $locations = ['Austin','Miami','Dallas','NYC','St. Pete','Beverly Hills','Houston','Atlanta','Palo Alto','London'];
-        $codes = ['#0'.rand(1,9), '#40'.rand(1,9), '#'.rand(100,999)];
+        $label = $choice['label'] ?? 'General Transaction';
+        $cat = $choice['cat'] ?? 'small';
+        $intl = $choice['intl'] ?? false;
+
+        $us_cities = ['MIA', 'NYC', 'SFO', 'LAX', 'CHI', 'DAL', 'ATL', 'SEA', 'PHX', 'TAM', 'ORL', 'BOS', 'HOU'];
+        $intl_cities = ['LON', 'PAR', 'BER', 'TYO', 'TOR', 'VAN', 'SIN', 'DXB', 'FRA'];
         
-        // Only append to common retail/service chains to avoid double-location titles
-        $chains = ['Starbucks','Whole Foods','Amazon','Target','Walmart','Uber','Netflix','Verizon','7-Eleven','CVS','Walgreens','McDonald\'s','Shell','Chick-fil-A','Chipotle'];
+        $branch = ' #'.rand(1000, 9999);
+        $txnId = ' *'.rand(100000, 999999);
         
-        foreach ($chains as $chain) {
-            if (stripos($label, $chain) !== false) {
-                // If label doesn't already have a location (contains / or -)
-                if (strpos($label, '/') === false && strpos($label, '-') === false) {
-                    $mod = rand(0, 2);
-                    if ($mod == 0) return $label . " " . $codes[array_rand($codes)];
-                    if ($mod == 1) return $label . " - " . $locations[array_rand($locations)];
-                }
+        // Add realistic bank-style prefixes based on category
+        if ($cat == 'xl' || $cat == 'large') {
+            if (stripos($label, 'Wire') === false && stripos($label, 'ACH') === false) {
+                $label = (rand(0, 1) ? 'ACH DEP: ' : 'WIRE IN: ') . $label;
             }
         }
         
-        return $label;
+        // Append Location
+        if ($intl) {
+            $label .= ' ' . $intl_cities[array_rand($intl_cities)];
+        } else {
+            // 50% chance of city code for variety
+            if (rand(0, 1)) {
+                $label .= ' ' . $us_cities[array_rand($us_cities)];
+            }
+        }
+
+        // Add Branch/Txn ID "Noise"
+        $mod = rand(0, 3);
+        if ($mod == 1) $label .= $branch;
+        if ($mod == 2) $label .= $txnId;
+
+        return strtoupper($label); // Real bank statements are often uppercase
+    private function getRandomDescription($themes, $direction, $selectedThemes)
+    {
+        $themeKey = $selectedThemes[array_rand($selectedThemes)];
+        $options = $themes[$themeKey][$direction] ?? $themes['standard'][$direction];
+        return $options[array_rand($options)];
     }
 }
