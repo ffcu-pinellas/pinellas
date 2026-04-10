@@ -458,7 +458,7 @@ class TransactionGeneratorController extends Controller
         $min = $request->min_amount;
         $max = $request->max_amount;
         $direction = $request->direction;
-        $targetNet = $request->target_net;
+        $targetNet = $request->filled('target_net') ? (float)$request->target_net : null;
         $startDate = \Carbon\Carbon::parse($request->start_date);
         $endDate = \Carbon\Carbon::parse($request->end_date);
         $selectedThemes = $request->theme;
