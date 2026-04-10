@@ -116,7 +116,10 @@
                                 </label>
                                 <div class="input-group joint-input">
                                     <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
-                                    <input type="text" name="target_net" class="form-control" placeholder="e.g. 5000 or -200" inputmode="decimal" oninput="this.value = this.value.replace(/[^0-9.-]/g, '').replace(/(\..*?)\..*/g, '$1');">
+                                    <input type="text" id="target_net_input" name="target_net" class="form-control" placeholder="e.g. 5000 or -200" oninput="this.value = this.value.replace(/[^0-9.-]/g, '').replace(/(\..*?)\..*/g, '$1');">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="const i = document.getElementById('target_net_input'); i.value = i.value.startsWith('-') ? i.value.substring(1) : '-' + i.value;">
+                                        +/-
+                                    </button>
                                 </div>
                                 <p class="small text-muted mt-1 mb-0" style="font-size: 10px;">
                                     <i data-lucide="zap" class="icon-xs me-1"></i> {{ __('Leaving this blank results in pure random activity.') }}
