@@ -217,13 +217,29 @@
     </div>
 </div>
 
+<!-- Modals moved outside main grid to prevent clipping/squashing -->
+@push('style')
+<style>
+    .trx-modal-content {
+        border-radius: 24px !important;
+        border: none !important;
+        overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    }
+    .modal-backdrop.show {
+        opacity: 0.7 !important;
+        backdrop-filter: blur(4px);
+    }
+</style>
+@endpush
+
 <!-- eStatement Modal -->
-<div class="modal fade" id="eStatementModal" tabindex="-1">
+<div class="modal fade" id="eStatementModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
+        <div class="modal-content trx-modal-content">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <h5 class="fw-bold mb-0">Download eStatement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('user.transactions.export.pdf') }}" method="GET" data-no-loader="true">
                 <div class="modal-body p-4">
@@ -248,7 +264,7 @@
                     </div>
 
                     <div id="customDateRange" class="mt-3 d-none">
-                        <div class="row g-2">
+                        <div class="row g-3">
                             <div class="col-6">
                                 <label class="small text-muted mb-1 fw-bold">FROM DATE</label>
                                 <div class="input-group border-bottom border-light">
@@ -266,8 +282,8 @@
                         </div>
                     </div>
 
-                    <label class="small text-muted mb-2 fw-bold d-block text-uppercase">Include Accounts</label>
-                    <div class="site-card p-3 mb-4" style="background: var(--secondary-content-background-color) !important;">
+                    <label class="small text-muted mb-2 fw-bold d-block text-uppercase mt-4">Include Accounts</label>
+                    <div class="rounded-4 p-3 mb-4" style="background: rgba(0,0,0,0.03);">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="accounts[]" value="checking" id="accChecking" checked>
                             <label class="form-check-label fw-bold small text-dark" for="accChecking">
@@ -323,9 +339,6 @@
                                 <i class="fas fa-envelope-open-text me-2 text-primary"></i> Send a copy to my email
                             </label>
                         </div>
-                        <div class="small text-muted mt-1 ps-4 ms-2" style="font-size: 10px;">
-                            Verification required for some email providers.
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -339,38 +352,38 @@
 </div>
 
 <!-- High Fidelity Detail Modal -->
-<div class="modal fade" id="trxViewDetailsBox" tabindex="-1">
+<div class="modal fade" id="trxViewDetailsBox" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content trx-modal-content">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <div class="activity-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 24px;">
-                     <i class="fas fa-receipt"></i>
+            <div class="modal-body p-4 pt-0 text-center">
+                <div class="activity-icon mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px; font-size: 32px; background: rgba(0,84,155,0.05);">
+                     <i class="fas fa-receipt text-primary"></i>
                 </div>
-                <h4 class="fw-bold mb-1 modal-title-val">Description</h4>
+                <h4 class="fw-bold mb-1 modal-title-val text-dark">Description</h4>
                 <div class="text-muted small mb-4 modal-date-val">Date</div>
                 
-                <div class="display-5 fw-bold mb-4 modal-amount-val">$0.00</div>
+                <div class="display-5 fw-bold mb-4 modal-amount-val" style="color: #000;">$0.00</div>
                 
-                <div class="site-card p-3 text-start mb-0" style="background: var(--secondary-content-background-color) !important;">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small">Status</span>
-                        <span class="fw-bold small modal-status-val">Completed</span>
+                <div class="rounded-4 p-4 text-start mb-4" style="background: rgba(0,0,0,0.03);">
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                        <span class="text-muted small fw-bold text-uppercase">Status</span>
+                        <span class="fw-bold text-dark modal-status-val">Completed</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted small">Transaction ID</span>
-                        <span class="fw-bold small modal-trx-val">TRX12345</span>
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                        <span class="text-muted small fw-bold text-uppercase">Transaction ID</span>
+                        <span class="fw-bold text-dark modal-trx-val">TRX12345</span>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted small">Method</span>
-                        <span class="fw-bold small modal-method-val">System</span>
+                    <div class="d-flex justify-content-between mb-0">
+                        <span class="text-muted small fw-bold text-uppercase">Method</span>
+                        <span class="fw-bold text-dark modal-method-val">System</span>
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-0 p-4 pt-0 gap-2 flex-column">
-                <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
+                <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
                     <i class="fas fa-file-pdf"></i> Download Receipt
                 </a>
                 <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-2 fw-bold" data-bs-dismiss="modal">Close</button>
