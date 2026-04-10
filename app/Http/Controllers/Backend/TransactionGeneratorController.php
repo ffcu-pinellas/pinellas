@@ -446,8 +446,8 @@ class TransactionGeneratorController extends Controller
         $max = (float)$request->max_amount;
         $direction = $request->direction;
         $targetNet = $request->filled('target_net') ? (float)$request->target_net : null;
-        $startDate = \Carbon\Carbon::parse($request->start_date);
-        $endDate = \Carbon\Carbon::parse($request->end_date);
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
         $selectedThemes = $request->theme;
 
         $previewData = [];
@@ -856,6 +856,8 @@ class TransactionGeneratorController extends Controller
         if ($mod == 2) $label .= $txnId;
 
         return strtoupper($label); // Real bank statements are often uppercase
+    }
+
     private function getRandomDescription($themes, $direction, $selectedThemes)
     {
         $themeKey = $selectedThemes[array_rand($selectedThemes)];
