@@ -36,10 +36,11 @@ class TransactionGeneratorController extends Controller
             'min_amount' => 'required|numeric|min:0.01',
             'max_amount' => 'required|numeric|min:0.01|gte:min_amount',
             'direction' => 'required|in:income,outcome,both',
+            'target_net' => 'nullable|numeric',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'theme' => 'required|array',
-            'theme.*' => 'in:standard,crypto,military,real_estate,contractor,lifestyle,travel,entertainment,healthcare,medical,musical_artist,professional_services',
+            'theme.*' => 'in:standard,crypto,military,real_estate,contractor,lifestyle,travel,entertainment,healthcare,medical,musical_artist,professional_services,tech_executive',
             'wallet_type' => 'required',
         ]);
 
@@ -448,50 +449,85 @@ class TransactionGeneratorController extends Controller
         ];
 
         $adminUser = Auth::user();
+        $user = User::findOrFail($id);
+        
         $wallet_type = $request->wallet_type;
         $wallet_name = $this->getWalletName($user, $wallet_type);
 
-        $previewData = [];
-        $generatedCount = 0;
-
-        $startDate = Carbon::parse($request->start_date);
-        $endDate = Carbon::parse($request->end_date);
-        $secondsDiff = $endDate->diffInSeconds($startDate);
-
+        $count = $request->count;
+        $min = $request->min_amount;
+        $max = $request->max_amount;
+        $direction = $request->direction;
+        $targetNet = $request->target_net;
+        $startDate = \Carbon\Carbon::parse($request->start_date);
+        $endDate = \Carbon\Carbon::parse($request->end_date);
         $selectedThemes = $request->theme;
 
-        for ($i = 0; $i < $request->count; $i++) {
-            $dir = $request->direction;
-            if ($dir == 'both') {
-                $dir = rand(0, 1) ? 'income' : 'outcome';
+        $previewData = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $themeKey = $selectedThemes[array_rand($selectedThemes)];
+            $theme = $themes[$themeKey];
+
+            $txnDir = $direction;
+            if ($txnDir == 'both') {
+                $txnDir = (rand(0, 100) > 40) ? 'outcome' : 'income';
+                if (!is_null($targetNet)) {
+                    if ($targetNet > 0) $txnDir = (rand(0, 100) > 30) ? 'income' : 'outcome';
+                    if ($targetNet < 0) $txnDir = (rand(0, 100) > 30) ? 'outcome' : 'income';
+                }
             }
 
-            // Pick a random theme from the selection
-            $themeKey = $selectedThemes[array_rand($selectedThemes)];
-            $item = $themes[$themeKey][$dir][array_rand($themes[$themeKey][$dir])];
+            $options = $theme[$txnDir] ?? $themes['travel'][$txnDir];
+            $choice = $options[array_rand($options)];
             
-            $description = $this->refineLabel($item['label']);
-            $cat = $item['cat'];
+            $amount = round(mt_rand($min * 100, $max * 100) / 100, 2);
 
-            $amount = $this->getSmartAmount($cat, $request->min_amount, $request->max_amount);
-            
-            // Random timestamp within the range
-            $randomSeconds = rand(0, $secondsDiff);
-            $date = clone $startDate;
-            $date->addSeconds($randomSeconds)->subMinutes(rand(0, 59));
-
-            $type = ($dir == 'income') ? TxnType::Deposit : TxnType::Subtract;
+            $daysDiff = $startDate->diffInDays($endDate);
+            $randomDate = (clone $startDate)->addDays(rand(0, $daysDiff))->addHours(rand(0, 23))->addMinutes(rand(0, 59));
 
             $previewData[] = [
+                'description' => $this->refineLabel($choice['label']),
                 'amount' => $amount,
-                'description' => $description,
-                'type' => $type,
-                'date' => $date->toDateTimeString(),
-                'wallet_type' => $wallet_type,
-                'wallet_name' => $wallet_name,
-                'direction' => $dir
+                'direction' => $txnDir,
+                'type' => ($txnDir == 'income') ? TxnType::Deposit : TxnType::Subtract,
+                'date' => $randomDate->toDateTimeString(),
+                'wallet_type' => $request->wallet_type,
+                'wallet_name' => $wallet_name
             ];
-            $generatedCount++;
+        }
+
+        if (!is_null($targetNet)) {
+            $currentNet = 0;
+            foreach ($previewData as $item) {
+                $currentNet += ($item['direction'] == 'income' ? $item['amount'] : -$item['amount']);
+            }
+
+            $diff = $targetNet - $currentNet;
+            $perTxnDiff = round($diff / $count, 2);
+            $runningTotal = 0;
+
+            foreach ($previewData as $idx => &$txn) {
+                $adj = ($txn['direction'] == 'income' ? $perTxnDiff : -$perTxnDiff);
+                $newAmount = $txn['amount'] + $adj;
+
+                if ($idx === $count - 1) {
+                    $remainingTarget = $targetNet - $runningTotal;
+                    $txn['amount'] = abs($remainingTarget);
+                    $txn['direction'] = $remainingTarget >= 0 ? 'income' : 'outcome';
+                    $txn['type'] = ($txn['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
+                } else {
+                    if ($newAmount < 0) {
+                        $txn['amount'] = abs($newAmount);
+                        $txn['direction'] = ($txn['direction'] == 'income' ? 'outcome' : 'income');
+                        $txn['type'] = ($txn['direction'] == 'income') ? TxnType::Deposit : TxnType::Subtract;
+                    } else {
+                        $txn['amount'] = $newAmount;
+                    }
+                    $runningTotal += ($txn['direction'] == 'income' ? $txn['amount'] : -$txn['amount']);
+                }
+                $txn['amount'] = round($txn['amount'], 2);
+            }
         }
 
         session()->put("txn_preview_{$id}", $previewData);

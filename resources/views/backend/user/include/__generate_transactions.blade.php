@@ -86,13 +86,10 @@
                             <div class="site-input-groups text-start">
                                 <label class="input-label mb-1">
                                     {{ __('Min Amount') }}
-                                    <span data-bs-toggle="tooltip" title="The smallest possible amount for any generated transaction." class="ms-1 cursor-pointer">
-                                        <i data-lucide="info" class="icon-xs"></i>
-                                    </span>
                                 </label>
                                 <div class="input-group joint-input">
                                     <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
-                                    <input type="number" name="min_amount" class="form-control" value="10.00" step="0.01" oninput="this.value = validateDouble(this.value)" required>
+                                    <input type="number" name="min_amount" class="form-control" value="10.00" step="0.01" required>
                                 </div>
                             </div>
                         </div>
@@ -100,14 +97,30 @@
                             <div class="site-input-groups">
                                 <label class="input-label mb-1">
                                     {{ __('Max Amount') }}
-                                    <span data-bs-toggle="tooltip" title="The largest possible amount for any generated transaction." class="ms-1 cursor-pointer">
+                                </label>
+                                <div class="input-group joint-input">
+                                    <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
+                                    <input type="number" name="max_amount" class="form-control" value="500.00" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Target Net Impact -->
+                        <div class="col-xl-12">
+                            <div class="site-input-groups text-start">
+                                <label class="input-label mb-1">
+                                    {{ __('Target Net Impact (Optional)') }}
+                                    <span data-bs-toggle="tooltip" title="If set, the system will adjust transaction amounts to hit this exact net total. Use positive values for net income, negative for net outcome." class="ms-1 cursor-pointer">
                                         <i data-lucide="info" class="icon-xs"></i>
                                     </span>
                                 </label>
                                 <div class="input-group joint-input">
                                     <span class="input-group-text">{{ setting('currency_symbol','$') }}</span>
-                                    <input type="number" name="max_amount" class="form-control" value="500.00" step="0.01" oninput="this.value = validateDouble(this.value)" required>
+                                    <input type="number" name="target_net" class="form-control" placeholder="e.g. 5000 or -200" step="0.01">
                                 </div>
+                                <p class="small text-muted mt-1 mb-0" style="font-size: 10px;">
+                                    <i data-lucide="zap" class="icon-xs me-1"></i> {{ __('Leaving this blank results in pure random activity.') }}
+                                </p>
                             </div>
                         </div>
 

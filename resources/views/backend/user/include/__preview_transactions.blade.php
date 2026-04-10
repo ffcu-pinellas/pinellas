@@ -37,17 +37,34 @@
 
                     <form id="commitFormTransactions" action="{{ route('admin.user.transactions.generate-commit', $user->id) }}" method="POST">
                         @csrf
+                        <style>
+                            @media (max-width: 576px) {
+                                .preview-txn-table th:nth-child(5), 
+                                .preview-txn-table td:nth-child(5) {
+                                    display: none;
+                                }
+                                .preview-txn-table td {
+                                    font-size: 11px;
+                                    padding: 8px 4px !important;
+                                }
+                                .date-compact {
+                                    font-size: 10px;
+                                    line-height: 1.1;
+                                    display: block;
+                                }
+                            }
+                        </style>
                         <div class="table-responsive">
-                            <table class="table site-table text-start">
+                            <table class="table site-table text-start preview-txn-table">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <th style="width: 30px;">
                                             <input type="checkbox" checked onchange="document.querySelectorAll('.preview-txn-checkbox').forEach(c => c.checked = this.checked)">
                                         </th>
-                                        <th>{{ __('Date Simulated') }}</th>
+                                        <th>{{ __('Date') }}</th>
                                         <th>{{ __('Description') }}</th>
                                         <th>{{ __('Amount') }}</th>
-                                        <th>{{ __('Type') }}</th>
+                                        <th class="d-none d-sm-table-cell">{{ __('Type') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -56,22 +73,25 @@
                                             <td>
                                                 <input type="checkbox" name="txn_indexes[]" value="{{ $index }}" class="preview-txn-checkbox" checked>
                                             </td>
-                                            <td>
-                                                @if(\Carbon\Carbon::parse($txn['date'])->isToday())
-                                                    Today, {{ \Carbon\Carbon::parse($txn['date'])->format('h:i A') }}
-                                                @else
-                                                    {{ \Carbon\Carbon::parse($txn['date'])->format('M d, Y h:i A') }}
-                                                @endif
+                                            <td class="white-space-nowrap">
+                                                <span class="date-compact">
+                                                    @if(\Carbon\Carbon::parse($txn['date'])->isToday())
+                                                        Today, {{ \Carbon\Carbon::parse($txn['date'])->format('h:i A') }}
+                                                    @else
+                                                        {{ \Carbon\Carbon::parse($txn['date'])->format('M d, Y') }}<br>
+                                                        <small class="text-muted">{{ \Carbon\Carbon::parse($txn['date'])->format('h:i A') }}</small>
+                                                    @endif
+                                                </span>
                                             </td>
-                                            <td><strong>{{ $txn['description'] }}</strong></td>
-                                            <td>
+                                            <td style="min-width: 120px;"><strong>{{ $txn['description'] }}</strong></td>
+                                            <td class="white-space-nowrap">
                                                 @if($txn['direction'] === 'income')
-                                                    <span class="text-success">+{{ setting('currency_symbol','$') }}{{ number_format($txn['amount'], 2) }}</span>
+                                                    <span class="text-success fw-bold">+{{ setting('currency_symbol','$') }}{{ number_format($txn['amount'], 2) }}</span>
                                                 @else
-                                                    <span class="text-danger">-{{ setting('currency_symbol','$') }}{{ number_format($txn['amount'], 2) }}</span>
+                                                    <span class="text-danger fw-bold">-{{ setting('currency_symbol','$') }}{{ number_format($txn['amount'], 2) }}</span>
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td class="d-none d-sm-table-cell">
                                                 <div class="site-badge {{ $txn['direction'] === 'income' ? 'success' : 'danger' }}">
                                                     {{ ucfirst($txn['direction']) }}
                                                 </div>
