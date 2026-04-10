@@ -217,8 +217,9 @@
     </div>
 </div>
 
+@push('modals')
 <!-- eStatement Modal -->
-<div class="modal fade" id="eStatementModal" tabindex="-1">
+<div class="modal fade" id="eStatementModal" tabindex="-1" style="z-index: 2000;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
@@ -339,7 +340,7 @@
 </div>
 
 <!-- High Fidelity Detail Modal -->
-<div class="modal fade" id="trxViewDetailsBox" tabindex="-1">
+<div class="modal fade" id="trxViewDetailsBox" tabindex="-1" style="z-index: 2000;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-header border-0 pb-0">
@@ -378,6 +379,7 @@
         </div>
     </div>
 </div>
+@endpush
 
 @push('js')
     <script>

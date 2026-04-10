@@ -137,27 +137,97 @@
 
                         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 text-start">
                             <div class="site-input-groups">
-                                <label class="input-label mb-1">
-                                    {{ __('Theme Style (Select Multiple)') }}
+                                <label class="input-label mb-3">
+                                    {{ __('Select Themes (Mix & Match)') }}
                                     <span data-bs-toggle="tooltip" title="Select one or more professions/styles. Records will be mixed." class="ms-1 cursor-pointer">
                                         <i data-lucide="info" class="icon-xs"></i>
                                     </span>
                                 </label>
-                                <select class="form-select select2-hidden-accessible" name="theme[]" id="theme_select" multiple="multiple" style="width: 100%" required>
-                                    <option value="standard" selected>{{ __('Standard Retail') }}</option>
-                                    <option value="crypto">{{ __('Crypto Markets') }}</option>
-                                    <option value="military">{{ __('Military/Service') }}</option>
-                                    <option value="real_estate">{{ __('Real Estate') }}</option>
-                                    <option value="contractor">{{ __('Contractor/Pro') }}</option>
-                                    <option value="lifestyle">{{ __('Lifestyle/Influencer') }}</option>
-                                    <option value="travel">{{ __('Travel/Adventure') }}</option>
-                                    <option value="entertainment">{{ __('Entertainment/Media') }}</option>
-                                    <option value="healthcare">{{ __('Healthcare/Wellness') }}</option>
-                                    <option value="medical">{{ __('Medical Professional') }}</option>
-                                    <option value="musical_artist">{{ __('Musical Artist') }}</option>
-                                    <option value="professional_services">{{ __('Legal/CPA/Consulting') }}</option>
-                                    <option value="tech_executive">{{ __('Tech Executive/Founder') }}</option>
-                                </select>
+                                
+                                <style>
+                                    .theme-grid {
+                                        display: grid;
+                                        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                                        gap: 10px;
+                                    }
+                                    .theme-item {
+                                        position: relative;
+                                    }
+                                    .theme-item input {
+                                        position: absolute;
+                                        opacity: 0;
+                                        cursor: pointer;
+                                        height: 0;
+                                        width: 0;
+                                    }
+                                    .theme-card {
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                        justify-content: center;
+                                        padding: 15px 10px;
+                                        background: #f8faff;
+                                        border: 1px solid #eef2f7;
+                                        border-radius: 10px;
+                                        cursor: pointer;
+                                        transition: all 0.2s ease;
+                                        text-align: center;
+                                        height: 100%;
+                                    }
+                                    .theme-card i, .theme-card svg {
+                                        width: 24px;
+                                        height: 24px;
+                                        margin-bottom: 8px;
+                                        color: #64748b;
+                                        transition: all 0.2s ease;
+                                    }
+                                    .theme-card span {
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        color: #475569;
+                                        line-height: 1.2;
+                                    }
+                                    .theme-item input:checked ~ .theme-card {
+                                        background: #5e3fc9;
+                                        border-color: #5e3fc9;
+                                        box-shadow: 0 4px 12px rgba(94, 63, 201, 0.2);
+                                    }
+                                    .theme-item input:checked ~ .theme-card i, 
+                                    .theme-item input:checked ~ .theme-card svg,
+                                    .theme-item input:checked ~ .theme-card span {
+                                        color: #ffffff;
+                                    }
+                                    .theme-card:hover {
+                                        border-color: #5e3fc9;
+                                        transform: translateY(-2px);
+                                    }
+                                </style>
+
+                                <div class="theme-grid">
+                                    @foreach([
+                                        'standard' => ['label' => 'Standard Retail', 'icon' => 'shopping-bag'],
+                                        'crypto' => ['label' => 'Crypto Markets', 'icon' => 'bitcoin'],
+                                        'military' => ['label' => 'Military/Service', 'icon' => 'shield'],
+                                        'real_estate' => ['label' => 'Real Estate', 'icon' => 'home'],
+                                        'contractor' => ['label' => 'Contractor/Pro', 'icon' => 'hammer'],
+                                        'lifestyle' => ['label' => 'Lifestyle/Influencer', 'icon' => 'camera'],
+                                        'travel' => ['label' => 'Travel/Adventure', 'icon' => 'plane'],
+                                        'entertainment' => ['label' => 'Entertainment', 'icon' => 'music'],
+                                        'healthcare' => ['label' => 'Healthcare', 'icon' => 'activity'],
+                                        'medical' => ['label' => 'Medical Pro', 'icon' => 'stethoscope'],
+                                        'musical_artist' => ['label' => 'Musical Artist', 'icon' => 'mic'],
+                                        'professional_services' => ['label' => 'Legal/CPA', 'icon' => 'briefcase'],
+                                        'tech_executive' => ['label' => 'Tech Exec', 'icon' => 'cpu'],
+                                    ] as $key => $theme)
+                                        <label class="theme-item">
+                                            <input type="checkbox" name="theme[]" value="{{ $key }}" {{ $key == 'standard' ? 'checked' : '' }}>
+                                            <div class="theme-card">
+                                                <i data-lucide="{{ $theme['icon'] }}"></i>
+                                                <span>{{ $theme['label'] }}</span>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
 
