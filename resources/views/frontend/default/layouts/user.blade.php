@@ -520,7 +520,6 @@
             }
         };
     </script>
-    @stack('modals')
     @include('frontend.default.user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
 </body>

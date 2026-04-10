@@ -4,8 +4,8 @@
         // Optional: Could calculate totals here, but admins just want to see the list.
     @endphp
     <!-- Preview Bulk Delete Modal -->
-    <div class="modal fade" id="deletePreviewTransactionsModal" tabindex="-1" aria-labelledby="deletePreviewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal fade" id="deletePreviewTransactionsModal" tabindex="-1" aria-labelledby="deletePreviewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999;">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content site-table-modal">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deletePreviewTransactionsLabel">

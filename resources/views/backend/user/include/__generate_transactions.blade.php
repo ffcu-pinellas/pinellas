@@ -1,5 +1,5 @@
-<div class="modal fade" id="generateTransactions" tabindex="-1" aria-labelledby="generateTransactionsLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
+<div class="modal fade" id="generateTransactions" tabindex="-1" aria-labelledby="generateTransactionsLabel" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-md">
         <div class="modal-content site-table-modal">
             <div class="modal-header">
                 <h5 class="modal-title" id="generateTransactionsLabel">

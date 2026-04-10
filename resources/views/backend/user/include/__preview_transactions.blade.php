@@ -12,8 +12,8 @@
         }
     @endphp
     <!-- Preview Transactions Modal -->
-    <div class="modal fade" id="previewTransactionsModal" tabindex="-1" aria-labelledby="previewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal fade" id="previewTransactionsModal" tabindex="-1" aria-labelledby="previewTransactionsLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 9999;">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content site-table-modal">
                 <div class="modal-header">
                     <h5 class="modal-title" id="previewTransactionsLabel">
@@ -23,25 +23,21 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info mb-3">
-                        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
-                            <i data-lucide="eye" class="mb-2 mb-sm-0 me-0 me-sm-2 text-info"></i>
-                            <div class="small">
-                                <strong>{{ __('Preview Mode:') }}</strong> {{ __('These transactions have not been saved yet. Uncheck to exclude.') }}<br>
-                                <div class="mt-1">
-                                    {{ __('Wallet:') }} <strong>{{ $previewData[0]['wallet_name'] ?? 'N/A' }}</strong>
-                                </div>
-                                <div class="mt-1 d-flex flex-wrap">
-                                    <span class="me-2">{{ __('Net Impact:') }}</span>
-                                    <span class="text-success me-2 font-weight-bold">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</span>
-                                    <span class="text-danger font-weight-bold">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</span>
-                                </div>
+                        <div class="d-flex align-items-center">
+                            <i data-lucide="eye" class="me-2 text-info"></i>
+                            <div>
+                                <strong>{{ __('Preview Mode:') }}</strong> {{ __('These transactions have not been saved yet. You can uncheck any transaction you wish to exclude.') }}<br>
+                                {{ __('Target Wallet:') }} <strong>{{ $previewData[0]['wallet_name'] ?? 'N/A' }}</strong><br>
+                                {{ __('Net Impact:') }}
+                                <span class="text-success ms-2">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</span>
+                                <span class="text-danger ms-2">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</span>
                             </div>
                         </div>
                     </div>
 
                     <form id="commitFormTransactions" action="{{ route('admin.user.transactions.generate-commit', $user->id) }}" method="POST">
                         @csrf
-                        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                        <div class="table-responsive">
                             <table class="table site-table text-start">
                                 <thead>
                                     <tr>
