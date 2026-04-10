@@ -217,25 +217,51 @@
     </div>
 </div>
 
-<!-- Modals moved outside main grid to prevent clipping/squashing -->
-@push('style')
+@endsection
+
+@push('modals')
 <style>
-    .trx-modal-content {
-        border-radius: 24px !important;
-        border: none !important;
-        overflow: hidden;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    .trx-modal-dialog {
+        max-width: 480px !important;
+        margin: 1.75rem auto !important;
+        display: flex !important;
+        align-items: center !important;
+        min-height: calc(100% - 3.5rem) !important;
     }
-    .modal-backdrop.show {
-        opacity: 0.7 !important;
-        backdrop-filter: blur(4px);
+    @media (max-width: 576px) {
+        .trx-modal-dialog {
+            max-width: calc(100% - 30px) !important;
+            margin: 0.5rem auto !important;
+            min-height: calc(100% - 1rem) !important;
+        }
+    }
+    .trx-modal-content {
+        border-radius: 28px !important;
+        border: none !important;
+        box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.4) !important;
+        background: #ffffff !important;
+        width: 100% !important;
+        position: relative !important;
+        overflow: visible !important;
+    }
+    .dark-theme .trx-modal-content {
+        background: #1e1e1e !important;
+        color: white !important;
+    }
+    .trx-detail-card {
+        background: rgba(0, 84, 155, 0.05) !important;
+        border-radius: 20px !important;
+        border: none !important;
+        margin-bottom: 20px;
+    }
+    .dark-theme .trx-detail-card {
+        background: rgba(255, 255, 255, 0.05) !important;
     }
 </style>
-@endpush
 
 <!-- eStatement Modal -->
-<div class="modal fade" id="eStatementModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="eStatementModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog trx-modal-dialog">
         <div class="modal-content trx-modal-content">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <h5 class="fw-bold mb-0">Download eStatement</h5>
@@ -243,108 +269,47 @@
             </div>
             <form action="{{ route('user.transactions.export.pdf') }}" method="GET" data-no-loader="true">
                 <div class="modal-body p-4">
-                    <p class="text-muted small mb-4">Select the period and accounts you want to include in your official bank statement.</p>
+                    <p class="text-muted small mb-4">Select period and accounts.</p>
                     
-                    <label class="small text-muted mb-2 fw-bold d-block">SELECT PERIOD</label>
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         <input type="radio" class="btn-check" name="period" id="p1m" value="1m" checked>
-                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1m">1 Month</label>
-
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1m">1m</label>
                         <input type="radio" class="btn-check" name="period" id="p3m" value="3m">
-                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p3m">3 Months</label>
-
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p3m">3m</label>
                         <input type="radio" class="btn-check" name="period" id="p6m" value="6m">
-                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p6m">6 Months</label>
-
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p6m">6m</label>
                         <input type="radio" class="btn-check" name="period" id="p1y" value="1y">
-                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1y">1 Year</label>
-                        
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="p1y">1y</label>
                         <input type="radio" class="btn-check" name="period" id="pcustom" value="custom">
-                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-4 py-2 fw-bold" for="pcustom">Custom</label>
+                        <label class="btn btn-outline-light text-dark border-1 rounded-pill px-3 py-2 fw-bold" for="pcustom">Custom</label>
                     </div>
 
                     <div id="customDateRange" class="mt-3 d-none">
-                        <div class="row g-3">
+                        <div class="row g-2">
                             <div class="col-6">
-                                <label class="small text-muted mb-1 fw-bold">FROM DATE</label>
-                                <div class="input-group border-bottom border-light">
-                                    <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
-                                    <input type="text" name="from_date" id="fromDate" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="MM/DD/YYYY" autocomplete="off">
-                                </div>
+                                <input type="text" name="from_date" id="fromDate" class="form-control small" placeholder="From" autocomplete="off">
                             </div>
                             <div class="col-6">
-                                <label class="small text-muted mb-1 fw-bold">TO DATE</label>
-                                <div class="input-group border-bottom border-light">
-                                    <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted small"></i></span>
-                                    <input type="text" name="to_date" id="toDate" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="MM/DD/YYYY" autocomplete="off">
-                                </div>
+                                <input type="text" name="to_date" id="toDate" class="form-control small" placeholder="To" autocomplete="off">
                             </div>
                         </div>
                     </div>
 
-                    <label class="small text-muted mb-2 fw-bold d-block text-uppercase mt-4">Include Accounts</label>
-                    <div class="rounded-4 p-3 mb-4" style="background: rgba(0,0,0,0.03);">
+                    <div class="trx-detail-card p-3 mt-4">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="accounts[]" value="checking" id="accChecking" checked>
-                            <label class="form-check-label fw-bold small text-dark" for="accChecking">
-                                Checking Account (**** {{ substr(auth()->user()->account_number, -4) }})
-                            </label>
+                            <label class="form-check-label fw-bold small text-dark" for="accChecking">Checking (**** {{ substr(auth()->user()->account_number, -4) }})</label>
                         </div>
                         @if(auth()->user()->savings_account_number)
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="accounts[]" value="savings" id="accSavings" checked>
-                            <label class="form-check-label fw-bold small text-dark" for="accSavings">
-                                Savings Account (**** {{ substr(auth()->user()->savings_account_number, -4) }})
-                            </label>
+                            <label class="form-check-label fw-bold small text-dark" for="accSavings">Savings (**** {{ substr(auth()->user()->savings_account_number, -4) }})</label>
                         </div>
                         @endif
-                        @if(auth()->user()->ira_account_number && auth()->user()->ira_status)
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="accounts[]" value="ira" id="accIra">
-                            <label class="form-check-label fw-bold small text-dark" for="accIra">
-                                IRA Account (**** {{ substr(auth()->user()->ira_account_number, -4) }})
-                            </label>
-                        </div>
-                        @endif
-                        @if(auth()->user()->heloc_account_number && auth()->user()->heloc_status)
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="accounts[]" value="heloc" id="accHeloc">
-                            <label class="form-check-label fw-bold small text-dark" for="accHeloc">
-                                HELOC (**** {{ substr(auth()->user()->heloc_account_number, -4) }})
-                            </label>
-                        </div>
-                        @endif
-                        @if(auth()->user()->cc_account_number && auth()->user()->cc_status)
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="accounts[]" value="cc" id="accCC">
-                            <label class="form-check-label fw-bold small text-dark" for="accCC">
-                                Credit Card (**** {{ substr(auth()->user()->cc_account_number, -4) }})
-                            </label>
-                        </div>
-                        @endif
-                        @if(auth()->user()->loan_account_number && auth()->user()->loan_account_status)
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="accounts[]" value="loan" id="accLoan">
-                            <label class="form-check-label fw-bold small text-dark" for="accLoan">
-                                Loan Account (**** {{ substr(auth()->user()->loan_account_number, -4) }})
-                            </label>
-                        </div>
-                        @endif
-                    </div>
-
-                    <div class="p-3 rounded-3 mb-2" style="background: rgba(0, 84, 155, 0.05); border: 1px dashed rgba(0, 84, 155, 0.2);">
-                        <div class="form-check form-switch ps-5">
-                            <input class="form-check-input ms-n5" type="checkbox" name="email_statement" id="emailStatementToggle" value="1">
-                            <label class="form-check-label fw-bold small text-dark ps-2" for="emailStatementToggle">
-                                <i class="fas fa-envelope-open-text me-2 text-primary"></i> Send a copy to my email
-                            </label>
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">
-                        <i class="fas fa-cloud-download-alt me-2"></i> Process eStatement
-                    </button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">Process</button>
                 </div>
             </form>
         </div>
@@ -352,8 +317,8 @@
 </div>
 
 <!-- High Fidelity Detail Modal -->
-<div class="modal fade" id="trxViewDetailsBox" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="trxViewDetailsBox" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog trx-modal-dialog">
         <div class="modal-content trx-modal-content">
             <div class="modal-header border-0 pb-0 pt-4 px-4">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -365,14 +330,14 @@
                 <h4 class="fw-bold mb-1 modal-title-val text-dark">Description</h4>
                 <div class="text-muted small mb-4 modal-date-val">Date</div>
                 
-                <div class="display-5 fw-bold mb-4 modal-amount-val" style="color: #000;">$0.00</div>
+                <div class="display-5 fw-bold mb-4 modal-amount-val" style="color: #000; letter-spacing: -1px;">$0.00</div>
                 
-                <div class="rounded-4 p-4 text-start mb-4" style="background: rgba(0,0,0,0.03);">
-                    <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                <div class="trx-detail-card p-4 text-start">
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-light border-opacity-10 pb-2">
                         <span class="text-muted small fw-bold text-uppercase">Status</span>
                         <span class="fw-bold text-dark modal-status-val">Completed</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-3 border-bottom border-light pb-2">
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-light border-opacity-10 pb-2">
                         <span class="text-muted small fw-bold text-uppercase">Transaction ID</span>
                         <span class="fw-bold text-dark modal-trx-val">TRX12345</span>
                     </div>
@@ -391,6 +356,9 @@
         </div>
     </div>
 </div>
+@endpush
+
+@endsection
 
 @push('js')
     <script>
