@@ -65,7 +65,9 @@
                         <label class="small text-muted d-block mb-1 text-uppercase fw-bold ls-1" style="font-size: 10px;">USERNAME</label>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="fs-6 text-dark fw-500">{{ $user->username }}</div>
-                            <a href="javascript:void(0)" onclick="$('#changeUsernameModal').modal('show')" class="text-decoration-none small fw-bold">Edit</a>
+                            <span class="text-muted small italic" style="font-size: 11px;">
+                                <i class="fas fa-lock me-1"></i> {{ __('Contact support to request a username change.') }}
+                            </span>
                         </div>
                     </div>
                     
