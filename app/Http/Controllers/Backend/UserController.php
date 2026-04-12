@@ -683,9 +683,14 @@ class UserController extends Controller
         }
 
         // Assignment logic (Super-Admin only)
-        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin') && isset($input['staff_id'])) {
-            $user->staff_id = $input['staff_id'];
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if (array_key_exists('staff_id', $input)) {
+                $user->staff_id = $input['staff_id'] ?: null;
+            }
         }
+
+        // Remove staff_id from input to prevent overwriting our manual setting or hitting integer conversion errors
+        unset($input['staff_id']);
 
         if ($request->ira_status && empty($input['ira_account_number'])) {
             $input['ira_account_number'] = '9' . mt_rand(100000000, 999999999);
@@ -695,6 +700,13 @@ class UserController extends Controller
         }
         if ($request->loan_account_status && empty($input['loan_account_number'])) {
             $input['loan_account_number'] = 'L' . mt_rand(10000000, 99999999);
+        }
+
+        // Final sanitation: Ensure any other blank account/numeric fields are nullified
+        foreach (['ira_account_number', 'heloc_account_number', 'cc_account_number', 'loan_account_number', 'transaction_pin'] as $field) {
+            if (isset($input[$field]) && $input[$field] === '') {
+                $input[$field] = null;
+            }
         }
 
         $user->update($input);
