@@ -167,6 +167,14 @@
             border-top: 1px solid #e2e8f0;
             padding-top: 15px;
         }
+        /* dompdf table optimization */
+        .txn-table {
+            page-break-inside: auto;
+        }
+        .txn-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
     </style>
 </head>
 <body>

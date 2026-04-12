@@ -399,7 +399,7 @@
             $('#fromDate, #toDate').daterangepicker({
                 singleDatePicker: true,
                 showDropdowns: true,
-                autoUpdateInput: false,
+                autoUpdateInput: true,
                 maxDate: moment(),
                 parentEl: '#eStatementModal',
                 locale: { format: 'MM/DD/YYYY' }

@@ -78,6 +78,9 @@ class TransactionController extends Controller
 
     public function transactionExportPDF(Request $request)
     {
+        ini_set('memory_limit', '2048M');
+        set_time_limit(600);
+
         $period = $request->get('period', '1m');
         $selectedAccounts = $request->get('accounts', ['checking']);
         $emailStatement = $request->has('email_statement');
@@ -126,6 +129,8 @@ class TransactionController extends Controller
             })
             ->latest()
             ->get();
+            
+        \Log::info("eStatement Generation Detail: User #{$user->id}, TXN Count: " . $transactions->count() . " for period " . $from_date->toDateString() . " to " . $to_date->toDateString());
 
         // Masking logic for account numbers
         $mask = function($acc) {
