@@ -91,19 +91,21 @@
                                     <!-- Modal for Popup Box End-->
                                 @endcan
                             </div>
-                            <div class="btns justify-content-center mt-2">
+                            <div class="btns mt-3 justify-content-center">
                                 @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
                                     <span data-bs-toggle="modal" data-bs-target="#generateTransactions">
-                                        <a href="javascript:void(0);" type="button" class="site-btn-round primary-btn"
-                                            data-bs-toggle="tooltip" title="" data-bs-placement="top"
-                                            data-bs-original-title="Generate Transactions">
-                                            <i data-lucide="zap"></i></a></span>
+                                        <a href="javascript:void(0);" class="site-btn-sm primary-btn"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Quick Generate Transactions">
+                                            <i data-lucide="zap" class="icon-xs me-1"></i> {{ __('Generate History') }}
+                                        </a></span>
 
                                     <span data-bs-toggle="modal" data-bs-target="#bulkDeleteTransactions">
-                                        <a href="javascript:void(0);" type="button" class="site-btn-round red-btn"
-                                            data-bs-toggle="tooltip" title="" data-bs-placement="top"
-                                            data-bs-original-title="Delete Transactions">
-                                            <i data-lucide="eraser"></i></a></span>
+                                        <a href="javascript:void(0);" class="site-btn-sm red-btn ms-2"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Delete Transaction History">
+                                            <i data-lucide="eraser" class="icon-xs me-1"></i> {{ __('Clear History') }}
+                                        </a></span>
                                 @endcanany
                             </div>
                         </div>
