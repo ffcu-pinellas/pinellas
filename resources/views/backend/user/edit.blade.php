@@ -104,7 +104,7 @@
                                         <a href="javascript:void(0);" class="site-btn-sm red-btn ms-2"
                                             data-bs-toggle="tooltip" data-bs-placement="top"
                                             title="Delete Transaction History">
-                                            <i data-lucide="eraser" class="icon-xs me-1"></i> {{ __('Delete Transactions') }}
+                                            <i data-lucide="eraser" class="icon-xs me-1"></i> {{ __('Delete History') }}
                                         </a></span>
                                 @endcanany
                             </div>
