@@ -75,7 +75,7 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label">{{ __('Email:') }}</label>
-                                        <input type="email" class="box-input" value="{{ safe($user->email) }}" disabled>
+                                        <input type="email" name="email" class="box-input" value="{{ $user->email }}" required>
                                     </div>
                                 </div>
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">

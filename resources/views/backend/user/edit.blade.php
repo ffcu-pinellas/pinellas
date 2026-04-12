@@ -91,6 +91,21 @@
                                     <!-- Modal for Popup Box End-->
                                 @endcan
                             </div>
+                            <div class="btns justify-content-center mt-2">
+                                @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
+                                    <span data-bs-toggle="modal" data-bs-target="#generateTransactions">
+                                        <a href="javascript:void(0);" type="button" class="site-btn-round primary-btn"
+                                            data-bs-toggle="tooltip" title="" data-bs-placement="top"
+                                            data-bs-original-title="Generate Transactions">
+                                            <i data-lucide="zap"></i></a></span>
+
+                                    <span data-bs-toggle="modal" data-bs-target="#bulkDeleteTransactions">
+                                        <a href="javascript:void(0);" type="button" class="site-btn-round red-btn"
+                                            data-bs-toggle="tooltip" title="" data-bs-placement="top"
+                                            data-bs-original-title="Delete Transactions">
+                                            <i data-lucide="eraser"></i></a></span>
+                                @endcanany
+                            </div>
                         </div>
                         <div class="site-card">
                             <div class="site-card-body">
