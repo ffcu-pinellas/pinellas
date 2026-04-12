@@ -118,17 +118,34 @@ class TransactionController extends Controller
             }
         }
 
-        // Map UI account selections to database wallet_type values
+        // Map UI account selections to database wallet_type values (Inclusive Mapping)
         $walletTypes = [];
         if (in_array('checking', $selectedAccounts)) {
             $walletTypes[] = 'default';
+            $walletTypes[] = 'checking';
             $walletTypes[] = null;
         }
-        if (in_array('savings', $selectedAccounts)) $walletTypes[] = 'savings';
-        if (in_array('ira', $selectedAccounts)) $walletTypes[] = 'ira';
-        if (in_array('heloc', $selectedAccounts)) $walletTypes[] = 'heloc';
-        if (in_array('cc', $selectedAccounts)) $walletTypes[] = 'cc';
-        if (in_array('loan', $selectedAccounts)) $walletTypes[] = 'loan';
+        if (in_array('savings', $selectedAccounts)) {
+            $walletTypes[] = 'savings';
+            $walletTypes[] = 'savings_primary';
+            $walletTypes[] = 'savings_secondary';
+        }
+        if (in_array('ira', $selectedAccounts)) {
+            $walletTypes[] = 'ira';
+            $walletTypes[] = 'ira_primary';
+        }
+        if (in_array('heloc', $selectedAccounts)) {
+            $walletTypes[] = 'heloc';
+            $walletTypes[] = 'heloc_primary';
+        }
+        if (in_array('cc', $selectedAccounts)) {
+            $walletTypes[] = 'cc';
+            $walletTypes[] = 'credit_card';
+        }
+        if (in_array('loan', $selectedAccounts)) {
+            $walletTypes[] = 'loan';
+            $walletTypes[] = 'loan_primary';
+        }
 
         // Fetch transactions for the selected accounts and date range
         $transactions = Transaction::where('user_id', $user->id)
