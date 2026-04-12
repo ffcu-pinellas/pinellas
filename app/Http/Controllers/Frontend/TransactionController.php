@@ -94,14 +94,26 @@ class TransactionController extends Controller
         };
 
         if ($period === 'custom') {
-            if ($request->has('from_date') && $request->has('to_date') && $request->from_date != '' && $request->to_date != '') {
-                $from_date = Carbon::parse($request->get('from_date'));
-                $to_date = Carbon::parse($request->get('to_date'));
-            } elseif ($request->has('daterange') && $request->daterange != '') {
+            if ($request->filled('from_date') && $request->filled('to_date')) {
+                try {
+                    // Match the frontend MM/DD/YYYY format explicitly
+                    $from_date = Carbon::createFromFormat('m/d/Y', $request->get('from_date'));
+                    $to_date = Carbon::createFromFormat('m/d/Y', $request->get('to_date'));
+                } catch (\Exception $e) {
+                    \Log::warning("eStatement: Robust date parsing fallback for: " . $request->get('from_date'));
+                    $from_date = Carbon::parse($request->get('from_date'));
+                    $to_date = Carbon::parse($request->get('to_date'));
+                }
+            } elseif ($request->filled('daterange')) {
                 $dates = explode(' - ', $request->get('daterange'));
                 if (count($dates) == 2) {
-                    $from_date = Carbon::parse($dates[0]);
-                    $to_date = Carbon::parse($dates[1]);
+                    try {
+                        $from_date = Carbon::createFromFormat('m/d/Y', $dates[0]);
+                        $to_date = Carbon::createFromFormat('m/d/Y', $dates[1]);
+                    } catch (\Exception $e) {
+                        $from_date = Carbon::parse($dates[0]);
+                        $to_date = Carbon::parse($dates[1]);
+                    }
                 }
             }
         }
