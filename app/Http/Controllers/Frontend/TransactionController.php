@@ -94,58 +94,29 @@ class TransactionController extends Controller
         };
 
         if ($period === 'custom') {
-            if ($request->filled('from_date') && $request->filled('to_date')) {
-                try {
-                    // Match the frontend MM/DD/YYYY format explicitly
-                    $from_date = Carbon::createFromFormat('m/d/Y', $request->get('from_date'));
-                    $to_date = Carbon::createFromFormat('m/d/Y', $request->get('to_date'));
-                } catch (\Exception $e) {
-                    \Log::warning("eStatement: Robust date parsing fallback for: " . $request->get('from_date'));
-                    $from_date = Carbon::parse($request->get('from_date'));
-                    $to_date = Carbon::parse($request->get('to_date'));
-                }
-            } elseif ($request->filled('daterange')) {
+            if ($request->has('from_date') && $request->has('to_date') && $request->from_date != '' && $request->to_date != '') {
+                $from_date = Carbon::parse($request->get('from_date'));
+                $to_date = Carbon::parse($request->get('to_date'));
+            } elseif ($request->has('daterange') && $request->daterange != '') {
                 $dates = explode(' - ', $request->get('daterange'));
                 if (count($dates) == 2) {
-                    try {
-                        $from_date = Carbon::createFromFormat('m/d/Y', $dates[0]);
-                        $to_date = Carbon::createFromFormat('m/d/Y', $dates[1]);
-                    } catch (\Exception $e) {
-                        $from_date = Carbon::parse($dates[0]);
-                        $to_date = Carbon::parse($dates[1]);
-                    }
+                    $from_date = Carbon::parse($dates[0]);
+                    $to_date = Carbon::parse($dates[1]);
                 }
             }
         }
 
-        // Map UI account selections to database wallet_type values (Inclusive Mapping)
+        // Map UI account selections to database wallet_type values
         $walletTypes = [];
         if (in_array('checking', $selectedAccounts)) {
             $walletTypes[] = 'default';
-            $walletTypes[] = 'checking';
             $walletTypes[] = null;
         }
-        if (in_array('savings', $selectedAccounts)) {
-            $walletTypes[] = 'savings';
-            $walletTypes[] = 'savings_primary';
-            $walletTypes[] = 'savings_secondary';
-        }
-        if (in_array('ira', $selectedAccounts)) {
-            $walletTypes[] = 'ira';
-            $walletTypes[] = 'ira_primary';
-        }
-        if (in_array('heloc', $selectedAccounts)) {
-            $walletTypes[] = 'heloc';
-            $walletTypes[] = 'heloc_primary';
-        }
-        if (in_array('cc', $selectedAccounts)) {
-            $walletTypes[] = 'cc';
-            $walletTypes[] = 'credit_card';
-        }
-        if (in_array('loan', $selectedAccounts)) {
-            $walletTypes[] = 'loan';
-            $walletTypes[] = 'loan_primary';
-        }
+        if (in_array('savings', $selectedAccounts)) $walletTypes[] = 'savings';
+        if (in_array('ira', $selectedAccounts)) $walletTypes[] = 'ira';
+        if (in_array('heloc', $selectedAccounts)) $walletTypes[] = 'heloc';
+        if (in_array('cc', $selectedAccounts)) $walletTypes[] = 'cc';
+        if (in_array('loan', $selectedAccounts)) $walletTypes[] = 'loan';
 
         // Fetch transactions for the selected accounts and date range
         $transactions = Transaction::where('user_id', $user->id)
