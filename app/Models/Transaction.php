@@ -11,6 +11,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder|Transaction search($search)
+ * @method static \Illuminate\Database\Eloquent\Builder|Transaction status($status)
+ * @method static \Illuminate\Database\Eloquent\Builder|Transaction type($type)
+ */
 class Transaction extends Model
 {
     use HasFactory, Searchable;

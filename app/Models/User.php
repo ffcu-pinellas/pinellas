@@ -15,6 +15,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder|User search($search)
+ */
 class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, HasTickets, Notifiable;
