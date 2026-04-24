@@ -151,7 +151,9 @@ class FundTransferController extends Controller
             $data['manual_data']['account_name'] = $user->full_name;
 
             // Verify if target is restricted
-            $targetType = $request->input('target_account_type', 'checking');
+            $targetType = ($data['transfer_type'] === 'self') ? $request->input('to_wallet', 'checking') : $request->input('target_account_type', 'checking');
+            if ($targetType === 'default') $targetType = 'checking';
+            
             if ($user->isRestricted($targetType)) {
                 notify()->error(__('Your ' . $targetType . ' account is restricted and cannot receive funds.'));
                 return redirect()->back()->withInput();
