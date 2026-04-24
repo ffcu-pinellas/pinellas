@@ -35,7 +35,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('checking'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->balance, 2) }}</span>
                                 </div>
@@ -59,7 +59,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('savings'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                                 </div>
@@ -84,7 +84,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('ira'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
                                 </div>
@@ -110,7 +110,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('heloc'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
                                 </div>
@@ -136,7 +136,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('cc'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->cc_balance, 2) }}</span>
                                 </div>
@@ -162,7 +162,7 @@
                                 </span>
                                 <div class="d-flex flex-column align-items-end">
                                     @if(auth()->user()->isRestricted('loan'))
-                                        <span class="badge bg-danger mb-1" style="font-size: 8px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
+                                        <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                     @endif
                                     <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
                                 </div>
