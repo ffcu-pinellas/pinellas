@@ -107,8 +107,8 @@
         }
 
         @keyframes mainFadeIn {
-            from { opacity: 0; transform: scale(0.99); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .dashboard-wrapper {
