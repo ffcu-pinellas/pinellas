@@ -545,55 +545,95 @@
         const field = document.getElementById('field-' + transferType);
         if(field) field.classList.remove('d-none');
         updateAccountOptions();
-    }
-
-    function updateAccountOptions() {
+        function updateAccountOptions() {
         const fromSelect = document.getElementById('walletSelect');
         const toSelect = document.getElementById('toWalletSelect');
         if(!fromSelect || !toSelect) return;
-        const selectedOption = fromSelect.options[fromSelect.selectedIndex];
-        const selectedType = selectedOption.getAttribute('data-type');
+        const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
         
         if(transferType === 'self') {
             toSelect.innerHTML = '';
             
-            const addOpt = (val, label, balance, restricted, isCreditLine = false) => {
-                if (selectedType === val) return;
-                const opt = document.createElement('option');
-                opt.value = val;
-                const status = restricted ? ' (Restricted)' : '';
-                const balanceLabel = isCreditLine ? 'Pay Down Balance: ' : '';
-                opt.text = label + ' - ' + balanceLabel + balance + status;
-                opt.disabled = restricted;
-                toSelect.add(opt);
-            };
-
             // Add Checking
-            addOpt('default', 'Checking (...{{ substr(auth()->user()->account_number, -4) }})', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}', userRestrictions['default']);
+            if(selectedType !== 'checking') {
+                const isRestricted = userRestrictions['default'];
+                if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
+                    var opt = document.createElement('option');
+                    opt.value = 'default';
+                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
+                    if(isRestricted) opt.disabled = true;
+                    toSelect.add(opt);
+                } else {
+                    @foreach($wallets as $wallet)
+                        var opt = document.createElement('option');
+                        opt.value = '{{ $wallet->currency->code }}';
+                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
+                        if(isRestricted) opt.disabled = true;
+                        toSelect.add(opt);
+                    @endforeach
+                }
+            }
 
             // Add Savings
-            addOpt('primary_savings', 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}', userRestrictions['primary_savings']);
+            if(selectedType !== 'savings') {
+                const isRestricted = userRestrictions['primary_savings'];
+                const opt = document.createElement('option');
+                opt.value = 'primary_savings';
+                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
+                if(isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
 
             // Add IRA
             @if(auth()->user()->ira_status == 1)
-            addOpt('ira', 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}', userRestrictions['ira']);
+            if(selectedType !== 'ira') {
+                const isRestricted = userRestrictions['ira'];
+                const opt = document.createElement('option');
+                opt.value = 'ira';
+                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
+                if(isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
             @endif
 
             // Add HELOC
             @if(auth()->user()->heloc_status == 1)
-            addOpt('heloc', 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}', userRestrictions['heloc'], true);
+            if(selectedType !== 'heloc') {
+                const isRestricted = userRestrictions['heloc'];
+                const opt = document.createElement('option');
+                opt.value = 'heloc';
+                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
+                if(isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
             @endif
 
             // Add Credit Card
             @if(auth()->user()->cc_status == 1)
-            addOpt('cc', 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}', userRestrictions['cc'], true);
+            if(selectedType !== 'cc') {
+                const isRestricted = userRestrictions['cc'];
+                const opt = document.createElement('option');
+                opt.value = 'cc';
+                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
+                if(isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
             @endif
 
             // Add Loan
             @if(auth()->user()->loan_account_status == 1)
-            addOpt('loan', 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}', userRestrictions['loan'], true);
+            if(selectedType !== 'loan') {
+                const isRestricted = userRestrictions['loan'];
+                const opt = document.createElement('option');
+                opt.value = 'loan';
+                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
+                if(isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
             @endif
         }
+    }
+
         validateBalance();
     }
 
@@ -842,6 +882,31 @@
                                 if (savLast4) savLast4.value = data.savings_last4 || '';
                                 setMemberVerifyState('success');
                                 updateVerifiedMetaLine();
+
+                                if (data.has_savings && optSavings) {
+                                    optSavings.hidden = false;
+                                    optSavings.disabled = false;
+                                } else {
+                                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'savings') targetAccountType.value = 'checking';
+                                }
+
+                                if (optIra) {
+                                    if (data.has_ira) { optIra.hidden = false; optIra.disabled = false; }
+                                    else { optIra.hidden = true; optIra.disabled = true; if (targetAccountType && targetAccountType.value === 'ira') targetAccountType.value = 'checking'; }
+                                }
+                                if (optHeloc) {
+                                    if (data.has_heloc) { optHeloc.hidden = false; optHeloc.disabled = false; }
+                                    else { optHeloc.hidden = true; optHeloc.disabled = true; if (targetAccountType && targetAccountType.value === 'heloc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optCc) {
+                                    if (data.has_cc) { optCc.hidden = false; optCc.disabled = false; }
+                                    else { optCc.hidden = true; optCc.disabled = true; if (targetAccountType && targetAccountType.value === 'cc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optLoan) {
+                                    if (data.has_loan) { optLoan.hidden = false; optLoan.disabled = false; }
+                                    else { optLoan.hidden = true; optLoan.disabled = true; if (targetAccountType && targetAccountType.value === 'loan') targetAccountType.value = 'checking'; }
+                                }
 
                                 if (targetAccountType) {
                                     const updateOpt = (opt, has, restricted, label) => {

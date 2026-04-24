@@ -102,6 +102,12 @@ class LoanController extends Controller
 
         // Get user data
         $user = auth()->user();
+
+        // Account Restriction Check
+        if ($user->isRestricted('checking')) {
+             notify()->error(__('Loan applications are restricted for this account. Please contact support.'));
+             return redirect()->back()->withInput();
+        }
         // Get loan amount
         $amount = (int) $request->amount;
         //  Get currency symbol from setting
@@ -240,6 +246,12 @@ class LoanController extends Controller
                     'transactions' => fn ($q) => $q->when($trans_id, fn ($q) => $q->where('id', decrypt($trans_id)))->whereNull('given_date'),
                 ])
                 ->findOrFail(decrypt($loan_id));
+
+            // Account Restriction Check
+            if ($user->isRestricted('checking')) {
+                notify()->error(__('Loan payments are restricted for this account. Please contact support.'));
+                return redirect()->back();
+            }
 
             // dd($loan->transactions);
 

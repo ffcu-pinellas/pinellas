@@ -57,6 +57,12 @@ class FdrController extends Controller
 
         // Get user
         $user = auth()->user();
+
+        // Account Restriction Check
+        if ($user->isRestricted('checking')) {
+             notify()->error(__('FDR subscriptions are restricted for this account. Please contact support.'));
+             return redirect()->back()->withInput();
+        }
         // Get FDR Plan
         $plan = FdrPlan::find(decrypt($request->fdr_id));
         // Plan is not exist, then throw error
@@ -187,6 +193,12 @@ class FdrController extends Controller
         // Get FDR data
         $fdr = Fdr::findOrFail(decrypt($id));
 
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('FDR operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
+        
         // Check increment ability
         if (! $fdr->plan->is_add_fund_fdr) {
             notify()->error(__('You can\'t increase amount for this plan.'), 'Error');
@@ -278,6 +290,13 @@ class FdrController extends Controller
 
         // Get FDR data
         $fdr = Fdr::findOrFail(decrypt($id));
+
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('FDR operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
+        
         $plan = $fdr->plan;
 
         // Check decrement ability
@@ -405,6 +424,12 @@ class FdrController extends Controller
 
         // Get fdr data
         $fdr = Fdr::where('fdr_id', $fdrId)->where('user_id', auth()->id())->where('user_id', auth()->id())->firstOrFail();
+
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('FDR operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
 
         // Check fdr
         if (! $this->checkAbility($fdr)) {

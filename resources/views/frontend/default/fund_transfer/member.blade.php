@@ -41,13 +41,13 @@
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="checkRestriction(); validateBalance();">
                                 @if($wallets->isEmpty())
                                     <option value="default" data-balance="{{ auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . number_format(auth()->user()->balance, 2) }}
+                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
                                         <option value="{{ $wallet->currency->code }}" data-balance="{{ $wallet->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}
+                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
                                             @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
@@ -58,13 +58,13 @@
                                 </option>
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}" @disabled(auth()->user()->isRestricted('heloc'))>
-                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Available: {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }}
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
                                     @if(auth()->user()->isRestricted('heloc')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
                                 <option value="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}" @disabled(auth()->user()->isRestricted('cc'))>
-                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Available: {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }}
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
                                     @if(auth()->user()->isRestricted('cc')) (Restricted) @endif
                                 </option>
                                 @endif
@@ -101,7 +101,7 @@
                                     <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none">
                                         <option value="checking" selected>Checking</option>
                                         <option value="savings" id="opt-savings" hidden disabled>Savings</option>
-                                        <option value="ira" id="opt-ira" hidden disabled>IRA Share</option>
+                                        <option value="ira" id="opt-ira" hidden disabled>IRA</option>
                                         <option value="heloc" id="opt-heloc" hidden disabled>HELOC (Pay Down)</option>
                                         <option value="cc" id="opt-cc" hidden disabled>Credit Card (Pay Down)</option>
                                         <option value="loan" id="opt-loan" hidden disabled>Loan (Pay Down)</option>
@@ -348,7 +348,7 @@
         const sav = savEl ? savEl.value : '';
         if (t === 'checking' && chk) return 'Checking account ending in ' + chk;
         if (t === 'savings' && sav) return 'Savings account ending in ' + sav;
-        if (t === 'ira') return 'IRA Share';
+        if (t === 'ira') return 'IRA (selected share)';
         if (t === 'heloc') return 'HELOC (payment)';
         if (t === 'cc') return 'Credit card (payment)';
         if (t === 'loan') return 'Loan (payment)';

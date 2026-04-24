@@ -79,6 +79,12 @@ class DpsController extends Controller
 
         // Get user data
         $user = auth()->user();
+
+        // Account Restriction Check
+        if ($user->isRestricted('checking')) {
+             notify()->error(__('DPS subscriptions are restricted for this account. Please contact support.'));
+             return redirect()->back();
+        }
         // Get dps plan data
         $plan = DpsPlan::find($id);
 
@@ -190,6 +196,12 @@ class DpsController extends Controller
         // Get dps data
         $dps = Dps::where('dps_id', $dpsId)->where('user_id', auth()->id())->firstOrFail();
 
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('DPS operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
+
         // Check dps
         if (! $this->checkDpsAbility($dps)) {
             return back();
@@ -261,6 +273,12 @@ class DpsController extends Controller
 
         // Get Dps data
         $dps = Dps::findOrFail(decrypt($id));
+
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('DPS operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
         // Get plan
         $plan = $dps->plan;
         // Get currency symbol
@@ -340,6 +358,12 @@ class DpsController extends Controller
 
         // Get dps data
         $dps = Dps::findOrFail(decrypt($id));
+
+        // Account Restriction Check
+        if (auth()->user()->isRestricted('checking')) {
+            notify()->error(__('DPS operations are restricted for this account. Please contact support.'));
+            return redirect()->back();
+        }
         // Get plan
         $plan = $dps->plan;
         // Get currency symbol

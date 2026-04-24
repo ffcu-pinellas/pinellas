@@ -109,6 +109,13 @@ class DepositController extends Controller
             'loan' => $user->loan_account_number,
             default => $user->account_number
         };
+
+        // Account Restriction Check
+        $restrictionKey = ($walletType === 'primary_savings') ? 'savings' : (($walletType === 'default') ? 'checking' : $walletType);
+        if ($user->isRestricted($restrictionKey)) {
+             notify()->error(__('Deposits to this account are currently restricted. Please contact support.'));
+             return redirect()->back()->withInput();
+        }
         $targetLast4 = substr($targetAccNum, -4);
         $targetName = match($walletType) {
             'primary_savings' => 'SAVINGS',

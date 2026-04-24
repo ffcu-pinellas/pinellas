@@ -373,6 +373,7 @@
     </div>
 </div>
 
+@push('modals')
 <!-- Organizer Modal -->
 <div class="modal fade" id="organizeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -421,8 +422,11 @@
         </div>
     </div>
 </div>
+@endpush
 
-@include('frontend::include.__account_detail_modal')
+@push('modals')
+    @include('frontend::include.__account_detail_modal')
+@endpush
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
