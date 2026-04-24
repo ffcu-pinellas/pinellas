@@ -49,7 +49,6 @@ b {
     flex-direction: row !important;
     min-height: 100vh;
     position: relative;
-    overflow-x: hidden;
 }
 
 /* Sidebar Overlay */
@@ -94,7 +93,7 @@ b {
     top: 0 !important;
     bottom: 0 !important;
     left: 0 !important;
-    z-index: 1002;
+    z-index: 10000 !important;
     transition: transform 0.3s ease;
     display: flex !important;
     flex-direction: column !important;
@@ -205,6 +204,9 @@ b {
 
 /* Desktop-Specific Scaling */
 @media (min-width: 992px) {
+    .dashboard-wrapper {
+        display: block !important;
+    }
     .sidebar {
         width: 272px !important;
     }
