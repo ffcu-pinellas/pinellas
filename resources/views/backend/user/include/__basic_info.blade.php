@@ -305,6 +305,94 @@
                                     </div>
                                 @endif
 
+                                <div class="col-xl-12 mt-4 mb-2">
+                                    <h5 style="color: #e74c3c; font-weight: 600; border-bottom: 2px solid #e74c3c; padding-bottom: 5px; display: inline-block;">
+                                        <i data-lucide="shield-alert" class="icon-xs me-1"></i> {{ __('Account Status & Restrictions (Freeze Accounts)') }}
+                                    </h5>
+                                    <p class="text-muted small">{{ __('Restricting an account prevents the user from using it for any transfers or payments.') }}</p>
+                                </div>
+
+                                {{-- Checking Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict Checking Account:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="checking_restricted_yes" name="checking_restricted" value="1" @checked($user->checking_restricted == 1) />
+                                            <label for="checking_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="checking_restricted_no" name="checking_restricted" value="0" @checked($user->checking_restricted == 0) />
+                                            <label for="checking_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Savings Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict Savings Account:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="savings_restricted_yes" name="savings_restricted" value="1" @checked($user->savings_restricted == 1) />
+                                            <label for="savings_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="savings_restricted_no" name="savings_restricted" value="0" @checked($user->savings_restricted == 0) />
+                                            <label for="savings_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- IRA Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict IRA Account:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="ira_restricted_yes" name="ira_restricted" value="1" @checked($user->ira_restricted == 1) />
+                                            <label for="ira_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="ira_restricted_no" name="ira_restricted" value="0" @checked($user->ira_restricted == 0) />
+                                            <label for="ira_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- HELOC Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict HELOC:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="heloc_restricted_yes" name="heloc_restricted" value="1" @checked($user->heloc_restricted == 1) />
+                                            <label for="heloc_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="heloc_restricted_no" name="heloc_restricted" value="0" @checked($user->heloc_restricted == 0) />
+                                            <label for="heloc_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- CC Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict Credit Card:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="cc_restricted_yes" name="cc_restricted" value="1" @checked($user->cc_restricted == 1) />
+                                            <label for="cc_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="cc_restricted_no" name="cc_restricted" value="0" @checked($user->cc_restricted == 0) />
+                                            <label for="cc_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Loan Restriction --}}
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-danger">{{ __('Restrict Loan Account:') }}</label>
+                                        <div class="switch-field" style="margin-top: 5px;">
+                                            <input type="radio" id="loan_restricted_yes" name="loan_restricted" value="1" @checked($user->loan_restricted == 1) />
+                                            <label for="loan_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <input type="radio" id="loan_restricted_no" name="loan_restricted" value="0" @checked($user->loan_restricted == 0) />
+                                            <label for="loan_restricted_no">{{ __('Active') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-12 mt-3 mb-2">
+                                    <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Security & Authentication') }}</h5>
+                                </div>
 
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">

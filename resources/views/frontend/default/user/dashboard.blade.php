@@ -28,6 +28,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0010 CHECKING</span>
+                                @if(auth()->user()->isRestricted('checking'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -42,6 +48,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>0000 SAVINGS</span>
+                                @if(auth()->user()->isRestricted('savings'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -57,6 +69,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>IRA ACCOUNT</span>
+                                @if(auth()->user()->isRestricted('ira'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -73,6 +91,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>HELOC</span>
+                                @if(auth()->user()->isRestricted('heloc'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -89,6 +113,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>CREDIT CARD</span>
+                                @if(auth()->user()->isRestricted('cc'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->cc_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -105,6 +135,12 @@
                         <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
                                 <span>LOAN ACCOUNT</span>
+                                @if(auth()->user()->isRestricted('loan'))
+                                    <div class="restricted-indicator d-flex align-items-center gap-1">
+                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
+                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
+                                    </div>
+                                @endif
                                 <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">

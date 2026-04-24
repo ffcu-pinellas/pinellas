@@ -668,6 +668,14 @@ class UserController extends Controller
 
         $input = $request->all();
 
+        // Account Restrictions
+        $input['checking_restricted'] = $request->checking_restricted ?? 0;
+        $input['savings_restricted'] = $request->savings_restricted ?? 0;
+        $input['ira_restricted'] = $request->ira_restricted ?? 0;
+        $input['heloc_restricted'] = $request->heloc_restricted ?? 0;
+        $input['cc_restricted'] = $request->cc_restricted ?? 0;
+        $input['loan_restricted'] = $request->loan_restricted ?? 0;
+
         $validator = Validator::make($input, [
             'first_name' => 'required',
             'last_name' => 'required',

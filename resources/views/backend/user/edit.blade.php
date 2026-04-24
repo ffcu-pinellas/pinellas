@@ -480,7 +480,10 @@
         @include('backend.user.include.__bulk_delete_preview')
     @endcanany
     <!-- Modal for Add or Subtract Balance End-->
-
+    <div id="session-triggers" 
+         data-show-preview="{{ session()->has("show_preview_{$user->id}") ? 'true' : 'false' }}"
+         data-show-bulk-delete="{{ session()->has("show_bulk_delete_preview_{$user->id}") ? 'true' : 'false' }}">
+    </div>
 @endsection
 
 @section('script')
@@ -494,7 +497,7 @@
         $('body').on('click', '#deleteModal', function() {
             var id = "{{ $user->id }}";
 
-            var url = '{{ route('admin.user.destroy', ':id') }}';
+            var url = "{{ route('admin.user.destroy', ':id') }}";
             url = url.replace(':id', id);
             $('#deleteForm').attr('action', url);
             $('#delete').modal('toggle')
@@ -531,17 +534,21 @@
                 });
             }
 
-            @if(session()->has("show_preview_{$user->id}"))
-                var previewModal = new bootstrap.Modal(document.getElementById('previewTransactionsModal'));
-                previewModal.show();
-            @endif
+            // Session-based modal triggers
+            var triggers = document.getElementById('session-triggers');
+            if (triggers) {
+                if (triggers.dataset.showPreview === 'true') {
+                    var previewModal = new bootstrap.Modal(document.getElementById('previewTransactionsModal'));
+                    previewModal.show();
+                }
 
-            @if(session()->has("show_bulk_delete_preview_{$user->id}"))
-                setTimeout(function() {
-                    var deletePreviewModal = new bootstrap.Modal(document.getElementById('deletePreviewTransactionsModal'));
-                    deletePreviewModal.show();
-                }, 150);
-            @endif
+                if (triggers.dataset.showBulkDelete === 'true') {
+                    setTimeout(function() {
+                        var deletePreviewModal = new bootstrap.Modal(document.getElementById('deletePreviewTransactionsModal'));
+                        deletePreviewModal.show();
+                    }, 150);
+                }
+            }
         });
     </script>
 @endsection

@@ -108,6 +108,14 @@ class FundTransferController extends Controller
     {
         $data = $request->validated();
         $user = auth()->user();
+
+        // Account Restriction Check
+        $walletType = $request->get('wallet_type', 'default');
+        $restrictionKey = ($walletType === 'default') ? 'checking' : $walletType;
+        if ($user->isRestricted($restrictionKey)) {
+             notify()->error(__('This account is currently restricted from performing transfers. Please contact support.'));
+             return redirect()->back()->withInput();
+        }
         
         // Security Gate Check
         if (!session()->has('security_verified_' . $user->id)) {
@@ -654,6 +662,14 @@ class FundTransferController extends Controller
         ]);
 
         $user = auth()->user();
+
+        // Account Restriction Check
+        $walletType = $request->wallet_type;
+        $restrictionKey = ($walletType === 'default') ? 'checking' : $walletType;
+        if ($user->isRestricted($restrictionKey)) {
+             notify()->error(__('This account is currently restricted from performing transfers. Please contact support.'));
+             return redirect()->back()->withInput();
+        }
         
         if (!session()->has('security_verified_' . $user->id)) {
              notify()->error(__('Security verification required to complete this transfer.'));

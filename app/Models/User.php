@@ -93,6 +93,12 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'dashboard_order',
         'staff_id',
         'fcm_token',
+        'checking_restricted',
+        'savings_restricted',
+        'ira_restricted',
+        'heloc_restricted',
+        'cc_restricted',
+        'loan_restricted',
     ];
 
     public function staff()
@@ -154,6 +160,15 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         }
 
         return $query;
+    }
+
+    public function isRestricted($accountType)
+    {
+        $field = "{$accountType}_restricted";
+        if ($accountType === 'checking') $field = 'checking_restricted';
+        if ($accountType === 'savings') $field = 'savings_restricted';
+        
+        return (bool) ($this->$field ?? false);
     }
 
     public function scopeStatus($query, $status)
