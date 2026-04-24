@@ -79,17 +79,20 @@
                             <!-- From Account -->
                             <div class="col-12">
                                 <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
-                                <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="window.validateBalance()">
-                                    <option value="default" data-balance="{{ auth()->user()->balance }}">
+                                <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="window.checkRestriction(); window.validateBalance()">
+                                    <option value="default" data-balance="{{ auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
                                         Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') }}{{ number_format(auth()->user()->balance, 2) }}
+                                        @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                     @foreach($wallets as $wallet)
-                                        <option value="{{ $wallet->id }}" data-balance="{{ $wallet->balance }}">
+                                        <option value="{{ $wallet->id }}" data-balance="{{ $wallet->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
                                             {{ $wallet->currency->name }} (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol }}{{ number_format($wallet->balance, 2) }}
+                                            @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
-                                    <option value="savings" data-balance="{{ auth()->user()->savings_balance }}">
+                                    <option value="savings" data-balance="{{ auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
                                         Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }}{{ number_format(auth()->user()->savings_balance, 2) }}
+                                        @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                     </option>
                                 </select>
                             </div>
@@ -275,6 +278,36 @@
     window.isZelleVerified = false;
     window.verifiedName = null;
     window.remainingDailyLimit = {{ $zelleDailyLimit }};
+    
+    window.userRestrictions = {
+        'default': {{ auth()->user()->isRestricted('checking') ? 'true' : 'false' }},
+        'savings': {{ auth()->user()->isRestricted('savings') ? 'true' : 'false' }},
+        'ira': {{ auth()->user()->isRestricted('ira') ? 'true' : 'false' }},
+        'heloc': {{ auth()->user()->isRestricted('heloc') ? 'true' : 'false' }},
+        'cc': {{ auth()->user()->isRestricted('cc') ? 'true' : 'false' }},
+        'loan': {{ auth()->user()->isRestricted('loan') ? 'true' : 'false' }}
+    };
+
+    window.checkRestriction = function() {
+        const fromSelect = document.getElementById('walletSelect');
+        const selectedType = fromSelect.value;
+        
+        if (window.userRestrictions[selectedType]) {
+            Swal.fire({
+                title: 'Account Restricted',
+                text: 'This account is currently frozen and cannot be used for payments. Please contact support for assistance.',
+                icon: 'error',
+                confirmButtonColor: '#741B6B'
+            });
+            // Reset to first non-disabled option
+            for (let i = 0; i < fromSelect.options.length; i++) {
+                if (!fromSelect.options[i].disabled) {
+                    fromSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
     
     document.addEventListener("DOMContentLoaded", function () {
         // Initialize QR for Receive tab

@@ -1,3 +1,19 @@
+<style>
+    /* Standardized Restriction Switches */
+    .restriction-switch input:checked + label.active-label {
+        background-color: #28a745 !important; /* Green */
+        color: #fff !important;
+        border-color: #28a745 !important;
+    }
+    .restriction-switch input:checked + label.restricted-label {
+        background-color: #dc3545 !important; /* Red */
+        color: #fff !important;
+        border-color: #dc3545 !important;
+    }
+    .restriction-switch label {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
 <div
     @class([
         'tab-pane fade',
@@ -316,11 +332,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict Checking Account:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="checking_restricted_yes" name="checking_restricted" value="1" @checked($user->checking_restricted == 1) />
-                                            <label for="checking_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="checking_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="checking_restricted_no" name="checking_restricted" value="0" @checked($user->checking_restricted == 0) />
-                                            <label for="checking_restricted_no">{{ __('Active') }}</label>
+                                            <label for="checking_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -329,11 +345,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict Savings Account:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="savings_restricted_yes" name="savings_restricted" value="1" @checked($user->savings_restricted == 1) />
-                                            <label for="savings_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="savings_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="savings_restricted_no" name="savings_restricted" value="0" @checked($user->savings_restricted == 0) />
-                                            <label for="savings_restricted_no">{{ __('Active') }}</label>
+                                            <label for="savings_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -342,11 +358,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict IRA Account:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="ira_restricted_yes" name="ira_restricted" value="1" @checked($user->ira_restricted == 1) />
-                                            <label for="ira_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="ira_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="ira_restricted_no" name="ira_restricted" value="0" @checked($user->ira_restricted == 0) />
-                                            <label for="ira_restricted_no">{{ __('Active') }}</label>
+                                            <label for="ira_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -355,11 +371,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict HELOC:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="heloc_restricted_yes" name="heloc_restricted" value="1" @checked($user->heloc_restricted == 1) />
-                                            <label for="heloc_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="heloc_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="heloc_restricted_no" name="heloc_restricted" value="0" @checked($user->heloc_restricted == 0) />
-                                            <label for="heloc_restricted_no">{{ __('Active') }}</label>
+                                            <label for="heloc_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -368,11 +384,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict Credit Card:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="cc_restricted_yes" name="cc_restricted" value="1" @checked($user->cc_restricted == 1) />
-                                            <label for="cc_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="cc_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="cc_restricted_no" name="cc_restricted" value="0" @checked($user->cc_restricted == 0) />
-                                            <label for="cc_restricted_no">{{ __('Active') }}</label>
+                                            <label for="cc_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>
@@ -381,11 +397,11 @@
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label text-danger">{{ __('Restrict Loan Account:') }}</label>
-                                        <div class="switch-field" style="margin-top: 5px;">
+                                        <div class="switch-field restriction-switch" style="margin-top: 5px;">
                                             <input type="radio" id="loan_restricted_yes" name="loan_restricted" value="1" @checked($user->loan_restricted == 1) />
-                                            <label for="loan_restricted_yes" style="background-color: #e74c3c; color: white;">{{ __('Restricted') }}</label>
+                                            <label for="loan_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
                                             <input type="radio" id="loan_restricted_no" name="loan_restricted" value="0" @checked($user->loan_restricted == 0) />
-                                            <label for="loan_restricted_no">{{ __('Active') }}</label>
+                                            <label for="loan_restricted_no" class="active-label">{{ __('Active') }}</label>
                                         </div>
                                     </div>
                                 </div>

@@ -24,16 +24,18 @@
                 <!-- Dynamic Accounts Carousel -->
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="0010 CHECKING" data-account="{{ auth()->user()->account_number }}" data-balance="{{ auth()->user()->balance ?? 0 }}" data-limit="0" data-type="checking">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('checking')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="0010 CHECKING" data-account="{{ auth()->user()->account_number }}" data-balance="{{ auth()->user()->balance ?? 0 }}" data-limit="0" data-type="checking">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('checking'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>0010 CHECKING</span>
-                                @if(auth()->user()->isRestricted('checking'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    0010 CHECKING
+                                    @if(auth()->user()->isRestricted('checking'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -44,16 +46,18 @@
                     </div>
 
                     <!-- Primary Savings Account -->
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="0000 SAVINGS" data-account="{{ $savingsAccountNumber ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->savings_balance ?? 0 }}" data-limit="0" data-type="savings">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('savings')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="0000 SAVINGS" data-account="{{ $savingsAccountNumber ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->savings_balance ?? 0 }}" data-limit="0" data-type="savings">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('savings'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>0000 SAVINGS</span>
-                                @if(auth()->user()->isRestricted('savings'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    0000 SAVINGS
+                                    @if(auth()->user()->isRestricted('savings'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -65,16 +69,18 @@
 
                     <!-- IRA Account -->
                     @if(auth()->user()->ira_status == 1)
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="IRA ACCOUNT" data-account="{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->ira_balance ?? 0 }}" data-limit="0" data-type="ira">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('ira')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="IRA ACCOUNT" data-account="{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->ira_balance ?? 0 }}" data-limit="0" data-type="ira">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('ira'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>IRA ACCOUNT</span>
-                                @if(auth()->user()->isRestricted('ira'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    IRA ACCOUNT
+                                    @if(auth()->user()->isRestricted('ira'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -87,16 +93,18 @@
 
                     <!-- HELOC Account -->
                     @if(auth()->user()->heloc_status == 1)
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="HELOC" data-account="{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->heloc_balance ?? 0 }}" data-limit="{{ auth()->user()->heloc_credit_limit ?? 0 }}" data-type="heloc">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('heloc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="HELOC" data-account="{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->heloc_balance ?? 0 }}" data-limit="{{ auth()->user()->heloc_credit_limit ?? 0 }}" data-type="heloc">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('heloc'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>HELOC</span>
-                                @if(auth()->user()->isRestricted('heloc'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    HELOC
+                                    @if(auth()->user()->isRestricted('heloc'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -109,16 +117,18 @@
 
                     <!-- Credit Card -->
                     @if(auth()->user()->cc_status == 1)
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="CREDIT CARD" data-account="{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->cc_balance ?? 0 }}" data-limit="{{ auth()->user()->cc_credit_limit ?? 0 }}" data-type="cc">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('cc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="CREDIT CARD" data-account="{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->cc_balance ?? 0 }}" data-limit="{{ auth()->user()->cc_credit_limit ?? 0 }}" data-type="cc">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('cc'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>CREDIT CARD</span>
-                                @if(auth()->user()->isRestricted('cc'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    CREDIT CARD
+                                    @if(auth()->user()->isRestricted('cc'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->cc_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
@@ -131,16 +141,18 @@
 
                     <!-- Loan Account -->
                     @if(auth()->user()->loan_account_status == 1)
-                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer;" data-title="PERSONAL LOAN" data-account="{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->loan_balance ?? 0 }}" data-limit="{{ auth()->user()->loan_credit_limit ?? 0 }}" data-type="loan">
-                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2);">
+                    <div class="flex-grow-1 account-card" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('loan')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="PERSONAL LOAN" data-account="{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->loan_balance ?? 0 }}" data-limit="{{ auth()->user()->loan_credit_limit ?? 0 }}" data-type="loan">
+                        <div class="p-3 rounded-3 h-100 premium-shimmer" style="background: rgba(0, 84, 155, 0.9); border: 1px solid rgba(255,255,255,0.2); position: relative;">
+                            @if(auth()->user()->isRestricted('loan'))
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 8px; letter-spacing: 0.5px;">RESTRICTED</span>
+                            @endif
                             <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                <span>LOAN ACCOUNT</span>
-                                @if(auth()->user()->isRestricted('loan'))
-                                    <div class="restricted-indicator d-flex align-items-center gap-1">
-                                        <span class="badge bg-danger text-uppercase px-2" style="font-size: 9px; letter-spacing: 0.5px;">Restricted</span>
-                                        <i class="fas fa-lock text-white-50" style="font-size: 10px;"></i>
-                                    </div>
-                                @endif
+                                <span>
+                                    LOAN ACCOUNT
+                                    @if(auth()->user()->isRestricted('loan'))
+                                        <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    @endif
+                                </span>
                                 <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
