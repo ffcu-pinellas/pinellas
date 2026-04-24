@@ -390,6 +390,16 @@
 
             noticeBox.classList.remove('d-none');
             
+            if (data.status === 'internal' && data.is_restricted) {
+                window.verifiedName = null;
+                window.isZelleVerified = false;
+                document.getElementById('noticeIcon').className = 'fas fa-exclamation-triangle text-danger';
+                document.getElementById('noticeTitle').innerText = 'Recipient Restricted';
+                document.getElementById('noticeSub').innerHTML = `<span class="text-danger fw-bold">${data.name}'s account is currently restricted and cannot receive Zelle payments at this time.</span>`;
+                document.getElementById('externalNameGroup').classList.add('d-none');
+                return;
+            }
+
             if (data.status === 'success' || data.status === 'internal') {
                 window.verifiedName = data.name;
                 document.getElementById('noticeIcon').className = 'fas fa-shield-check';

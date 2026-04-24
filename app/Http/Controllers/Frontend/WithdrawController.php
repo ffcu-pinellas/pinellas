@@ -11,7 +11,6 @@ use App\Models\WithdrawalSchedule;
 use App\Models\WithdrawMethod;
 use App\Traits\ImageUpload;
 use App\Traits\NotifyTrait;
-use App\Traits\Payment;
 use Carbon\Carbon;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -25,7 +24,7 @@ use Validator;
 
 class WithdrawController extends Controller
 {
-    use ImageUpload, NotifyTrait, Payment;
+    use ImageUpload, NotifyTrait;
 
     /**
      * Display a listing of the resource.

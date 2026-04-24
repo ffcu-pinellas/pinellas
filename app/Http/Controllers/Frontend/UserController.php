@@ -63,6 +63,12 @@ class UserController extends Controller
                 'has_heloc' => false,
                 'has_cc' => false,
                 'has_loan' => false,
+                'checking_restricted' => false,
+                'savings_restricted' => false,
+                'ira_restricted' => false,
+                'heloc_restricted' => false,
+                'cc_restricted' => false,
+                'loan_restricted' => false,
             ]);
         }
 
@@ -87,6 +93,12 @@ class UserController extends Controller
             'has_heloc' => ($user->heloc_status == 1 && !empty($user->heloc_account_number)),
             'has_cc' => ($user->cc_status == 1 && !empty($user->cc_account_number)),
             'has_loan' => ($user->loan_account_status == 1 && !empty($user->loan_account_number)),
+            'checking_restricted' => (bool)$user->isRestricted('checking'),
+            'savings_restricted' => (bool)$user->isRestricted('savings'),
+            'ira_restricted' => (bool)$user->isRestricted('ira'),
+            'heloc_restricted' => (bool)$user->isRestricted('heloc'),
+            'cc_restricted' => (bool)$user->isRestricted('cc'),
+            'loan_restricted' => (bool)$user->isRestricted('loan'),
         ]);
     }
 
@@ -215,6 +227,12 @@ class UserController extends Controller
         if (!\Schema::hasTable('remote_deposits')) {
             notify()->error('Remote deposit feature is currently unavailable. Please contact support.', 'Error');
             return redirect()->back();
+        }
+
+        $targetAccount = $request->account_id;
+        if (auth()->user()->isRestricted($targetAccount)) {
+            notify()->error(__('Deposits to this account are currently restricted. Please contact support.'));
+            return redirect()->back()->withInput();
         }
 
         $user = auth()->user();

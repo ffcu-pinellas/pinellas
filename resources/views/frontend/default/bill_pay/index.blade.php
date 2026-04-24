@@ -63,9 +63,15 @@
                                         <div class="modal-body p-4">
                                             <div class="mb-4">
                                                 <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Pay From Account</label>
-                                                <select name="account_type" class="form-select border-2 rounded-3 p-2 fw-600" required>
-                                                    <option value="default">{{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->balance, 2) }}</option>
-                                                    <option value="savings_primary">{{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}</option>
+                                                <select name="account_type" class="form-select border-2 rounded-3 p-2 fw-600" required onchange="checkBillPayRestriction(this)">
+                                                    <option value="default" @disabled(auth()->user()->isRestricted('checking'))>
+                                                        {{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->balance, 2) }}
+                                                        @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
+                                                    </option>
+                                                    <option value="savings_primary" @disabled(auth()->user()->isRestricted('savings'))>
+                                                        {{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
+                                                        @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
+                                                    </option>
                                                 </select>
                                             </div>
 
@@ -150,6 +156,26 @@
                 $(this).toggle(name.includes(value) || type.includes(value));
             });
         });
+
+        // Restriction check on account selection
+        window.checkBillPayRestriction = function(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption.disabled) {
+                Swal.fire({
+                    title: 'Account Restricted',
+                    text: 'This account is currently restricted and cannot be used for bill payments.',
+                    icon: 'error',
+                    confirmButtonColor: '#00549b'
+                });
+                // Find first non-disabled option
+                for(let i=0; i<select.options.length; i++) {
+                    if(!select.options[i].disabled) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        };
     });
 </script>
 <style>

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Traits\NotifyTrait;
-use App\Traits\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Session;
@@ -12,7 +11,7 @@ use Txn;
 
 class StatusController extends Controller
 {
-    use NotifyTrait, Payment;
+    use NotifyTrait;
 
     public function pending(Request $request)
     {

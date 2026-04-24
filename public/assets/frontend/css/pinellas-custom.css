@@ -98,7 +98,19 @@ b {
     transition: transform 0.3s ease;
     display: flex !important;
     flex-direction: column !important;
-    overflow-y: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 4px;
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
 }
 
 .sidebar-nav {
@@ -131,6 +143,22 @@ b {
     white-space: nowrap;
 }
 
+/* Restricted Badge Positioning Fix */
+.restricted-badge-top {
+    top: -10px !important;
+    right: 10px !important;
+    padding: 4px 10px !important;
+    font-size: 9px !important;
+    border-radius: 50px !important;
+    box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4) !important;
+    z-index: 5;
+}
+
+.account-card .fa-lock {
+    vertical-align: middle;
+    margin-top: -2px;
+}
+
 .sidebar-nav-item:hover,
 .sidebar-nav-item.active {
     background: var(--secondary-color) !important;
@@ -153,7 +181,9 @@ b {
     border-top: 1px solid var(--border-color) !important;
     background: #ffffff;
     padding: 10px 20px !important;
-    position: relative;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
 }
 
 .sidebar-user-menu-dropup {
@@ -326,6 +356,20 @@ b {
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         backdrop-filter: blur(10px);
     }
+}
+
+/* Modal Fixes */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+.modal {
+    z-index: 1050 !important;
+}
+#accountDetailModal {
+    z-index: 1060 !important;
+}
+#securityGateModal {
+    z-index: 1070 !important;
 }
 
 /* Universal Print/Save Support */

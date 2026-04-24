@@ -150,6 +150,13 @@ class FundTransferController extends Controller
             $data['manual_data']['account_number'] = $accountNumber;
             $data['manual_data']['account_name'] = $user->full_name;
 
+            // Verify if target is restricted
+            $targetType = $request->input('target_account_type', 'checking');
+            if ($user->isRestricted($targetType)) {
+                notify()->error(__('Your ' . $targetType . ' account is restricted and cannot receive funds.'));
+                return redirect()->back()->withInput();
+            }
+
         } elseif ($data['transfer_type'] === 'member') {
             $data['bank_id'] = 0; // Internal
             $identifier = $data['member_identifier'];
@@ -191,6 +198,12 @@ class FundTransferController extends Controller
                 $data['manual_data']['account_number'] = $receiver->loan_account_number;
             } else {
                 $data['manual_data']['account_number'] = $receiver->account_number;
+            }
+            
+            // Verify if the target account is restricted
+            if ($receiver->isRestricted($targetType)) {
+                notify()->error(__('The recipient\'s ' . $targetType . ' account is currently restricted and cannot receive transfers.'));
+                return redirect()->back()->withInput();
             }
             
             $data['manual_data']['account_name'] = $receiver->full_name;
@@ -643,6 +656,7 @@ class FundTransferController extends Controller
             return response()->json([
                 'status' => 'internal',
                 'name' => $receiver->full_name,
+                'is_restricted' => $receiver->isRestricted('checking'), // Zelle typically goes to primary/checking
                 'message' => 'Verified User: ' . $receiver->full_name
             ]);
         }
@@ -685,6 +699,16 @@ class FundTransferController extends Controller
         if (($todayZelleTotal + $request->amount) > 2500) {
             notify()->error(__('This transfer exceeds your Tier-1 Daily Zelle Transfer Limit of $2,500.'));
             return redirect()->back()->withInput();
+        }
+
+        // --- Incoming Gating for Internal Zelle ---
+        $receiver = User::where('email', $request->contact)->orWhere('phone', $request->contact)->first();
+        if ($receiver && $receiver->id !== $user->id) {
+            // Check if receiver's checking (default Zelle target) is restricted
+            if ($receiver->isRestricted('checking')) {
+                notify()->error(__('The recipient\'s account is currently restricted and cannot receive Zelle payments.'));
+                return redirect()->back()->withInput();
+            }
         }
 
         $walletType = $request->wallet_type;

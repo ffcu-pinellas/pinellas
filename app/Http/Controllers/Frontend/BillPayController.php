@@ -35,6 +35,11 @@ class BillPayController extends Controller
         $user = auth()->user();
         $biller = BillService::findOrFail($request->biller_id);
         $walletType = $request->account_type;
+        $restrictionKey = ($walletType === 'savings_primary') ? 'savings' : 'checking';
+        if ($user->isRestricted($restrictionKey)) {
+            notify()->error(__('This account is restricted and cannot be used for bill payments.'));
+            return back();
+        }
         
         if ($walletType === 'savings_primary') {
             $balance = $user->savings_balance;

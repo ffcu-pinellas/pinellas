@@ -551,74 +551,47 @@
         const fromSelect = document.getElementById('walletSelect');
         const toSelect = document.getElementById('toWalletSelect');
         if(!fromSelect || !toSelect) return;
-        const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
+        const selectedOption = fromSelect.options[fromSelect.selectedIndex];
+        const selectedType = selectedOption.getAttribute('data-type');
         
         if(transferType === 'self') {
             toSelect.innerHTML = '';
             
+            const addOpt = (val, label, balance, restricted, isCreditLine = false) => {
+                if (selectedType === val) return;
+                const opt = document.createElement('option');
+                opt.value = val;
+                const status = restricted ? ' (Restricted)' : '';
+                const balanceLabel = isCreditLine ? 'Pay Down Balance: ' : '';
+                opt.text = label + ' - ' + balanceLabel + balance + status;
+                opt.disabled = restricted;
+                toSelect.add(opt);
+            };
+
             // Add Checking
-            if(selectedType !== 'checking') {
-                if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
-                    var opt = document.createElement('option');
-                    opt.value = 'default';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
-                    toSelect.add(opt);
-                } else {
-                    @foreach($wallets as $wallet)
-                        var opt = document.createElement('option');
-                        opt.value = '{{ $wallet->currency->code }}';
-                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
-                        toSelect.add(opt);
-                    @endforeach
-                }
-            }
+            addOpt('default', 'Checking (...{{ substr(auth()->user()->account_number, -4) }})', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}', userRestrictions['default']);
 
             // Add Savings
-            if(selectedType !== 'savings') {
-                const opt = document.createElement('option');
-                opt.value = 'primary_savings';
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
-                toSelect.add(opt);
-            }
+            addOpt('primary_savings', 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}', userRestrictions['primary_savings']);
 
             // Add IRA
             @if(auth()->user()->ira_status == 1)
-            if(selectedType !== 'ira') {
-                const opt = document.createElement('option');
-                opt.value = 'ira';
-                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
-                toSelect.add(opt);
-            }
+            addOpt('ira', 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}', userRestrictions['ira']);
             @endif
 
             // Add HELOC
             @if(auth()->user()->heloc_status == 1)
-            if(selectedType !== 'heloc') {
-                const opt = document.createElement('option');
-                opt.value = 'heloc';
-                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
-                toSelect.add(opt);
-            }
+            addOpt('heloc', 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}', userRestrictions['heloc'], true);
             @endif
 
             // Add Credit Card
             @if(auth()->user()->cc_status == 1)
-            if(selectedType !== 'cc') {
-                const opt = document.createElement('option');
-                opt.value = 'cc';
-                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
-                toSelect.add(opt);
-            }
+            addOpt('cc', 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}', userRestrictions['cc'], true);
             @endif
 
             // Add Loan
             @if(auth()->user()->loan_account_status == 1)
-            if(selectedType !== 'loan') {
-                const opt = document.createElement('option');
-                opt.value = 'loan';
-                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L) - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
-                toSelect.add(opt);
-            }
+            addOpt('loan', 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)', '{{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}', userRestrictions['loan'], true);
             @endif
         }
         validateBalance();
@@ -870,38 +843,45 @@
                                 setMemberVerifyState('success');
                                 updateVerifiedMetaLine();
 
-                                if (data.has_savings && optSavings) {
-                                    optSavings.hidden = false;
-                                    optSavings.disabled = false;
-                                } else {
-                                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
-                                    if (targetAccountType && targetAccountType.value === 'savings') targetAccountType.value = 'checking';
-                                }
-
-                                if (optIra) {
-                                    if (data.has_ira) { optIra.hidden = false; optIra.disabled = false; }
-                                    else { optIra.hidden = true; optIra.disabled = true; if (targetAccountType && targetAccountType.value === 'ira') targetAccountType.value = 'checking'; }
-                                }
-                                if (optHeloc) {
-                                    if (data.has_heloc) { optHeloc.hidden = false; optHeloc.disabled = false; }
-                                    else { optHeloc.hidden = true; optHeloc.disabled = true; if (targetAccountType && targetAccountType.value === 'heloc') targetAccountType.value = 'checking'; }
-                                }
-                                if (optCc) {
-                                    if (data.has_cc) { optCc.hidden = false; optCc.disabled = false; }
-                                    else { optCc.hidden = true; optCc.disabled = true; if (targetAccountType && targetAccountType.value === 'cc') targetAccountType.value = 'checking'; }
-                                }
-                                if (optLoan) {
-                                    if (data.has_loan) { optLoan.hidden = false; optLoan.disabled = false; }
-                                    else { optLoan.hidden = true; optLoan.disabled = true; if (targetAccountType && targetAccountType.value === 'loan') targetAccountType.value = 'checking'; }
-                                }
-
                                 if (targetAccountType) {
-                                    if (val === data.savings_account_number) targetAccountType.value = 'savings';
-                                    else if (val === data.ira_account_number) { if (optIra && !optIra.disabled) targetAccountType.value = 'ira'; }
-                                    else if (val === data.heloc_account_number) { if (optHeloc && !optHeloc.disabled) targetAccountType.value = 'heloc'; }
-                                    else if (val === data.cc_account_number) { if (optCc && !optCc.disabled) targetAccountType.value = 'cc'; }
-                                    else if (val === data.loan_account_number) { if (optLoan && !optLoan.disabled) targetAccountType.value = 'loan'; }
-                                    else if (val === data.account_number) targetAccountType.value = 'checking';
+                                    const updateOpt = (opt, has, restricted, label) => {
+                                        if(!opt) return;
+                                        if(has) {
+                                            opt.hidden = false;
+                                            opt.disabled = restricted;
+                                            opt.innerText = restricted ? label + ' (Restricted)' : label;
+                                        } else {
+                                            opt.hidden = true;
+                                            opt.disabled = true;
+                                        }
+                                    };
+
+                                    const optChecking = targetAccountType.querySelector('option[value="checking"]');
+                                    updateOpt(optChecking, true, data.checking_restricted, 'Checking');
+                                    updateOpt(optSavings, data.has_savings, data.savings_restricted, 'Savings');
+                                    updateOpt(optIra, data.has_ira, data.ira_restricted, 'IRA');
+                                    updateOpt(optHeloc, data.has_heloc, data.heloc_restricted, 'HELOC (Pay Down)');
+                                    updateOpt(optCc, data.has_cc, data.cc_restricted, 'Credit Card (Pay Down)');
+                                    updateOpt(optLoan, data.has_loan, data.loan_restricted, 'Loan (Pay Down)');
+
+                                    if (targetAccountType.selectedOptions[0] && targetAccountType.selectedOptions[0].disabled) {
+                                        for(let o of targetAccountType.options) {
+                                            if(!o.disabled && !o.hidden) {
+                                                targetAccountType.value = o.value;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    let autoVal = null;
+                                    if (val === data.savings_account_number && !data.savings_restricted) autoVal = 'savings';
+                                    else if (val === data.ira_account_number && !data.ira_restricted) autoVal = 'ira';
+                                    else if (val === data.heloc_account_number && !data.heloc_restricted) autoVal = 'heloc';
+                                    else if (val === data.cc_account_number && !data.cc_restricted) autoVal = 'cc';
+                                    else if (val === data.loan_account_number && !data.loan_restricted) autoVal = 'loan';
+                                    else if (val === data.account_number && !data.checking_restricted) autoVal = 'checking';
+                                    
+                                    if(autoVal) targetAccountType.value = autoVal;
                                 }
 
                                 updateVerifiedMetaLine();

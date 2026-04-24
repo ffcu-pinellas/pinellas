@@ -29,9 +29,15 @@
                 <div class="row g-3">
                     <div class="col-12">
                          <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to</label>
-                         <select name="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fw-600" style="padding-bottom: 10px; font-size: 14px;" required>
-                            <option value="checking">Personal Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}</option>
-                            <option value="savings">Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}</option>
+                         <select name="account_id" id="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fw-600" style="padding-bottom: 10px; font-size: 14px;" required onchange="checkAccountRestriction()">
+                            <option value="checking" @disabled(auth()->user()->isRestricted('checking'))>
+                                Personal Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}
+                                @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
+                            </option>
+                            <option value="savings" @disabled(auth()->user()->isRestricted('savings'))>
+                                Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}
+                                @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
+                            </option>
                         </select>
                     </div>
                     <div class="col-12 mt-4">
@@ -355,6 +361,31 @@
     let stream = null;
     let autoSnapTimer = null;
     const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
+
+    const userRestrictions = {
+        'checking': {{ auth()->user()->isRestricted('checking') ? 'true' : 'false' }},
+        'savings': {{ auth()->user()->isRestricted('savings') ? 'true' : 'false' }}
+    };
+
+    function checkAccountRestriction() {
+        const select = document.getElementById('account_id');
+        const type = select.value;
+        if (userRestrictions[type]) {
+            Swal.fire({
+                title: 'Account Restricted',
+                text: 'This account is currently restricted and cannot receive deposits. Please contact support.',
+                icon: 'error',
+                confirmButtonColor: '#00549b'
+            });
+            // Try to find first non-restricted
+            for(let o of select.options) {
+                if(!o.disabled) {
+                    select.value = o.value;
+                    break;
+                }
+            }
+        }
+    }
     
     // RDC Limits from Settings
     const minDeposit = {{ (double) setting('min_fund_transfer', 'fee') }};
