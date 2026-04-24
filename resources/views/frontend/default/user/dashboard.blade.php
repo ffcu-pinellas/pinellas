@@ -29,7 +29,7 @@
                                 @if(auth()->user()->isRestricted('checking'))
                                     <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                                 @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('checking')) style="margin-top: 15px;" @endif>
                                 <span>
                                     0010 CHECKING
                                     @if(auth()->user()->isRestricted('checking'))
@@ -51,7 +51,7 @@
                             @if(auth()->user()->isRestricted('savings'))
                                 <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                             @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('savings')) style="margin-top: 15px;" @endif>
                                 <span>
                                     0000 SAVINGS
                                     @if(auth()->user()->isRestricted('savings'))
@@ -74,7 +74,7 @@
                             @if(auth()->user()->isRestricted('ira'))
                                 <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                             @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('ira')) style="margin-top: 15px;" @endif>
                                 <span>
                                     IRA ACCOUNT
                                     @if(auth()->user()->isRestricted('ira'))
@@ -98,7 +98,7 @@
                             @if(auth()->user()->isRestricted('heloc'))
                                 <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                             @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('heloc')) style="margin-top: 15px;" @endif>
                                 <span>
                                     HELOC
                                     @if(auth()->user()->isRestricted('heloc'))
@@ -122,7 +122,7 @@
                             @if(auth()->user()->isRestricted('cc'))
                                 <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                             @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('cc')) style="margin-top: 15px;" @endif>
                                 <span>
                                     CREDIT CARD
                                     @if(auth()->user()->isRestricted('cc'))
@@ -146,7 +146,7 @@
                             @if(auth()->user()->isRestricted('loan'))
                                 <span class="badge bg-danger position-absolute restricted-badge-top">RESTRICTED</span>
                             @endif
-                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
+                            <div class="d-flex justify-content-between align-items-start small fw-bold mb-1" @if(auth()->user()->isRestricted('loan')) style="margin-top: 15px;" @endif>
                                 <span>
                                     LOAN ACCOUNT
                                     @if(auth()->user()->isRestricted('loan'))

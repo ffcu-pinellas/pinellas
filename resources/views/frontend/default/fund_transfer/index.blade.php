@@ -790,7 +790,10 @@
         document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split(' - ')[0];
         
         let toText = 'Unknown';
-        if(transferType === 'self') toText = document.getElementById('toWalletSelect').options[0]?.text.split(' - ')[0] || 'My Account';
+        if(transferType === 'self') {
+            const toSelect = document.getElementById('toWalletSelect');
+            toText = toSelect.options[toSelect.selectedIndex]?.text.split(' - ')[0] || 'My Account';
+        }
         else if(transferType === 'member') toText = buildReviewToLine();
         else toText = (document.getElementById('resolvedBankName').value || document.getElementById('manualBankNameInput').value || 'External Bank');
         
