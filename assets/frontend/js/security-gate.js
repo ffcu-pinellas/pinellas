@@ -4,6 +4,7 @@
  */
 const SecurityGate = {
     gate: function (target) {
+        if (typeof window.hideLoader === 'function') window.hideLoader();
         this.currentTarget = target;
         this.gateId = 'sg_' + Date.now(); // Unique ID for this specific action
         this.reset();
@@ -21,6 +22,7 @@ const SecurityGate = {
     },
 
     reset: function () {
+        if (typeof window.hideLoader === 'function') window.hideLoader();
         this.selectedMethod = null;
         this.currentPin = "";
         $('#sg-method-selection').addClass('d-none');

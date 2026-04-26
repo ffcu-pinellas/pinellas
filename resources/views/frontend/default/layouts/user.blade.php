@@ -26,7 +26,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10001;
+            z-index: 1000;
             backdrop-filter: blur(15px); /* Premium Blur */
             -webkit-backdrop-filter: blur(15px);
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
