@@ -139,7 +139,6 @@
         }
 
     </style>
-    <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=1.1"></script>
     <script src="{{ asset('assets/frontend/js/biometrics.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/notifications.js') }}"></script>
     <script>

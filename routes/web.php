@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
+Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });
 
 // Dynamic Page
 Route::get('page/{section}', [PageController::class, 'getPage'])->name('dynamic.page');
