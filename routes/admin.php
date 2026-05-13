@@ -46,6 +46,7 @@ use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\UserNavigationController;
 use App\Http\Controllers\Backend\WireTransferController;
 use App\Http\Controllers\Backend\WithdrawController;
+use App\Http\Controllers\Backend\DocumentGeneratorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -92,6 +93,12 @@ Route::group(['prefix' => 'kyc', 'as' => 'kyc.', 'controller' => KycController::
     Route::get('action/{id}', 'depositAction')->name('action');
     Route::post('action-now', 'actionNow')->name('action.now');
     Route::get('all', 'kycAll')->name('all');
+});
+
+// ===============================  Document Generator ==================================
+Route::group(['prefix' => 'document-generator', 'as' => 'document-generator.', 'controller' => DocumentGeneratorController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/generate', 'generate')->name('generate');
 });
 
 // ===============================  Branch Management ==================================

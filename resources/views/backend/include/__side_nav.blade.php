@@ -57,6 +57,12 @@
                     </li>
             @endcanany
 
+            @can('document-generator-manage')
+                <li class="side-nav-item {{ isActive('admin.document-generator*') }}">
+                    <a href="{{ route('admin.document-generator.index') }}"><i data-lucide="file-text"></i><span>{{ __('Document Generator') }}</span></a>
+                </li>
+            @endcan
+
             @canany(['kyc-list', 'kyc-action', 'kyc-form-manage'])
                 <li class="side-nav-item side-nav-dropdown {{ isActive(['admin.kyc*']) }}">
                     <a href="javascript:void(0);" class="dropdown-link"><i
