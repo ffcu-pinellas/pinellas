@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\DocumentHistory;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -14,10 +15,12 @@ class DocumentGeneratorController extends Controller
         $this->middleware('permission:document-generator-manage');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $users = User::where('status', 1)->get();
-        return view('backend.document_generator.index', compact('users'));
+        $histories = DocumentHistory::with('user')->latest()->paginate(20);
+        
+        return view('backend.document_generator.index', compact('users', 'histories'));
     }
 
     public function generate(Request $request)
@@ -38,13 +41,49 @@ class DocumentGeneratorController extends Controller
         $content = $request->input('content');
         $title = $request->input('title');
         
+        $emailSubject = $request->input('email_subject', $title);
+        $emailSalutation = $request->input('email_salutation', 'Dear [USER_NAME]');
+        $emailContent = $request->input('email_content', '');
+
+        // Parsing function
+        $parseVars = function($text) use ($user) {
+            if (!$user) return $text;
+            
+            $text = str_replace('[USER_NAME]', $user->full_name, $text);
+            $text = str_replace('[USER_ADDRESS]', $user->address ?? 'NO ADDRESS ON FILE', $text);
+            
+            // Checking
+            $text = str_replace('[CHECKING_ACCOUNT]', $user->account_number ?? 'N/A', $text);
+            $text = str_replace('[CHECKING_BALANCE]', setting('currency_symbol', 'global') . number_format($user->balance, 2), $text);
+            
+            // Savings
+            $text = str_replace('[SAVINGS_ACCOUNT]', $user->savings_account_number ?? 'N/A', $text);
+            $text = str_replace('[SAVINGS_BALANCE]', setting('currency_symbol', 'global') . number_format($user->savings_balance, 2), $text);
+            
+            // IRA
+            $text = str_replace('[IRA_ACCOUNT]', $user->ira_account_number ?? 'N/A', $text);
+            $text = str_replace('[IRA_BALANCE]', setting('currency_symbol', 'global') . number_format($user->ira_balance, 2), $text);
+            
+            // HELOC
+            $text = str_replace('[HELOC_ACCOUNT]', $user->heloc_account_number ?? 'N/A', $text);
+            $text = str_replace('[HELOC_BALANCE]', setting('currency_symbol', 'global') . number_format($user->heloc_balance, 2), $text);
+            
+            // CC
+            $text = str_replace('[CC_ACCOUNT]', $user->cc_account_number ?? 'N/A', $text);
+            $text = str_replace('[CC_BALANCE]', setting('currency_symbol', 'global') . number_format($user->cc_balance, 2), $text);
+            
+            // Loan
+            $text = str_replace('[LOAN_ACCOUNT]', $user->loan_account_number ?? 'N/A', $text);
+            $text = str_replace('[LOAN_BALANCE]', setting('currency_symbol', 'global') . number_format($user->loan_balance, 2), $text);
+            
+            return $text;
+        };
+
         // Replace dynamic variables if user is selected
-        if ($user) {
-            $content = str_replace('[USER_NAME]', $user->full_name, $content);
-            $content = str_replace('[USER_ADDRESS]', $user->address ?? 'NO ADDRESS ON FILE', $content);
-            $content = str_replace('[USER_ACCOUNT_NUMBER]', $user->account_number ?? '', $content);
-            $content = str_replace('[USER_BALANCE]', setting('currency_symbol', 'global') . number_format($user->balance, 2), $content);
-        }
+        $parsedContent = $parseVars($content);
+        $parsedSubject = $parseVars($emailSubject);
+        $parsedSalutation = $parseVars($emailSalutation);
+        $parsedEmailContent = $parseVars($emailContent);
 
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
@@ -58,32 +97,35 @@ class DocumentGeneratorController extends Controller
             \Log::error("Document PDF Logo Fetch Error: " . $e->getMessage());
         }
 
-        $pdf = Pdf::loadView('backend.document_generator.pdf', compact('title', 'content', 'user', 'logoBase64'));
+        $pdf = Pdf::loadView('backend.document_generator.pdf', [
+            'title' => $title,
+            'content' => $parsedContent,
+            'user' => $user,
+            'logoBase64' => $logoBase64
+        ]);
         
         $filename = 'Document_' . \Str::slug($title) . '_' . now()->format('YmdHis') . '.pdf';
 
         if ($request->input('action') === 'preview') {
             return $pdf->stream($filename);
         }
+        
+        // Save to History (if generating or sending, not previewing)
+        DocumentHistory::create([
+            'user_id' => $user ? $user->id : null,
+            'title' => $title,
+            'content' => $content, // Save raw content so it acts as template
+            'email_subject' => $emailSubject,
+            'email_salutation' => $emailSalutation,
+            'email_content' => $emailContent,
+        ]);
 
         if ($request->input('action') === 'send_email' && $user && $request->has('send_email')) {
-            $emailSubject = $request->input('email_subject', $title);
-            $emailSalutation = $request->input('email_salutation', 'Dear ' . $user->full_name);
-            $emailContent = $request->input('email_content', 'Please find the attached document.');
-
-            // Parse variables for email fields as well
-            $emailSubject = str_replace('[USER_NAME]', $user->full_name, $emailSubject);
-            $emailSalutation = str_replace('[USER_NAME]', $user->full_name, $emailSalutation);
-            $emailContent = str_replace('[USER_NAME]', $user->full_name, $emailContent);
-            $emailContent = str_replace('[USER_ADDRESS]', $user->address ?? 'NO ADDRESS ON FILE', $emailContent);
-            $emailContent = str_replace('[USER_ACCOUNT_NUMBER]', $user->account_number ?? '', $emailContent);
-            $emailContent = str_replace('[USER_BALANCE]', setting('currency_symbol', 'global') . number_format($user->balance, 2), $emailContent);
-
             $details = [
-                'subject' => $emailSubject,
+                'subject' => $parsedSubject,
                 'title' => $title,
-                'salutation' => $emailSalutation,
-                'message_body' => $emailContent,
+                'salutation' => $parsedSalutation,
+                'message_body' => $parsedEmailContent,
                 'button_level' => 'Go to Dashboard',
                 'button_link' => route('user.dashboard'),
                 'footer_status' => 1,

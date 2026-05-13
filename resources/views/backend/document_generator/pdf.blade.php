@@ -69,11 +69,38 @@
             color: #718096;
             font-weight: bold;
         }
+        .meta-grid {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .meta-box {
+            width: 48%;
+            vertical-align: top;
+        }
+        .section-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: #00549b;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 4px;
+        }
+        .meta-content {
+            font-size: 11px;
+            color: #1a202c;
+        }
         .document-content {
             font-size: 14px;
             color: #1a202c;
             line-height: 1.6;
+            margin-top: 20px;
         }
+        .document-content p { margin: 0 0 10px 0; }
+        .document-content strong, .document-content b { font-weight: bold; }
+        .document-content i, .document-content em { font-style: italic; }
+        .document-content u { text-decoration: underline; }
+        .document-content ul, .document-content ol { margin-top: 0; padding-left: 20px; }
         .footer-notice {
             position: fixed;
             bottom: 40px;
@@ -115,6 +142,29 @@
         <h1>{{ $title }}</h1>
         <p>DATE: {{ strtoupper(now()->format('M d, Y')) }}</p>
     </div>
+
+    @if($user)
+    <table class="meta-grid">
+        <tr>
+            <td class="meta-box">
+                <div class="section-title">Member Information</div>
+                <div class="meta-content">
+                    <strong style="font-size: 13px;">{{ strtoupper($user->full_name) }}</strong><br>
+                    {{ $user->address ?: 'NO ADDRESS ON FILE' }}<br>
+                    {{ $user->city ?: '' }} {{ $user->zip_code ?: '' }}
+                </div>
+            </td>
+            <td class="meta-box" style="padding-left: 4%;">
+                <div class="section-title">Account Details</div>
+                <div class="meta-content">
+                    <strong>Main Account:</strong> {{ $user->account_number ?: 'N/A' }}<br>
+                    <strong>Email:</strong> {{ $user->email ?: 'N/A' }}<br>
+                    <strong>Phone:</strong> {{ $user->phone ?: 'N/A' }}
+                </div>
+            </td>
+        </tr>
+    </table>
+    @endif
 
     <div class="document-content">
         {!! $content !!}
