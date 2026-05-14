@@ -91,16 +91,18 @@
             color: #1a202c;
         }
         .document-content {
+            font-family: 'Helvetica', 'Arial', sans-serif;
             font-size: 14px;
             color: #1a202c;
             line-height: 1.6;
             margin-top: 20px;
         }
-        .document-content p { margin: 0 0 10px 0; }
-        .document-content strong, .document-content b { font-weight: bold; }
-        .document-content i, .document-content em { font-style: italic; }
-        .document-content u { text-decoration: underline; }
-        .document-content ul, .document-content ol { margin-top: 0; padding-left: 20px; }
+        .document-content p { margin: 0 0 15px 0 !important; }
+        .document-content strong, .document-content b { font-weight: bold !important; }
+        .document-content i, .document-content em { font-style: italic !important; }
+        .document-content u { text-decoration: underline !important; }
+        .document-content ul, .document-content ol { margin-top: 0 !important; padding-left: 20px !important; }
+        .document-content h1, .document-content h2, .document-content h3, .document-content h4 { margin: 15px 0 10px 0 !important; font-weight: bold !important; }
         .footer-notice {
             position: fixed;
             bottom: 40px;

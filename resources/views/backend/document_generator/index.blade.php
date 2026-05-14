@@ -50,20 +50,20 @@
                                             <div class="alert alert-info">
                                                 <strong>{{ __('Available Variables (if customer is selected):') }}</strong><br>
                                                 <div class="mt-2 mb-2 d-flex gap-2 flex-wrap">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote" data-var="[USER_NAME]">[USER_NAME]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote" data-var="[USER_ADDRESS]">[USER_ADDRESS]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote" data-var="[CHECKING_ACCOUNT]">[CHECKING_ACCOUNT]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote" data-var="[CHECKING_BALANCE]">[CHECKING_BALANCE]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote" data-var="[SAVINGS_ACCOUNT]">[SAVINGS_ACCOUNT]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote" data-var="[SAVINGS_BALANCE]">[SAVINGS_BALANCE]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote" data-var="[IRA_ACCOUNT]">[IRA_ACCOUNT]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote" data-var="[IRA_BALANCE]">[IRA_BALANCE]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote" data-var="[LOAN_ACCOUNT]">[LOAN_ACCOUNT]</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote" data-var="[LOAN_BALANCE]">[LOAN_BALANCE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-main" data-var="[USER_NAME]">[USER_NAME]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-main" data-var="[USER_ADDRESS]">[USER_ADDRESS]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-main" data-var="[CHECKING_ACCOUNT]">[CHECKING_ACCOUNT]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-main" data-var="[CHECKING_BALANCE]">[CHECKING_BALANCE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-main" data-var="[SAVINGS_ACCOUNT]">[SAVINGS_ACCOUNT]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-main" data-var="[SAVINGS_BALANCE]">[SAVINGS_BALANCE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-main" data-var="[IRA_ACCOUNT]">[IRA_ACCOUNT]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-main" data-var="[IRA_BALANCE]">[IRA_BALANCE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-main" data-var="[LOAN_ACCOUNT]">[LOAN_ACCOUNT]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-main" data-var="[LOAN_BALANCE]">[LOAN_BALANCE]</button>
                                                 </div>
                                                 <small>{{ __('Tip: You can use the "Code View" button (</>) in the editor toolbar to paste raw HTML.') }}</small>
                                             </div>
-                                            <textarea class="form-control summernote" name="content" id="content" rows="15" required></textarea>
+                                            <textarea class="form-control summernote-main" name="content" id="content" rows="15" required></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -88,6 +88,18 @@
                                         <div class="input-box">
                                             <label for="email_salutation">{{ __('Email Salutation') }}</label>
                                             <input type="text" class="form-control" name="email_salutation" id="email_salutation" placeholder="e.g., Dear [USER_NAME]">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 mt-3">
+                                        <div class="input-box">
+                                            <label for="email_cc">{{ __('CC (Optional, comma separated)') }}</label>
+                                            <input type="text" class="form-control" name="email_cc" id="email_cc" placeholder="e.g., manager@example.com">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-6 mt-3">
+                                        <div class="input-box">
+                                            <label for="email_bcc">{{ __('BCC (Optional, comma separated)') }}</label>
+                                            <input type="text" class="form-control" name="email_bcc" id="email_bcc" placeholder="e.g., archive@example.com">
                                         </div>
                                     </div>
                                     <div class="col-xl-12 mt-3">
@@ -210,7 +222,7 @@
                 ]
             };
 
-            $('.summernote').summernote(summernoteOptions);
+            $('.summernote-main').summernote(summernoteOptions);
             
             var emailSummernoteOptions = Object.assign({}, summernoteOptions);
             emailSummernoteOptions.height = 200;
@@ -251,7 +263,7 @@
                 var emailContent = atob($(this).data('email-content'));
 
                 $('#title').val(title);
-                $('.summernote').summernote('code', content);
+                $('.summernote-main').summernote('code', content);
                 
                 if (emailSubject || emailSalutation || emailContent) {
                     $('#sendEmailCheckbox').prop('checked', true).trigger('change');
