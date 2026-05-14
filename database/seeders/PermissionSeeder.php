@@ -196,6 +196,7 @@ class PermissionSeeder extends Seeder
             ['category' => 'Customer Management', 'name' => 'subscribe-user-dps'],
             ['category' => 'Customer Management', 'name' => 'subscribe-user-fdr'],
             ['category' => 'Customer Management', 'name' => 'subscribe-user-loan'],
+            ['category' => 'Customer Management', 'name' => 'document-generator-manage'],
         ];
 
         foreach ($permissions as $permission) {

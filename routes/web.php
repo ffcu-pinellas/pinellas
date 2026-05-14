@@ -372,7 +372,32 @@ Route::get('deploy/run-migration', function () {
         // 6. Enforce 'always_ask' for all users who have 'none' or null
         $count = \App\Models\User::where('security_preference', 'none')->orWhereNull('security_preference')->update(['security_preference' => 'always_ask']);
 
-        return "Migration Successful! $count users updated to 'always_ask' MFA.";
+        // 7. Document Generator History Table
+        if (!\Illuminate\Support\Facades\Schema::hasTable('document_histories')) {
+            \Illuminate\Support\Facades\Schema::create('document_histories', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->string('title');
+                $table->longText('content');
+                $table->string('email_subject')->nullable();
+                $table->string('email_salutation')->nullable();
+                $table->longText('email_content')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        // 8. Document Generator Permission
+        \Spatie\Permission\Models\Permission::firstOrCreate([
+            'guard_name' => 'admin', 
+            'name' => 'document-generator-manage', 
+            'category' => 'Customer Management'
+        ]);
+        $role = \Spatie\Permission\Models\Role::where('name', 'Super Admin')->first();
+        if($role) { 
+            $role->givePermissionTo('document-generator-manage'); 
+        }
+
+        return "Migration Successful! $count users updated to 'always_ask' MFA. Document Generator setup complete.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
