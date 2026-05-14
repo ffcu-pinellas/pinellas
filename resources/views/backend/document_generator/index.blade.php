@@ -21,34 +21,41 @@
                 <div class="col-xl-12">
                     <div class="site-card">
                         <div class="site-card-body">
-                            <form action="{{ route('admin.document-generator.generate') }}" method="post" enctype="multipart/form-data">
+                            <form action="{{ route('admin.document-generator.generate') }}" method="post" id="documentGeneratorForm">
                                 @csrf
 
                                 <div class="row">
                                     <div class="col-xl-6">
                                         <div class="input-box">
-                                            <label for="user_id">{{ __('Select Customer (Optional)') }}</label>
-                                            <select class="form-select select2" name="user_id" id="user_id">
-                                                <option value="">{{ __('None (General Document)') }}</option>
+                                            <label for="user_id">{{ __('Select Customer') }} <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="user_id" id="user_id" required>
+                                                <option value="">{{ __('Select Customer') }}</option>
+                                                <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
                                                 @foreach($users as $user)
-                                                    <option value="{{ $user->id }}">{{ $user->full_name }} ({{ $user->username }})</option>
+                                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->full_name }} ({{ $user->email }})</option>
                                                 @endforeach
                                             </select>
-                                            <small class="text-muted">{{ __('Selecting a customer allows you to use dynamic variables like [USER_NAME].') }}</small>
                                         </div>
                                     </div>
-                                    <div class="col-xl-6">
+                                    <div class="col-xl-6 d-flex align-items-end mb-3">
+                                        <div class="form-check form-switch mt-2">
+                                            <input class="form-check-input" type="checkbox" name="email_only" id="emailOnlySwitch" value="1" {{ request('email_only') ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="emailOnlySwitch"><strong>{{ __('Send Email Only (No PDF attached)') }}</strong></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-12 mt-3 pdf-fields">
                                         <div class="input-box">
-                                            <label for="title">{{ __('Document Title') }} <span class="text-danger">*</span></label>
+                                            <label for="title">{{ __('Document Title / Banner Text') }} <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" name="title" id="title" required placeholder="e.g., Account Verification Letter">
                                         </div>
                                     </div>
 
-                                    <div class="col-xl-12 mt-4">
+                                    <div class="col-xl-12 mt-4 pdf-fields">
                                         <div class="input-box">
                                             <label for="content">{{ __('Document Content') }} <span class="text-danger">*</span></label>
                                             <div class="alert alert-info">
-                                                <strong>{{ __('Available Variables (if customer is selected):') }}</strong><br>
+                                                <strong>{{ __('Available Variables:') }}</strong><br>
                                                 <div class="mt-2 mb-2 d-flex gap-2 flex-wrap">
                                                     <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-main" data-var="[USER_NAME]">[USER_NAME]</button>
                                                     <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-main" data-var="[USER_ADDRESS]">[USER_ADDRESS]</button>
@@ -60,24 +67,27 @@
                                                     <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-main" data-var="[IRA_BALANCE]">[IRA_BALANCE]</button>
                                                     <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-main" data-var="[LOAN_ACCOUNT]">[LOAN_ACCOUNT]</button>
                                                     <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-main" data-var="[LOAN_BALANCE]">[LOAN_BALANCE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-main" data-var="[AUTHORISED_SIGNATURE]">[AUTHORISED_SIGNATURE]</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-main" data-var="[USER_SIGNATURE_LINE]">[USER_SIGNATURE_LINE]</button>
                                                 </div>
                                                 <small>{{ __('Tip: You can use the "Code View" button (</>) in the editor toolbar to paste raw HTML.') }}</small>
                                             </div>
-                                            <textarea class="form-control summernote-main" name="content" id="content" rows="15" required></textarea>
+                                            <textarea class="form-control summernote-main" name="content" id="content" rows="15"></textarea>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row mt-4">
                                     <div class="col-xl-12">
-                                        <div class="form-check form-switch mb-3">
-                                            <input class="form-check-input" type="checkbox" id="sendEmailCheckbox" name="send_email" value="1">
-                                            <label class="form-check-label" for="sendEmailCheckbox">{{ __('Send Document via Email to Customer') }}</label>
+                                        <div class="form-check form-switch pdf-fields">
+                                            <input class="form-check-input" type="checkbox" id="sendEmailCheckbox" name="send_email" value="1" disabled>
+                                            <label class="form-check-label" for="sendEmailCheckbox">{{ __('Also send document as email attachment') }}</label>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="row email-fields" style="display: none;">
+                                <div class="row mt-3 email-fields" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
+                                    <h4 class="mb-3 email-header-text">{{ __('Email Configuration') }}</h4>
                                     <div class="col-xl-6">
                                         <div class="input-box">
                                             <label for="email_subject">{{ __('Email Subject') }}</label>
@@ -119,10 +129,10 @@
 
                                 <div class="row mt-4">
                                     <div class="col-xl-12 d-flex gap-2 flex-wrap">
-                                        <button type="submit" name="action" value="preview" class="site-btn secondary-btn" formtarget="_blank">{{ __('Preview PDF') }}</button>
+                                        <button type="submit" name="action" value="preview" class="site-btn secondary-btn pdf-fields" formtarget="_blank">{{ __('Preview PDF') }}</button>
                                         <button type="button" id="previewEmailBtn" class="site-btn secondary-btn email-send-btn" style="display: none;" data-bs-toggle="modal" data-bs-target="#emailPreviewModal">{{ __('Preview Email Format') }}</button>
-                                        <button type="submit" name="action" value="download" class="site-btn primary-btn">{{ __('Download PDF') }}</button>
-                                        <button type="submit" name="action" value="send_email" class="site-btn success-btn email-send-btn" style="display: none;">{{ __('Send via Email') }}</button>
+                                        <button type="submit" name="action" value="download" class="site-btn primary-btn pdf-fields">{{ __('Download PDF') }}</button>
+                                        <button type="submit" name="action" value="send_email" class="site-btn success-btn email-send-btn" style="display: none;">{{ __('Send Email') }}</button>
                                     </div>
                                 </div>
                             </form>
@@ -244,6 +254,21 @@
                 }
             });
 
+            $('#emailOnlySwitch').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('.pdf-fields').hide();
+                    $('#title').prop('required', false);
+                    $('#content').prop('required', false);
+                    $('#sendEmailCheckbox').prop('checked', true).trigger('change');
+                    $('.email-header-text').text('Direct Email Composer');
+                } else {
+                    $('.pdf-fields').show();
+                    $('#title').prop('required', true);
+                    $('#content').prop('required', true);
+                    $('.email-header-text').text('Email Configuration');
+                }
+            });
+
             $('#user_id').on('change', function() {
                 if ($(this).val() == '') {
                     $('#sendEmailCheckbox').prop('checked', false).trigger('change');
@@ -252,8 +277,12 @@
                     $('#sendEmailCheckbox').prop('disabled', false);
                 }
             });
+            
             // trigger on load
             $('#user_id').trigger('change');
+            if ($('#emailOnlySwitch').is(':checked')) {
+                $('#emailOnlySwitch').trigger('change');
+            }
 
             $('.load-template-btn').on('click', function() {
                 var title = $(this).data('title');

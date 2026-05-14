@@ -47,9 +47,8 @@
                 __('Notifications') }}</a>
                             </li>
                             @can('customer-mail-send')
-                                <li class="{{ isActive('admin.user.mail-send.all') }}">
-                                    <a href="{{ route('admin.user.mail-send.all') }}"><i data-lucide="send"></i>{{ __('Send Email to
-                                        all') }}</a>
+                                <li class="{{ isActive('admin.document-generator.index') }}">
+                                    <a href="{{ route('admin.document-generator.index') }}?user_id=all&email_only=1"><i data-lucide="send"></i>{{ __('Send Email to all') }}</a>
                                 </li>
                             @endcan
 

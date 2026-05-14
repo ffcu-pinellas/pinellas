@@ -1,10 +1,5 @@
 @can('customer-mail-send')
-    <span type="button"
-          data-id="{{$user->id}}"
-          data-name="{{ $user->first_name.' '. $user->last_name }}"
-          class="send-mail"
-    ><button class="round-icon-btn blue-btn" data-bs-toggle="tooltip" title="Send Email"
-             data-bs-original-title="Send Email"><i data-lucide="mail"></i></button></span>
+    <a href="{{ route('admin.document-generator.index') }}?user_id={{ $user->id }}&email_only=1" class="round-icon-btn blue-btn" data-bs-toggle="tooltip" title="Send Email" data-bs-original-title="Send Email"><i data-lucide="mail"></i></a>
 @endcan
 @canany(['customer-basic-manage','customer-balance-add-or-subtract','customer-change-password','all-type-status'])
     <a href="{{route('admin.user.edit',$user->id)}}" class="round-icon-btn primary-btn" data-bs-toggle="tooltip"
