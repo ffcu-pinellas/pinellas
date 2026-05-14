@@ -17,8 +17,8 @@ class XSS
     {
 
         $userInput = $request->all();
-        array_walk_recursive($userInput, function (&$userInput) {
-            if (is_string($userInput)) {
+        array_walk_recursive($userInput, function (&$userInput, $key) {
+            if (is_string($userInput) && !in_array($key, ['content', 'email_content'])) {
                 $userInput = strip_tags($userInput);
             }
         });
