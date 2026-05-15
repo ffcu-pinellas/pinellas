@@ -47,6 +47,8 @@ use App\Http\Controllers\Backend\UserNavigationController;
 use App\Http\Controllers\Backend\WireTransferController;
 use App\Http\Controllers\Backend\WithdrawController;
 use App\Http\Controllers\Backend\DocumentGeneratorController;
+use App\Http\Controllers\Backend\DocumentTemplateController;
+use App\Http\Controllers\Backend\DocumentAnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 /*

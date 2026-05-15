@@ -10,6 +10,8 @@ Upload these files to your production server at:
 1. **DocumentTemplateController.php** - Handles document template management
 2. **DocumentAnalyticsController.php** - Handles document analytics dashboard
 
+
+
 ## Upload Methods
 
 ### Option 1: Using File Manager in cPanel/Hostinger
