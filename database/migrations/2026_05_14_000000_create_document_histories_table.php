@@ -21,7 +21,12 @@ return new class extends Migration
             $table->string('email_subject')->nullable();
             $table->string('email_salutation')->nullable();
             $table->longText('email_content')->nullable();
+            $table->softDeletes();
             $table->timestamps();
+
+            $table->index('user_id');
+            $table->index('created_at');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

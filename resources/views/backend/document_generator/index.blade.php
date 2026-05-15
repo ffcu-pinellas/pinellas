@@ -30,7 +30,9 @@
                                             <label for="user_id">{{ __('Select Customer') }} <span class="text-danger">*</span></label>
                                             <select class="form-select" name="user_id" id="user_id" required>
                                                 <option value="">{{ __('Select Customer') }}</option>
-                                                <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
+                                                @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
+                                                    <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
+                                                @endif
                                                 @foreach($users as $user)
                                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->full_name }} ({{ $user->email }})</option>
                                                 @endforeach

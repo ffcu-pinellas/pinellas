@@ -94,11 +94,6 @@
                             <td colspan="8" class="text-center">{{ __('No Data Found!') }}</td>
                             @endforelse
                             </tbody>
-                            <!-- Modal for Send Mail -->
-                            @can('customer-mail-send')
-                                @include('backend.user.include.__mail_send')
-                            @endcan
-                            <!-- Modal for Send Mail End-->
                         </table>
 
                         {{ $users->links('backend.include.__pagination') }}

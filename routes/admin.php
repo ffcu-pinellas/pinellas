@@ -101,6 +101,22 @@ Route::group(['prefix' => 'document-generator', 'as' => 'document-generator.', '
     Route::post('/generate', 'generate')->name('generate');
 });
 
+// ===============================  Document Templates ==================================
+Route::group(['prefix' => 'document-template', 'as' => 'document-template.', 'controller' => DocumentTemplateController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/edit/{template}', 'edit')->name('edit');
+    Route::put('/{template}', 'update')->name('update');
+    Route::delete('/{template}', 'destroy')->name('destroy');
+    Route::post('/load', 'loadTemplate')->name('load');
+});
+
+// ===============================  Document Analytics ==================================
+Route::group(['prefix' => 'document-analytics', 'as' => 'document-analytics.', 'controller' => DocumentAnalyticsController::class], function () {
+    Route::get('/', 'index')->name('index');
+});
+
 // ===============================  Branch Management ==================================
 Route::resource('branch', BranchController::class)->except('show');
 Route::resource('branch-staff', BranchStaffController::class)->except('show');

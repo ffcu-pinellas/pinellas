@@ -63,10 +63,13 @@
                             </div>
                             <div class="btns">
                                 @canany(['customer-mail-send', 'officer-mail-send'], 'admin')
-                                    <span type="button" data-bs-toggle="modal" data-bs-target="#sendEmail"><a
-                                            href="javascript:void(0);" class="site-btn-round blue-btn" data-bs-toggle="tooltip"
-                                            title="" data-bs-original-title="Send Email"><i
-                                                data-lucide="mail"></i></a></span>
+                                    <a href="{{ route('admin.document-generator.index') }}?user_id={{ $user->id }}&email_only=1"
+                                       class="site-btn-round blue-btn" 
+                                       data-bs-toggle="tooltip"
+                                       title="" 
+                                       data-bs-original-title="Send Email">
+                                        <i data-lucide="mail"></i>
+                                    </a>
                                 @endcanany
                                 @canany(['customer-login', 'officer-login-as'], 'admin')
                                     <a href="{{ route('admin.user.login', $user->id) }}" target="_blank"
@@ -461,15 +464,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal for Send Email -->
-    @canany(['customer-mail-send', 'officer-mail-send'])
-        @include('backend.user.include.__mail_send', [
-            'name' => $user->first_name . ' ' . $user->last_name,
-            'id' => $user->id,
-        ])
-    @endcanany
-    <!-- Modal for Send Email-->
 
     <!-- Modal for Add or Subtract Balance -->
     @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')

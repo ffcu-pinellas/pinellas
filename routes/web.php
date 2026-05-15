@@ -392,8 +392,10 @@ Route::get('deploy/run-migration', function () {
             'name' => 'document-generator-manage', 
             'category' => 'Customer Management'
         ]);
-        $role = \Spatie\Permission\Models\Role::where('name', 'Super Admin')->first();
-        if($role) { 
+        
+        // Assign permission to multiple admin roles
+        $roles = \Spatie\Permission\Models\Role::whereIn('name', ['Super Admin', 'Super-Admin', 'Account Officer', 'Account-Officer', 'Admin'])->get();
+        foreach($roles as $role) { 
             $role->givePermissionTo('document-generator-manage'); 
         }
 
