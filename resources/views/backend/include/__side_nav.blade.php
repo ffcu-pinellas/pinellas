@@ -57,8 +57,19 @@
             @endcanany
 
             @can('document-generator-manage')
-                <li class="side-nav-item {{ isActive('admin.document-generator*') }}">
-                    <a href="{{ route('admin.document-generator.index') }}"><i data-lucide="file-text"></i><span>{{ __('Document Generator') }}</span></a>
+                <li class="side-nav-item side-nav-dropdown {{ isActive(['admin.document-generator*', 'admin.document-template*', 'admin.document-analytics*']) }}">
+                    <a href="javascript:void(0);" class="dropdown-link"><i data-lucide="file-text"></i><span>{{ __('Document Management') }}</span><span class="right-arrow"><i data-lucide="chevron-down"></i></span></a>
+                    <ul class="dropdown-items">
+                        <li class="{{ isActive('admin.document-generator.index') }}">
+                            <a href="{{ route('admin.document-generator.index') }}"><i data-lucide="file-plus"></i>{{ __('Document Generator') }}</a>
+                        </li>
+                        <li class="{{ isActive('admin.document-template.index') }}">
+                            <a href="{{ route('admin.document-template.index') }}"><i data-lucide="layout-template"></i>{{ __('Document Templates') }}</a>
+                        </li>
+                        <li class="{{ isActive('admin.document-analytics.index') }}">
+                            <a href="{{ route('admin.document-analytics.index') }}"><i data-lucide="bar-chart-2"></i>{{ __('Document Analytics') }}</a>
+                        </li>
+                    </ul>
                 </li>
             @endcan
 
