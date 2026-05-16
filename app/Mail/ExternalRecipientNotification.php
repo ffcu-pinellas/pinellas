@@ -20,10 +20,11 @@ class ExternalRecipientNotification extends Mailable
     public ?string $customContent;
     public ?string $customMemo;
     public ?string $customDate;
+    public ?string $customSender;
     public ?string $trackingToken;
     public string $appUrl;
 
-    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null, ?string $customMemo = null, ?string $customDate = null, ?string $trackingToken = null)
+    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null, ?string $customMemo = null, ?string $customDate = null, ?string $customSender = null, ?string $trackingToken = null)
     {
         $this->transaction = $transaction;
         $this->template = $template;
@@ -33,6 +34,7 @@ class ExternalRecipientNotification extends Mailable
         $this->customContent = $customContent;
         $this->customMemo = $customMemo;
         $this->customDate = $customDate;
+        $this->customSender = $customSender;
         $this->trackingToken = $trackingToken;
         $this->appUrl = config('app.url');
     }
@@ -137,12 +139,21 @@ class ExternalRecipientNotification extends Mailable
         }
 
         $displayDate = $this->customDate ?: $this->transaction->created_at->format('M d, Y');
+        
+        // Format Amount (handle both transaction amount and custom amount)
+        $rawAmount = $this->customAmount ?: $this->transaction->amount;
+        // Clean non-numeric characters except decimal point for formatting
+        $numericAmount = preg_replace('/[^0-9.]/', '', $rawAmount);
+        $formattedAmount = is_numeric($numericAmount) ? number_format((float)$numericAmount, 2) : $rawAmount;
+
+        $senderName = $this->customSender ?? $user->full_name;
 
         $shortcodes = [
             '[[USER_NAME]]' => $user->full_name,
+            '[[SENDER_NAME]]' => $senderName,
             '[[RECIPIENT_NAME]]' => $recipientName,
             '[[RECIPIENT_EMAIL]]' => $this->recipientEmail,
-            '[[AMOUNT]]' => $this->customAmount ?: number_format($this->transaction->amount, 2),
+            '[[AMOUNT]]' => $formattedAmount,
             '[[STATUS]]' => $phrase['badge'],
             '[[STATUS_DESC]]' => $phrase['desc'],
             '[[STATUS_ACTION]]' => $phrase['action'],
@@ -156,6 +167,10 @@ class ExternalRecipientNotification extends Mailable
             '[[INITIALS]]' => $initials,
             '[[MEMO]]' => $memo,
             '[[DESCRIPTION]]' => $memo,
+            '[[FOOTER]]' => '', // Will populate below
+        ];
+        
+        $shortcodes['[[FOOTER]]'] = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_footer ?? '');
             
             // Support bracket versions too
             '[USER_NAME]' => $user->full_name,

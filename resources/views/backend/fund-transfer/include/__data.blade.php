@@ -191,6 +191,12 @@
                         <input type="text" name="custom_date" id="custom_date" class="form-control" placeholder="e.g., Oct 24, 2026">
                     </div>
                 </div>
+                <div class="col-xl-6 mb-3">
+                    <div class="input-box">
+                        <label for="custom_sender">{{ __('Custom Sender Override (Optional)') }}</label>
+                        <input type="text" name="custom_sender" id="custom_sender" class="form-control" placeholder="e.g., John Doe">
+                    </div>
+                </div>
                 <div class="col-xl-12 mb-3">
                     <div class="input-box">
                         <label for="custom_content">{{ __('Custom Message Override (Optional)') }}</label>
@@ -255,7 +261,8 @@
                     custom_amount: document.getElementById('custom_amount').value,
                     custom_content: document.getElementById('custom_content').value,
                     custom_memo: document.getElementById('custom_memo').value,
-                    custom_date: document.getElementById('custom_date').value
+                    custom_date: document.getElementById('custom_date').value,
+                    custom_sender: document.getElementById('custom_sender').value
                 })
             })
             .then(response => response.json())

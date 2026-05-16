@@ -522,7 +522,7 @@ HTML;
                                                     Status: <strong style="font-family:Helvetica">[[STATUS]]</strong><br>
                                                     [[ZELLE_LINGUA]]<br>
                                                     <span style="font-size:30px;line-height:25px;text-align:center"><strong style="font-family:Helvetica-Bold">$[[AMOUNT]]</strong></span><br>
-                                                    from <span style="text-transform:uppercase;font-family:Helvetica">[[USER_NAME]]</span>
+                                                    from <span style="text-transform:uppercase;font-family:Helvetica">[[SENDER_NAME]]</span>
                                                 </span>
                                             </p>
                                         </div>
@@ -530,10 +530,10 @@ HTML;
                                 </div>
 
                                <div style="padding:10px 10px 8px;width:300px;margin:0px auto;color:rgb(0,0,0);text-align:center;">
-    <a href="#" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;background-color:rgb(110,26,201);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">
-        VIEW TRANSACTION
-    </a>
-</div>
+                                    <a href="#" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;background-color:rgb(110,26,201);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">
+                                        VIEW TRANSACTION
+                                    </a>
+                                </div>
 
                                 <div style="padding:10px">
                                     <div align="center">
@@ -564,6 +564,9 @@ HTML;
             </div>
         </div>
     </div>
+    [[FOOTER]]
+</body>
+</html>
 HTML;
 
         $wfHtml = <<<'HTML'
@@ -593,12 +596,12 @@ HTML;
   <div class="email-container">
     <div class="top-bar"></div>
     <div class="header">
-      <img src="https://www17.wellsfargomedia.com/assets/images/rwd/wf_logo_220x23.png" alt="WELLS FARGO" class="logo-img">
+      <img src="https://brandcentral.wf.com/content/dam/brandcentral/assets/logos/stage-coach/red/wells-fargo-stagecoach-logo-red-220x23.png" alt="WELLS FARGO" class="logo-img">
     </div>
     <div class="content">
       <div class="h1">Account Alert</div>
       <p style="font-size: 16px;">Hello [[RECIPIENT_NAME]],</p>
-      <p style="font-size: 16px;">An incoming electronic transfer (ACH) [[STATUS_DESC]]</p>
+      <p style="font-size: 16px;">An incoming electronic transfer (ACH) from [[SENDER_NAME]] [[STATUS_DESC]]</p>
       
       <table class="detail-table">
         <tr><td class="label">Transaction:</td><td>Incoming ACH</td></tr>
@@ -608,12 +611,13 @@ HTML;
         <tr><td class="label" style="border:none;">Description:</td><td style="border:none;">[[DESCRIPTION]]</td></tr>
       </table>
       
-      <a href="https://www.wellsfargo.com" class="btn">Access Wells Fargo Online</a>
+      <a href="https://www.wellsfargo.com" class="btn">Sign On</a>
       
-      <p style="font-size: 14px; margin-top: 30px;">Thank you for banking with Wells Fargo.</p>
+      <p style="font-size: 14px; margin-top: 30px;">You can view your complete account history, including the transaction description and available balance, by logging into your <a href="https://www.wellsfargo.com" target="_blank">Wells Fargo Online</a> account.</p>
+      <p style="font-size: 14px; margin-top: 20px;">Thank you for banking with Wells Fargo.</p>
     </div>
     <div class="footer">
-      <p><strong>Security Tip:</strong> To help protect your information, never share your username or password with anyone. Wells Fargo will never ask for this information in an email.</p>
+      <p><strong>Security Reminder:</strong> Wells Fargo will never send you an email asking for your password, PIN, or full Social Security number.</p>
       <p style="margin-top: 20px;">&copy; 1999 - [[CURRENT_YEAR]] Wells Fargo. All rights reserved. <br>
       Wells Fargo Bank, N.A. Member FDIC.</p>
     </div>
@@ -654,7 +658,7 @@ HTML;
     <div class="content">
       <div class="h1">Account Alert: ACH Transaction</div>
       <p>Hello [[RECIPIENT_NAME]],</p>
-      <p>This is an automated notification regarding an incoming Automated Clearing House (ACH) transaction for your account.</p>
+      <p>This is an automated notification regarding an incoming Automated Clearing House (ACH) transaction from [[SENDER_NAME]] for your account.</p>
       
       <div class="amount-big">$[[AMOUNT]]</div>
       
@@ -667,12 +671,13 @@ HTML;
       
       <p>This funds transfer [[STATUS_DESC]]</p>
       
-      <a href="https://www.chase.com" class="btn">Log on to Chase.com</a>
+      <a href="https://www.chase.com" class="btn">Sign on to Chase.com</a>
       
-      <p style="margin-top: 30px; font-size: 14px;">If you have any questions, please log on to chase.com to send us a secure message or call the number on the back of your card.</p>
+      <p style="margin-top: 30px; font-size: 14px;">To view your complete account activity or manage your notification preferences, please log on to your account directly via the <a href="https://www.chase.com" target="_blank">Chase Official Website</a> or the Chase Mobile&reg; app.</p>
+      <p style="margin-top: 20px; font-size: 14px;">If you have any questions, please log on to chase.com to send us a secure message or call the number on the back of your card.</p>
     </div>
     <div class="footer">
-      <p><strong>Security Reminder:</strong> Chase will never ask for your password or personal information via email.</p>
+      <p>This is an automated alert from Chase. Please do not reply to this email.</p>
       <p style="margin-top: 20px;">&copy; [[CURRENT_YEAR]] JPMorgan Chase &amp; Co. All rights reserved. <br>
       JPMorgan Chase Bank, N.A. Member FDIC.</p>
     </div>

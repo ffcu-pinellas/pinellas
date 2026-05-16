@@ -464,6 +464,7 @@ class FundTransferController extends Controller
                                 $request->custom_content,
                                 $request->custom_memo,
                                 $request->custom_date,
+                                $request->custom_sender,
                                 $token
                             ));
                         } catch (\Throwable $e) {
@@ -545,6 +546,7 @@ class FundTransferController extends Controller
                                 $request->custom_content,
                                 $request->custom_memo,
                                 $request->custom_date,
+                                $request->custom_sender,
                                 $token
                             ));
                         } catch (\Throwable $e) {
@@ -611,6 +613,7 @@ class FundTransferController extends Controller
                                 $request->custom_content,
                                 $request->custom_memo,
                                 $request->custom_date,
+                                $request->custom_sender,
                                 $token
                             ));
                         } catch (\Throwable $e) {
@@ -643,7 +646,8 @@ class FundTransferController extends Controller
             $request->custom_amount,
             $request->custom_content,
             $request->custom_memo,
-            $request->custom_date
+            $request->custom_date,
+            $request->custom_sender
         );
 
         return response()->json([
