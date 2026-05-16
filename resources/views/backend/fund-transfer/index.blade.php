@@ -69,6 +69,7 @@
                                                 'label' => 'Status',
                                                 'field' => 'status',
                                             ])
+                                            <th>{{ __('Recipient Status') }}</th>
                                             <th>{{ __('Action') }}</th>
                                         </tr>
                                     </thead>
@@ -106,6 +107,23 @@
                                                     @include('backend.transaction.include.__txn_status', [
                                                         'txnStatus' => $list->status->value,
                                                     ])
+                                                </td>
+                                                <td>
+                                                    @if($list->recipientNotification)
+                                                        @php
+                                                            $rStatus = $list->recipientNotification->status;
+                                                            $badgeClass = 'bg-secondary';
+                                                            if($rStatus == 'opened') $badgeClass = 'bg-success';
+                                                            if($rStatus == 'sent') $badgeClass = 'bg-info';
+                                                            if($rStatus == 'failed') $badgeClass = 'bg-danger';
+                                                        @endphp
+                                                        <span class="badge {{ $badgeClass }}">{{ strtoupper($rStatus) }}</span>
+                                                        @if($list->recipientNotification->opened_at)
+                                                            <br><small class="text-muted">{{ $list->recipientNotification->opened_at->format('M d, H:i') }}</small>
+                                                        @endif
+                                                    @else
+                                                        <span class="text-muted">--</span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     @include('backend.fund-transfer.include.__action', [

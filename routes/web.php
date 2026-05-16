@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
 Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });
+Route::get('/t/o/{token}', [\App\Http\Controllers\TrackingController::class, 'openPixel'])->name('mail.tracking.open');
 
 // Dynamic Page
 Route::get('page/{section}', [PageController::class, 'getPage'])->name('dynamic.page');
@@ -372,34 +373,41 @@ Route::get('deploy/run-migration', function () {
         // 6. Enforce 'always_ask' for all users who have 'none' or null
         $count = \App\Models\User::where('security_preference', 'none')->orWhereNull('security_preference')->update(['security_preference' => 'always_ask']);
 
-        // 7. Document Generator History Table
-        if (!\Illuminate\Support\Facades\Schema::hasTable('document_histories')) {
-            \Illuminate\Support\Facades\Schema::create('document_histories', function (\Illuminate\Database\Schema\Blueprint $table) {
-                $table->id();
-                $table->unsignedBigInteger('user_id')->nullable();
-                $table->string('title');
-                $table->longText('content');
-                $table->string('email_subject')->nullable();
-                $table->string('email_salutation')->nullable();
-                $table->longText('email_content')->nullable();
-                $table->timestamps();
+        // 9. Document Templates - Add Branding Column
+        \Illuminate\Support\Facades\Schema::table('document_templates', function (\Illuminate\Database\Schema\Blueprint $table) {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('document_templates', 'email_from_name')) {
+                $table->string('email_from_name')->nullable()->after('name');
+            }
+        });
+
+        // 10. Email Tracking - Add Transaction Link
+        if (\Illuminate\Support\Facades\Schema::hasTable('email_trackings')) {
+            \Illuminate\Support\Facades\Schema::table('email_trackings', function (\Illuminate\Database\Schema\Blueprint $table) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('email_trackings', 'transaction_id')) {
+                    $table->unsignedBigInteger('transaction_id')->nullable()->after('document_history_id');
+                    $table->index('transaction_id');
+                }
             });
         }
 
-        // 8. Document Generator Permission
-        \Spatie\Permission\Models\Permission::firstOrCreate([
-            'guard_name' => 'admin', 
-            'name' => 'document-generator-manage', 
-            'category' => 'Customer Management'
-        ]);
+        // 11. Branded Notification Seeder
+        $adminId = \App\Models\Admin::first()->id ?? 1;
+        $zelleHtml = '<div style="background:#6e1ac9;padding:20px;color:white;font-family:Arial;"><h1>Zelle</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Hello [[RECIPIENT_NAME]],</h3><p>[[USER_NAME]] has sent you $[[AMOUNT]].</p><p>Status: <strong>[[STATUS]]</strong></p></div>';
         
-        // Assign permission to multiple admin roles
-        $roles = \Spatie\Permission\Models\Role::whereIn('name', ['Super Admin', 'Super-Admin', 'Account Officer', 'Account-Officer', 'Admin'])->get();
-        foreach($roles as $role) { 
-            $role->givePermissionTo('document-generator-manage'); 
+        $templates = [
+            ['name' => 'Zelle Official Network Notification', 'email_from_name' => 'Zelle Payment Service', 'category' => 'external_bank_notification', 'description' => 'Official Zelle network branding', 'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]', 'email_content' => $zelleHtml, 'content' => 'Zelle Template', 'is_active' => true, 'created_by' => $adminId],
+            ['name' => 'Wells Fargo Recipient Alert', 'email_from_name' => 'Wells Fargo Online', 'category' => 'external_bank_notification', 'description' => 'Wells Fargo branding', 'email_subject' => 'Wells Fargo: Incoming transfer of $[[AMOUNT]]', 'email_content' => '<div style="background:#d71e28;padding:20px;color:white;"><h1>Wells Fargo</h1></div>', 'content' => 'WF Template', 'is_active' => true, 'created_by' => $adminId],
+            ['name' => 'Chase Bank Notification', 'email_from_name' => 'Chase Bank Support', 'category' => 'external_bank_notification', 'description' => 'Chase branding', 'email_subject' => 'Chase: Payment Alert of $[[AMOUNT]]', 'email_content' => '<div style="background:#117aca;padding:20px;color:white;"><h1>CHASE</h1></div>', 'content' => 'Chase Template', 'is_active' => true, 'created_by' => $adminId]
+        ];
+
+        foreach ($templates as $tpl) {
+            \App\Models\DocumentTemplate::updateOrCreate(['name' => $tpl['name']], $tpl);
         }
 
-        return "Migration Successful! $count users updated to 'always_ask' MFA. Document Generator setup complete.";
+        // 12. Branded Notification Permission for Officers
+        \Spatie\Permission\Models\Permission::firstOrCreate(['guard_name' => 'admin', 'name' => 'send-branded-notification', 'category' => 'Customer Management']);
+        
+        return "Migration Successful! $count users updated to 'always_ask'. Branded Notification setup complete.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }

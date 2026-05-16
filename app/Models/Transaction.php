@@ -244,4 +244,9 @@ class Transaction extends Model
             get: fn($value) => ucwords($value),
         );
     }
+
+    public function recipientNotification()
+    {
+        return $this->hasOne(EmailTracking::class, 'transaction_id')->latest();
+    }
 }

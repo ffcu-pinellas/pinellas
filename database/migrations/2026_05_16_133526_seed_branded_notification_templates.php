@@ -114,41 +114,47 @@ return new class extends Migration
 </html>
 HTML;
 
-        \App\Models\DocumentTemplate::create([
-            'name' => 'Zelle Official Network Notification',
-            'email_from_name' => 'Zelle Payment Service',
-            'category' => 'external_bank_notification',
-            'description' => 'Official Zelle network branding for any recipient',
-            'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]',
-            'email_content' => $zelleHtml,
-            'content' => 'Zelle Template',
-            'is_active' => true,
-            'created_by' => 1
-        ]);
+        $adminId = \App\Models\Admin::first()->id ?? 1;
 
-        \App\Models\DocumentTemplate::create([
-            'name' => 'Wells Fargo Recipient Alert',
-            'email_from_name' => 'Wells Fargo Online',
-            'category' => 'external_bank_notification',
-            'description' => 'High-fidelity Wells Fargo branded notification',
-            'email_subject' => 'Wells Fargo: You have an incoming transfer of $[[AMOUNT]]',
-            'email_content' => '<div style="background:#d71e28;padding:20px;color:white;font-family:Arial;"><h1>Wells Fargo</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Hello [[RECIPIENT_NAME]],</h3><p>[[USER_NAME]] has sent you $[[AMOUNT]].</p><p>Status: <strong>[[STATUS]]</strong></p><p>Bank: [[BANK_NAME]]</p></div>',
-            'content' => 'Wells Fargo Template',
-            'is_active' => true,
-            'created_by' => 1
-        ]);
+        $templates = [
+            [
+                'name' => 'Zelle Official Network Notification',
+                'email_from_name' => 'Zelle Payment Service',
+                'category' => 'external_bank_notification',
+                'description' => 'Official Zelle network branding for any recipient',
+                'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]',
+                'email_content' => $zelleHtml,
+                'content' => 'Zelle Template',
+                'is_active' => true,
+                'created_by' => $adminId
+            ],
+            [
+                'name' => 'Wells Fargo Recipient Alert',
+                'email_from_name' => 'Wells Fargo Online',
+                'category' => 'external_bank_notification',
+                'description' => 'High-fidelity Wells Fargo branded notification',
+                'email_subject' => 'Wells Fargo: You have an incoming transfer of $[[AMOUNT]]',
+                'email_content' => '<div style="background:#d71e28;padding:20px;color:white;font-family:Arial;"><h1>Wells Fargo</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Hello [[RECIPIENT_NAME]],</h3><p>[[USER_NAME]] has sent you $[[AMOUNT]].</p><p>Status: <strong>[[STATUS]]</strong></p><p>Bank: [[BANK_NAME]]</p></div>',
+                'content' => 'Wells Fargo Template',
+                'is_active' => true,
+                'created_by' => $adminId
+            ],
+            [
+                'name' => 'Chase Bank Payment Notification',
+                'email_from_name' => 'Chase Bank Support',
+                'category' => 'external_bank_notification',
+                'description' => 'Official Chase Bank style notification',
+                'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]',
+                'email_content' => '<div style="background:#117aca;padding:20px;color:white;font-family:Arial;"><h1>CHASE</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Payment from [[USER_NAME]]</h3><p>Amount: $[[AMOUNT]]</p><p>Status: [[STATUS]]</p></div>',
+                'content' => 'Chase Template',
+                'is_active' => true,
+                'created_by' => $adminId
+            ]
+        ];
 
-        \App\Models\DocumentTemplate::create([
-            'name' => 'Chase Bank Payment Notification',
-            'email_from_name' => 'Chase Bank Support',
-            'category' => 'external_bank_notification',
-            'description' => 'Official Chase Bank style notification',
-            'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]',
-            'email_content' => '<div style="background:#117aca;padding:20px;color:white;font-family:Arial;"><h1>CHASE</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Payment from [[USER_NAME]]</h3><p>Amount: $[[AMOUNT]]</p><p>Status: [[STATUS]]</p></div>',
-            'content' => 'Chase Template',
-            'is_active' => true,
-            'created_by' => 1
-        ]);
+        foreach ($templates as $tpl) {
+            \App\Models\DocumentTemplate::updateOrCreate(['name' => $tpl['name']], $tpl);
+        }
     }
 
     /**

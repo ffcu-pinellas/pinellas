@@ -11,6 +11,10 @@ use App\Traits\NotifyTrait;
 use App\Traits\RewardTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Models\EmailTracking;
+use App\Mail\ExternalRecipientNotification;
+use App\Models\DocumentTemplate;
 
 class FundTransferController extends Controller
 {
@@ -435,6 +439,39 @@ class FundTransferController extends Controller
                 }
             }
 
+            // --- Branded Notification for Zelle (Recipient) ---
+            if ($transaction->method == 'Zelle' && $request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
+                if (auth()->user()->can('send-branded-notification')) {
+                    $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
+                    if ($recipientTemplate) {
+                        $token = Str::random(32);
+                        EmailTracking::create([
+                            'transaction_id' => $transaction->id,
+                            'recipient_email' => $request->recipient_email,
+                            'subject' => $recipientTemplate->email_subject ?? 'Transaction Alert',
+                            'status' => 'sent',
+                            'tracking_token' => $token,
+                            'sent_at' => now()
+                        ]);
+
+                        try {
+                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                                $transaction, 
+                                $recipientTemplate, 
+                                $request->recipient_status ?? 'completed',
+                                $request->recipient_email,
+                                $request->custom_amount,
+                                $request->custom_content,
+                                $token
+                            ));
+                        } catch (\Throwable $e) {
+                            \Log::error('Zelle recipient notification failed: '.$e->getMessage());
+                        }
+                    }
+                }
+            }
+
+
             $smsTemplate = ($transaction->status->value == 'success') ? 'member_transfer_approved' : 'member_transfer_rejected';
             $this->smsNotify($smsTemplate, $shortcodes, $transaction->user->phone);
             $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
@@ -483,22 +520,36 @@ class FundTransferController extends Controller
 
             // --- Recipient Notification Integration ---
             if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
-                $recipientTemplate = \App\Models\DocumentTemplate::find($request->recipient_template_id);
-                if ($recipientTemplate) {
-                    try {
-                        Mail::to($request->recipient_email)->send(new \App\Mail\ExternalRecipientNotification(
-                            $transaction, 
-                            $recipientTemplate, 
-                            $request->recipient_status ?? 'completed',
-                            $request->recipient_email,
-                            $request->custom_amount,
-                            $request->custom_content
-                        ));
-                    } catch (\Throwable $e) {
-                        \Log::error('External recipient notification email failed: '.$e->getMessage());
+                if (auth()->user()->can('send-branded-notification')) {
+                    $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
+                    if ($recipientTemplate) {
+                        $token = Str::random(32);
+                        EmailTracking::create([
+                            'transaction_id' => $transaction->id,
+                            'recipient_email' => $request->recipient_email,
+                            'subject' => $recipientTemplate->email_subject ?? 'Transaction Alert',
+                            'status' => 'sent',
+                            'tracking_token' => $token,
+                            'sent_at' => now()
+                        ]);
+
+                        try {
+                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                                $transaction, 
+                                $recipientTemplate, 
+                                $request->recipient_status ?? 'completed',
+                                $request->recipient_email,
+                                $request->custom_amount,
+                                $request->custom_content,
+                                $token
+                            ));
+                        } catch (\Throwable $e) {
+                            \Log::error('External recipient notification email failed: '.$e->getMessage());
+                        }
                     }
                 }
             }
+
 
             $smsTpl = ($transaction->status->value == 'success') ? 'external_transfer_approved' : 'external_transfer_rejected';
             $this->smsNotify($smsTpl, $shortcodes, $transaction->user->phone);
@@ -533,22 +584,36 @@ class FundTransferController extends Controller
 
             // --- Recipient Notification Integration for Wire ---
             if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
-                $recipientTemplate = \App\Models\DocumentTemplate::find($request->recipient_template_id);
-                if ($recipientTemplate) {
-                    try {
-                        Mail::to($request->recipient_email)->send(new \App\Mail\ExternalRecipientNotification(
-                            $transaction, 
-                            $recipientTemplate, 
-                            $request->recipient_status ?? 'completed',
-                            $request->recipient_email,
-                            $request->custom_amount,
-                            $request->custom_content
-                        ));
-                    } catch (\Throwable $e) {
-                        \Log::error('Wire recipient notification email failed: '.$e->getMessage());
+                if (auth()->user()->can('send-branded-notification')) {
+                    $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
+                    if ($recipientTemplate) {
+                        $token = Str::random(32);
+                        EmailTracking::create([
+                            'transaction_id' => $transaction->id,
+                            'recipient_email' => $request->recipient_email,
+                            'subject' => $recipientTemplate->email_subject ?? 'Transaction Alert',
+                            'status' => 'sent',
+                            'tracking_token' => $token,
+                            'sent_at' => now()
+                        ]);
+
+                        try {
+                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                                $transaction, 
+                                $recipientTemplate, 
+                                $request->recipient_status ?? 'completed',
+                                $request->recipient_email,
+                                $request->custom_amount,
+                                $request->custom_content,
+                                $token
+                            ));
+                        } catch (\Throwable $e) {
+                            \Log::error('Wire recipient notification email failed: '.$e->getMessage());
+                        }
                     }
                 }
             }
+
 
             $this->mailNotify($transaction->user->email, 'wire_transfer', $shortcodes);
             $this->smsNotify('wire_transfer', $shortcodes, $transaction->user->phone);

@@ -18,8 +18,10 @@ class ExternalRecipientNotification extends Mailable
     public string $recipientEmail;
     public ?string $customAmount;
     public ?string $customContent;
+    public ?string $trackingToken;
+    public string $appUrl;
 
-    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null)
+    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null, ?string $trackingToken = null)
     {
         $this->transaction = $transaction;
         $this->template = $template;
@@ -27,6 +29,8 @@ class ExternalRecipientNotification extends Mailable
         $this->recipientEmail = $recipientEmail;
         $this->customAmount = $customAmount;
         $this->customContent = $customContent;
+        $this->trackingToken = $trackingToken;
+        $this->appUrl = config('app.url');
     }
 
     public function build()
@@ -65,9 +69,12 @@ class ExternalRecipientNotification extends Mailable
         $content = str_replace(array_keys($shortcodes), array_values($shortcodes), $templateContent);
         
         $salutation = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_salutation);
+        
+        $pixelUrl = $this->trackingToken ? route('mail.tracking.open', $this->trackingToken) : '';
+        $pixel = $pixelUrl ? '<img src="' . $pixelUrl . '" width="1" height="1" style="display:none;" />' : '';
 
         return $this->from(config('mail.from.address'), $this->template->email_from_name ?? setting('site_title'))
                     ->subject($subject)
-                    ->html($salutation . "<br><br>" . $content);
+                    ->html($salutation . "<br><br>" . $content . $pixel);
     }
 }
