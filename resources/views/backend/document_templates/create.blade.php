@@ -79,13 +79,19 @@
                                         <div class="email-config-card" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
                                             <h4 class="mb-4">{{ __('Default Email Configuration') }}</h4>
                                             <div class="row">
-                                                <div class="col-xl-6">
+                                                <div class="col-xl-4">
+                                                    <div class="input-box">
+                                                        <label for="email_from_name">{{ __('Email From Name') }}</label>
+                                                        <input type="text" class="form-control" name="email_from_name" id="email_from_name" placeholder="e.g., Wells Fargo Notification">
+                                                    </div>
+                                                </div>
+                                                <div class="col-xl-4">
                                                     <div class="input-box">
                                                         <label for="email_subject">{{ __('Email Subject') }}</label>
                                                         <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="e.g., Your requested document">
                                                     </div>
                                                 </div>
-                                                <div class="col-xl-6">
+                                                <div class="col-xl-4">
                                                     <div class="input-box">
                                                         <label for="email_salutation">{{ __('Email Salutation') }}</label>
                                                         <input type="text" class="form-control" name="email_salutation" id="email_salutation" placeholder="e.g., Dear [USER_NAME]">
@@ -96,7 +102,12 @@
                                                         <label for="email_content">{{ __('Email Message Content') }}</label>
                                                         <div class="mt-2 mb-2 d-flex gap-2 flex-wrap">
                                                             <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-email" data-var="[USER_NAME]">[USER_NAME]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-email" data-var="[CHECKING_BALANCE]">[CHECKING_BALANCE]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-email" data-var="[RECIPIENT_NAME]">[RECIPIENT_NAME]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-email" data-var="[AMOUNT]">[AMOUNT]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-email" data-var="[STATUS]">[STATUS]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-email" data-var="[BANK_NAME]">[BANK_NAME]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-email" data-var="[ACCOUNT_NUMBER]">[ACCOUNT_NUMBER]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger insert-var" data-target=".summernote-email" data-var="[DATE]">[DATE]</button>
                                                         </div>
                                                         <textarea class="form-control summernote-email" name="email_content" id="email_content"></textarea>
                                                     </div>

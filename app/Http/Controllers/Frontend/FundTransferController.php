@@ -645,7 +645,7 @@ class FundTransferController extends Controller
         $todayZelleTotal = Transaction::where('user_id', $user->id)
             ->where('method', 'Zelle')
             ->where('created_at', '>=', now()->subHours(24))
-            ->whereIn('status', [\App\Enums\TxnStatus::Success, \App\Enums\TxnStatus::Pending])
+            ->whereIn('status', [TxnStatus::Success, TxnStatus::Pending])
             ->sum('amount');
         
         $zelleDailyLimit = max(0, 2500 - $todayZelleTotal);
@@ -703,7 +703,7 @@ class FundTransferController extends Controller
         $todayZelleTotal = Transaction::where('user_id', $user->id)
             ->where('method', 'Zelle')
             ->where('created_at', '>=', now()->subHours(24))
-            ->whereIn('status', [\App\Enums\TxnStatus::Success, \App\Enums\TxnStatus::Pending])
+            ->whereIn('status', [TxnStatus::Success, TxnStatus::Pending])
             ->sum('amount');
             
         if (($todayZelleTotal + $request->amount) > 2500) {
@@ -756,8 +756,8 @@ class FundTransferController extends Controller
         $tnx = 'ZEL' . strtoupper(\Illuminate\Support\Str::random(12));
         $transaction = new Transaction();
         $transaction->user_id = $user->id;
-        $transaction->type = \App\Enums\TxnType::FundTransfer;
-        $transaction->transfer_type = \App\Enums\TransferType::OwnBankTransfer;
+        $transaction->type = TxnType::FundTransfer;
+        $transaction->transfer_type = TransferType::OwnBankTransfer;
         $transaction->setAttribute('method', 'Zelle');
         $transaction->tnx = $tnx;
         $transaction->amount = $request->amount;
@@ -765,7 +765,7 @@ class FundTransferController extends Controller
         $transaction->final_amount = $request->amount;
         $transaction->pay_currency = $currency;
         $transaction->pay_amount = $request->amount;
-        $transaction->status = \App\Enums\TxnStatus::Pending;
+        $transaction->status = TxnStatus::Pending;
         $transaction->wallet_type = ($walletType === 'savings') ? 'primary_savings' : $walletType;
         $fullName = $request->input('external_name');
         $displayName = $fullName ? $fullName . ' (' . $request->contact . ')' : $request->contact;

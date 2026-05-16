@@ -142,6 +142,7 @@ Route::group(['prefix' => 'fund-transfer', 'as' => 'fund.transfer.', 'controller
     Route::get('/wire', 'wire')->name('wire');
     Route::get('details/{id}', 'details')->name('details');
     Route::post('action-now', 'actionNow')->name('action.now');
+    Route::post('recipient-preview', 'recipientPreview')->name('recipient.preview');
 });
 
 Route::group(['prefix' => 'plan', 'as' => 'plan.'], function () {

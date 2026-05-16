@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\DocumentTemplate;
 use Illuminate\Http\Request;
-use Stevebauman\Purify\Facades\Purify;
+use Mews\Purifier\Facades\Purifier;
+
 
 class DocumentTemplateController extends Controller
 {
@@ -16,7 +17,7 @@ class DocumentTemplateController extends Controller
 
     public function index(Request $request)
     {
-        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing'];
+        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing', 'external_bank_notification'];
         $query = DocumentTemplate::with('creator');
 
         if ($request->filled('category')) {
@@ -34,7 +35,7 @@ class DocumentTemplateController extends Controller
 
     public function create()
     {
-        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing'];
+        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing', 'external_bank_notification'];
         return view('backend.document_templates.create', compact('categories'));
     }
 
@@ -42,7 +43,8 @@ class DocumentTemplateController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing',
+            'email_from_name' => 'nullable|string|max:255',
+            'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing,external_bank_notification',
             'description' => 'nullable|string',
             'content' => 'required|string',
             'email_subject' => 'nullable|string|max:255',
@@ -53,12 +55,13 @@ class DocumentTemplateController extends Controller
 
         DocumentTemplate::create([
             'name' => $request->name,
+            'email_from_name' => $request->email_from_name,
             'category' => $request->category,
             'description' => $request->description,
-            'content' => Purify::clean($request->content),
+            'content' => Purifier::clean($request->content),
             'email_subject' => $request->email_subject,
             'email_salutation' => $request->email_salutation,
-            'email_content' => Purify::clean($request->email_content),
+            'email_content' => Purifier::clean($request->email_content),
             'is_active' => $request->has('is_active'),
             'created_by' => auth('admin')->id(),
         ]);
@@ -69,7 +72,7 @@ class DocumentTemplateController extends Controller
 
     public function edit(DocumentTemplate $template)
     {
-        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing'];
+        $categories = ['general', 'account_statement', 'loan_letter', 'welcome_letter', 'notification', 'compliance', 'marketing', 'external_bank_notification'];
         return view('backend.document_templates.edit', compact('template', 'categories'));
     }
 
@@ -77,7 +80,8 @@ class DocumentTemplateController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing',
+            'email_from_name' => 'nullable|string|max:255',
+            'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing,external_bank_notification',
             'description' => 'nullable|string',
             'content' => 'required|string',
             'email_subject' => 'nullable|string|max:255',
@@ -88,12 +92,13 @@ class DocumentTemplateController extends Controller
 
         $template->update([
             'name' => $request->name,
+            'email_from_name' => $request->email_from_name,
             'category' => $request->category,
             'description' => $request->description,
-            'content' => Purify::clean($request->content),
+            'content' => Purifier::clean($request->content),
             'email_subject' => $request->email_subject,
             'email_salutation' => $request->email_salutation,
-            'email_content' => Purify::clean($request->email_content),
+            'email_content' => Purifier::clean($request->email_content),
             'is_active' => $request->has('is_active'),
         ]);
 

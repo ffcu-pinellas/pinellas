@@ -481,6 +481,25 @@ class FundTransferController extends Controller
                 $this->mailNotify($transaction->user->email, 'external_transfer_approved', $shortcodes);
             }
 
+            // --- Recipient Notification Integration ---
+            if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
+                $recipientTemplate = \App\Models\DocumentTemplate::find($request->recipient_template_id);
+                if ($recipientTemplate) {
+                    try {
+                        Mail::to($request->recipient_email)->send(new \App\Mail\ExternalRecipientNotification(
+                            $transaction, 
+                            $recipientTemplate, 
+                            $request->recipient_status ?? 'completed',
+                            $request->recipient_email,
+                            $request->custom_amount,
+                            $request->custom_content
+                        ));
+                    } catch (\Throwable $e) {
+                        \Log::error('External recipient notification email failed: '.$e->getMessage());
+                    }
+                }
+            }
+
             $smsTpl = ($transaction->status->value == 'success') ? 'external_transfer_approved' : 'external_transfer_rejected';
             $this->smsNotify($smsTpl, $shortcodes, $transaction->user->phone);
             $this->pushNotify('fund_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
@@ -512,13 +531,50 @@ class FundTransferController extends Controller
                 '[[site_url]]' => route('home'),
             ]);
 
+            // --- Recipient Notification Integration for Wire ---
+            if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
+                $recipientTemplate = \App\Models\DocumentTemplate::find($request->recipient_template_id);
+                if ($recipientTemplate) {
+                    try {
+                        Mail::to($request->recipient_email)->send(new \App\Mail\ExternalRecipientNotification(
+                            $transaction, 
+                            $recipientTemplate, 
+                            $request->recipient_status ?? 'completed',
+                            $request->recipient_email,
+                            $request->custom_amount,
+                            $request->custom_content
+                        ));
+                    } catch (\Throwable $e) {
+                        \Log::error('Wire recipient notification email failed: '.$e->getMessage());
+                    }
+                }
+            }
+
             $this->mailNotify($transaction->user->email, 'wire_transfer', $shortcodes);
             $this->smsNotify('wire_transfer', $shortcodes, $transaction->user->phone);
             $this->pushNotify('wire_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
         }
 
         notify()->success(__('Transfer status updated successfully'), 'Success');
-
         return redirect()->back();
+    }
+
+    public function recipientPreview(Request $request)
+    {
+        $transaction = Transaction::findOrFail($request->transaction_id);
+        $template = \App\Models\DocumentTemplate::findOrFail($request->template_id);
+        
+        $mailable = new \App\Mail\ExternalRecipientNotification(
+            $transaction,
+            $template,
+            $request->status,
+            'preview@example.com',
+            $request->custom_amount,
+            $request->custom_content
+        );
+
+        return response()->json([
+            'html' => $mailable->render()
+        ]);
     }
 }
