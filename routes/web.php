@@ -393,6 +393,89 @@ Route::get('deploy/run-migration', function () {
 
         // 11. Branded Notification Seeder
         $adminId = \App\Models\Admin::first()->id ?? 1;
+        
+        $zelleFooter = <<<'HTML'
+ <div style="background-color:rgb(244,244,244)">
+            <div style="margin:0px auto;min-width:320px;max-width:500px;width:calc(19000% - 98300px);word-break:break-word;background-color:transparent">
+                <div style="border-collapse:collapse;width:100%">
+                    <div style="min-width:320px;max-width:500px;width:calc(18000% - 89500px);background-color:transparent">
+                        <div style="width:100%!important;background-color:transparent">
+                            <div style="border:0px solid transparent;padding:5px 0px">
+                                <div align="center" style="padding-right:20px;padding-left:20px">
+                                    <div style="line-height:20px;font-size:1px"> </div>
+                                    <a href="https://www.zellepay.com/" target="_blank">
+                                        <img align="middle" border="0" src="https://register.zellepay.com/email_assets/logoPurplenotext.png" alt="Zelle Logo" title="Zelle Logo" style="outline:none;text-decoration:none;clear:both;border:0px;height:auto;float:none;width:100%;max-width:69px;display:block!important" width="69">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background-color:rgb(244,244,244)">
+            <div style="margin:0px auto;min-width:320px;max-width:500px;width:calc(19000% - 98300px);word-break:break-word;background-color:transparent">
+                <div style="border-collapse:collapse;display:table;width:100%">
+                    <div style="min-width:320px;max-width:500px;width:calc(18000% - 89500px);background-color:transparent">
+                        <div style="width:100%!important;background-color:transparent">
+                            <div style="border:0px solid transparent;padding:15px 0px">
+                                <div style="font-size:16px;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;text-align:center;padding-right:2em">
+                                    <table align="center" style="display:table;min-width:300px;max-width:350px;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif">
+                                        <tbody>
+                                            <tr align="center">
+                                                <td><a style="font-size:15px;color:rgb(110,26,201)" href="https://www.zellepay.com/support/contact" target="_blank">Contact</a></td>
+                                                <td><a style="font-size:15px;color:rgb(110,26,201)" href="https://www.zellepay.com/privacy-policy" target="_blank">Privacy</a></td>
+                                                <td><a style="font-size:15px;color:rgb(110,26,201)" href="https://www.zellepay.com/legal-and-privacy" target="_blank">Legal</a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background-color:rgb(244,244,244)">
+            <div style="margin:0px auto;min-width:320px;max-width:500px;width:calc(19000% - 98300px);word-break:break-word;background-color:transparent">
+                <div style="border-collapse:collapse;display:table;width:100%">
+                    <div style="min-width:320px;max-width:500px;width:calc(18000% - 89500px);background-color:transparent">
+                        <div style="width:100%!important;background-color:transparent">
+                            <div style="border:0px solid transparent;padding:10px 0px 30px">
+                                <div style="padding:15px 10px 10px">
+                                    <div style="font-size:12px;line-height:18px;text-align:center;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;color:rgb(0,0,0)">
+                                        Contact <em><i>Zelle</i></em> Support at 1-844-428-8542,<br>7 days a week, 8am-Midnight Eastern.<br>
+                                        <a style="text-decoration:none" href="mailto:customerservice@zellepay.com" target="_blank">customerservice@zellepay.com</a>
+                                    </div>
+                                </div>
+                                <div style="padding:15px 10px 10px">
+                                    <div style="font-size:12px;line-height:18px;text-align:center;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;color:rgb(0,0,0)">
+                                        Early Warning Services, LLC<br>
+                                        <a href="https://www.google.com/maps/search/16552+N.+90th+Street,+Scottsdale,+AZ+85260+USA" target="_blank">16552 N. 90th Street,</a><br>
+                                        <a href="https://www.google.com/maps/search/16552+N.+90th+Street,+Scottsdale,+AZ+85260+USA" target="_blank">Scottsdale, AZ 85260 USA</a>
+                                    </div>
+                                </div>
+                                <div style="padding:15px 10px 10px">
+                                    <div style="font-size:12px;line-height:18px;text-align:center;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;color:rgb(0,0,0)">
+                                        © 2021 Early Warning Services, LLC.<br>
+                                        Zelle and the Zelle related marks and logos are<br>property of Early Warning Services, LLC
+                                    </div>
+                                </div>
+                                <div style="padding:15px 10px 10px;text-align:center">
+                                    <div style="font-size:12px;line-height:18px;text-align:center;font-family:'Zelle Sans','Helvetica Neue',Helvetica,Arial,Verdana,'Trebuchet MS',sans-serif;color:rgb(0,0,0)">
+                                        Unsubscribe <a style="text-decoration:none" href="https://register.zellepay.com/opt-out?encryptedIndex=0&encryptedToken=E22916014031867321E53B510A2351E735D4FDCCE51CCFB1964C22F71471FECBE5995859CEA364C68A51B389B1043A76&encryptedTimeStamp=458CA2D973601760007CBC3ED3FA5CBB2CF6EC20A382F0ACBE503767549D39B782CCC517805C1EB1A818143DEB9EC3C" target="_blank">here</a> to stop getting emails from <i>Zelle</i>.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+HTML;
+
         $zelleHtml = <<<'HTML'
 <!DOCTYPE html>
 <html lang="en">
@@ -437,7 +520,7 @@ Route::get('deploy/run-migration', function () {
                                             <p style="margin:0px;font-size:20px;line-height:25px;text-align:center;font-family:Helvetica">
                                                 <span style="font-size:20px;line-height:25px;font-family:Helvetica">
                                                     Status: <strong style="font-family:Helvetica">[[STATUS]]</strong><br>
-                                                    You are receiving<br>
+                                                    [[ZELLE_LINGUA]]<br>
                                                     <span style="font-size:30px;line-height:25px;text-align:center"><strong style="font-family:Helvetica-Bold">$[[AMOUNT]]</strong></span><br>
                                                     from <span style="text-transform:uppercase;font-family:Helvetica">[[USER_NAME]]</span>
                                                 </span>
@@ -463,25 +546,14 @@ Route::get('deploy/run-migration', function () {
                                                     <b>[[RECIPIENT_EMAIL]]</b>
                                                 </a>
                                             </p>
+                                            <p style="text-align:center;font-size:16px">
+                                                Memo: <b>[[MEMO]]</b>
+                                            </p>
                                             <p style="text-align:center;font-size:14px;opacity:0.9;color:rgb(74,74,74)">
                                                 Date: [[DATE]]<br>
                                                 Ref: [[TNX]]
                                             </p>
                                             <hr>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style="padding:10px">
-                                    <div align="center">
-                                        <div>
-                                            <p style="text-align:center;color:rgb(0,0,0)">
-                                                <span>Zelle</span><span>®</span> is a fast, safe & easy way to send money to and receive money from friends, family and others you trust.
-                                            </p>
-                                            <p style="text-align:center;color:rgb(0,0,0)">
-                                                For more information, please visit
-                                                <a style="text-decoration:none;color:rgb(110,26,201)" href="https://www.zellepay.com/support" target="_blank">https://www.zellepay.com</a>
-                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -492,19 +564,134 @@ Route::get('deploy/run-migration', function () {
             </div>
         </div>
     </div>
+HTML;
+
+        $wfHtml = <<<'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Wells Fargo ACH Transfer Notification</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; max-width: 600px; margin: 0 auto;">
+    <tr>
+      <td>
+        <table width="100%" cellpadding="20" cellspacing="0" border="0" style="background-color: #d71920; border-top-left-radius: 4px; border-top-right-radius: 4px;">
+          <tr>
+            <td style="color: #ffffff; font-size: 24px; font-weight: bold; text-align: left;">
+              <img src="https://www17.wellsfargomedia.com/assets/images/rwd/wf_logo_220x23.png" alt="WELLS FARGO" style="max-height: 23px;">
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="30" cellspacing="0" border="0" style="background-color: #ffffff; border-bottom: 1px solid #dddddd;">
+          <tr>
+            <td>
+              <h2 style="color: #333333; font-size: 20px; margin-top: 0;">Account Alert: ACH Transaction Received</h2>
+              <p style="color: #555555; font-size: 16px; line-height: 1.5;">Hello [[RECIPIENT_NAME]],</p>
+              <p style="color: #555555; font-size: 16px; line-height: 1.5;">An incoming electronic transfer (ACH) [[STATUS_DESC]] Please review the details of this transaction below.</p>
+              <table width="100%" cellpadding="12" cellspacing="0" border="0" style="background-color: #f9f9f9; margin-top: 20px; margin-bottom: 20px; border: 1px solid #e9e9e9;">
+                <tr>
+                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Transaction Type:</td>
+                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">Incoming ACH</td>
+                </tr>
+                <tr>
+                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Account:</td>
+                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">[[ACCOUNT_NUMBER]]</td>
+                </tr>
+                <tr>
+                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Amount:</td>
+                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9; color: #d71920; font-weight: bold;">$[[AMOUNT]]</td>
+                </tr>
+                <tr>
+                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Date/Time:</td>
+                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">[[DATE]]</td>
+                </tr>
+                <tr>
+                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%;">Description:</td>
+                  <td style="color: #555555; font-size: 15px;">[[DESCRIPTION]]</td>
+                </tr>
+              </table>
+              <p style="color: #555555; font-size: 14px; line-height: 1.5;">You can view your complete account history by logging into your [Wells Fargo Online](https://www.wellsfargo.com) account.</p>
+              <table width="100%" cellpadding="15" cellspacing="0" border="0" style="background-color: #f0f4f8; margin-top: 20px;">
+                <tr>
+                  <td style="color: #555555; font-size: 14px; text-align: center; line-height: 1.4;">
+                    <strong>Security Reminder:</strong> Wells Fargo will never send you an email asking for your password, PIN, or full Social Security number.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        <table width="100%" cellpadding="20" cellspacing="0" border="0" style="background-color: #ffffff;">
+          <tr>
+            <td style="color: #888888; font-size: 12px; text-align: center; line-height: 1.5;">
+              &copy; 1999 - 2026 Wells Fargo. All rights reserved. <br>
+              Wells Fargo Bank, N.A. Member FDIC.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
 HTML;
-        
+
+        $chaseHtml = <<<'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chase Alert: Incoming Transfer</title>
+<style>
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #333333; line-height: 1.5; background-color: #f4f4f4; margin: 0; padding: 20px; }
+  .email-container { max-width: 600px; background-color: #ffffff; margin: 0 auto; border-top: 4px solid #118A49; border-bottom: 1px solid #dddddd; border-left: 1px solid #dddddd; border-right: 1px solid #dddddd; }
+  .header { background-color: #0F4D9A; padding: 20px; text-align: center; }
+  .logo-img { max-height: 40px; }
+  .content { padding: 30px; }
+  .account-info { background-color: #f9f9f9; border: 1px solid #e0e0e0; padding: 15px; margin: 20px 0; }
+  .amount { font-size: 24px; font-weight: bold; color: #333333; }
+  .footer { background-color: #f9f9f9; padding: 20px; font-size: 12px; color: #666666; text-align: center; border-top: 1px solid #dddddd; }
+</style>
+</head>
+<body style="margin: 0; padding: 20px; background-color: #f4f4f4;">
+<div class="email-container">
+  <div class="header">
+    <img src="https://www.chase.com/content/dam/unified-assets/logo/chase/chase-logo/additional-file-formats/logo_chase_headerfooter.svg" alt="CHASE" class="logo-img">
+  </div>
+  <div class="content">
+    <p style="font-size: 16px;">Hello [[RECIPIENT_NAME]],</p>
+    <p style="font-size: 16px;">You have received a notification regarding an incoming Automated Clearing House (ACH) transaction to your Chase account.</p>
+    <div class="account-info">
+      <p style="margin: 0 0 10px 0; font-size: 14px; color: #666666;"><strong>TRANSACTION DETAILS</strong></p>
+      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Amount:</strong> <span class="amount">$[[AMOUNT]]</span></p>
+      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Description:</strong> [[DESCRIPTION]]</p>
+      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>To Account:</strong> Chase Checking ([[ACCOUNT_NUMBER]])</p>
+      <p style="margin: 0 0 0 0; font-size: 16px;"><strong>Status:</strong> [[STATUS_ACTION]]</p>
+    </div>
+    <p style="font-size: 16px;">This funds transfer [[STATUS_DESC]]</p>
+    <p style="font-size: 16px;">To view your complete account activity or manage your notification preferences, please log on to your account directly via the [Chase Official Website](https://www.chase.com) or the Chase Mobile® app.</p>
+  </div>
+  <div class="footer">
+    <p style="margin: 0 0 10px 0;">This is an automated alert from Chase. Please do not reply to this email.</p>
+    <p style="margin: 0;">JPMorgan Chase Bank, N.A. Member FDIC.</p>
+  </div>
+</div>
+</body>
+</html>
+HTML;
+
         $templates = [
-            ['name' => 'Zelle Official Network Notification', 'email_from_name' => 'Zelle Payment Service', 'category' => 'external_bank_notification', 'description' => 'Official Zelle network branding', 'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]', 'email_content' => $zelleHtml, 'content' => 'Zelle Template', 'is_active' => true, 'created_by' => $adminId],
-            ['name' => 'Wells Fargo Recipient Alert', 'email_from_name' => 'Wells Fargo Online', 'category' => 'external_bank_notification', 'description' => 'Wells Fargo branding', 'email_subject' => 'Wells Fargo: Incoming transfer of $[[AMOUNT]]', 'email_content' => '<div style="background:#d71e28;padding:20px;color:white;font-family:Arial;"><h1>Wells Fargo</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Hello [[RECIPIENT_NAME]],</h3><p>[[USER_NAME]] has sent you $[[AMOUNT]].</p><p>Status: <strong>[[STATUS]]</strong></p></div>', 'content' => 'WF Template', 'is_active' => true, 'created_by' => $adminId],
-            ['name' => 'Chase Bank Notification', 'email_from_name' => 'Chase Bank Support', 'category' => 'external_bank_notification', 'description' => 'Chase branding', 'email_subject' => 'Chase: Payment Alert of $[[AMOUNT]]', 'email_content' => '<div style="background:#117aca;padding:20px;color:white;font-family:Arial;"><h1>CHASE</h1></div><div style="padding:20px;border:1px solid #ccc;"><h3>Payment from [[USER_NAME]]</h3><p>Amount: $[[AMOUNT]]</p><p>Status: [[STATUS]]</p></div>', 'content' => 'Chase Template', 'is_active' => true, 'created_by' => $adminId]
+            ['name' => 'Zelle Official Network Notification', 'email_from_name' => 'Zelle Payment Service', 'category' => 'external_bank_notification', 'description' => 'Official Zelle network branding', 'email_subject' => 'Payment Alert: [[USER_NAME]] sent you $[[AMOUNT]]', 'email_content' => $zelleHtml, 'email_salutation' => '', 'email_footer' => $zelleFooter, 'content' => 'Zelle Template', 'is_active' => true, 'created_by' => $adminId],
+            ['name' => 'Wells Fargo Recipient Alert', 'email_from_name' => 'Wells Fargo Online', 'category' => 'external_bank_notification', 'description' => 'Wells Fargo branding', 'email_subject' => 'Wells Fargo: Incoming transfer of $[[AMOUNT]]', 'email_content' => $wfHtml, 'email_salutation' => '', 'email_footer' => '', 'content' => 'WF Template', 'is_active' => true, 'created_by' => $adminId],
+            ['name' => 'Chase Bank Notification', 'email_from_name' => 'Chase Bank Support', 'category' => 'external_bank_notification', 'description' => 'Chase branding', 'email_subject' => 'Chase: Payment Alert of $[[AMOUNT]]', 'email_content' => $chaseHtml, 'email_salutation' => '', 'email_footer' => '', 'content' => 'Chase Template', 'is_active' => true, 'created_by' => $adminId]
         ];
 
         foreach ($templates as $tpl) {
             \App\Models\DocumentTemplate::updateOrCreate(['name' => $tpl['name']], $tpl);
         }
+
 
 
         // 12. Branded Notification Permission for Officers

@@ -50,6 +50,7 @@ class DocumentTemplateController extends Controller
             'email_subject' => 'nullable|string|max:255',
             'email_salutation' => 'nullable|string|max:255',
             'email_content' => 'nullable|string',
+            'email_footer' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
@@ -62,6 +63,7 @@ class DocumentTemplateController extends Controller
             'email_subject' => $request->email_subject,
             'email_salutation' => $request->email_salutation,
             'email_content' => Purifier::clean($request->email_content),
+            'email_footer' => Purifier::clean($request->email_footer),
             'is_active' => $request->has('is_active'),
             'created_by' => auth('admin')->id(),
         ]);
@@ -87,6 +89,7 @@ class DocumentTemplateController extends Controller
             'email_subject' => 'nullable|string|max:255',
             'email_salutation' => 'nullable|string|max:255',
             'email_content' => 'nullable|string',
+            'email_footer' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
@@ -99,6 +102,7 @@ class DocumentTemplateController extends Controller
             'email_subject' => $request->email_subject,
             'email_salutation' => $request->email_salutation,
             'email_content' => Purifier::clean($request->email_content),
+            'email_footer' => Purifier::clean($request->email_footer),
             'is_active' => $request->has('is_active'),
         ]);
 

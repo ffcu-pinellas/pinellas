@@ -633,7 +633,7 @@ class FundTransferController extends Controller
             $transaction,
             $template,
             $request->status,
-            'preview@example.com',
+            $request->recipient_email ?? 'preview@example.com',
             $request->custom_amount,
             $request->custom_content
         );

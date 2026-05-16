@@ -102,14 +102,25 @@
                                                         <label for="email_content">{{ __('Email Message Content') }}</label>
                                                         <div class="mt-2 mb-2 d-flex gap-2 flex-wrap">
                                                             <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-email" data-var="[USER_NAME]">[USER_NAME]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-email" data-var="[RECIPIENT_NAME]">[RECIPIENT_NAME]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-email" data-var="[AMOUNT]">[AMOUNT]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-email" data-var="[STATUS]">[STATUS]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-email" data-var="[BANK_NAME]">[BANK_NAME]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-email" data-var="[ACCOUNT_NUMBER]">[ACCOUNT_NUMBER]</button>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger insert-var" data-target=".summernote-email" data-var="[DATE]">[DATE]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-email" data-var="[[RECIPIENT_NAME]]">[[RECIPIENT_NAME]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-email" data-var="[[AMOUNT]]">[[AMOUNT]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-warning insert-var" data-target=".summernote-email" data-var="[[STATUS]]">[[STATUS]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-email" data-var="[[BANK_NAME]]">[[BANK_NAME]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-email" data-var="[[ACCOUNT_NUMBER]]">[[ACCOUNT_NUMBER]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger insert-var" data-target=".summernote-email" data-var="[[DATE]]">[[DATE]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary insert-var" data-target=".summernote-email" data-var="[[STATUS_DESC]]">[[STATUS_DESC]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-info insert-var" data-target=".summernote-email" data-var="[[ZELLE_LINGUA]]">[[ZELLE_LINGUA]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-success insert-var" data-target=".summernote-email" data-var="[[MEMO]]">[[MEMO]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-email" data-var="[[DESCRIPTION]]">[[DESCRIPTION]]</button>
+                                                            <button type="button" class="btn btn-sm btn-outline-secondary insert-var" data-target=".summernote-email" data-var="[[CURRENT_DATE]]">[[CURRENT_DATE]]</button>
                                                         </div>
                                                         <textarea class="form-control summernote-email" name="email_content" id="email_content"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xl-12 mt-4">
+                                                    <div class="input-box">
+                                                        <label for="email_footer">{{ __('Email Footer (Optional)') }}</label>
+                                                        <textarea class="form-control summernote-footer" name="email_footer" id="email_footer"></textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -157,6 +168,7 @@
             var emailSummernoteOptions = Object.assign({}, summernoteOptions);
             emailSummernoteOptions.height = 200;
             $('.summernote-email').summernote(emailSummernoteOptions);
+            $('.summernote-footer').summernote(emailSummernoteOptions);
 
             $('.insert-var').on('click', function() {
                 var variable = $(this).data('var');
