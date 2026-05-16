@@ -570,70 +570,55 @@ HTML;
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Wells Fargo ACH Transfer Notification</title>
+<meta charset="UTF-8">
+<style>
+  body { font-family: "Open Sans", Arial, Helvetica, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+  .wrapper { background-color: #f4f4f4; padding: 20px; }
+  .email-container { max-width: 600px; background-color: #ffffff; margin: 0 auto; border: 1px solid #cccccc; }
+  .top-bar { background-color: #ffff00; height: 5px; }
+  .header { background-color: #d71920; padding: 20px; text-align: left; }
+  .logo-img { height: 25px; }
+  .content { padding: 35px 25px; color: #333333; }
+  .h1 { font-size: 24px; font-weight: bold; color: #d71920; margin-bottom: 20px; border-bottom: 2px solid #d71920; padding-bottom: 10px; }
+  .detail-table { width: 100%; border-collapse: collapse; margin: 25px 0; background-color: #f9f9f9; border: 1px solid #eeeeee; }
+  .detail-table td { padding: 15px; border-bottom: 1px solid #eeeeee; font-size: 15px; }
+  .label { font-weight: bold; color: #666666; width: 140px; }
+  .amount { font-size: 20px; color: #d71920; font-weight: bold; }
+  .footer { background-color: #ffffff; padding: 25px; font-size: 11px; color: #777777; border-top: 1px solid #eeeeee; line-height: 1.6; }
+  .btn { display: inline-block; background-color: #d71920; color: #ffffff !important; padding: 12px 30px; text-decoration: none; font-weight: bold; margin: 20px 0; }
+</style>
 </head>
-<body style="font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; max-width: 600px; margin: 0 auto;">
-    <tr>
-      <td>
-        <table width="100%" cellpadding="20" cellspacing="0" border="0" style="background-color: #d71920; border-top-left-radius: 4px; border-top-right-radius: 4px;">
-          <tr>
-            <td style="color: #ffffff; font-size: 24px; font-weight: bold; text-align: left;">
-              <img src="https://www17.wellsfargomedia.com/assets/images/rwd/wf_logo_220x23.png" alt="WELLS FARGO" style="max-height: 23px;">
-            </td>
-          </tr>
-        </table>
-        <table width="100%" cellpadding="30" cellspacing="0" border="0" style="background-color: #ffffff; border-bottom: 1px solid #dddddd;">
-          <tr>
-            <td>
-              <h2 style="color: #333333; font-size: 20px; margin-top: 0;">Account Alert: ACH Transaction Received</h2>
-              <p style="color: #555555; font-size: 16px; line-height: 1.5;">Hello [[RECIPIENT_NAME]],</p>
-              <p style="color: #555555; font-size: 16px; line-height: 1.5;">An incoming electronic transfer (ACH) [[STATUS_DESC]] Please review the details of this transaction below.</p>
-              <table width="100%" cellpadding="12" cellspacing="0" border="0" style="background-color: #f9f9f9; margin-top: 20px; margin-bottom: 20px; border: 1px solid #e9e9e9;">
-                <tr>
-                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Transaction Type:</td>
-                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">Incoming ACH</td>
-                </tr>
-                <tr>
-                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Account:</td>
-                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">[[ACCOUNT_NUMBER]]</td>
-                </tr>
-                <tr>
-                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Amount:</td>
-                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9; color: #d71920; font-weight: bold;">$[[AMOUNT]]</td>
-                </tr>
-                <tr>
-                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%; border-bottom: 1px solid #e9e9e9;">Date/Time:</td>
-                  <td style="color: #555555; font-size: 15px; border-bottom: 1px solid #e9e9e9;">[[DATE]]</td>
-                </tr>
-                <tr>
-                  <td style="color: #333333; font-size: 15px; font-weight: bold; width: 35%;">Description:</td>
-                  <td style="color: #555555; font-size: 15px;">[[DESCRIPTION]]</td>
-                </tr>
-              </table>
-              <p style="color: #555555; font-size: 14px; line-height: 1.5;">You can view your complete account history by logging into your [Wells Fargo Online](https://www.wellsfargo.com) account.</p>
-              <table width="100%" cellpadding="15" cellspacing="0" border="0" style="background-color: #f0f4f8; margin-top: 20px;">
-                <tr>
-                  <td style="color: #555555; font-size: 14px; text-align: center; line-height: 1.4;">
-                    <strong>Security Reminder:</strong> Wells Fargo will never send you an email asking for your password, PIN, or full Social Security number.
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-        <table width="100%" cellpadding="20" cellspacing="0" border="0" style="background-color: #ffffff;">
-          <tr>
-            <td style="color: #888888; font-size: 12px; text-align: center; line-height: 1.5;">
-              &copy; 1999 - 2026 Wells Fargo. All rights reserved. <br>
-              Wells Fargo Bank, N.A. Member FDIC.
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+<body>
+<div class="wrapper">
+  <div class="email-container">
+    <div class="top-bar"></div>
+    <div class="header">
+      <img src="https://www17.wellsfargomedia.com/assets/images/rwd/wf_logo_220x23.png" alt="WELLS FARGO" class="logo-img">
+    </div>
+    <div class="content">
+      <div class="h1">Account Alert</div>
+      <p style="font-size: 16px;">Hello [[RECIPIENT_NAME]],</p>
+      <p style="font-size: 16px;">An incoming electronic transfer (ACH) [[STATUS_DESC]]</p>
+      
+      <table class="detail-table">
+        <tr><td class="label">Transaction:</td><td>Incoming ACH</td></tr>
+        <tr><td class="label">Account:</td><td>...[[ACCOUNT_NUMBER]]</td></tr>
+        <tr><td class="label">Amount:</td><td class="amount">$[[AMOUNT]]</td></tr>
+        <tr><td class="label">Date:</td><td>[[DATE]]</td></tr>
+        <tr><td class="label" style="border:none;">Description:</td><td style="border:none;">[[DESCRIPTION]]</td></tr>
+      </table>
+      
+      <a href="https://www.wellsfargo.com" class="btn">Access Wells Fargo Online</a>
+      
+      <p style="font-size: 14px; margin-top: 30px;">Thank you for banking with Wells Fargo.</p>
+    </div>
+    <div class="footer">
+      <p><strong>Security Tip:</strong> To help protect your information, never share your username or password with anyone. Wells Fargo will never ask for this information in an email.</p>
+      <p style="margin-top: 20px;">&copy; 1999 - [[CURRENT_YEAR]] Wells Fargo. All rights reserved. <br>
+      Wells Fargo Bank, N.A. Member FDIC.</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 HTML;
@@ -643,39 +628,54 @@ HTML;
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Chase Alert: Incoming Transfer</title>
 <style>
-  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #333333; line-height: 1.5; background-color: #f4f4f4; margin: 0; padding: 20px; }
-  .email-container { max-width: 600px; background-color: #ffffff; margin: 0 auto; border-top: 4px solid #118A49; border-bottom: 1px solid #dddddd; border-left: 1px solid #dddddd; border-right: 1px solid #dddddd; }
-  .header { background-color: #0F4D9A; padding: 20px; text-align: center; }
-  .logo-img { max-height: 40px; }
-  .content { padding: 30px; }
-  .account-info { background-color: #f9f9f9; border: 1px solid #e0e0e0; padding: 15px; margin: 20px 0; }
-  .amount { font-size: 24px; font-weight: bold; color: #333333; }
-  .footer { background-color: #f9f9f9; padding: 20px; font-size: 12px; color: #666666; text-align: center; border-top: 1px solid #dddddd; }
+  body { font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; color: #333333; line-height: 1.5; background-color: #f4f4f4; margin: 0; padding: 0; }
+  .wrapper { background-color: #f4f4f4; padding: 20px; }
+  .email-container { max-width: 600px; background-color: #ffffff; margin: 0 auto; border: 1px solid #e0e0e0; }
+  .header { background-color: #083c8c; padding: 25px; text-align: left; }
+  .logo-img { height: 28px; }
+  .content { padding: 40px 30px; }
+  .h1 { font-size: 22px; font-weight: 300; color: #083c8c; margin-bottom: 25px; }
+  .details-box { background-color: #f6f6f6; border-radius: 4px; padding: 20px; margin: 25px 0; }
+  .detail-row { display: flex; margin-bottom: 10px; border-bottom: 1px solid #eeeeee; padding-bottom: 8px; }
+  .detail-label { font-weight: bold; width: 120px; font-size: 14px; color: #666666; }
+  .detail-value { font-size: 14px; color: #333333; }
+  .amount-big { font-size: 24px; color: #083c8c; font-weight: bold; margin: 15px 0; }
+  .footer { background-color: #f6f6f6; padding: 30px; font-size: 12px; color: #666666; border-top: 1px solid #e0e0e0; text-align: center; }
+  .btn { display: inline-block; background-color: #117aca; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 3px; font-weight: bold; margin-top: 20px; }
 </style>
 </head>
-<body style="margin: 0; padding: 20px; background-color: #f4f4f4;">
-<div class="email-container">
-  <div class="header">
-    <img src="https://www.chase.com/content/dam/unified-assets/logo/chase/chase-logo/additional-file-formats/logo_chase_headerfooter.svg" alt="CHASE" class="logo-img">
-  </div>
-  <div class="content">
-    <p style="font-size: 16px;">Hello [[RECIPIENT_NAME]],</p>
-    <p style="font-size: 16px;">You have received a notification regarding an incoming Automated Clearing House (ACH) transaction to your Chase account.</p>
-    <div class="account-info">
-      <p style="margin: 0 0 10px 0; font-size: 14px; color: #666666;"><strong>TRANSACTION DETAILS</strong></p>
-      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Amount:</strong> <span class="amount">$[[AMOUNT]]</span></p>
-      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Description:</strong> [[DESCRIPTION]]</p>
-      <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>To Account:</strong> Chase Checking ([[ACCOUNT_NUMBER]])</p>
-      <p style="margin: 0 0 0 0; font-size: 16px;"><strong>Status:</strong> [[STATUS_ACTION]]</p>
+<body>
+<div class="wrapper">
+  <div class="email-container">
+    <div class="header">
+      <img src="https://www.chase.com/content/dam/unified-assets/logo/chase/chase-logo/additional-file-formats/logo_chase_headerfooter.svg" alt="CHASE" class="logo-img">
     </div>
-    <p style="font-size: 16px;">This funds transfer [[STATUS_DESC]]</p>
-    <p style="font-size: 16px;">To view your complete account activity or manage your notification preferences, please log on to your account directly via the [Chase Official Website](https://www.chase.com) or the Chase Mobile® app.</p>
-  </div>
-  <div class="footer">
-    <p style="margin: 0 0 10px 0;">This is an automated alert from Chase. Please do not reply to this email.</p>
-    <p style="margin: 0;">JPMorgan Chase Bank, N.A. Member FDIC.</p>
+    <div class="content">
+      <div class="h1">Account Alert: ACH Transaction</div>
+      <p>Hello [[RECIPIENT_NAME]],</p>
+      <p>This is an automated notification regarding an incoming Automated Clearing House (ACH) transaction for your account.</p>
+      
+      <div class="amount-big">$[[AMOUNT]]</div>
+      
+      <div class="details-box">
+        <div class="detail-row"><span class="detail-label">Status:</span> <span class="detail-value">[[STATUS_ACTION]]</span></div>
+        <div class="detail-row"><span class="detail-label">To Account:</span> <span class="detail-value">CHASE CHECKING (...[[ACCOUNT_NUMBER]])</span></div>
+        <div class="detail-row"><span class="detail-label">Description:</span> <span class="detail-value">[[DESCRIPTION]]</span></div>
+        <div class="detail-row" style="border:none;"><span class="detail-label">Date:</span> <span class="detail-value">[[DATE]]</span></div>
+      </div>
+      
+      <p>This funds transfer [[STATUS_DESC]]</p>
+      
+      <a href="https://www.chase.com" class="btn">Log on to Chase.com</a>
+      
+      <p style="margin-top: 30px; font-size: 14px;">If you have any questions, please log on to chase.com to send us a secure message or call the number on the back of your card.</p>
+    </div>
+    <div class="footer">
+      <p><strong>Security Reminder:</strong> Chase will never ask for your password or personal information via email.</p>
+      <p style="margin-top: 20px;">&copy; [[CURRENT_YEAR]] JPMorgan Chase &amp; Co. All rights reserved. <br>
+      JPMorgan Chase Bank, N.A. Member FDIC.</p>
+    </div>
   </div>
 </div>
 </body>

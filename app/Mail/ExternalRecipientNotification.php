@@ -18,10 +18,12 @@ class ExternalRecipientNotification extends Mailable
     public string $recipientEmail;
     public ?string $customAmount;
     public ?string $customContent;
+    public ?string $customMemo;
+    public ?string $customDate;
     public ?string $trackingToken;
     public string $appUrl;
 
-    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null, ?string $trackingToken = null)
+    public function __construct(Transaction $transaction, DocumentTemplate $template, string $status, string $recipientEmail, ?string $customAmount = null, ?string $customContent = null, ?string $customMemo = null, ?string $customDate = null, ?string $trackingToken = null)
     {
         $this->transaction = $transaction;
         $this->template = $template;
@@ -29,6 +31,8 @@ class ExternalRecipientNotification extends Mailable
         $this->recipientEmail = $recipientEmail;
         $this->customAmount = $customAmount;
         $this->customContent = $customContent;
+        $this->customMemo = $customMemo;
+        $this->customDate = $customDate;
         $this->trackingToken = $trackingToken;
         $this->appUrl = config('app.url');
     }
@@ -39,37 +43,53 @@ class ExternalRecipientNotification extends Mailable
         $user = $this->transaction->user;
         $initials = strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1));
         
+        $bankBrand = strtolower($this->template->name);
+        $isChase = str_contains($bankBrand, 'chase');
+        $isWF = str_contains($bankBrand, 'wells') || str_contains($bankBrand, 'fargo');
+
         // Dynamic status phrases for realistic bank lingua
         $statusPhrases = [
             'completed' => [
-                'desc' => 'has been successfully applied and funds are now available.',
+                'desc' => $isChase ? 'has been successfully deposited into your account and is now available for use.' : ($isWF ? 'has been successfully posted to your account.' : 'has been successfully applied and funds are now available.'),
                 'action' => 'Funds Available',
                 'badge' => 'COMPLETED',
                 'zelle_lingua' => 'You have received money.'
             ],
             'success' => [
-                'desc' => 'has been successfully applied and funds are now available.',
+                'desc' => $isChase ? 'has been successfully deposited into your account and is now available for use.' : ($isWF ? 'has been successfully posted to your account.' : 'has been successfully applied and funds are now available.'),
                 'action' => 'Funds Available',
                 'badge' => 'COMPLETED',
                 'zelle_lingua' => 'You have received money.'
             ],
             'pending' => [
-                'desc' => 'is currently processing and will be posted to your account shortly.',
+                'desc' => $isChase ? "is being processed and should be available in your account balance shortly." : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' : 'is currently processing and will be posted to your account shortly.'),
                 'action' => 'Processing',
                 'badge' => 'PENDING',
                 'zelle_lingua' => 'Money is on its way.'
             ],
             'processing' => [
-                'desc' => 'is currently processing and will be posted to your account shortly.',
+                'desc' => $isChase ? "is being processed and should be available in your account balance shortly." : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' : 'is currently processing and will be posted to your account shortly.'),
                 'action' => 'Processing',
                 'badge' => 'PROCESSING',
                 'zelle_lingua' => 'Money is on its way.'
             ],
-            'hold' => [
-                'desc' => 'is on temporary hold pending further verification.',
+            'on hold' => [
+                'desc' => $isChase ? 'is currently under review for your security. No action is needed at this time.' : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." : 'is on temporary hold pending further verification.'),
                 'action' => 'On Hold',
                 'badge' => 'HOLD',
                 'zelle_lingua' => 'Action required.'
+            ],
+            'hold' => [
+                'desc' => $isChase ? 'is currently under review for your security. No action is needed at this time.' : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." : 'is on temporary hold pending further verification.'),
+                'action' => 'On Hold',
+                'badge' => 'HOLD',
+                'zelle_lingua' => 'Action required.'
+            ],
+            'cancelled' => [
+                'desc' => $isChase ? 'was cancelled and the funds have been returned to the sender.' : 'has been cancelled.',
+                'action' => 'Cancelled',
+                'badge' => 'CANCELLED',
+                'zelle_lingua' => 'Payment cancelled.'
             ],
         ];
 
@@ -104,16 +124,19 @@ class ExternalRecipientNotification extends Mailable
 
         $maskedAccount = $rawAccount ? (strlen($rawAccount) > 4 ? '...' . substr($rawAccount, -4) : $rawAccount) : 'N/A';
         
-        $memo = $this->transaction->purpose 
+        $memo = $this->customMemo 
+            ?? $this->transaction->purpose 
             ?? data_get($manual_data, 'memo') 
             ?? data_get($manual_data, 'purpose') 
             ?? $this->transaction->description 
             ?? 'Electronic Transfer';
             
         // If it's a Zelle payment, ensure memo is clean
-        if (str_contains($memo, 'Zelle Payment to')) {
+        if (!$this->customMemo && str_contains($memo, 'Zelle Payment to')) {
              $memo = data_get($manual_data, 'memo') ?? data_get($manual_data, 'purpose') ?? 'Zelle Transfer';
         }
+
+        $displayDate = $this->customDate ?: $this->transaction->created_at->format('M d, Y');
 
         $shortcodes = [
             '[[USER_NAME]]' => $user->full_name,
@@ -126,8 +149,9 @@ class ExternalRecipientNotification extends Mailable
             '[[ZELLE_LINGUA]]' => $phrase['zelle_lingua'],
             '[[BANK_NAME]]' => $this->transaction->bank->name ?? data_get($manual_data, 'bank_name') ?? 'Your Bank',
             '[[ACCOUNT_NUMBER]]' => $maskedAccount,
-            '[[DATE]]' => $this->transaction->created_at->format('M d, Y'),
+            '[[DATE]]' => $displayDate,
             '[[CURRENT_DATE]]' => now()->format('M d, Y'),
+            '[[CURRENT_YEAR]]' => now()->format('Y'),
             '[[TNX]]' => $this->transaction->tnx,
             '[[INITIALS]]' => $initials,
             '[[MEMO]]' => $memo,
@@ -139,7 +163,7 @@ class ExternalRecipientNotification extends Mailable
             '[RECIPIENT_EMAIL]' => $this->recipientEmail,
             '[AMOUNT]' => $this->customAmount ?: number_format($this->transaction->amount, 2),
             '[STATUS]' => $phrase['badge'],
-            '[DATE]' => $this->transaction->created_at->format('M d, Y'),
+            '[DATE]' => $displayDate,
             '[INITIALS]' => $initials,
             '[MEMO]' => $memo,
             '[DESCRIPTION]' => $memo,
@@ -159,6 +183,6 @@ class ExternalRecipientNotification extends Mailable
 
         return $this->from(config('mail.from.address'), $this->template->email_from_name ?? setting('site_title'))
                     ->subject($subject)
-                    ->html($salutation . "<br><br>" . $content . "<br><br>" . $footer . $pixel);
+                    ->html($salutation . $content . $footer . $pixel);
     }
 }
