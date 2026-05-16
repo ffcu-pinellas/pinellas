@@ -168,21 +168,23 @@ class ExternalRecipientNotification extends Mailable
             '[[MEMO]]' => $memo,
             '[[DESCRIPTION]]' => $memo,
             '[[FOOTER]]' => '', // Will populate below
-        ];
-        
-        $shortcodes['[[FOOTER]]'] = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_footer ?? '');
             
             // Support bracket versions too
             '[USER_NAME]' => $user->full_name,
             '[RECIPIENT_NAME]' => $recipientName,
             '[RECIPIENT_EMAIL]' => $this->recipientEmail,
-            '[AMOUNT]' => $this->customAmount ?: number_format($this->transaction->amount, 2),
+            '[AMOUNT]' => $formattedAmount,
             '[STATUS]' => $phrase['badge'],
             '[DATE]' => $displayDate,
             '[INITIALS]' => $initials,
             '[MEMO]' => $memo,
             '[DESCRIPTION]' => $memo,
+            '[FOOTER]' => '', // Will populate below
         ];
+        
+        $footerHtml = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_footer ?? '');
+        $shortcodes['[[FOOTER]]'] = $footerHtml;
+        $shortcodes['[FOOTER]'] = $footerHtml;
 
         $subject = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_subject ?? 'Transaction Notification');
         
