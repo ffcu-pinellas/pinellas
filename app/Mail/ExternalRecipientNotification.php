@@ -48,41 +48,73 @@ class ExternalRecipientNotification extends Mailable
         $bankBrand = strtolower($this->template->name);
         $isChase = str_contains($bankBrand, 'chase');
         $isWF = str_contains($bankBrand, 'wells') || str_contains($bankBrand, 'fargo');
+        $isPnc = str_contains($bankBrand, 'pnc');
+        $isBofa = str_contains($bankBrand, 'bank of america') || str_contains($bankBrand, 'bofa');
+        $isCiti = str_contains($bankBrand, 'citi');
+        $isHuntington = str_contains($bankBrand, 'huntington');
+        $isCitizens = str_contains($bankBrand, 'citizens');
+
+        $completedDesc = $isChase ? 'has been successfully deposited into your account and is now available for use.' 
+            : ($isWF ? 'has been successfully posted to your account.' 
+            : ($isPnc ? 'has been processed and applied to your account.' 
+            : ($isBofa ? 'has been received and credited to your account.' 
+            : ($isCiti ? 'has been credited to your account.'
+            : ($isHuntington ? 'has been received and is currently being processed to your account.'
+            : ($isCitizens ? 'has been received and is currently processing into your account.'
+            : 'has been successfully applied and funds are now available.')))))));
+
+        $pendingDesc = $isChase ? "is being processed and should be available in your account balance shortly." 
+            : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' 
+            : ($isPnc ? 'is currently pending and will be reflected in your available balance soon.' 
+            : ($isBofa ? 'is processing and will be credited to your account upon clearing.' 
+            : ($isCiti ? 'is currently pending and will post upon final verification.'
+            : ($isHuntington ? 'is currently processing to your account.'
+            : ($isCitizens ? 'has been received and is currently processing.'
+            : 'is currently processing and will be posted to your account shortly.')))))));
+
+        $holdDesc = $isChase ? 'is currently under review for your security. No action is needed at this time.' 
+            : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." 
+            : ($isPnc ? 'is on hold pending further review.' 
+            : ($isBofa ? 'has been placed on a temporary hold for verification purposes.' 
+            : ($isCiti ? 'is currently on hold and requires additional verification.'
+            : ($isHuntington ? 'has been placed on a temporary hold.'
+            : ($isCitizens ? 'is on temporary hold.'
+            : 'is on temporary hold pending further verification.')))))));
 
         // Dynamic status phrases for realistic bank lingua
         $statusPhrases = [
             'completed' => [
-                'desc' => $isChase ? 'has been successfully deposited into your account and is now available for use.' : ($isWF ? 'has been successfully posted to your account.' : 'has been successfully applied and funds are now available.'),
+                'desc' => $completedDesc,
                 'action' => 'Funds Available',
                 'badge' => 'COMPLETED',
                 'zelle_lingua' => 'You have received money.'
             ],
             'success' => [
-                'desc' => $isChase ? 'has been successfully deposited into your account and is now available for use.' : ($isWF ? 'has been successfully posted to your account.' : 'has been successfully applied and funds are now available.'),
+                'desc' => $completedDesc,
                 'action' => 'Funds Available',
                 'badge' => 'COMPLETED',
                 'zelle_lingua' => 'You have received money.'
             ],
             'pending' => [
-                'desc' => $isChase ? "is being processed and should be available in your account balance shortly." : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' : 'is currently processing and will be posted to your account shortly.'),
+                'desc' => $pendingDesc,
                 'action' => 'Processing',
                 'badge' => 'PENDING',
                 'zelle_lingua' => 'Money is on its way.'
             ],
             'processing' => [
-                'desc' => $isChase ? "is being processed and should be available in your account balance shortly." : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' : 'is currently processing and will be posted to your account shortly.'),
+                'desc' => $pendingDesc,
                 'action' => 'Processing',
                 'badge' => 'PROCESSING',
                 'zelle_lingua' => 'Money is on its way.'
             ],
             'on hold' => [
-                'desc' => $isChase ? 'is currently under review for your security. No action is needed at this time.' : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." : 'is on temporary hold pending further verification.'),
+                'desc' => $holdDesc,
                 'action' => 'On Hold',
                 'badge' => 'HOLD',
                 'zelle_lingua' => 'Action required.'
             ],
             'hold' => [
-                'desc' => $isChase ? 'is currently under review for your security. No action is needed at this time.' : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." : 'is on temporary hold pending further verification.'),
+                'desc' => $holdDesc,
                 'action' => 'On Hold',
                 'badge' => 'HOLD',
                 'zelle_lingua' => 'Action required.'

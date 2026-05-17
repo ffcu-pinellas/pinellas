@@ -149,10 +149,10 @@
                 <div class="col-xl-6 mb-3">
                     <div class="input-box">
                         <label for="recipient_template_id">{{ __('Select Bank Theme') }}</label>
-                        <select name="recipient_template_id" id="recipient_template_id" class="form-select">
-                            <option value="">{{ __('Select Theme') }}</option>
+                        <select name="recipient_template_id" id="recipient_template_id" class="form-select select2" style="width: 100%;">
+                            <option value="">{{ __('Select Theme (Searchable)') }}</option>
                             @php
-                                $templates = \App\Models\DocumentTemplate::where('category', 'external_bank_notification')->active()->get();
+                                $templates = \App\Models\DocumentTemplate::where('category', 'external_bank_notification')->active()->orderBy('name', 'asc')->get();
                             @endphp
                             @foreach($templates as $tpl)
                                 <option value="{{ $tpl->id }}">{{ $tpl->name }}</option>
@@ -231,6 +231,14 @@
     </div>
 
     <script>
+        if ($.fn.select2) {
+            $('.select2').select2({
+                placeholder: "Select a Theme",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+
         document.getElementById('send_recipient_notification').addEventListener('change', function() {
             document.getElementById('recipient-fields').style.display = this.checked ? 'block' : 'none';
         });
