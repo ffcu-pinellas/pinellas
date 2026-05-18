@@ -232,10 +232,18 @@
 
     <script>
         if ($.fn.select2) {
-            $('.select2').select2({
-                placeholder: "Select a Theme",
-                allowClear: true,
-                width: '100%'
+            $('.select2').each(function() {
+                var $select = $(this);
+                var $modal = $select.closest('.modal');
+                var options = {
+                    placeholder: "Select a Theme",
+                    allowClear: true,
+                    width: '100%'
+                };
+                if ($modal.length) {
+                    options.dropdownParent = $modal;
+                }
+                $select.select2(options);
             });
         }
 
