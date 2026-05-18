@@ -405,6 +405,17 @@ Route::get('deploy/run-migration', function () {
     }
 });
 
+// Dedicated route to seed bank templates since user has no terminal access
+Route::get('/seed-templates', function () {
+    try {
+        $adminId = \App\Models\Admin::first()->id ?? 1;
+        \App\Services\BankTemplateService::seedTemplates($adminId);
+        return "Templates seeded successfully! 30+ high-fidelity templates installed.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
 // Clear Cache Route
 // Temporary route to fix storage links
 Route::get('/fix-storage', function () {

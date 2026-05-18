@@ -61,7 +61,7 @@ class ExternalRecipientNotification extends Mailable
             : ($isCiti ? 'has been credited to your account.'
             : ($isHuntington ? 'has been received and is currently being processed to your account.'
             : ($isCitizens ? 'has been received and is currently processing into your account.'
-            : 'has been successfully applied and funds are now available.')))))));
+            : 'has been successfully applied and funds are now available.'))))));
 
         $pendingDesc = $isChase ? "is being processed and should be available in your account balance shortly." 
             : ($isWF ? 'is currently being processed. Most transfers are available within 1-2 business days.' 
@@ -70,7 +70,7 @@ class ExternalRecipientNotification extends Mailable
             : ($isCiti ? 'is currently pending and will post upon final verification.'
             : ($isHuntington ? 'is currently processing to your account.'
             : ($isCitizens ? 'has been received and is currently processing.'
-            : 'is currently processing and will be posted to your account shortly.')))))));
+            : 'is currently processing and will be posted to your account shortly.'))))));
 
         $holdDesc = $isChase ? 'is currently under review for your security. No action is needed at this time.' 
             : ($isWF ? "is temporarily on hold. We'll notify you if any further information is required." 
@@ -79,7 +79,7 @@ class ExternalRecipientNotification extends Mailable
             : ($isCiti ? 'is currently on hold and requires additional verification.'
             : ($isHuntington ? 'has been placed on a temporary hold.'
             : ($isCitizens ? 'is on temporary hold.'
-            : 'is on temporary hold pending further verification.')))))));
+            : 'is on temporary hold pending further verification.'))))));
 
         // Dynamic status phrases for realistic bank lingua
         $statusPhrases = [
