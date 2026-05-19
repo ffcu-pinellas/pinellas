@@ -234,16 +234,12 @@
         if ($.fn.select2) {
             $('.select2').each(function() {
                 var $select = $(this);
-                var $modal = $select.closest('.modal');
-                var options = {
+                $select.select2({
                     placeholder: "Select a Theme",
                     allowClear: true,
-                    width: '100%'
-                };
-                if ($modal.length) {
-                    options.dropdownParent = $modal;
-                }
-                $select.select2(options);
+                    width: '100%',
+                    dropdownParent: $select.parent()
+                });
             });
         }
 
