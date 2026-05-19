@@ -588,7 +588,7 @@ HTML;
         <table align="center" cellpadding="0" cellspacing="0" border="0" width="600" class="email-container">
           <tr>
             <td class="header">
-              <img src="https://logo.clearbit.com/huntington.com" alt="Huntington Alert" style="border-radius: 4px;">
+              <img src="{{ asset('assets/images/bank_logos/logo_08f700dc70a14d4203b900b6d99b01ec.png') }}" alt="Huntington Alert" style="border-radius: 4px;">
             </td>
           </tr>
           <tr>
@@ -741,7 +741,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Capital One Alert</title></head>
 <body style="margin:0;padding:20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background-color:#f5f5f5;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-  <tr><td style="background-color:#003a6f;padding:25px;text-align:center;"><img src="https://logo.clearbit.com/capitalone.com" height="40" alt="Capital One"></td></tr>
+  <tr><td style="background-color:#003a6f;padding:25px;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_023fd4bad5e3c2b5d21b48509c9fedfa.png') }}" height="40" alt="Capital One"></td></tr>
   <tr><td style="padding:40px;color:#333;">
     <h2 style="color:#003a6f;margin-top:0;">Account Alert: Deposit Received</h2>
     <p>Hi [[RECIPIENT_NAME]],</p>
@@ -768,7 +768,7 @@ HTML;
 <head><meta charset="UTF-8"><title>U.S. Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#eaeaea;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#001a70;padding:20px;"><img src="https://logo.clearbit.com/usbank.com" height="30" alt="U.S. Bank"></td></tr>
+  <tr><td style="background-color:#001a70;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_e6168967519dd8cadd304481410882b2.png') }}" height="30" alt="U.S. Bank"></td></tr>
   <tr><td style="height:4px;background-color:#d42027;"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#001a70;">Transfer Notification</h3>
@@ -796,7 +796,7 @@ HTML;
 <head><meta charset="UTF-8"><title>TD Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ddd;border-top:5px solid #00b33c;">
-  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/td.com" height="40" alt="TD Bank"></td></tr>
+  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_d8410783ea930298fbef50804e7c3641.png') }}" height="40" alt="TD Bank"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h2 style="color:#333;margin-top:0;">Deposit Alert</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -820,7 +820,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Truist Alert</title></head>
 <body style="margin:0;padding:20px;font-family:'Open Sans',Helvetica,Arial,sans-serif;background-color:#fafafa;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.05);">
-  <tr><td style="background-color:#2e1a47;padding:30px;text-align:center;border-radius:12px 12px 0 0;"><img src="https://logo.clearbit.com/truist.com" height="35" alt="Truist"></td></tr>
+  <tr><td style="background-color:#2e1a47;padding:30px;text-align:center;border-radius:12px 12px 0 0;"><img src="{{ asset('assets/images/bank_logos/logo_cffbd2bea7509e1bbaf9cddef4455cc2.png') }}" height="35" alt="Truist"></td></tr>
   <tr><td style="padding:40px;color:#222;">
     <h2 style="color:#2e1a47;margin-top:0;">Your Deposit is Processing</h2>
     <p>Hi [[RECIPIENT_NAME]],</p>
@@ -845,7 +845,7 @@ HTML;
 <head><meta charset="UTF-8"><title>KeyBank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f0f0f0;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-top:4px solid #d41313;">
-  <tr><td style="padding:20px;"><img src="https://logo.clearbit.com/key.com" height="40" alt="KeyBank"></td></tr>
+  <tr><td style="padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_92a8ab56e51c2cfd7bca9287f8a215d7.png') }}" height="40" alt="KeyBank"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#d41313;border-bottom:1px solid #eee;padding-bottom:10px;">Alert: Incoming Funds</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -870,7 +870,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Regions Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#6c9a00;padding:20px;"><img src="https://logo.clearbit.com/regions.com" height="35" alt="Regions Bank"></td></tr>
+  <tr><td style="background-color:#6c9a00;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_d77004f66a8fe96f36902fa9b6c7bb7e.png') }}" height="35" alt="Regions Bank"></td></tr>
   <tr><td style="padding:30px;color:#444;">
     <h2 style="color:#6c9a00;">Notification of Deposit</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -895,7 +895,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Discover Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f9f9f9;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-  <tr><td style="padding:25px;border-bottom:2px solid #ff6000;text-align:center;"><img src="https://logo.clearbit.com/discover.com" height="30" alt="Discover"></td></tr>
+  <tr><td style="padding:25px;border-bottom:2px solid #ff6000;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_3c9e2f9104c56185152cabe9ede24f9b.png') }}" height="30" alt="Discover"></td></tr>
   <tr><td style="padding:35px;color:#333;">
     <h2 style="color:#ff6000;margin-top:0;">Account Alert</h2>
     <p>Hi [[RECIPIENT_NAME]],</p>
@@ -920,7 +920,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Santander Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f5f5f5;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ddd;">
-  <tr><td style="background-color:#ec0000;padding:25px;text-align:left;"><img src="https://logo.clearbit.com/santander.com" height="30" alt="Santander"></td></tr>
+  <tr><td style="background-color:#ec0000;padding:25px;text-align:left;"><img src="{{ asset('assets/images/bank_logos/logo_8a2b45a4fa0b66a4fdb54985b50e378a.png') }}" height="30" alt="Santander"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#ec0000;">Incoming Transfer Alert</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -945,7 +945,7 @@ HTML;
 <head><meta charset="UTF-8"><title>BMO Harris Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#0079c1;padding:20px;"><img src="https://logo.clearbit.com/bmo.com" height="40" alt="BMO Harris"></td></tr>
+  <tr><td style="background-color:#0079c1;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_92ece96b40353d74a3ddc97e24c7c759.png') }}" height="40" alt="BMO Harris"></td></tr>
   <tr><td style="padding:30px;color:#444;">
     <h2 style="color:#0079c1;margin-top:0;">Deposit Notification</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -970,7 +970,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Navy Federal Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-top:5px solid #f2a900;border-bottom:1px solid #ddd;">
-  <tr><td style="background-color:#003366;padding:20px;text-align:center;"><img src="https://logo.clearbit.com/navyfederal.org" height="40" alt="Navy Federal Credit Union"></td></tr>
+  <tr><td style="background-color:#003366;padding:20px;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_80d4e6e57624781d9c7558d36ad44591.png') }}" height="40" alt="Navy Federal Credit Union"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#003366;">Account Deposit Alert</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -995,7 +995,7 @@ HTML;
 <head><meta charset="UTF-8"><title>USAA Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#e8e8e8;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#003a5d;padding:20px;"><img src="https://logo.clearbit.com/usaa.com" height="35" alt="USAA"></td></tr>
+  <tr><td style="background-color:#003a5d;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_4c9c69e8e626859061ecc0db95e9fe8a.png') }}" height="35" alt="USAA"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h2 style="color:#003a5d;margin-top:0;">Transfer Activity Alert</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -1020,7 +1020,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Schwab Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-top:4px solid #00a0df;border-bottom:1px solid #ddd;">
-  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/schwab.com" height="35" alt="Charles Schwab"></td></tr>
+  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_03b044d826f3bdc50ddc87d2de29a17e.png') }}" height="35" alt="Charles Schwab"></td></tr>
   <tr><td style="padding:30px;color:#333;line-height:1.6;">
     <h3 style="color:#00a0df;margin-top:0;">Account Alert: Deposit Received</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1045,7 +1045,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Synchrony Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f8f8f8;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ddd;border-top:5px solid #ffcc00;">
-  <tr><td style="padding:25px;text-align:center;background:#000;"><img src="https://logo.clearbit.com/synchrony.com" height="35" alt="Synchrony Bank"></td></tr>
+  <tr><td style="padding:25px;text-align:center;background:#000;"><img src="{{ asset('assets/images/bank_logos/logo_a37e1d210849073d263054424091c79d.png') }}" height="35" alt="Synchrony Bank"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h2 style="color:#000;margin-top:0;">Deposit Notification</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -1070,7 +1070,7 @@ HTML;
 <head><meta charset="UTF-8"><title>First Citizens Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,sans-serif;background-color:#f5f5f5;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ddd;">
-  <tr><td style="background-color:#005596;padding:25px;text-align:center;"><img src="https://logo.clearbit.com/firstcitizens.com" height="40" alt="First Citizens Bank"></td></tr>
+  <tr><td style="background-color:#005596;padding:25px;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_82bed54a75625dec4e05f4e5ac2bb564.png') }}" height="40" alt="First Citizens Bank"></td></tr>
   <tr><td style="padding:30px;color:#444;">
     <h3 style="color:#005596;">ACH Transfer Alert</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1095,7 +1095,7 @@ HTML;
 <head><meta charset="UTF-8"><title>SECU Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#eef2f1;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;border-top:5px solid #005b4a;">
-  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/ncsecu.org" height="40" alt="SECU"></td></tr>
+  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_e1286297567180605486f2f67082ec60.png') }}" height="40" alt="SECU"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h2 style="color:#005b4a;margin-top:0;">Deposit Alert</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -1120,7 +1120,7 @@ HTML;
 <head><meta charset="UTF-8"><title>M&T Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ddd;border-top:5px solid #006c5b;">
-  <tr><td style="padding:25px;text-align:center;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/mtb.com" height="40" alt="M&T Bank"></td></tr>
+  <tr><td style="padding:25px;text-align:center;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_9e4df17c45685f2fea915ace0290daff.png') }}" height="40" alt="M&T Bank"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#006c5b;margin-top:0;">Account Alert: Incoming Transfer</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1145,7 +1145,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Fifth Third Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f0f0f0;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#003a70;padding:20px;"><img src="https://logo.clearbit.com/53.com" height="35" alt="Fifth Third Bank"></td></tr>
+  <tr><td style="background-color:#003a70;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_03e7353ac840a51f2bb6562965e75565.png') }}" height="35" alt="Fifth Third Bank"></td></tr>
   <tr><td style="height:5px;background-color:#008a00;"></td></tr>
   <tr><td style="padding:30px;color:#444;">
     <h2 style="color:#003a70;">Deposit Notification</h2>
@@ -1171,7 +1171,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Ally Bank Alert</title></head>
 <body style="margin:0;padding:20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-  <tr><td style="background-color:#512d6d;padding:30px;text-align:center;"><img src="https://logo.clearbit.com/ally.com" height="40" alt="Ally Bank"></td></tr>
+  <tr><td style="background-color:#512d6d;padding:30px;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_cab46fc873de0e5848e8fd20b9a7956f.png') }}" height="40" alt="Ally Bank"></td></tr>
   <tr><td style="padding:40px;color:#333;">
     <h2 style="color:#512d6d;margin-top:0;">You've Got Funds</h2>
     <p>Hi [[RECIPIENT_NAME]],</p>
@@ -1198,7 +1198,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Suncoast Credit Union Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f5f5f5;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-top:5px solid #006b54;border-bottom:1px solid #ddd;">
-  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/suncoastcreditunion.com" height="40" alt="Suncoast Credit Union"></td></tr>
+  <tr><td style="padding:25px;text-align:left;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_5d16dadee3776b3ab3e3e0ea568f5409.png') }}" height="40" alt="Suncoast Credit Union"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#006b54;margin-top:0;">Account Alert: Deposit Notification</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1223,7 +1223,7 @@ HTML;
 <head><meta charset="UTF-8"><title>America First Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,Arial,sans-serif;background-color:#e8e8e8;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#bd1320;padding:20px;"><img src="https://logo.clearbit.com/americafirst.com" height="35" alt="America First Credit Union"></td></tr>
+  <tr><td style="background-color:#bd1320;padding:20px;"><img src="{{ asset('assets/images/bank_logos/logo_d21e512a72b5d549794625b9cf89e696.png') }}" height="35" alt="America First Credit Union"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h2 style="color:#bd1320;margin-top:0;">Transfer Activity Alert</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
@@ -1248,7 +1248,7 @@ HTML;
 <head><meta charset="UTF-8"><title>PenFed Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Arial,sans-serif;background-color:#f0f0f0;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-top:4px solid #003a70;">
-  <tr><td style="padding:25px;text-align:center;border-bottom:1px solid #eee;"><img src="https://logo.clearbit.com/penfed.org" height="40" alt="PenFed Credit Union"></td></tr>
+  <tr><td style="padding:25px;text-align:center;border-bottom:1px solid #eee;"><img src="{{ asset('assets/images/bank_logos/logo_ac2a9824753a94ecbaad01415c8b78f4.png') }}" height="40" alt="PenFed Credit Union"></td></tr>
   <tr><td style="padding:30px;color:#333;">
     <h3 style="color:#003a70;">Incoming Transfer Alert</h3>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1273,7 +1273,7 @@ HTML;
 <head><meta charset="UTF-8"><title>Golden 1 Alert</title></head>
 <body style="margin:0;padding:20px;font-family:Helvetica,sans-serif;background-color:#f4f4f4;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #ccc;">
-  <tr><td style="background-color:#cf142b;padding:20px;text-align:center;"><img src="https://logo.clearbit.com/golden1.com" height="40" alt="Golden 1 Credit Union"></td></tr>
+  <tr><td style="background-color:#cf142b;padding:20px;text-align:center;"><img src="{{ asset('assets/images/bank_logos/logo_c56007b3220051b07078feb9cfcfd5dc.png') }}" height="40" alt="Golden 1 Credit Union"></td></tr>
   <tr><td style="padding:30px;color:#444;">
     <h2 style="color:#cf142b;">Notification of Deposit</h2>
     <p>Hello [[RECIPIENT_NAME]],</p>
