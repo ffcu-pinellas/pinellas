@@ -117,8 +117,10 @@ class FundTransferController extends Controller
              return redirect()->back()->withInput();
         }
         
-        // Security Gate Check
-        if (!session()->has('security_verified_' . $user->id)) {
+        // Security Gate Check — validate presence AND that the timestamp is still in the future
+        $securityExpiry = session('security_verified_' . $user->id);
+        if (!$securityExpiry || !($securityExpiry instanceof \Carbon\Carbon ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture())) {
+             session()->forget('security_verified_' . $user->id);
              notify()->error(__('Security verification required to complete this transfer.'));
              return redirect()->back()->withInput();
         }
