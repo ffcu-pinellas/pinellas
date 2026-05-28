@@ -56,7 +56,7 @@ class BankTemplateService
 
                                 <div align="center" style="padding-right:0px;padding-left:0px">
                                     <a href="https://www.zellepay.com/" target="_blank">
-                                        <img align="middle" border="0" src="[[APP_URL]]/assets/images/bank_logos/logo_fb2ab0c159f5e0df48b95fb95ad466d8.png" alt="Zelle Logo" title="Zelle Logo" style="outline:none;text-decoration:none;clear:both;border:none;float:none;width:100%;max-width:125px;display:block!important" width="125" height="52">
+                                        <img align="middle" border="0" src="[[APP_URL]]/assets/images/bank_logos/zelle.png" alt="Zelle Logo" title="Zelle Logo" style="outline:none;text-decoration:none;clear:both;border:none;float:none;width:100%;max-width:125px;display:block!important" width="125" height="52">
                                     </a>
                                 </div>
 
@@ -131,7 +131,7 @@ class BankTemplateService
                             <div style="border:0px solid transparent;padding:25px 0px">
                                 <div align="center" style="padding-right:20px;padding-left:20px">
                                     <a href="https://www.zellepay.com/" target="_blank">
-                                        <img align="middle" border="0" src="[[APP_URL]]/assets/images/bank_logos/logo_fb2ab0c159f5e0df48b95fb95ad466d8.png" alt="Zelle Logo" title="Zelle Logo" style="outline:none;text-decoration:none;clear:both;border:0px;height:auto;float:none;width:100%;max-width:69px;display:block!important" width="69">
+                                        <img align="middle" border="0" src="[[APP_URL]]/assets/images/bank_logos/zelle.png" alt="Zelle Logo" title="Zelle Logo" style="outline:none;text-decoration:none;clear:both;border:0px;height:auto;float:none;width:100%;max-width:69px;display:block!important" width="69">
                                     </a>
                                 </div>
                             </div>
