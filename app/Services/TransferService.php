@@ -431,6 +431,54 @@ class TransferService
         $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
         $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
         $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
+
+        // Notify recipient of pending incoming transfer (for Member to Member transfers)
+        if ($txnInfo->transfer_type == TransferType::OwnBankTransfer && $account_number) {
+            $sanitizedNumber = sanitizeAccountNumber($account_number);
+            $receiver = User::where(function($q) use ($sanitizedNumber) {
+                $q->where('account_number', $sanitizedNumber)
+                  ->orWhere('savings_account_number', $sanitizedNumber)
+                  ->orWhere('ira_account_number', $sanitizedNumber)
+                  ->orWhere('heloc_account_number', $sanitizedNumber)
+                  ->orWhere('cc_account_number', $sanitizedNumber)
+                  ->orWhere('loan_account_number', $sanitizedNumber);
+            })->first();
+
+            // Only notify if recipient is a different user (not self transfer) and status is Pending
+            if ($receiver && $receiver->id !== $user->id && $txnInfo->status == TxnStatus::Pending) {
+                $receiverWalletType = match(true) {
+                    $receiver->savings_account_number == $sanitizedNumber => 'Savings',
+                    $receiver->ira_account_number == $sanitizedNumber => 'IRA',
+                    $receiver->heloc_account_number == $sanitizedNumber => 'HELOC',
+                    $receiver->cc_account_number == $sanitizedNumber => 'Credit Card',
+                    $receiver->loan_account_number == $sanitizedNumber => 'Loan',
+                    default => 'Checking'
+                };
+                $receiverDisplayName = $receiverWalletType . ' (... ' . substr($sanitizedNumber, -4) . ')';
+
+                $receiverShortcodes = [
+                    '[[subject]]' => 'Pending Transfer: Incoming Transfer from ' . $user->full_name,
+                    '[[full_name]]' => $receiver->full_name,
+                    '[[message]]' => '<p>We are writing to notify you that an incoming transfer of <strong>' . setting('currency_symbol', '$') . number_format($txnInfo->amount, 2) . '</strong> from ' . $user->full_name . ' has been initiated to your account.</p>
+                                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                        <h4 style="margin-top: 0; color: #00888b;">Transfer Details</h4>
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr><td style="padding: 5px 0; color: #666;">Sender:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $user->full_name . '</td></tr>
+                                            <tr><td style="padding: 5px 0; color: #666;">To Account:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $receiverDisplayName . '</td></tr>
+                                            <tr><td style="padding: 5px 0; color: #666;">Amount:</td><td style="padding: 5px 0; font-weight: bold; text-align: right; color: #00888b;">' . setting('currency_symbol', '$') . number_format($txnInfo->amount, 2) . '</td></tr>
+                                            <tr><td style="padding: 5px 0; color: #666;">Status:</td><td style="padding: 5px 0; font-weight: bold; text-align: right; color: #f39c12;">Pending Approval</td></tr>
+                                            <tr><td style="padding: 5px 0; color: #666;">Reference ID:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $txnInfo->tnx . '</td></tr>
+                                        </table>
+                                    </div>
+                                    <p>This transfer is currently pending verification and will be credited to your account balance once fully approved by our compliance department. No action is required on your part.</p>',
+                ];
+                try {
+                    $this->mailNotify($receiver->email, 'user_mail', $receiverShortcodes);
+                } catch (\Throwable $e) {
+                    \Log::error('Recipient member transfer pending email failed: ' . $e->getMessage());
+                }
+            }
+        }
     }
 
     protected function calculateTransferCharge($bankInfo, $amount, $currencyCode)

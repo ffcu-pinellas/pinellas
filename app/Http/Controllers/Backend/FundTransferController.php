@@ -332,6 +332,35 @@ class FundTransferController extends Controller
                         $receiverWalletType, 
                         approvalCause: $transaction->purpose ?? 'Fund Transfer'
                     );
+
+                    // Notify recipient of member transfer credit (approved)
+                    if ($receiver->id !== $transaction->user_id) {
+                        $receiverWalletName = $receiverWalletType == 'primary_savings' ? 'Savings' : 'Checking';
+                        $receiverDisplayName = $receiverWalletName . ' (... ' . substr($sanitizedNumber, -4) . ')';
+                        $currencySymbol = setting('currency_symbol', '$');
+
+                        $receiverShortcodes = [
+                            '[[subject]]' => 'Deposit Confirmation: Incoming Transfer Credited',
+                            '[[full_name]]' => $receiver->full_name,
+                            '[[message]]' => '<p>Good news! An incoming transfer of <strong>' . $currencySymbol . number_format($creditAmount, 2) . '</strong> from ' . $transaction->user->full_name . ' has been approved and successfully credited to your account.</p>
+                                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                                <h4 style="margin-top: 0; color: #00888b;">Transaction Details</h4>
+                                                <table style="width: 100%; border-collapse: collapse;">
+                                                    <tr><td style="padding: 5px 0; color: #666;">Sender Name:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $transaction->user->full_name . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">To Account:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $receiverDisplayName . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Amount Credited:</td><td style="padding: 5px 0; font-weight: bold; text-align: right; color: #28a745;">' . $currencySymbol . number_format($creditAmount, 2) . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Date Credited:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . now()->format('M d, Y h:i A') . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Reference ID:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $transaction->tnx . '</td></tr>
+                                                </table>
+                                            </div>
+                                            <p>Please log in to your digital banking portal to view your updated balance and transaction history.</p>',
+                        ];
+                        try {
+                            $this->mailNotify($receiver->email, 'user_mail', $receiverShortcodes);
+                        } catch (\Throwable $e) {
+                            \Log::error('Recipient member transfer approval email failed: ' . $e->getMessage());
+                        }
+                    }
                 }
             }
             $this->rewardToUser($transaction->user_id, $transaction->id);
@@ -349,6 +378,42 @@ class FundTransferController extends Controller
 
                 if ($user_wallet) {
                     $user_wallet->increment('balance', $amount);
+                }
+            }
+
+            // Notify recipient of rejected member-to-member transfer
+            if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+                $manual_data_arr = json_decode($transaction->manual_field_data, true);
+                $accountNumber = data_get($manual_data_arr, 'account_number');
+                if ($accountNumber) {
+                    $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+                    $receiver = \App\Models\User::where('account_number', $sanitizedNumber)
+                                            ->orWhere('savings_account_number', $sanitizedNumber)
+                                            ->first();
+
+                    if ($receiver && $receiver->id !== $transaction->user_id) {
+                        $currencySymbol = setting('currency_symbol', '$');
+                        $receiverShortcodes = [
+                            '[[subject]]' => 'Incoming Transfer Alert: Transfer Declined',
+                            '[[full_name]]' => $receiver->full_name,
+                            '[[message]]' => '<p>We are writing to inform you that the pending incoming transfer of <strong>' . $currencySymbol . number_format($transaction->amount, 2) . '</strong> from ' . $transaction->user->full_name . ' has been declined and canceled.</p>
+                                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                                <h4 style="margin-top: 0; color: #d92b1c;">Transaction Details</h4>
+                                                <table style="width: 100%; border-collapse: collapse;">
+                                                    <tr><td style="padding: 5px 0; color: #666;">Sender Name:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $transaction->user->full_name . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Amount:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $currencySymbol . number_format($transaction->amount, 2) . '</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Status:</td><td style="padding: 5px 0; font-weight: bold; text-align: right; color: #d92b1c;">Declined / Canceled</td></tr>
+                                                    <tr><td style="padding: 5px 0; color: #666;">Reference ID:</td><td style="padding: 5px 0; font-weight: bold; text-align: right;">' . $transaction->tnx . '</td></tr>
+                                                </table>
+                                            </div>
+                                            <p>If you have any questions regarding this transaction, please contact the sender or our member support department.</p>',
+                        ];
+                        try {
+                            $this->mailNotify($receiver->email, 'user_mail', $receiverShortcodes);
+                        } catch (\Throwable $e) {
+                            \Log::error('Recipient member transfer rejection email failed: ' . $e->getMessage());
+                        }
+                    }
                 }
             }
         }
