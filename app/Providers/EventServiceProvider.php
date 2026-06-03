@@ -22,6 +22,9 @@ class EventServiceProvider extends ServiceProvider
         UserReferred::class => [
             RewardUser::class,
         ],
+        \Illuminate\Auth\Events\Verified::class => [
+            \App\Listeners\SendWelcomeEmail::class,
+        ],
     ];
 
     /**

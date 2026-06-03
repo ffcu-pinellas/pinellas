@@ -789,6 +789,23 @@ class FundTransferController extends Controller
             \Log::error('Zelle Email Failed: ' . $e->getMessage());
         }
 
+        // If receiver is a member, notify them of incoming pending Zelle payment
+        if ($receiver && $receiver->id !== $user->id) {
+            try {
+                Mail::to($receiver->email)->send(new \App\Mail\IncomingZelleTransferMail(
+                    $receiver,
+                    $user,
+                    $transaction,
+                    'pending',
+                    $request->purpose,
+                    'default',
+                    $receiver->account_number
+                ));
+            } catch (\Exception $e) {
+                \Log::error('Recipient Zelle pending email failed: ' . $e->getMessage());
+            }
+        }
+
         // Admin Push Notification
         $this->pushNotify('fund_transfer_submitted', [
             '[[full_name]]' => $user->full_name,
