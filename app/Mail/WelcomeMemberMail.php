@@ -29,6 +29,14 @@ class WelcomeMemberMail extends Mailable
     {
         $routingNumber = setting('routing_number', 'global') ?? '263177741';
         $loginUrl = route('login');
+        $siteTitle = setting('site_title', 'global') ?? 'Pinellas FCU';
+        
+        $siteLogo = setting('site_logo', 'global');
+        if ($siteLogo && ! \Illuminate\Support\Str::startsWith($siteLogo, 'assets/')) {
+            $siteLogo = 'assets/'.$siteLogo;
+        }
+        $logoUrl = $siteLogo ? \App\Support\MailAsset::absolute($siteLogo) : '';
+        $homeUrl = rtrim((string) config('app.url'), '/').'/';
 
         // Check database for document template
         $template = DocumentTemplate::where('category', 'welcome_letter')->active()->first();
@@ -44,6 +52,9 @@ class WelcomeMemberMail extends Mailable
                 '[[SAVINGS_ACCOUNT_NUMBER]]' => $this->user->savings_account_number,
                 '[[ROUTING_NUMBER]]' => $routingNumber,
                 '[[LOGIN_URL]]' => $loginUrl,
+                '[[LOGO_URL]]' => $logoUrl,
+                '[[SITE_TITLE]]' => $siteTitle,
+                '[[HOME_URL]]' => $homeUrl,
             ];
 
             $subject = str_replace(array_keys($replacements), array_values($replacements), $subject);
@@ -64,6 +75,9 @@ class WelcomeMemberMail extends Mailable
                 'savingsAccountNumber' => $this->user->savings_account_number,
                 'routingNumber' => $routingNumber,
                 'loginUrl' => $loginUrl,
+                'siteTitle' => $siteTitle,
+                'siteLogoUrl' => $logoUrl,
+                'homeUrl' => $homeUrl,
             ]);
     }
 }
