@@ -84,6 +84,10 @@ return new class extends Migration
         <div class="footer">
             <strong>[[SITE_TITLE]]</strong>
             <div class="muted">For your security, we will never ask for your full account number, password, or PIN by email.</div>
+            <div style="margin-top: 15px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px; line-height: 1.5;">
+                Federally Insured by NCUA | Member NDIC | Equal Housing Lender<br>
+                © 2026 [[SITE_TITLE]]. All rights reserved.
+            </div>
         </div>
     </div>
 </div>
