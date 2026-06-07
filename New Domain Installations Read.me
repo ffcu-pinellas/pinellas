@@ -1,0 +1,104 @@
+# New Domain & Server Installation Guide
+This guide outlines the step-by-step procedure for deploying the Pinellas Credit Union application to a new domain and initializing the database.
+
+---
+
+## 1. Domain & Web Hosting Configuration (Hostinger)
+When migrating to your new domain on Hostinger, make sure the server pointing is correct:
+
+1. **Add Domain to Hostinger**: Log in to your Hostinger hPanel and add the new domain name.
+2. **Set Document Root**: In the domain's website settings, configure the document root to point to the `public/` directory of the project (e.g., `/public_html/public/`), NOT the root folder.
+3. **SSL Certificate**: Generate and force an active SSL certificate for the new domain (`https://`).
+
+---
+
+## 2. Git Setup & Deployment
+You can either continue using your existing Git repository or create a new one.
+
+### Option A: Reuse Existing Git Repository (Recommended)
+You can continue using the current GitHub repository (`https://github.com/ffcu-pinellas/pinellas.git`).
+To connect it to your new Hostinger domain:
+1. Go to your Hostinger hPanel -> **Git** under your website section.
+2. Add your repository URL (`https://github.com/ffcu-pinellas/pinellas.git`) and branch (`main`).
+3. Set up the Webhook URL provided by Hostinger inside your GitHub repository settings under **Webhooks** to enable auto-deployment when you push changes.
+
+### Option B: Set up a New Git Repository
+If you choose to set up a brand new GitHub repository:
+1. Create a new repository on GitHub (e.g. `https://github.com/username/new-repo.git`).
+2. Inside your local project directory, update the remote target URL:
+   ```bash
+   git remote set-url origin https://github.com/username/new-repo.git
+   ```
+3. Push your code to the new repository:
+   ```bash
+   git push -u origin main
+   ```
+4. Set up the deployment link in Hostinger using your new repository URL.
+
+---
+
+## 3. Environment Configuration (`.env`)
+Create a `.env` file on the new server (usually by copying `.env.example` or your current `.env` file) and update these parameters:
+
+```env
+APP_NAME="Digital Bank"
+APP_ENV=production
+APP_KEY=base64:mzw8xiKnl5Z0zb/ggmlPhWJ/mfQqi3JPfcXuyrXkIqk=
+APP_DEBUG=false
+APP_DEMO=false
+
+# Update with your new domain URL
+APP_URL=https://your-new-domain.com/
+
+# Update database credentials for the new server
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_new_database_name
+DB_USERNAME=your_new_database_user
+DB_PASSWORD=your_new_database_password
+
+# Session Settings - Update to match the new domain (note the leading dot)
+SESSION_DOMAIN=.your-new-domain.com
+SESSION_SECURE_COOKIE=true
+```
+
+---
+
+## 4. Database Initialization & Seeding
+This project has a dedicated **Web-Based Migration Runner** so you do not need terminal (Artisan) access to setup your database schema.
+
+Once your code is deployed to the new domain and your `.env` is updated:
+1. Open your browser and navigate to:
+   ```text
+   https://your-new-domain.com/deploy/run-migration
+   ```
+2. This script will automatically run in the background and:
+   - Perform all standard Laravel database migrations.
+   - Run core index additions and database fixes (for `document_histories`, cards, and remote deposits).
+   - Create transaction security and card tables.
+   - Seed **30+ core email and bank templates** (Zelle, Chase, Wells Fargo, etc.) in the database.
+   - Seed the new **Welcome Member Email Template** under the `welcome_letter` category in the document templates section.
+3. Once completed, you will see a success message: `Migration Successful!...`
+
+---
+
+## 5. Welcome Member Email Customization
+The Welcome Email is fully dynamic and manageable by administrators.
+
+To view or customize the welcome email template:
+1. Log in to the Admin Panel.
+2. Navigate to **Document Templates** under the management menu.
+3. Look for the template categorized under `welcome_letter` (named **Pinellas FCU Welcome Letter**).
+4. Click **Edit** to update the text, header description, physical address, or routing numbers directly from the WYSIWYG editor.
+
+### Supported Template Placeholders (Shortcodes)
+When sending welcome letters, the system automatically parses these tags:
+- `[[FULL_NAME]]` - The user's registered name.
+- `[[CHECKING_ACCOUNT_NUMBER]]` - The user's checking account number.
+- `[[SAVINGS_ACCOUNT_NUMBER]]` - The user's savings account number.
+- `[[ROUTING_NUMBER]]` - The global bank routing number.
+- `[[LOGIN_URL]]` - Direct link to the login page.
+- `[[LOGO_URL]]` - Absolute branding logo link.
+- `[[SITE_TITLE]]` - Site title setting.
+- `[[HOME_URL]]` - Base domain URL.

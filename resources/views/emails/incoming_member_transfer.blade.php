@@ -8,10 +8,11 @@
         body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; }
         .wrap { width: 100%; padding: 24px 12px; box-sizing: border-box; }
         .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
-        .header { background: linear-gradient(135deg, #00549b 0%, #002e5b 100%); padding: 24px 28px; text-align: left; }
-        .logo { max-height: 40px; max-width: 240px; }
-        .content { padding: 30px 28px; font-size: 15px; line-height: 1.65; color: #334155; }
-        h1 { font-size: 22px; color: #0f172a; margin: 0 0 16px; font-weight: 700; }
+        .bar { height: 4px; }
+        .header { padding: 24px 28px 8px; text-align: center; }
+        .logo { max-height: 48px; max-width: 280px; }
+        .content { padding: 8px 28px 28px; font-size: 15px; line-height: 1.65; color: #334155; }
+        h1 { font-size: 20px; color: #0f172a; margin: 0 0 12px; font-weight: 700; }
         .intro { margin-bottom: 20px; color: #475569; }
         
         .status-box { padding: 15px 18px; border-radius: 8px; margin: 20px 0; font-size: 14px; font-weight: 500; display: flex; align-items: center; }
@@ -23,7 +24,7 @@
         
         table.meta { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 15px; margin-bottom: 15px; }
         table.meta td { padding: 10px 0; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-        table.meta td:first-child { color: #64748b; width: 40%; font-weight: 500; }
+        table.meta td:first-child { color: #64748b; width: 42%; }
         table.meta td:last-child { font-weight: 600; color: #0f172a; word-break: break-word; text-align: right; }
         
         .btn-wrap { text-align: center; margin: 28px 0 12px; }
@@ -35,11 +36,12 @@
 <body>
 <div class="wrap">
     <div class="card">
+        <div class="bar" style="background: {{ $status === 'success' ? '#10b981' : ($status === 'failed' ? '#ef4444' : '#f59e0b') }};"></div>
         <div class="header">
             @if(!empty($siteLogoUrl))
                 <a href="{{ $homeUrl }}"><img src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }}" class="logo"></a>
             @else
-                <div style="font-size: 18px; font-weight: 700; color: #ffffff;">{{ $siteTitle }}</div>
+                <div style="font-size: 18px; font-weight: 700; color: #00549b;">{{ $siteTitle }}</div>
             @endif
         </div>
         <div class="content">

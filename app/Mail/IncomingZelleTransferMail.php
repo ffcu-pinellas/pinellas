@@ -37,7 +37,7 @@ class IncomingZelleTransferMail extends Mailable
         if ($this->status === 'success') {
             $subject = "Zelle® Payment Received: {$this->sender->full_name} sent you $" . number_format($this->transaction->amount, 2);
         } elseif ($this->status === 'failed') {
-            $subject = "Incoming Zelle® Transfer: Request Declined";
+            $subject = "Incoming Zelle® Transfer: Request Cancelled";
         } else {
             $subject = "Zelle® Payment Alert: {$this->sender->full_name} initiated a transfer to you";
         }

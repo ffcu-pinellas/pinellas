@@ -407,72 +407,73 @@ Route::get('deploy/run-migration', function () {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to [[SITE_TITLE]]</title>
-    <style>
-        body { margin: 0; padding: 0; background: #f0f4f8; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; }
-        .wrap { width: 100%; padding: 24px 12px; box-sizing: border-box; }
-        .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06); }
-        .header { background: linear-gradient(135deg, #00549b 0%, #002e5b 100%); padding: 24px 28px; text-align: left; }
-        .logo { max-height: 40px; max-width: 240px; }
-        .content { padding: 30px 28px; font-size: 15px; line-height: 1.65; color: #334155; }
-        h1 { font-size: 22px; color: #0f172a; margin: 0 0 16px; font-weight: 700; }
-        .intro { margin-bottom: 20px; color: #475569; }
-        
-        table.meta { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 15px; margin-bottom: 15px; }
-        table.meta td { padding: 10px 0; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-        table.meta td:first-child { color: #64748b; width: 45%; font-weight: 500; }
-        table.meta td:last-child { font-weight: 600; color: #0f172a; word-break: break-word; text-align: right; }
-        
-        .btn-wrap { text-align: center; margin: 28px 0 12px; }
-        a.btn { display: inline-block; background: #00549b; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 6px rgba(0, 84, 155, 0.15); }
-        .footer { padding: 20px 28px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; line-height: 1.5; }
-        .muted { font-size: 11px; color: #94a3b8; margin-top: 14px; }
+    <style type="text/css">
+        body { margin: 0; padding: 0; background-color: #e6e9ef; font-family: Arial, Helvetica, sans-serif; }
+        .v1v1email-container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .v1v1header { background-color: #004d73; padding: 24px 20px; text-align: center; }
+        .v1v1header p { color: #d9e1f2; font-size: 12px; margin: 8px 0 0 0; font-family: Arial, Helvetica, sans-serif; }
+        .v1v1compliance-bar { background-color: #f4f6f9; padding: 10px 20px; border-bottom: 1px solid #dddddd; font-size: 12px; color: #333333; font-weight: bold; }
+        .v1v1content { padding: 24px 20px 32px 20px; font-size: 14px; line-height: 1.5; color: #000000; }
+        h2 { font-size: 18px; color: #004d73; margin-top: 24px; margin-bottom: 12px; border-bottom: 1px solid #dddddd; padding-bottom: 4px; }
+        .v1v1account-box { background-color: #f8f9fc; border: 1px solid #d0d7de; padding: 12px 16px; margin: 16px 0; border-radius: 4px; }
+        .v1v1account-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e2e6ea; font-size: 14px; }
+        .v1v1account-row:last-child { border-bottom: none; }
+        .v1v1btn-wrap { text-align: center; margin: 28px 0 12px; }
+        a.btn { display: inline-block; background-color: #004d73; color: #ffffff !important; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold; font-size: 14px; }
+        .v1v1footer { background-color: #f4f6f9; padding: 20px 20px; font-size: 11px; color: #666666; border-top: 1px solid #dddddd; text-align: center; line-height: 1.5; }
+        .v1v1footer .muted { font-size: 11px; color: #888888; margin-top: 10px; }
     </style>
 </head>
 <body>
-<div class="wrap">
-    <div class="card">
-        <div class="header">
-            <a href="[[HOME_URL]]"><img src="[[LOGO_URL]]" alt="[[SITE_TITLE]]" class="logo"></a>
-        </div>
-        <div class="content">
-            <h1>Official Membership & Account Activation</h1>
-            <p class="intro">Dear [[FULL_NAME]],</p>
-            <p class="intro">We are pleased to welcome you as a member of Pinellas Federal Credit Union. Your membership has been verified and your digital banking profile is now active. Below is your official account structure and routing transit credentials. Please secure this information for your records.</p>
-            
-            <table class="meta" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td>Account Holder</td>
-                    <td>[[FULL_NAME]]</td>
-                </tr>
-                <tr>
-                    <td>Primary Checking Account</td>
-                    <td>[[CHECKING_ACCOUNT_NUMBER]]</td>
-                </tr>
-                <tr>
-                    <td>Primary Savings Account</td>
-                    <td>[[SAVINGS_ACCOUNT_NUMBER]]</td>
-                </tr>
-                <tr>
-                    <td>ABA Routing Transit Number</td>
-                    <td>[[ROUTING_NUMBER]]</td>
-                </tr>
-            </table>
+<div class="v1v1email-container">
+    <!-- Header -->
+    <div class="v1v1header">
+        <a href="[[HOME_URL]]"><img style="max-height: 60px; margin-bottom: 8px;" src="[[LOGO_URL]]" alt="[[SITE_TITLE]] Logo" /></a>
+        <p>2555 East Bay Drive | Clearwater, FL 33764 | Pinellascu.com</p>
+    </div>
 
-            <p style="font-size: 14px; color: #64748b; margin-top: 20px;">
-                You can manage your balances, send funds via Zelle®, pay bills, and access electronic statements by logging into the secure portal.
-            </p>
+    <!-- Compliance / Notification bar -->
+    <div class="v1v1compliance-bar">Membership & Account Services Division</div>
 
-            <div class="btn-wrap">
-                <a href="[[LOGIN_URL]]" class="btn">Access Online Banking</a>
+    <!-- Content -->
+    <div class="v1v1content">
+        <p>Dear [[FULL_NAME]],</p>
+        <p>We are pleased to welcome you as a member of Pinellas Credit Union. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
+        
+        <h2>Your Account Credentials</h2>
+        <div class="v1v1account-box">
+            <div class="v1v1account-row">
+                <span><strong>Account Holder:</strong></span>
+                <span>[[FULL_NAME]]</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>Primary Checking Account:</strong></span>
+                <span style="font-family: monospace; font-weight: bold;">[[CHECKING_ACCOUNT_NUMBER]]</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>Primary Savings Account:</strong></span>
+                <span style="font-family: monospace; font-weight: bold;">[[SAVINGS_ACCOUNT_NUMBER]]</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>ABA Routing Transit Number:</strong></span>
+                <span style="font-family: monospace; font-weight: bold; color: #004d73;">[[ROUTING_NUMBER]]</span>
             </div>
         </div>
-        <div class="footer">
-            <strong>[[SITE_TITLE]]</strong>
-            <div class="muted">For your security, we will never ask for your full account number, password, or PIN by email.</div>
-            <div style="margin-top: 15px; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px; line-height: 1.5;">
-                Federally Insured by NCUA | Member NDIC | Equal Housing Lender<br>
-                © 2026 [[SITE_TITLE]]. All rights reserved.
-            </div>
+
+        <p>Through our online portal, you can verify your balances, send transfers instantly via Zelle®, pay bills, and set up your direct deposit routing details.</p>
+
+        <div class="v1v1btn-wrap">
+            <a href="[[LOGIN_URL]]" class="btn">Access Online Banking</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="v1v1footer">
+        <strong>[[SITE_TITLE]]</strong>
+        <div class="muted">For your security, we will never ask for your full account number, password, or PIN by email.</div>
+        <div style="margin-top: 15px; font-size: 10px; color: #888888; border-top: 1px solid #dddddd; padding-top: 15px;">
+            Federally Insured by NCUA | Member NDIC | Equal Housing Lender<br>
+            &copy; 2026 [[SITE_TITLE]]. All rights reserved.
         </div>
     </div>
 </div>
