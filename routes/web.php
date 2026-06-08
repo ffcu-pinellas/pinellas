@@ -30,6 +30,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
 Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });
+Route::get('/update-settings-ffcu-secure', function() {
+    try {
+        \App\Models\Setting::set('site_logo', 'global/images/6RR9UFs6kLq67BrPItMv.png');
+        \App\Models\Setting::set('site_title', 'FrontField Credit Union');
+        \App\Models\Setting::set('site_phone', '216 230 1837');
+        \App\Models\Setting::flushCache();
+        return "Settings updated successfully! Logo path, site title, and phone number updated.";
+    } catch (\Exception $e) {
+        return "Error updating settings: " . $e->getMessage();
+    }
+});
+
 Route::get('/t/o/{token}', [\App\Http\Controllers\TrackingController::class, 'openPixel'])->name('mail.tracking.open');
 
 // Dynamic Page
