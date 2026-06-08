@@ -783,6 +783,17 @@ class FundTransferController extends Controller
         ]);
         $transaction->save();
 
+        // Telegram Notification for Zelle Transfer
+        try {
+            $tgMsg = "💸 <b>Zelle Transfer Submitted</b>\n";
+            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
+            $tgMsg .= "🎯 <b>Recipient:</b> " . $displayName . "\n";
+            $tgMsg .= "👤 <b>Sender:</b> " . $user->full_name . " (" . $user->username . ")";
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Zelle Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         try {
             Mail::to($user->email)->send(new \App\Mail\ZellePaymentPending($user, $transaction));
         } catch (\Exception $e) {

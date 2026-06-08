@@ -27,7 +27,7 @@
                                         <div class="card-bg"></div>
                                         <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-start">
-                                                <img src="{{ asset('assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 30px; filter: brightness(0) invert(1);">
+                                                <img src="{{ asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 30px; filter: brightness(0) invert(1);">
                                                 <span class="text-white opacity-75 small">{{ ($card->type == 'credit') ? 'Credit Card' : ucfirst($card->type ?? 'Debit') }}</span>
                                             </div>
                                             <div class="d-flex align-items-center my-3">
