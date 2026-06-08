@@ -8,7 +8,7 @@
     @include('frontend::include.__head')
 
     <!-- FrontField Custom Styling -->
-    <link rel="stylesheet" href="{{ asset('assets/frontend/css/FrontField-custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/frontend/css/frontfield-custom.css') }}">
     
     @stack('style')
     @yield('style')
