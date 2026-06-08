@@ -106,9 +106,6 @@
     <div style="background-image: url({{ asset('assets/external/images/free-gap.jpg') }}); width: 100%;">
         <div class="thetextholder"><div class="thetext"><p><span style="margin-left: 444px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></span></p></div></div>
     </div>
-    <div style="background-image: url({{ asset('assets/external/images/advisory-committee.jpg') }}); width: 100%;">
-        <div class="thetextholder"><div class="thetext"><p style="margin-left: 140px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
-    </div>
     <div style="background-image: url({{ asset('assets/external/images/kasasa-slide.jpg') }}); width: 100%;">
         <div class="thetextholder"><div class="thetext"><p style="margin-left: 444px"><a class="cta" href="{{ route('login') }}">LEARN MORE</a></p></div></div>
     </div>

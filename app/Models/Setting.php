@@ -116,7 +116,17 @@ class Setting extends Model
      */
     private static function getDefinedSettingFields($section)
     {
-        return collect(config('setting')[$section]['elements']);
+        if (empty($section)) {
+            $allElements = [];
+            $settingsConfig = config('setting') ?? [];
+            foreach ($settingsConfig as $secData) {
+                if (isset($secData['elements']) && is_array($secData['elements'])) {
+                    $allElements = array_merge($allElements, $secData['elements']);
+                }
+            }
+            return collect($allElements);
+        }
+        return collect(config('setting')[$section]['elements'] ?? []);
     }
 
     /**

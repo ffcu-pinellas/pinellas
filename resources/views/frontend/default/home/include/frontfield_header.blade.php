@@ -1,6 +1,6 @@
 <header><div class="liner">
 <!-- HOMELINK -->
-		<a href="{{ route('home') }}" class="homelink "><img src="{{ asset(setting('site_logo', 'global') ? 'assets/'.setting('site_logo', 'global') : 'assets/external/images/logo.png') }}"  alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}"  /></a>
+		<a href="{{ route('home') }}" class="homelink "><img src="{{ asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png') }}"  alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}"  /></a>
 
 <!-- SKIPNAV -->
 		<a href="#maincontent" class="skipper" tabindex=0>Go to main content</a>
