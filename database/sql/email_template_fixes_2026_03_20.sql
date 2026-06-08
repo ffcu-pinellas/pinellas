@@ -12,7 +12,7 @@ SET
   `button_level` = 'View Activity',
   `button_link` = '[[site_url]]/user/fund-transfer/transfer-log',
   `footer_status` = 1,
-  `footer_body` = 'Thank you for banking with Pinellas FCU.',
+  `footer_body` = 'Thank you for banking with FrontField Credit Union.',
   `updated_at` = NOW()
 WHERE `code` = 'fund_transfer_request';
 

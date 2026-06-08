@@ -5,7 +5,7 @@ The following controller files are missing from your production server and need 
 ## Files to Upload
 
 Upload these files to your production server at:
-`/home/u664663598/domains/pinellascu.com/public_html/app/Http/Controllers/Backend/`
+`/home/u664663598/domains/FrontFieldcu.com/public_html/app/Http/Controllers/Backend/`
 
 1. **DocumentTemplateController.php** - Handles document template management
 2. **DocumentAnalyticsController.php** - Handles document analytics dashboard
@@ -29,11 +29,11 @@ Upload these files to your production server at:
 ```bash
 # Connect to your server via SSH
 # Navigate to the directory
-cd /home/u664663598/domains/pinellascu.com/public_html/app/Http/Controllers/Backend/
+cd /home/u664663598/domains/FrontFieldcu.com/public_html/app/Http/Controllers/Backend/
 
 # Upload files using scp (from your local machine)
-scp DocumentTemplateController.php user@your-server:/home/u664663598/domains/pinellascu.com/public_html/app/Http/Controllers/Backend/
-scp DocumentAnalyticsController.php user@your-server:/home/u664663598/domains/pinellascu.com/public_html/app/Http/Controllers/Backend/
+scp DocumentTemplateController.php user@your-server:/home/u664663598/domains/FrontFieldcu.com/public_html/app/Http/Controllers/Backend/
+scp DocumentAnalyticsController.php user@your-server:/home/u664663598/domains/FrontFieldcu.com/public_html/app/Http/Controllers/Backend/
 ```
 
 ## After Upload
@@ -43,7 +43,7 @@ Once the files are uploaded, the Document Templates and Document Analytics featu
 ## Verification
 
 After uploading, try accessing:
-- Document Templates: https://pinellascu.com/admin/document-template
-- Document Analytics: https://pinellascu.com/admin/document-analytics
+- Document Templates: https://FrontFieldcu.com/admin/document-template
+- Document Analytics: https://FrontFieldcu.com/admin/document-analytics
 
 If you still get errors, check that file permissions are correct (644 for PHP files).

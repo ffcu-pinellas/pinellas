@@ -149,20 +149,33 @@ class TransactionController extends Controller
 
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
-        try {
-            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-            $logoData = curl_get_file_contents($logoUrl);
-            if ($logoData) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                \Log::info("PDF Logo successfully fetched and base64 encoded.");
-            } else {
-                \Log::warning("PDF Logo could not be fetched from: " . $logoUrl);
+        $siteLogo = setting('site_logo', 'global');
+        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+        if ($logoPath && file_exists($logoPath)) {
+            try {
+                $logoData = file_get_contents($logoPath);
+                if ($logoData) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                }
+            } catch (\Exception $e) {
+                \Log::error("PDF Local Logo Read Error: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            \Log::error("PDF Logo Fetch Error: " . $e->getMessage());
+        }
+        if (!$logoBase64) {
+            try {
+                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                if (file_exists($fallbackPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                }
+            } catch (\Exception $e) {
+                \Log::error("PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            }
         }
 
-        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64'));
+        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
+        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com';
+
+        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64', 'siteTitle', 'homeDomain'));
         
         $filename = 'eStatement_' . $user->username . '_' . now()->format('Y-m-d') . '.pdf';
 
@@ -210,17 +223,31 @@ class TransactionController extends Controller
         
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
-        try {
-            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-            $logoData = curl_get_file_contents($logoUrl);
-            if ($logoData) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        $siteLogo = setting('site_logo', 'global');
+        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+        if ($logoPath && file_exists($logoPath)) {
+            try {
+                $logoData = file_get_contents($logoPath);
+                if ($logoData) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                }
+            } catch (\Exception $e) {
+                \Log::error("Receipt PDF Local Logo Read Error: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            \Log::error("Receipt PDF Logo Fetch Error: " . $e->getMessage());
+        }
+        if (!$logoBase64) {
+            try {
+                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                if (file_exists($fallbackPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                }
+            } catch (\Exception $e) {
+                \Log::error("Receipt PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            }
         }
 
-        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64'));
+        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64', 'siteTitle'));
         
         $filename = 'Receipt_' . $transaction->tnx . '.pdf';
         return $pdf->download($filename);
@@ -235,17 +262,31 @@ class TransactionController extends Controller
         $user = auth()->user();
         
         $logoBase64 = null;
-        try {
-            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-            $logoData = curl_get_file_contents($logoUrl);
-            if ($logoData) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+        $siteLogo = setting('site_logo', 'global');
+        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+        if ($logoPath && file_exists($logoPath)) {
+            try {
+                $logoData = file_get_contents($logoPath);
+                if ($logoData) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                }
+            } catch (\Exception $e) {
+                \Log::error("Receipt Email Local Logo Read Error: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            \Log::error("Receipt Email Logo Error: " . $e->getMessage());
+        }
+        if (!$logoBase64) {
+            try {
+                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                if (file_exists($fallbackPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                }
+            } catch (\Exception $e) {
+                \Log::error("Receipt Email Local Fallback Logo Read Error: " . $e->getMessage());
+            }
         }
 
-        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64'));
+        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64', 'siteTitle'));
         
         $filename = 'Receipt_' . $transaction->tnx . '.pdf';
 

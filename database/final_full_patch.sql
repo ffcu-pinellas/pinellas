@@ -1,4 +1,4 @@
--- PINELLAS FCU - FINAL CUMULATIVE DB PATCH (FEB 2026)
+-- FrontField Credit Union - FINAL CUMULATIVE DB PATCH (FEB 2026)
 -- Run these commands in phpMyAdmin if you cannot run migrations.
 
 -- 1. Update USERS table with new Profile & Savings fields

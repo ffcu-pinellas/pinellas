@@ -1,11 +1,11 @@
 {
-  "appId": "com.pfcumobile.app",
-  "appName": "Pinellas FCU",
+  "appId": "com.ffcumobile.app",
+  "appName": "FrontField Credit Union",
   "webDir": "public",
   "server": {
-    "url": "https://pinellascu.com/login",
+    "url": "https://frontfieldcu.pro/login",
     "allowNavigation": [
-      "pinellascu.com"
+      "frontfieldcu.pro"
     ]
   },
   "plugins": {

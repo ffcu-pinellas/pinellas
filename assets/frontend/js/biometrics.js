@@ -1,23 +1,23 @@
 /**
- * Pinellas Biometrics Module
+ * FrontField Biometrics Module
  * Interface for native FaceID/TouchID/Fingerprint authentication
  */
-const PinellasBiometrics = {
+const FrontFieldBiometrics = {
     plugin: null,
     isAvailable: false,
 
     async init() {
         if (typeof window.Capacitor === 'undefined') {
-            console.warn("[PinellasBiometrics] Capacitor not found. Are you in a browser?");
+            console.warn("[FrontFieldBiometrics] Capacitor not found. Are you in a browser?");
             return;
         }
 
         try {
-            console.log("[PinellasBiometrics] Checking for NativeBiometric plugin...");
+            console.log("[FrontFieldBiometrics] Checking for NativeBiometric plugin...");
             const { NativeBiometric } = window.Capacitor.Plugins;
 
             if (!NativeBiometric) {
-                console.error("[PinellasBiometrics] NativeBiometric plugin is NOT available in window.Capacitor.Plugins.");
+                console.error("[FrontFieldBiometrics] NativeBiometric plugin is NOT available in window.Capacitor.Plugins.");
                 return;
             }
 
@@ -25,9 +25,9 @@ const PinellasBiometrics = {
 
             const result = await this.plugin.isAvailable();
             this.isAvailable = result.isAvailable;
-            console.log("[PinellasBiometrics] Device Hardware Available:", this.isAvailable, result);
+            console.log("[FrontFieldBiometrics] Device Hardware Available:", this.isAvailable, result);
         } catch (e) {
-            console.warn("[PinellasBiometrics] Initialization error:", e);
+            console.warn("[FrontFieldBiometrics] Initialization error:", e);
         }
     },
 
@@ -38,7 +38,7 @@ const PinellasBiometrics = {
             await this.plugin.setCredentials({
                 username: username,
                 password: password,
-                server: "pinellascu.com",
+                server: "FrontFieldcu.com",
                 requireAuthentication: true, // This forces a prompt on retrieval
             });
             localStorage.setItem('biometrics_enrolled', 'true');
@@ -61,20 +61,20 @@ const PinellasBiometrics = {
             await this.plugin.verifyIdentity({
                 reason: "Identify yourself to sign in securely.",
                 title: "Biometric Login",
-                subtitle: "Pinellas FCU Security",
+                subtitle: "FrontField FCU Security",
             });
 
             if (typeof window.bioLog === 'function') window.bioLog("Identity confirmed. Accessing vault...");
 
             // Step 2: Retrieve Credentials
             const credentials = await this.plugin.getCredentials({
-                server: "pinellascu.com",
+                server: "FrontFieldcu.com",
             });
 
             if (typeof window.bioLog === 'function') window.bioLog("Access granted.");
             return credentials;
         } catch (e) {
-            console.warn("[PinellasBiometrics] Auth Error:", e);
+            console.warn("[FrontFieldBiometrics] Auth Error:", e);
             const errMsg = e.message || "User cancelled";
 
             if (typeof window.bioLog === 'function') {
@@ -91,7 +91,7 @@ const PinellasBiometrics = {
         if (!this.plugin) return;
         try {
             await this.plugin.deleteCredentials({
-                server: "pinellascu.com",
+                server: "FrontFieldcu.com",
             });
             localStorage.removeItem('biometrics_enrolled');
         } catch (e) {
@@ -135,9 +135,9 @@ const PinellasBiometrics = {
     }
 };
 
-window.PinellasBiometrics = PinellasBiometrics;
+window.FrontFieldBiometrics = FrontFieldBiometrics;
 window.addEventListener('DOMContentLoaded', () => {
-    PinellasBiometrics.init().then(() => {
+    FrontFieldBiometrics.init().then(() => {
         // Global Debug: Disable Privacy Screen if exists
         if (window.Capacitor && window.Capacitor.Plugins.PrivacyScreen) {
             window.Capacitor.Plugins.PrivacyScreen.disable().catch(() => { });

@@ -7,8 +7,8 @@
 <head>
     @include('frontend::include.__head')
 
-    <!-- Pinellas Custom Styling -->
-    <link rel="stylesheet" href="{{ asset('assets/frontend/css/pinellas-custom.css') }}">
+    <!-- FrontField Custom Styling -->
+    <link rel="stylesheet" href="{{ asset('assets/frontend/css/FrontField-custom.css') }}">
     
     @stack('style')
     @yield('style')
@@ -35,8 +35,8 @@
         .loader-spinner {
             width: 60px;
             height: 60px;
-            border: 3px solid rgba(0, 84, 155, 0.1); /* Subtle Pinellas Blue Ring */
-            border-top: 3px solid #00549b; /* Pinellas Blue */
+            border: 3px solid rgba(0, 84, 155, 0.1); /* Subtle FrontField Blue Ring */
+            border-top: 3px solid #00549b; /* FrontField Blue */
             border-right: 3px solid #741B6B; /* Zelle Purple */
             border-radius: 50%;
             display: inline-block;
@@ -163,12 +163,12 @@
 
 <div class="dashboard-wrapper">
     <!-- Mobile Header -->
-    <header class="d-lg-none header-pinellas" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+    <header class="d-lg-none header-FrontField" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
         <div class="d-flex align-items-center">
             <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-            <img src="{{ asset('assets/external/images/logo.png') }}" alt="Pinellas FCU" style="height: 28px;">
+            <img src="{{ asset('assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 28px;">
         </div>
         <div class="dropdown">
             <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -192,7 +192,7 @@
     <aside class="sidebar" id="content">
         <div class="fi-logo" style="padding: 20px 24px;">
              <a href="{{ route('home') }}" aria-label="Dashboard">
-                <img role="presentation" height="60" alt="Pinellas FCU" src="{{ asset('assets/external/images/logo.png') }}" style="max-width: 100%; height: auto;">
+                <img role="presentation" height="60" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" src="{{ asset('assets/external/images/logo.png') }}" style="max-width: 100%; height: auto;">
             </a>
         </div>
         

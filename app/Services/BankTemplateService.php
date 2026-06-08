@@ -1315,14 +1315,14 @@ HTML;
 </body></html>
 HTML;
 
-        // --- 31. PINELLAS FEDERAL CREDIT UNION ---
-        $pinellasHtml = <<<'HTML'
+        // --- 31. FrontField Credit Union ---
+        $FrontFieldHtml = <<<'HTML'
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Pinellas FCU Alert</title></head>
+<head><meta charset="UTF-8"><title>FrontField FCU Alert</title></head>
 <body style="margin:0;padding:20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background-color:#f4f7f6;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e0e6e5;border-top:6px solid #00888b;">
-  <tr><td style="background-color:#ffffff;padding:25px;text-align:center;border-bottom:1px solid #eef2f1;"><img src="[[APP_URL]]/assets/images/bank_logos/pinellas.png" height="50" alt="Pinellas FCU"></td></tr>
+  <tr><td style="background-color:#ffffff;padding:25px;text-align:center;border-bottom:1px solid #eef2f1;"><img src="[[APP_URL]]/assets/images/bank_logos/FrontField.png" height="50" alt="FrontField FCU"></td></tr>
   <tr><td style="padding:40px;color:#333333;line-height:1.6;">
     <h2 style="color:#00888b;margin-top:0;font-size:22px;font-weight:600;">Incoming Transaction Notification</h2>
     <p>Dear [[RECIPIENT_NAME]],</p>
@@ -1334,10 +1334,10 @@ HTML;
       <p style="margin:0 0 10px 0;font-size:15px;"><strong>Account Number:</strong> Ending in [[ACCOUNT_NUMBER]]</p>
       <p style="margin:0;font-size:15px;"><strong>Memo/Reference:</strong> [[DESCRIPTION]]</p>
     </div>
-    <center><a href="https://pinellascu.com" style="background-color:#00888b;color:#ffffff !important;padding:14px 35px;text-decoration:none;border-radius:4px;font-weight:bold;display:inline-block;font-size:16px;">Access Online Banking</a></center>
+    <center><a href="[[APP_URL]]" style="background-color:#00888b;color:#ffffff !important;padding:14px 35px;text-decoration:none;border-radius:4px;font-weight:bold;display:inline-block;font-size:16px;">Access Online Banking</a></center>
   </td></tr>
   <tr><td style="background-color:#f4f7f6;padding:25px;font-size:12px;color:#666666;text-align:center;border-top:1px solid #eef2f1;">
-    <p style="margin:0 0 10px 0;font-weight:bold;color:#00888b;">Pinellas Federal Credit Union</p>
+    <p style="margin:0 0 10px 0;font-weight:bold;color:#00888b;">FrontField Credit Union</p>
     <p style="margin:0;line-height:1.5;">Federally insured by NCUA. Equal Housing Opportunity. This is an automated email. Please do not reply directly.</p>
   </td></tr>
 </table>
@@ -1368,7 +1368,7 @@ HTML;
             ['America First Credit Union', 'americafirst.com', $afcuHtml],
             ['PenFed Credit Union', 'penfed.org', $penfedHtml],
             ['Golden 1 Credit Union', 'golden1.com', $golden1Html],
-            ['Pinellas Federal Credit Union', 'pinellascu.com', $pinellasHtml],
+            [setting('site_title', 'global') ?? 'FrontField Credit Union', parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com', $FrontFieldHtml],
         ];
 
         foreach ($banksData as $data) {

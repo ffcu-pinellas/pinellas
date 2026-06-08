@@ -1,4 +1,4 @@
-@extends('frontend::layouts.pinellas_auth')
+@extends('frontend::layouts.FrontField_auth')
 
 @section('title')
     {{ __('Success') }}
@@ -22,7 +22,7 @@
         </h3>
         
         <p style="color: var(--body-text-secondary-color); font-size: 16px; margin-bottom: 40px; line-height: 1.5;">
-            {{ __('Welcome to Pinellas Federal Credit Union. You can now access your dashboard and manage your finances with ease.') }}
+            {{ __('Welcome to') }} {{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}. {{ __('You can now access your dashboard and manage your finances with ease.') }}
         </p>
 
         <div class="action-row" style="justify-content: center;">

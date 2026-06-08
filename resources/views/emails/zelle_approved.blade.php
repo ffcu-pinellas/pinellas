@@ -26,13 +26,13 @@
                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                             <tr>
                                 <td style="vertical-align: middle;">
-                                    <img src="{{ asset('assets/external/images/pinellas_logo_white_1774915533306.png') }}" alt="Pinellas FCU" height="32" style="height: 32px; display: block; vertical-align: middle;">
+                                    <img src="{{ asset('assets/external/images/FrontField_logo_white_1774915533306.png') }}" alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}" height="32" style="height: 32px; display: block; vertical-align: middle;">
                                 </td>
                                 <td style="padding: 0 15px; vertical-align: middle;">
-                                    <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
+                                     <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
                                 </td>
                                 <td style="vertical-align: middle;">
-                                    <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" height="22" style="height: 22px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
+                                     <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" height="22" style="height: 22px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
                                 </td>
                             </tr>
                         </table>
@@ -44,7 +44,7 @@
         <div class="content">
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px;">
                 <tr>
-                    <td style="font-weight: bold; color: #333; font-size: 14px;">Pinellas Alerts</td>
+                    <td style="font-weight: bold; color: #333; font-size: 14px;">{{ setting('site_title', 'global') ?? 'FrontField' }} Alerts</td>
                     <td style="text-align: right; color: #888; font-size: 13px;">{{ $transaction->updated_at->format('h:i A') }}</td>
                 </tr>
             </table>

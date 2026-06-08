@@ -42,7 +42,7 @@
                     <li class="mb-0">
                         <a href="{{ route('user.accounts') }}" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom">
                             <i class="fas fa-university fs-5 text-primary" style="width: 24px; text-align: center;"></i> 
-                            <span>Pinellas FCU</span>
+                            <span>{{ setting('site_title') ?? 'FrontField Credit Union' }}</span>
                         </a>
                     </li>
                     <li class="mb-0">
@@ -54,7 +54,7 @@
                 </ul>
             </div>
             <div class="text-center p-3 mt-4">
-                 <p class="small text-muted mb-1">&copy; 2026 Pinellas FCU - Privacy policy</p>
+                 <p class="small text-muted mb-1">&copy; 2026 {{ setting('site_title') ?? 'FrontField Credit Union' }} - Privacy policy</p>
                  <p class="small text-muted mb-1">Federally Insured by NCUA</p>
                  <p class="small text-muted mb-0"><i class="fas fa-home"></i> Equal Housing Lender</p>
             </div>

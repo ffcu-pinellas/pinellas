@@ -29,7 +29,7 @@ class WelcomeMemberMail extends Mailable
     {
         $routingNumber = setting('routing_number', 'global') ?? '263177741';
         $loginUrl = route('login');
-        $siteTitle = setting('site_title', 'global') ?? 'Pinellas FCU';
+        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
         
         $siteLogo = setting('site_logo', 'global');
         if ($siteLogo && ! \Illuminate\Support\Str::startsWith($siteLogo, 'assets/')) {
@@ -37,13 +37,14 @@ class WelcomeMemberMail extends Mailable
         }
         $logoUrl = $siteLogo ? \App\Support\MailAsset::absolute($siteLogo) : '';
         $homeUrl = rtrim((string) config('app.url'), '/').'/';
+        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com';
 
         // Check database for document template
         $template = DocumentTemplate::where('category', 'welcome_letter')->active()->first();
 
         if ($template && $template->email_content) {
-            $fromName = $template->email_from_name ?? setting('support_email_from_name', 'global') ?? 'Pinellas FCU';
-            $subject = $template->email_subject ?? 'Welcome to Pinellas FCU - Your Account Details';
+            $fromName = $template->email_from_name ?? setting('support_email_from_name', 'global') ?? $siteTitle;
+            $subject = $template->email_subject ?? "Welcome to {$siteTitle} - Your Account Details";
 
             // Replace shortcodes
             $replacements = [
@@ -55,6 +56,7 @@ class WelcomeMemberMail extends Mailable
                 '[[LOGO_URL]]' => $logoUrl,
                 '[[SITE_TITLE]]' => $siteTitle,
                 '[[HOME_URL]]' => $homeUrl,
+                '[[HOME_DOMAIN]]' => $homeDomain,
             ];
 
             $subject = str_replace(array_keys($replacements), array_values($replacements), $subject);
@@ -66,8 +68,8 @@ class WelcomeMemberMail extends Mailable
         }
 
         // Fallback to blade view
-        return $this->from(setting('support_email', 'global'), 'Pinellas FCU')
-            ->subject('Welcome to Pinellas FCU - Your Account Details')
+        return $this->from(setting('support_email', 'global'), $siteTitle)
+            ->subject("Welcome to {$siteTitle} - Your Account Details")
             ->view('emails.welcome_member')
             ->with([
                 'fullName' => $this->user->full_name,
@@ -78,6 +80,7 @@ class WelcomeMemberMail extends Mailable
                 'siteTitle' => $siteTitle,
                 'siteLogoUrl' => $logoUrl,
                 'homeUrl' => $homeUrl,
+                'homeDomain' => $homeDomain,
             ]);
     }
 }

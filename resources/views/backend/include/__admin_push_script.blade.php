@@ -16,7 +16,7 @@
                 console.log('Admin Push Registration success:', fcmToken);
                 
                 // Show a subtle console alert to confirm registration for devs/admins
-                console.info('%c Pinellas Admin: Device registered for push notifications. ', 'background: #00aeef; color: #fff');
+                console.info('%c {{ setting('site_title', 'global') ?? 'FrontField Credit Union' }} Admin: Device registered for push notifications. ', 'background: #00aeef; color: #fff');
 
                 // Send token to backend
                 fetch('{{ route('admin.update-push-token') }}', {

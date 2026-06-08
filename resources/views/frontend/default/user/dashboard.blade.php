@@ -7,7 +7,7 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
-        <div class="welcome-section p-4 rounded-3 text-white position-relative" style="background-color: var(--navigation-bar-color); background-image: url('https://my.pinellasfcu.org/images/fi-assets/pinellas-federal-credit-union/pinellas-federal-credit-union-background-landscape-2c77924b.png'); background-size: cover; background-position: center; min-height: 240px;">
+        <div class="welcome-section p-4 rounded-3 text-white position-relative" style="background-color: var(--navigation-bar-color); background-image: url('{{ asset('assets/images/background-landscape.png') }}'); background-size: cover; background-position: center; min-height: 240px;">
             <div class="position-relative z-1">
                 <h1 class="welcome-text mb-4 mt-2" style="font-size: 32px; font-weight: 700; color: #fff !important;">Hi, {{ strtoupper(auth()->user()->first_name) }}</h1>
                 
@@ -299,7 +299,7 @@
                             </div>
                             
                             <div class="mb-4">
-                                <div class="small fw-bold text-muted mb-3">Pinellas FCU</div>
+                                <div class="small fw-bold text-muted mb-3">{{ setting('site_title') ?? 'FrontField Credit Union' }}</div>
                                 <div class="d-flex justify-content-center gap-2 mb-3">
                                     <div class="rounded-circle bg-light border" style="width: 50px; height: 50px; overflow: hidden;">
                                         <img src="https://ui-avatars.com/api/?name=Lisa&background=random" alt="Lisa" class="w-100">
@@ -317,7 +317,7 @@
                                     <span>Amy</span>
                                 </div>
                                 <p class="small fw-bold mb-1">We typically reply within one business day</p>
-                                <p class="small text-muted px-4">We typically respond within one business day. Please call (737) 410-5689 us if you have an urgent issue.</p>
+                                <p class="small text-muted px-4">We typically respond within one business day. Please call {{ setting('site_phone') ?? '(737) 410-5689' }} if you have an urgent issue.</p>
                             </div>
                             
                             <a href="{{ route('user.messages') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="border: none;">Start a conversation</a>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FrontField Admin</string>
+    <string name="title_activity_main">FrontField Admin</string>
+    <string name="package_name">com.frontfieldcu.admin</string>
+    <string name="custom_url_scheme">com.frontfieldcu.admin</string>
+</resources>

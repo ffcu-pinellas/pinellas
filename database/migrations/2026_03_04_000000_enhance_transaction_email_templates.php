@@ -19,7 +19,7 @@ return new class extends Migration
                 'subject' => 'Transaction Receipt: Member Transfer Successful',
                 'title' => 'Transfer Successful',
                 'salutation' => 'Hello [[full_name]],',
-                'message_body' => '<p>Your internal transfer to another Pinellas FCU member has been processed successfully.</p>
+                'message_body' => '<p>Your internal transfer to another FrontField member has been processed successfully.</p>
                                     <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
                                         <h4 style="margin-top: 0; color: #00549b;">Transaction Details</h4>
                                         <table style="width: 100%; border-collapse: collapse;">

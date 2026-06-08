@@ -1,8 +1,8 @@
-# Pinellas Credit Union - Digital Banking Platform
+# FrontField Credit Union - Digital Banking Platform
 
-![Pinellas FCU Logo](https://www.pinellasfcu.org/files/pinellasfcu/1/image/PF-FullLogo_RGB-Blue-600.png)
+![FrontField Credit Union Logo](public/assets/global/images/6RR9UFs6kLq67BrPItMv.png)
 
-Welcome to the **Pinellas Credit Union Digital Banking Platform**. This is a highly customized, secure, and modern banking application built on the Laravel framework. This document provides everything you need to know to install, manage, and scale the application.
+Welcome to the **FrontField Credit Union Digital Banking Platform**. This is a highly customized, secure, and modern banking application built on the Laravel framework. This document provides everything you need to know to install, manage, and scale the application.
 
 ---
 
@@ -20,7 +20,7 @@ Welcome to the **Pinellas Credit Union Digital Banking Platform**. This is a hig
 ---
 
 ## 🌟 Project Overview
-The Pinellas FCU Digital Banking suite is designed to provide members with a seamless financial experience. It features a fully responsive frontend modeled after modern credit union aesthetics (Banno/Jack Henry style), a robust Administrative backend, and advanced security protocols.
+The FrontField Credit Union Digital Banking suite is designed to provide members with a seamless financial experience. It features a fully responsive frontend modeled after modern credit union aesthetics (Banno/Jack Henry style), a robust Administrative backend, and advanced security protocols.
 
 ---
 
@@ -31,7 +31,7 @@ The Pinellas FCU Digital Banking suite is designed to provide members with a sea
 | **Security Gate (MFA)** | Multi-Factor Authentication for every sensitive transaction (Transfers, Withdrawals, Profile Changes). |
 | **Transaction Records** | Detailed, searchable history with categorized vendors and high-value transaction biasing. |
 | **Remote Deposit** | Mobile-ready check deposit system with front/back image upload and review status. |
-| **Branded Emails** | Professionally styled HTML email templates matching Pinellas CU brand colors. |
+| **Branded Emails** | Professionally styled HTML email templates matching FrontField CU brand colors. |
 | **Account Management** | Primary and Savings account separation with unique account numbering. |
 | **Smart Settings** | Mobile-optimized settings navigation for Profile and Security management. |
 
@@ -83,7 +83,7 @@ To push changes from your local machine to GitHub, you must first connect your t
 1. **Initialize Git** (if not already done):
    ```bash
    git init
-   git remote add origin https://github.com/ffcu-pinellas/pinellas.git
+   git remote add origin https://github.com/ffcu-FrontField/FrontField.git
    ```
 2. **Setup SSH Keys** (Recommended for security and ease of use):
    - Run `ssh-keygen -t ed25519 -C "your_email@example.com"`.
@@ -97,7 +97,7 @@ To push changes from your local machine to GitHub, you must first connect your t
 Hostinger is configured to automatically deploy whenever changes are pushed to the `main` branch.
 1. Log in to your **Hostinger HPanel**.
 2. Navigate to **Advanced > GIT**.
-3. Link your GitHub Repository (`ffcu-pinellas/pinellas`) and set the branch to `main`.
+3. Link your GitHub Repository (`ffcu-FrontField/FrontField`) and set the branch to `main`.
 4. Use the **Webhook URL** provided by Hostinger and add it to your GitHub Repository Settings under **Webhooks**. This ensures instant deployment on every push.
 
 ### 3. The `push.ps1` Command (CRITICAL)
@@ -120,17 +120,17 @@ Instead of using standard git commands, always use the provided script in your t
 ## �🗄 Database Management
 
 ### Professional Branding Import
-To apply the Pinellas Credit Union branding to all system emails, import the specialized SQL script via phpMyAdmin:
+To apply the FrontField Credit Union branding to all system emails, import the specialized SQL script via phpMyAdmin:
 1. Open **phpMyAdmin**.
 2. Select your database.
 3. Go to the **Import** tab.
-4. Choose `pinellas_branded_templates.sql`.
+4. Choose `branded_templates.sql`.
 5. Click **Go**.
 
 ### Resetting / Seeding Templates
 If you prefer using the terminal, run the following seeder to populate core MFA templates:
 ```bash
-php artisan db:seed --class=PinellasEmailTemplateSeeder
+php artisan db:seed --class=FrontFieldEmailTemplateSeeder
 ```
 
 
@@ -190,4 +190,4 @@ Ensure you have run `php artisan storage:link`. If on a shared host, use the URL
 
 ---
 
-&copy; 2026 Pinellas Credit Union. All Rights Reserved.
+&copy; 2026 FrontField Credit Union. All Rights Reserved.

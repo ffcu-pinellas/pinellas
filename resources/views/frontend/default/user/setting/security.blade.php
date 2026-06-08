@@ -153,7 +153,7 @@
             <div class="d-flex gap-3">
                 <i class="fas fa-shield-alt text-info fs-4"></i>
                 <div class="small text-dark">
-                    <strong>Keep your account safe:</strong> Pinellas FCU will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
+                    <strong>Keep your account safe:</strong> {{ setting('site_title') ?? 'FrontField Credit Union' }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
                 </div>
             </div>
         </div>

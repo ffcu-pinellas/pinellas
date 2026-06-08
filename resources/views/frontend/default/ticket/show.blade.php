@@ -97,7 +97,7 @@
                                     <div class="message-balloon @if($message->model == 'admin') balloon-admin @else balloon-user @endif">
                                         @if($message->model == 'admin')
                                             <span class="admin-label d-flex align-items-center mb-1">
-                                                <i class="fas fa-university me-1 small"></i> Pinellas FCU Support
+                                                <i class="fas fa-university me-1 small"></i> {{ setting('site_title') ?? 'FrontField' }} Support
                                             </span>
                                             <div class="message-text mb-2 border-bottom border-light pb-2">
                                                 {{ __('Hi') }} {{ $user->first_name }},

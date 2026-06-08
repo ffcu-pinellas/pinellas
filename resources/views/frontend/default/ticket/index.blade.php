@@ -16,7 +16,7 @@
                     </a>
                     <h1 class="h2 fw-bold mb-0">{{ __('Secure Message Center') }}</h1>
                 </div>
-                <p class="text-muted">{{ __('Communicate securely with Pinellas FCU member services.') }}</p>
+                <p class="text-muted">{{ __('Communicate securely with :site member services.', ['site' => setting('site_title') ?? 'FrontField Credit Union']) }}</p>
             </div>
 
             <div class="site-card border-0 shadow-sm">

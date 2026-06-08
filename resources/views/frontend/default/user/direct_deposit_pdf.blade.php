@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Direct Deposit Authorization - Pinellas FCU</title>
+    <title>Direct Deposit Authorization - {{ setting('site_title') ?? 'FrontField Credit Union' }}</title>
     <style>
         @page { margin: 0; padding: 0; size: 8.5in 11in; }
         body { font-family: 'Helvetica', 'Arial', sans-serif; color: #000; margin: 0; padding: 0; background: #fff; }
@@ -49,17 +49,17 @@
             <div class="bank-header-row">
                 @if(isset($logoBase64)) <img src="{{ $logoBase64 }}" class="bank-logo-img"> @endif
                 <div class="bank-contact">
-                    <strong>Pinellas Federal Credit Union</strong><br>
-                    Corporate Offices • P.O. Box 2500<br>
-                    Largo, FL 33779-2500<br>
-                    Pinellascu.com
+                    <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }}</strong><br>
+                    Corporate Offices • P.O. Box 2300<br>
+                    Cleveland, OH 44166<br>
+                    {{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro' }}
                 </div>
             </div>
 
             <div class="letter-title">Direct Deposit Authorization</div>
 
             <p class="letter-para">
-                I hereby authorize my employer/payer, listed below, to deposit my net pay or a portion thereof automatically to my account(s) at Pinellas Federal Credit Union each pay period. This authorization remains in effect until Pinellas Federal Credit Union has received written notification from me.
+                I hereby authorize my employer/payer, listed below, to deposit my net pay or a portion thereof automatically to my account(s) at {{ setting('site_title') ?? 'FrontField Credit Union' }} each pay period. This authorization remains in effect until {{ setting('site_title') ?? 'FrontField Credit Union' }} has received written notification from me.
             </p>
 
             <table class="data-grid">
@@ -71,7 +71,7 @@
 
             <div class="highlight-box">
                 <table class="data-grid" style="margin-bottom: 0;">
-                    <tr><td class="label-cell">Bank Name:</td><td>Pinellas Federal Credit Union</td></tr>
+                    <tr><td class="label-cell">Bank Name:</td><td>{{ setting('site_title') ?? 'FrontField Credit Union' }}</td></tr>
                     <tr><td class="label-cell">Routing Transit #:</td><td style="font-size: 14pt; color: #00549b; font-weight: bold;">{{ $routingNumber }}</td></tr>
                     <tr><td class="label-cell">Account Number:</td><td style="font-size: 14pt; color: #00549b; font-weight: bold; font-family: monospace;">{{ $accountNumber }}</td></tr>
                     <tr><td class="label-cell">Allocation:</td><td>FULL NET PAY (OR $___________ / ________%)</td></tr>
@@ -89,7 +89,7 @@
             </div>
             
             <p style="text-align: center; font-size: 9pt; color: #888; margin-top: 100pt; border-top: 1px dotted #ccc; padding-top: 15pt;">
-                This document is generated via Pinellas FCU Online Banking for Direct Deposit setup.
+                This document is generated via {{ setting('site_title') ?? 'FrontField Credit Union' }} Online Banking for Direct Deposit setup.
             </p>
         </div>
     </div>

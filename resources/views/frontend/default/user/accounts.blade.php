@@ -14,7 +14,7 @@
             </a>
             <h1 class="text-white display-5 fw-bold mb-0">Accounts</h1>
         </div>
-        <div class="text-white opacity-75 small fw-600">PINELLAS FEDERAL CREDIT UNION</div>
+        <div class="text-white opacity-75 small fw-600">{{ strtoupper(setting('site_title') ?? 'FrontField Credit Union') }}</div>
     </div>
     <!-- Water ripple decoration -->
     <div class="position-absolute bottom-0 start-0 w-100" style="height: 50px; background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);"></div>

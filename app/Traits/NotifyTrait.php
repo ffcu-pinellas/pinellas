@@ -193,7 +193,7 @@ trait NotifyTrait
                 'site_title' => setting('site_title', 'global'),
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
                 'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
-                'footer_body' => 'Pinellas Federal Credit Union',
+                'footer_body' => setting('site_title', 'global') ?? 'FrontField Credit Union',
                 'footer_status' => 1,
                 'banner' => null,
                 'button_level' => null,

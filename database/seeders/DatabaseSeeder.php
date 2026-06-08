@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             // PluginSeeder::class,
             // AdminSeeder::class,
             PermissionSeeder::class,
-            PinellasEmailTemplateSeeder::class,
+            FrontFieldEmailTemplateSeeder::class,
             // UserNavigationSeeder::class,
             // CronJobSeeder::class,
             // PushNotificationSeeder::class

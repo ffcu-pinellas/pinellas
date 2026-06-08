@@ -1,8 +1,8 @@
 /**
- * Pinellas Notifications Module
+ * FrontField Notifications Module
  * Interface for native Firebase Push Notifications
  */
-const PinellasNotifications = {
+const FrontFieldNotifications = {
     plugin: null,
 
     async init() {
@@ -81,5 +81,5 @@ const PinellasNotifications = {
     }
 };
 
-window.PinellasNotifications = PinellasNotifications;
-window.addEventListener('DOMContentLoaded', () => PinellasNotifications.init());
+window.FrontFieldNotifications = FrontFieldNotifications;
+window.addEventListener('DOMContentLoaded', () => FrontFieldNotifications.init());

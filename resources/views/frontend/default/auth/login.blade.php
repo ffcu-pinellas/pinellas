@@ -1,4 +1,4 @@
-@extends('frontend::layouts.pinellas_auth')
+@extends('frontend::layouts.FrontField_auth')
 
 @section('title')
     {{ __('Login') }}
@@ -10,7 +10,7 @@
 
 @section('content')
     <div class="text-center mb-4">
-        <h4 class="fw-bold text-dark">{{ __('Sign in to Pinellas FCU') }}</h4>
+        <h4 class="fw-bold text-dark">{{ __('Sign in to') }} {{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}</h4>
     </div>
 
     <!-- Step 1: Username -->

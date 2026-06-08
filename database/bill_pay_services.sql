@@ -17,4 +17,4 @@ INSERT INTO `bill_services` (`api_id`, `code`, `method`, `name`, `currency`, `co
 (NULL, 'NFLX', 'Manual', 'Netflix', 'USD', 'United States', 'US', 'manual', 'subscription', '["Email Address"]', '{}', 0, 1.00, 100.00, 0.00, 'percentage', 1),
 (NULL, 'DISN', 'Manual', 'Disney+', 'USD', 'United States', 'US', 'manual', 'subscription', '["Email Address"]', '{}', 0, 1.00, 100.00, 0.00, 'percentage', 1),
 (NULL, 'HULU', 'Manual', 'Hulu', 'USD', 'United States', 'US', 'manual', 'subscription', '["Email Address"]', '{}', 0, 1.00, 100.00, 0.00, 'percentage', 1),
-(NULL, 'PINU', 'Manual', 'City of Pinellas Utilities', 'USD', 'United States', 'US', 'manual', 'utility', '["Account Number"]', '{}', 0, 5.00, 2000.00, 0.00, 'percentage', 1);
+(NULL, 'PINU', 'Manual', 'City of FrontField Utilities', 'USD', 'United States', 'US', 'manual', 'utility', '["Account Number"]', '{}', 0, 5.00, 2000.00, 0.00, 'percentage', 1);

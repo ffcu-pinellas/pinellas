@@ -193,10 +193,10 @@
             <img src="{{ asset('assets/external/images/logo.png') }}" class="logo">
         @endif
         <div class="bank-details">
-            <strong>Pinellas Federal Credit Union</strong><br>
-            Corporate Offices • P.O. Box 2500<br>
-            Largo, FL 33779-2500<br>
-            (737) 410-5689 | pinellascu.com
+            <strong>{{ $siteTitle }}</strong><br>
+            Corporate Offices • P.O. Box 2300<br>
+            Cleveland, OH 44166<br>
+            216 230 1837 | {{ $homeDomain }}
         </div>
         <div class="clear"></div>
     </div>
@@ -322,7 +322,7 @@
     <div class="footer-notice">
         This statement is an official record of your account activity. Please review it carefully. 
         Report any discrepancies within 60 days. <br>
-        <strong>Pinellas Federal Credit Union is Federally Insured by NCUA. Equal Housing Lender.</strong>
+        <strong>{{ $siteTitle }} is Federally Insured by NCUA. Equal Housing Lender.</strong>
     </div>
 </body>
 </html>

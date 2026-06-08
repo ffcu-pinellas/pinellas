@@ -132,10 +132,10 @@
             <img src="{{ asset('assets/external/images/logo.png') }}" class="logo">
         @endif
         <div class="bank-details">
-            <strong>Pinellas Federal Credit Union</strong><br>
-            Corporate Offices • P.O. Box 2500<br>
-            Largo, FL 33779-2500<br>
-            (737) 410-5689 | pinellascu.com
+            <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }}</strong><br>
+            Corporate Offices • P.O. Box 2300<br>
+            Cleveland, OH 44166<br>
+            {{ setting('site_phone') ?? '216 230 1837' }} | {{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro' }}
         </div>
         <div class="clear"></div>
     </div>
@@ -173,8 +173,8 @@
     </div>
 
     <div class="footer-notice">
-        This is an official document issued by Pinellas Federal Credit Union. For any inquiries or verification, please contact our support. <br>
-        <strong>Pinellas Federal Credit Union is Federally Insured by NCUA. Equal Housing Lender.</strong>
+        This is an official document issued by {{ setting('site_title') ?? 'FrontField Credit Union' }}. For any inquiries or verification, please contact our support. <br>
+        <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }} is Federally Insured by NCUA. Equal Housing Lender.</strong>
     </div>
 </body>
 </html>

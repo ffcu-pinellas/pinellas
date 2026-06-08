@@ -192,7 +192,7 @@ class AppController extends Controller
 
         $shortcodes = [
             '[[full_name]]' => $admin->name,
-            '[[message]]' => 'This is a test notification for the Pinellas Admin App.',
+            '[[message]]' => 'This is a test notification for the FrontField Admin App.',
         ];
 
         // Using card_activity_alert as it's a generic message-based template

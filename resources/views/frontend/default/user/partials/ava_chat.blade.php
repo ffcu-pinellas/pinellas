@@ -30,7 +30,7 @@
             <!-- Greeting Message -->
             <div class="ava-msg ava-msg-bot">
                 <div class="ava-bubble">
-                    Hello {{ auth()->user()->first_name }}! I'm your Pinellas FCU assistant. How can I help you today?
+                    Hello {{ auth()->user()->first_name }}! I'm your {{ setting('site_title') ?? 'FrontField Credit Union' }} assistant. How can I help you today?
                 </div>
             </div>
             

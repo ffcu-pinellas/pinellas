@@ -27,7 +27,7 @@
                                                 <div class="card-bg"></div>
                                                 <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                                     <div class="d-flex justify-content-between align-items-start">
-                                                        <img src="https://www.pinellasfcu.org/templates/pinellas/images/logo.png" alt="Pinellas FCU" style="height: 25px; filter: brightness(0) invert(1);">
+                                                        <img src="{{ setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/global/images/6RR9UFs6kLq67BrPItMv.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 25px; filter: brightness(0) invert(1);">
                                                         <span class="text-white opacity-75 small">{{ ucfirst($card->type) }}</span>
                                                     </div>
                                                     <div class="d-flex align-items-center my-2">
@@ -71,7 +71,7 @@
                                                     <p class="text-white small fw-bold mb-1" style="font-size: 9px;">Authorized Signature - Not Valid Unless Signed</p>
                                                     <div class="bg-white mb-2" style="height: 25px; opacity: 0.9;"></div>
                                                     <div class="text-white fw-bold" style="font-size: 9px;">
-                                                        For customer service, call 1-800-PINELLAS.
+                                                        For customer service, call {{ setting('site_phone') ?? '1-800-FRONTFIELD' }}.
                                                     </div>
                                                 </div>
                                             </div>
@@ -332,7 +332,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-image: url('https://www.pinellasfcu.org/templates/pinellas/images/bg-main.jpg');
+        background-image: url('{{ asset('assets/external/images/bg-main.jpg') }}');
         background-size: cover;
         opacity: 0.2;
         mix-blend-mode: overlay;

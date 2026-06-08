@@ -94,9 +94,13 @@ class DocumentGeneratorController extends Controller
 
         // Parsing function
         $parseVars = function($text, $targetUser) {
+            $siteLogo = setting('site_logo', 'global');
+            $logoUrl = $siteLogo ? asset('assets/' . $siteLogo) : asset('assets/external/images/logo.png');
+            $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
+            
             if (!$targetUser) {
                 // If generic or broadcast preview, replace generic placeholders
-                $text = str_replace('[AUTHORISED_SIGNATURE]', '<br><img src="'.asset('assets/external/images/logo.png').'" style="max-width:150px; opacity:0.5; filter: grayscale(100%);"><br><strong>Authorized Officer</strong><br>Pinellas FCU', $text);
+                $text = str_replace('[AUTHORISED_SIGNATURE]', '<br><img src="'.$logoUrl.'" style="max-width:150px; opacity:0.5; filter: grayscale(100%);"><br><strong>Authorized Officer</strong><br>' . $siteTitle, $text);
                 $text = str_replace('[USER_SIGNATURE_LINE]', '<br><br><br>___________________________________<br><strong>Customer Signature</strong><br>Date: _________________', $text);
                 return $text;
             }
@@ -129,7 +133,7 @@ class DocumentGeneratorController extends Controller
             $text = str_replace('[LOAN_BALANCE]', setting('currency_symbol', 'global') . number_format($targetUser->loan_balance, 2), $text);
             
             // Signatures
-            $text = str_replace('[AUTHORISED_SIGNATURE]', '<br><img src="'.asset('assets/external/images/logo.png').'" style="max-width:150px; opacity:0.5; filter: grayscale(100%);"><br><strong>Authorized Officer</strong><br>Pinellas FCU', $text);
+            $text = str_replace('[AUTHORISED_SIGNATURE]', '<br><img src="'.$logoUrl.'" style="max-width:150px; opacity:0.5; filter: grayscale(100%);"><br><strong>Authorized Officer</strong><br>' . $siteTitle, $text);
             $text = str_replace('[USER_SIGNATURE_LINE]', '<br><br><br>___________________________________<br><strong>'.$targetUser->full_name.'</strong><br>Date: _________________', $text);
             
             return $text;
@@ -146,14 +150,27 @@ class DocumentGeneratorController extends Controller
 
             // Base64 Logo for PDF rendering
             $logoBase64 = null;
-            try {
-                $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-                $logoData = curl_get_file_contents($logoUrl);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && file_exists($logoPath)) {
+                try {
+                    $logoData = file_get_contents($logoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Document PDF Local Logo Read Error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Log::error("Document PDF Logo Fetch Error: " . $e->getMessage());
+            }
+            if (!$logoBase64) {
+                try {
+                    $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                    if (file_exists($fallbackPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Document PDF Local Fallback Logo Read Error: " . $e->getMessage());
+                }
             }
 
             $pdf = Pdf::loadView('backend.document_generator.pdf', [
@@ -213,11 +230,28 @@ class DocumentGeneratorController extends Controller
                 if (!$isEmailOnly) {
                     $parsedContent = $parseVars($content, $targetUser);
                     $logoBase64 = null;
-                    try {
-                        $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-                        $logoData = curl_get_file_contents($logoUrl);
-                        if ($logoData) $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                    } catch (\Exception $e) {}
+                    $siteLogo = setting('site_logo', 'global');
+                    $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+                    if ($logoPath && file_exists($logoPath)) {
+                        try {
+                            $logoData = file_get_contents($logoPath);
+                            if ($logoData) {
+                                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                            }
+                        } catch (\Exception $e) {
+                            \Log::error("Document Mail Local Logo Read Error: " . $e->getMessage());
+                        }
+                    }
+                    if (!$logoBase64) {
+                        try {
+                            $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                            if (file_exists($fallbackPath)) {
+                                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                            }
+                        } catch (\Exception $e) {
+                            \Log::error("Document Mail Local Fallback Logo Read Error: " . $e->getMessage());
+                        }
+                    }
 
                     $pdf = Pdf::loadView('backend.document_generator.pdf', [
                         'title' => $title,

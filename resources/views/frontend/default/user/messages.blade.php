@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </div>
-                <h5 class="fw-bold mb-2">Pinellas FCU Member Service</h5>
+                <h5 class="fw-bold mb-2">{{ setting('site_title') ?? 'FrontField Credit Union' }} Member Service</h5>
                 <p class="small text-muted mb-4 px-lg-5">
                     Our team is available to assist you during regular business hours.<br>
                     Messages sent after hours will be answered the following business day.

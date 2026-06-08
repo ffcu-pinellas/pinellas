@@ -65,7 +65,7 @@
                                 </div>
                                 <h6 class="mb-1 mb-md-2 fw-bold title-responsive">Another Member</h6>
                                 <p class="small text-muted mb-0 d-none d-md-block">Send instantly to a credit union member.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">Pinellas Member</p>
+                                <p class="x-small text-muted mb-0 d-md-none">{{ setting('site_title') ?? 'FrontField' }} Member</p>
                             </div>
                         </div>
                         <div class="col-6 col-md-6 col-xl-3">

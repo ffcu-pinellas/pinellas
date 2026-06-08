@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Transaction Receipt - Pinellas FCU</title>
+    <title>Transaction Receipt - {{ $siteTitle }}</title>
     <style>
         /* PDF Page Setup */
         @page {
@@ -152,7 +152,7 @@
         @if(isset($logoBase64))
             <img src="{{ $logoBase64 }}" class="logo">
         @else
-            <div style="font-size: 20pt; font-weight: bold; color: #00549b;">PINELLAS FCU</div>
+            <div style="font-size: 20pt; font-weight: bold; color: #00549b;">{{ strtoupper($siteTitle) }}</div>
         @endif
 
         @if(str_contains(strtolower($transaction->description), 'zelle'))
@@ -162,7 +162,7 @@
 
     <div class="receipt-header">
         <h1 class="receipt-title">Transaction Receipt</h1>
-        <div class="receipt-subtitle">This is an official record of your transaction with Pinellas Federal Credit Union.</div>
+        <div class="receipt-subtitle">This is an official record of your transaction with {{ $siteTitle }}.</div>
     </div>
 
     <div class="amount-card">
@@ -219,7 +219,7 @@
 
     <div class="footer">
         <div class="footer-text">
-            Pinellas Federal Credit Union • Corporate Offices • P.O. Box 2500 • Largo, FL 33779-2500<br>
+            {{ $siteTitle }} • Corporate Offices • P.O. Box 2300 • Cleveland, OH 44166<br>
             Federally insured by NCUA. Equal Housing Lender. © {{ date('Y') }} All Rights Reserved.
         </div>
     </div>

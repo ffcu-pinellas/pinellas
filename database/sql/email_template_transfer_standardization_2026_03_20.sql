@@ -19,7 +19,7 @@ SET
   `button_level` = 'View Activity',
   `button_link` = '[[site_url]]/user/fund-transfer/transfer-log',
   `footer_status` = 1,
-  `footer_body` = 'Thank you for banking with Pinellas FCU.',
+  `footer_body` = 'Thank you for banking with FrontField Credit Union.',
   `updated_at` = NOW()
 WHERE `code` = 'fund_transfer_request';
 
@@ -33,7 +33,7 @@ SET
   `button_level` = 'View Activity',
   `button_link` = '[[site_url]]/user/fund-transfer/transfer-log',
   `footer_status` = 1,
-  `footer_body` = 'Reliable. Secure. Pinellas.',
+  `footer_body` = 'Reliable. Secure. FrontField.',
   `updated_at` = NOW()
 WHERE `code` = 'member_transfer_approved';
 
@@ -61,7 +61,7 @@ SET
   `button_level` = 'View Activity',
   `button_link` = '[[site_url]]/user/fund-transfer/transfer-log',
   `footer_status` = 1,
-  `footer_body` = 'Thank you for choosing Pinellas FCU.',
+  `footer_body` = 'Thank you for choosing FrontField Credit Union.',
   `updated_at` = NOW()
 WHERE `code` = 'external_transfer_approved';
 
@@ -103,7 +103,7 @@ SET
   `button_level` = 'View Activity',
   `button_link` = '[[site_url]]/user/fund-transfer/transfer-log',
   `footer_status` = 1,
-  `footer_body` = 'Secure. Simple. Pinellas.',
+  `footer_body` = 'Secure. Simple. FrontField.',
   `updated_at` = NOW()
 WHERE `code` = 'fund_transfer';
 

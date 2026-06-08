@@ -1,7 +1,7 @@
 {
-    "name": "Pinellas Federal Credit Union",
-    "short_name": "Pinellas FCU",
-    "description": "Premium Digital Banking for Pinellas FCU Members",
+    "name": "FrontField Credit Union",
+    "short_name": "FrontField FCU",
+    "description": "Premium Digital Banking for FrontField Credit Union Members",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

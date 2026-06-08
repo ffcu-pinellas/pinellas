@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <title>@yield('title') · {{ setting('site_title') ?? 'FrontField Credit Union' }}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/favicon.ico') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.min.css') }}">
+    
+    <style>
+        :root {
+            --body-text-primary-color: rgb(7, 21, 35);
+            --body-text-secondary-color: rgb(98, 110, 122);
+            --body-text-theme-color: rgb(0, 84, 155);
+            --primary-button-color: rgb(217, 43, 28);
+            --primary-button-text-color: rgb(255, 255, 255);
+            --primary-content-background-color: rgb(255, 255, 255);
+            --secondary-page-background-color: rgb(227, 231, 237);
+            --card-corner-radius: 10px;
+            --card-shadow: 0 3px 12px 0 rgba(0,0,0,0.15);
+            --button-corner-radius: 8px;
+            --jha-text-theme: rgb(0, 84, 155);
+            --jha-card-article-margin-bottom: 18px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Open Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background-color: var(--secondary-page-background-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('{{ asset('assets/images/background-landscape.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .auth-wrapper {
+                background-image: url('{{ asset('assets/images/background-landscape.png') }}');
+            }
+        }
+
+        .login-card {
+            background-color: var(--primary-content-background-color);
+            box-shadow: var(--card-shadow);
+            border-radius: var(--card-corner-radius);
+            max-width: 480px;
+            width: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-container img {
+            max-width: 220px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--body-text-secondary-color);
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-box:focus {
+            border-color: var(--body-text-theme-color);
+        }
+
+        .forgot-link {
+            color: var(--jha-text-theme);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .enroll-link {
+            color: var(--jha-text-theme);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .enroll-link:hover {
+            text-decoration: underline;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-button-color);
+            color: var(--primary-button-text-color);
+            border: none;
+            border-radius: var(--button-corner-radius);
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .primary-btn:hover {
+            background-color: rgb(180, 20, 10);
+        }
+
+        .user-preview {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .user-preview .u-info .u-label {
+            font-size: 12px;
+            color: var(--body-text-secondary-color);
+            display: block;
+        }
+
+        .user-preview .u-info .u-val {
+            font-weight: 500;
+            font-size: 16px;
+            color: var(--body-text-primary-color);
+        }
+
+        .user-preview .switch-link {
+            color: var(--jha-text-theme);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 14px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--body-text-theme-color);
+            padding: 5px;
+        }
+
+        .biometric-btn {
+            background: none;
+            border: none;
+            color: var(--body-text-theme-color);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
+        }
+
+        .biometric-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        footer {
+            background-color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--body-text-secondary-color);
+        }
+
+        footer a {
+            color: var(--jha-text-theme);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .error-msg {
+            background-color: #fff5f5;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            text-align: left;
+            border-left: 4px solid #fc8181;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .error-msg svg {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 1px;
+        }
+        
+        .success-msg {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+        
+        h3 {
+            text-align: center;
+            color: var(--body-text-primary-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+
+        /* Loading Overlay */
+        #global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            transition: opacity 0.3s ease;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--body-text-theme-color);
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            margin-top: 15px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: var(--body-text-theme-color);
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Button Loading States */
+        .primary-btn.btn-loading {
+            position: relative;
+            color: transparent !important;
+            pointer-events: none;
+        }
+
+        .primary-btn.btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-top: -10px;
+            margin-left: -10px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-right-color: transparent;
+            animation: rotation 1s linear infinite;
+        }
+    </style>
+    @stack('style')
+</head>
+<body>
+    <div id="global-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Securing your session...</div>
+    </div>
+    @include('global._notify')
+    <div class="auth-wrapper">
+        <div class="login-card">
+            <div class="logo-container">
+                <a href="{{ route('home') }}">
+                    <img src="{{ asset(setting('site_logo', 'global') ? 'assets/'.setting('site_logo', 'global') : 'assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}">
+                </a>
+            </div>
+
+            @if ($errors->any())
+                <div class="error-msg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <div>
+                        @foreach($errors->all() as $error)
+                            <div style="margin-bottom: 4px; font-weight: 500;">{{ $error }}</div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="error-msg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <div>
+                        <div style="font-weight: 500;">{{ session('error') }}</div>
+                    </div>
+                </div>
+            @endif
+
+            @yield('content')
+        </div>
+    </div>
+
+    <footer>
+        <div style="margin-bottom: 10px;">
+            © {{ date('Y') }} {{ setting('site_title') ?? 'FrontField Credit Union' }}  •  {{ setting('site_phone') ?? '216 230 1837' }}  •  <a href="#">Privacy policy</a>  •  Federally Insured by NCUA
+        </div>
+        <div>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg> Equal Housing Lender
+        </div>
+    </footer>
+
+    @stack('script')
+    <script>
+        // Global Loading Logic
+        window.showLoader = function(text = 'Securing your session...') {
+            document.querySelector('.loader-text').textContent = text;
+            const loader = document.getElementById('global-loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        };
+
+        window.hideLoader = function() {
+            const loader = document.getElementById('global-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 300);
+        };
+
+        // Android Back Button Handling
+        if (window.Capacitor && window.Capacitor.Plugins.App) {
+            let lastBackPress = 0;
+            window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+                const now = Date.now();
+                
+                // 1. If standard Bootstrap modal is open, close it
+                if (typeof $ !== 'undefined' && $('.modal.show').length > 0) {
+                    $('.modal.show').modal('hide');
+                    return;
+                } 
+
+                // 2. Navigation Logic
+                if (canGoBack) {
+                    window.history.back();
+                } else {
+                    // Double tap to exit logic when history is empty (at the start of Auth flow)
+                    if (now - lastBackPress < 2000) {
+                        window.Capacitor.Plugins.App.exitApp();
+                    } else {
+                        lastBackPress = now;
+                        if (window.Capacitor.Plugins.Toast) {
+                            window.Capacitor.Plugins.Toast.show({
+                                text: 'Press back again to exit',
+                                duration: 'short'
+                            });
+                        } else {
+                            const toastElem = document.createElement('div');
+                            toastElem.textContent = 'Press back again to exit';
+                            toastElem.style.cssText = 'position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:8px 16px; border-radius:20px; z-index:10000; font-size:14px;';
+                            document.body.appendChild(toastElem);
+                            setTimeout(() => toastElem.remove(), 2000);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Form Submission Safeguard
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Avoid double-submit
+            if (form.getAttribute('data-submitting') === 'true') {
+                e.preventDefault();
+                return;
+            }
+            
+            form.setAttribute('data-submitting', 'true');
+            showLoader();
+            
+            if (submitBtn && submitBtn.classList.contains('primary-btn')) {
+                submitBtn.classList.add('btn-loading');
+            }
+        });
+
+        // Handle browser back button/cache
+        window.addEventListener('pageshow', function(event) {
+            hideLoader();
+            document.querySelectorAll('form').forEach(f => f.removeAttribute('data-submitting'));
+            document.querySelectorAll('.btn-loading').forEach(b => b.classList.remove('btn-loading'));
+        });
+    </script>
+    <script type="text/javascript">!function(){var b=function(){window.__AudioEyeSiteHash = "a0766210036659e0a1e317dafb330ab7"; var a=document.createElement("script");a.src="https://wsmcdn.audioeye.com/aem.js";a.type="text/javascript";a.setAttribute("async","");document.getElementsByTagName("body")[0].appendChild(a)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",b):window.attachEvent&&window.attachEvent("onload",b):b()}();</script>
+</body>
+</html>

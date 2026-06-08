@@ -40,7 +40,7 @@ class IncomingMemberTransferMail extends Mailable
         if ($this->status === 'success') {
             $subject = "Deposit Confirmation: Incoming Transfer Credited";
         } elseif ($this->status === 'failed') {
-            $subject = "Incoming Transfer Alert: Transfer Declined";
+            $subject = "Incoming Transfer Alert: Transfer Cancelled";
         } else {
             $subject = "Pending Transfer: Incoming Transfer from " . $this->sender->full_name;
         }

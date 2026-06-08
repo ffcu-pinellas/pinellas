@@ -205,7 +205,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Portfolio
     Route::get('portfolio', [UserController::class, 'portfolio'])->name('portfolio');
 
-    // New Pinellas Subpages
+    // New FrontField Subpages
     Route::get('remote-deposit', [UserController::class, 'remoteDeposit'])->name('remote_deposit');
     Route::post('remote-deposit/store', [UserController::class, 'storeRemoteDeposit'])->name('remote_deposit.store');
     
@@ -286,6 +286,8 @@ Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.j
 // Web-Based Migration Runner (Temporary)
 Route::get('deploy/run-migration', function () {
     try {
+        // Run standard migrations programmatically via Artisan
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         // 0. Remote Deposit Link
         if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
             \Illuminate\Support\Facades\Schema::table('remote_deposits', function (\Illuminate\Database\Schema\Blueprint $table) {
@@ -429,7 +431,7 @@ Route::get('deploy/run-migration', function () {
     <!-- Header -->
     <div class="v1v1header">
         <a href="[[HOME_URL]]"><img style="max-height: 60px; margin-bottom: 8px;" src="[[LOGO_URL]]" alt="[[SITE_TITLE]] Logo" /></a>
-        <p>2555 East Bay Drive | Clearwater, FL 33764 | Pinellascu.com</p>
+        <p>2555 East Bay Drive | Clearwater, FL 33764 | [[HOME_DOMAIN]]</p>
     </div>
 
     <!-- Compliance / Notification bar -->
@@ -438,7 +440,7 @@ Route::get('deploy/run-migration', function () {
     <!-- Content -->
     <div class="v1v1content">
         <p>Dear [[FULL_NAME]],</p>
-        <p>We are pleased to welcome you as a member of Pinellas Credit Union. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
+        <p>We are pleased to welcome you as a member of [[SITE_TITLE]]. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
         
         <h2>Your Account Credentials</h2>
         <div class="v1v1account-box">
@@ -481,20 +483,40 @@ Route::get('deploy/run-migration', function () {
 </html>
 HTML;
 
+        $siteTitle = setting('site_title', 'global') ?? 'FrontField Credit Union';
         \App\Models\DocumentTemplate::updateOrCreate(
             ['category' => 'welcome_letter'],
             [
-                'name' => 'Pinellas FCU Welcome Letter',
-                'email_from_name' => 'Pinellas Federal Credit Union',
+                'name' => "{$siteTitle} Welcome Letter",
+                'email_from_name' => $siteTitle,
                 'category' => 'welcome_letter',
                 'description' => 'Automatic welcome email template sent to new users upon email verification containing account credentials.',
-                'email_subject' => 'Welcome to Pinellas FCU - Your Account Details',
+                'email_subject' => "Welcome to {$siteTitle} - Your Account Details",
                 'email_content' => $welcomeContent,
                 'content' => 'Welcome Member Letter',
                 'is_active' => true,
                 'created_by' => $adminId,
             ]
         );
+        
+        // 14. Core Seeding (Only if empty)
+        if (\App\Models\Admin::count() === 0) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
+            } catch (\Exception $se) {
+                \Log::warning("Core db:seed failed: " . $se->getMessage());
+                // Fallback to ensure super admin exists
+                $superRole = \Spatie\Permission\Models\Role::firstOrCreate(['guard_name' => 'admin', 'name' => 'Super-Admin']);
+                $admin = \App\Models\Admin::firstOrCreate(
+                    ['email' => 'admin@digibank.com'],
+                    [
+                        'name' => 'Super Admin',
+                        'password' => \Illuminate\Support\Facades\Hash::make('12345678')
+                    ]
+                );
+                $admin->assignRole($superRole);
+            }
+        }
         
         return "Migration Successful! $count users updated to 'always_ask'. Branded Notification and Welcome Email setup complete.";
     } catch (\Exception $e) {

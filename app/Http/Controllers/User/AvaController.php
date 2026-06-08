@@ -363,7 +363,7 @@ class AvaController extends Controller
     {
         return response()->json([
             'type' => 'text',
-            'message' => "I'm Ava, your personalized Pinellas FCU assistant. I'm here to help you, " . $user->first_name . ", manage your finances faster. Ask me about your balance, spending, account numbers, or settings!"
+            'message' => "I'm Ava, your personalized FrontField FCU assistant. I'm here to help you, " . $user->first_name . ", manage your finances faster. Ask me about your balance, spending, account numbers, or settings!"
         ]);
     }
 

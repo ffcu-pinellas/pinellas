@@ -1,0 +1,27 @@
+{
+    "appId": "com.ffcumobile.admin",
+    "appName": "FrontField Admin",
+    "webDir": "public",
+    "server": {
+        "url": "https://frontfieldcu.pro/admin/login",
+        "allowNavigation": [
+            "frontfieldcu.pro"
+        ]
+    },
+    "plugins": {
+        "SplashScreen": {
+            "launchShowDuration": 3000,
+            "launchAutoHide": true,
+            "backgroundColor": "#ffffffff",
+            "androidSplashResourceName": "splash",
+            "androidScaleType": "CENTER_CROP",
+            "showSpinner": true,
+            "androidSpinnerStyle": "large",
+            "spinnerColor": "#00aeef",
+            "splashFullScreen": true,
+            "splashImmersive": true,
+            "layoutName": "launch_screen",
+            "splashFadeOutDuration": 1000
+        }
+    }
+}

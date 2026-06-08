@@ -1,4 +1,4 @@
-@extends('frontend::layouts.pinellas_auth')
+@extends('frontend::layouts.FrontField_auth')
 
 @section('title')
     {{ __('Forgot Password') }}

@@ -431,7 +431,7 @@ class UserController extends Controller
 
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
-            '[[message]]' => 'This is a test notification from Pinellas FCU. Your device is correctly registered for mobile alerts.',
+            '[[message]]' => 'This is a test notification from FrontField FCU. Your device is correctly registered for mobile alerts.',
         ];
 
         $this->pushNotify('new_user', $shortcodes, route('user.dashboard'), $user->id);
@@ -460,7 +460,7 @@ class UserController extends Controller
             return back();
         }
 
-        $routingNumber = '063192257'; // Pinellas FCU Routing Number
+        $routingNumber = '063192257'; // FrontField FCU Routing Number
         $accountTitle = match($type) {
             'savings' => 'Savings Account',
             'ira' => 'IRA Account',
@@ -479,13 +479,12 @@ class UserController extends Controller
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
         try {
-            $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-            $logoData = curl_get_file_contents($logoUrl);
-            if ($logoData) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+            $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+            if (file_exists($fallbackPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
             }
         } catch (\Exception $e) {
-            \Log::error("DD PDF Logo Fetch Error: " . $e->getMessage());
+            \Log::error("DD PDF Local Fallback Logo Read Error: " . $e->getMessage());
         }
 
         // Base64 SentryShield Logo

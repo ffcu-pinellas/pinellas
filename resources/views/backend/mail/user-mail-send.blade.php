@@ -80,7 +80,7 @@
                         <div class="footer">
                             <div style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">{{ setting('site_title', 'global') }}</div>
                             <div class="disclaimer">
-                                Security Alert: Pinellas Federal Credit Union will never ask for your password, social security number, or PIN through email. If you receive a suspicious request, contact us immediately.
+                                Security Alert: {{ setting('site_title', 'global') ?? 'FrontField Credit Union' }} will never ask for your password, social security number, or PIN through email. If you receive a suspicious request, contact us immediately.
                                 <br><br>
                                 &copy; {{ date('Y') }} {{ setting('site_title', 'global') }}. All Rights Reserved.
                             </div>

@@ -30,7 +30,7 @@
         @else
             <div style="font-size: 18px; font-weight: 700; color: #ffffff;">{{ $siteTitle }}</div>
         @endif
-        <p>2555 East Bay Drive | Clearwater, FL 33764 | Pinellascu.com</p>
+        <p>2555 East Bay Drive | Clearwater, FL 33764 | {{ $homeDomain }}</p>
     </div>
 
     <!-- Compliance / Notification bar -->
@@ -39,7 +39,7 @@
     <!-- Content -->
     <div class="v1v1content">
         <p>Dear {{ $fullName }},</p>
-        <p>We are pleased to welcome you as a member of Pinellas Credit Union. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
+        <p>We are pleased to welcome you as a member of {{ $siteTitle }}. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
         
         <h2>Your Account Credentials</h2>
         <div class="v1v1account-box">

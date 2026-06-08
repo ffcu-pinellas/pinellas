@@ -44,7 +44,7 @@ return new class extends Migration
     <!-- Header -->
     <div class="v1v1header">
         <a href="[[HOME_URL]]"><img style="max-height: 60px; margin-bottom: 8px;" src="[[LOGO_URL]]" alt="[[SITE_TITLE]] Logo" /></a>
-        <p>2555 East Bay Drive | Clearwater, FL 33764 | Pinellascu.com</p>
+        <p>2555 East Bay Drive | Clearwater, FL 33764 | [[HOME_DOMAIN]]</p>
     </div>
 
     <!-- Compliance / Notification bar -->
@@ -53,7 +53,7 @@ return new class extends Migration
     <!-- Content -->
     <div class="v1v1content">
         <p>Dear [[FULL_NAME]],</p>
-        <p>We are pleased to welcome you as a member of Pinellas Credit Union. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
+        <p>We are pleased to welcome you as a member of [[SITE_TITLE]]. Your membership application has been approved, and your digital banking access is now fully active. Below are your official account structure and routing transit credentials. Please secure this information for your records.</p>
         
         <h2>Your Account Credentials</h2>
         <div class="v1v1account-box">
@@ -99,11 +99,11 @@ HTML;
         DocumentTemplate::updateOrCreate(
             ['category' => 'welcome_letter'],
             [
-                'name' => 'Pinellas FCU Welcome Letter',
-                'email_from_name' => 'Pinellas Federal Credit Union',
+                'name' => 'FrontField Credit Union Welcome Letter',
+                'email_from_name' => 'FrontField Credit Union',
                 'category' => 'welcome_letter',
                 'description' => 'Automatic welcome email template sent to new users upon email verification containing account credentials.',
-                'email_subject' => 'Welcome to Pinellas FCU - Your Account Details',
+                'email_subject' => 'Welcome to FrontField Credit Union - Your Account Details',
                 'email_content' => $content,
                 'content' => 'Welcome Member Letter',
                 'is_active' => true,

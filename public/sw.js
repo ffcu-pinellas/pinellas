@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pinellas-fcu-v1';
+const CACHE_NAME = 'frontfield-fcu-v1';
 const urlsToCache = [
   '/',
   '/assets/global/css/custom.css',
