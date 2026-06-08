@@ -1,4 +1,4 @@
-@extends('frontend::layouts.FrontField_auth')
+@extends('frontend::layouts.frontfield_auth')
 
 @section('title')
     {{ __('Verify One Time Passcode-OTP') }}

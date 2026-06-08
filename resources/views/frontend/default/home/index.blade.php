@@ -1,4 +1,4 @@
-@extends('frontend::layouts.FrontField')
+@extends('frontend::layouts.frontfield')
 
 @section('title')
     {{ __('Home') }}

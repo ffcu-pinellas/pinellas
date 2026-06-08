@@ -61,7 +61,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/style.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ asset('assets/external/css/responsive.css') }}">
 
-	@include('frontend::home.include.FrontField_inline_styles')
+	@include('frontend::home.include.frontfield_inline_styles')
 
 <script src="{{ asset('assets/external/js/pushmenu.js') }}"></script>
 
@@ -108,14 +108,14 @@ jQuery(function(){ // on DOM load
 <body>
 
 	<div id="contentwrapper">
-        @include('frontend::home.include.FrontField_header')
+        @include('frontend::home.include.frontfield_header')
 
         @yield('content')
 
-        @include('frontend::home.include.FrontField_footer')
+        @include('frontend::home.include.frontfield_footer')
     </div>
 
-    @include('frontend::home.include.FrontField_mobile_menu')
+    @include('frontend::home.include.frontfield_mobile_menu')
 
     <script type="text/javascript">
         // Defer AudioEye loading until window load event

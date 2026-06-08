@@ -1,4 +1,4 @@
-@extends('frontend::layouts.FrontField_auth')
+@extends('frontend::layouts.frontfield_auth')
 
 @section('title')
     {{ __('Reset Password') }}
