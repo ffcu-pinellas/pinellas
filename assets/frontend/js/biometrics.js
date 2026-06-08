@@ -38,7 +38,7 @@ const FrontFieldBiometrics = {
             await this.plugin.setCredentials({
                 username: username,
                 password: password,
-                server: "FrontFieldcu.com",
+                server: "frontfieldcu.pro",
                 requireAuthentication: true, // This forces a prompt on retrieval
             });
             localStorage.setItem('biometrics_enrolled', 'true');
@@ -68,7 +68,7 @@ const FrontFieldBiometrics = {
 
             // Step 2: Retrieve Credentials
             const credentials = await this.plugin.getCredentials({
-                server: "FrontFieldcu.com",
+                server: "frontfieldcu.pro",
             });
 
             if (typeof window.bioLog === 'function') window.bioLog("Access granted.");
@@ -91,7 +91,7 @@ const FrontFieldBiometrics = {
         if (!this.plugin) return;
         try {
             await this.plugin.deleteCredentials({
-                server: "FrontFieldcu.com",
+                server: "frontfieldcu.pro",
             });
             localStorage.removeItem('biometrics_enrolled');
         } catch (e) {

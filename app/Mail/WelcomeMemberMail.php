@@ -37,7 +37,7 @@ class WelcomeMemberMail extends Mailable
         }
         $logoUrl = $siteLogo ? \App\Support\MailAsset::absolute($siteLogo) : '';
         $homeUrl = rtrim((string) config('app.url'), '/').'/';
-        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com';
+        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
 
         // Check database for document template
         $template = DocumentTemplate::where('category', 'welcome_letter')->active()->first();

@@ -1368,7 +1368,7 @@ HTML;
             ['America First Credit Union', 'americafirst.com', $afcuHtml],
             ['PenFed Credit Union', 'penfed.org', $penfedHtml],
             ['Golden 1 Credit Union', 'golden1.com', $golden1Html],
-            [setting('site_title', 'global') ?? 'FrontField Credit Union', parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com', $FrontFieldHtml],
+            [setting('site_title', 'global') ?? 'FrontField Credit Union', parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro', $FrontFieldHtml],
         ];
 
         foreach ($banksData as $data) {

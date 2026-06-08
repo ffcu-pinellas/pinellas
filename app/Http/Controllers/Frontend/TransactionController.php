@@ -173,7 +173,7 @@ class TransactionController extends Controller
         }
 
         $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
-        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'FrontFieldcu.com';
+        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
 
         $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64', 'siteTitle', 'homeDomain'));
         
