@@ -507,6 +507,20 @@ class UserController extends Controller
             $this->markAsUnverified($id);
         }
 
+        // Telegram Notification for User Status Update
+        try {
+            $statusStr = $input['status'] ? 'Active' : 'Disabled';
+            $tgMsg = "⚙️ <b>Admin Activity: Customer Status Updated</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "📌 <b>Status:</b> {$statusStr}\n";
+            $tgMsg .= "🔑 <b>KYC Status:</b> " . ($input['kyc'] ?? $user->kyc) . "\n";
+            $tgMsg .= "💸 <b>Transfers:</b> " . ($input['transfer_status'] ? 'Enabled' : 'Disabled') . "\n";
+            $tgMsg .= "✍️ <b>Updated By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Status Update Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success('Status Updated Successfully', 'Success');
 
         return redirect()->back();
@@ -643,6 +657,19 @@ class UserController extends Controller
             }
         }
 
+        // Telegram Notification for User Registration
+        try {
+            $tgMsg = "🆕 <b>Admin Activity: New Customer Registered</b>\n";
+            $tgMsg .= "👤 <b>Name:</b> {$user->full_name}\n";
+            $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
+            $tgMsg .= "📞 <b>Phone:</b> {$user->phone}\n";
+            $tgMsg .= "🏦 <b>Checking Account:</b> {$user->account_number}\n";
+            $tgMsg .= "✍️ <b>Created By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('User Store Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success(__('Customer added successfully!'), 'Success');
 
         return to_route('admin.user.edit', $user->id);
@@ -742,6 +769,24 @@ class UserController extends Controller
             }
         }
 
+        // Telegram Notification for User Profile Update
+        try {
+            $tgMsg = "⚙️ <b>Admin Activity: Customer Profile Updated</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
+            $tgMsg .= "🔒 <b>Restrictions:</b>\n";
+            $tgMsg .= "  - Checking: " . ($user->checking_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "  - Savings: " . ($user->savings_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "  - IRA: " . ($user->ira_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "  - HELOC: " . ($user->heloc_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "  - Credit Card: " . ($user->cc_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "  - Loan: " . ($user->loan_restricted ? '🔴 Restricted' : '🟢 Normal') . "\n";
+            $tgMsg .= "✍️ <b>Updated By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('User Update Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success('User Info Updated Successfully', 'Success');
 
         return redirect()->back();
@@ -778,6 +823,18 @@ class UserController extends Controller
         $user->update([
             'password' => Hash::make($password['new_password']),
         ]);
+
+        // Telegram Notification for User Password Update
+        try {
+            $tgMsg = "⚙️ <b>Admin Activity: Customer Password Changed</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
+            $tgMsg .= "✍️ <b>Updated By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('User Password Update Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success('User Password Updated Successfully', 'Success');
 
         return redirect()->back();
@@ -923,6 +980,20 @@ class UserController extends Controller
 
                 $status = 'Success';
                 $message = __('Balance subtracted successfully!');
+            }
+
+            // Telegram Notification for Balance Update
+            try {
+                $currencySymbol = setting('currency_symbol', '$');
+                $actionWord = ($type == 'add') ? 'Added' : 'Subtracted';
+                $tgMsg = "💰 <b>Admin Activity: Customer Balance Adjusted</b>\n";
+                $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+                $tgMsg .= "📌 <b>Account/Wallet:</b> " . ucwords($wallet_name) . "\n";
+                $tgMsg .= "💵 <b>Action:</b> {$actionWord} {$currencySymbol}{$amount}\n";
+                $tgMsg .= "✍️ <b>Updated By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+                $this->telegramNotify($tgMsg);
+            } catch (\Exception $e) {
+                \Log::error('User Balance Update Telegram Notify Failed: ' . $e->getMessage());
             }
 
             notify()->success($message, $status);

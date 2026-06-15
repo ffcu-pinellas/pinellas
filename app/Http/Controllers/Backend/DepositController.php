@@ -343,6 +343,27 @@ class DepositController extends Controller
         $this->pushNotify($template, $shortcodes, route('user.deposit.log'), $transaction->user->id);
         $this->smsNotify($template, $shortcodes, $transaction->user->phone);
 
+        // Telegram Notification for Deposit Action
+        try {
+            $currencySymbol = setting('currency_symbol', '$');
+            $actionWord = isset($input['approve']) ? 'Approved' : 'Rejected';
+            $actionEmoji = isset($input['approve']) ? '🟢' : '🔴';
+            $tgMsg = "💳 <b>Admin Activity: Deposit Request Actioned</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$transaction->user->full_name} (ID: {$transaction->user->id})\n";
+            $tgMsg .= "📌 <b>Deposit Type:</b> " . ($remoteDeposit ? 'Check Deposit (Remote)' : 'Manual Deposit') . "\n";
+            $tgMsg .= "💵 <b>Amount:</b> {$currencySymbol}{$transaction->amount}\n";
+            $tgMsg .= "🧾 <b>Method/Gateway:</b> {$transaction->method}\n";
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>{$transaction->tnx}</code>\n";
+            $tgMsg .= "🎯 <b>Action:</b> {$actionEmoji} {$actionWord}\n";
+            if ($approvalCause) {
+                $tgMsg .= "📝 <b>Note/Reason:</b> {$approvalCause}\n";
+            }
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Deposit Action Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         return redirect()->back();
     }
     public function gatewaySupportedCurrency($id)

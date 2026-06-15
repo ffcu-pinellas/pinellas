@@ -82,6 +82,21 @@ class RemoteDepositController extends Controller
             '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
         ], route('user.remote_deposit'), $deposit->user_id);
 
+        // Telegram Notification for Check Deposit Approval
+        try {
+            $currencySymbol = setting('currency_symbol', '$');
+            $tgMsg = "💳 <b>Admin Activity: Check Deposit Approved</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$deposit->user->full_name} (ID: {$deposit->user->id})\n";
+            $tgMsg .= "📌 <b>Deposit Type:</b> Check Deposit (Remote)\n";
+            $tgMsg .= "💵 <b>Amount:</b> {$currencySymbol}" . number_format($deposit->amount, 2) . "\n";
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>" . ($deposit->transaction_tnx ?? 'N/A') . "</code>\n";
+            $tgMsg .= "🎯 <b>Action:</b> 🟢 Approved\n";
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Remote Deposit Approval Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         return redirect()->back()->with('success', 'Deposit approved successfully.');
     }
 
@@ -156,6 +171,23 @@ class RemoteDepositController extends Controller
             '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
             '[[reason]]' => $request->note ?? 'Policy violation or poor image quality.',
         ], route('user.remote_deposit'), $deposit->user_id);
+
+        // Telegram Notification for Check Deposit Rejection
+        try {
+            $currencySymbol = setting('currency_symbol', '$');
+            $note = $request->input('note', 'Rejected by admin');
+            $tgMsg = "💳 <b>Admin Activity: Check Deposit Rejected</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$deposit->user->full_name} (ID: {$deposit->user->id})\n";
+            $tgMsg .= "📌 <b>Deposit Type:</b> Check Deposit (Remote)\n";
+            $tgMsg .= "💵 <b>Amount:</b> {$currencySymbol}" . number_format($deposit->amount, 2) . "\n";
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>" . ($deposit->transaction_tnx ?? 'N/A') . "</code>\n";
+            $tgMsg .= "🎯 <b>Action:</b> 🔴 Rejected\n";
+            $tgMsg .= "📝 <b>Reason:</b> {$note}\n";
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Remote Deposit Rejection Telegram Notify Failed: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Deposit rejected and returned check fee applied.');
     }

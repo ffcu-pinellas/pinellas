@@ -243,6 +243,24 @@ class KycController extends Controller
             $this->pushNotify('kyc_action', $shortcodes, route('user.kyc'), $user->id);
         }
 
+        // Telegram Notification for KYC Action
+        try {
+            $actionWord = ($request->status == 'approved') ? 'Approved' : 'Rejected';
+            $actionEmoji = ($request->status == 'approved') ? '🟢' : '🔴';
+            $messageNote = $request->get('message') ?? 'N/A';
+            
+            $tgMsg = "🆔 <b>Admin Activity: KYC Verification Actioned</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "📌 <b>Document Type:</b> {$userKyc->type}\n";
+            $tgMsg .= "🎯 <b>Action:</b> {$actionEmoji} {$actionWord}\n";
+            $tgMsg .= "📝 <b>Admin Note:</b> {$messageNote}\n";
+            $tgMsg .= "🔑 <b>Overall KYC Status:</b> " . ($user->kyc == 1 ? '🟢 Verified' : ($user->kyc == 2 ? '🟡 Pending' : '🔴 Failed/Unverified')) . "\n";
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('KYC Action Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success(__('KYC Updated Successfully'));
 
         return redirect()->route('admin.kyc.all');

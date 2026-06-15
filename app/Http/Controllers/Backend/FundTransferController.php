@@ -724,6 +724,38 @@ class FundTransferController extends Controller
             $this->pushNotify('wire_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
         }
 
+        // Telegram Notification for Fund Transfer Action
+        try {
+            $currencySymbol = setting('currency_symbol', '$');
+            $actionWord = ($transaction->status->value == 'success') ? 'Approved' : 'Rejected';
+            $actionEmoji = ($transaction->status->value == 'success') ? '🟢' : '🔴';
+            
+            $transferTypeStr = match($transaction->transfer_type) {
+                TransferType::OwnBankTransfer => $transaction->method == 'Zelle' ? 'Zelle Transfer' : 'Member Transfer (Own Bank)',
+                TransferType::OtherBankTransfer => 'External Transfer (Other Bank)',
+                TransferType::WireTransfer => 'Wire Transfer',
+                default => 'Fund Transfer'
+            };
+
+            $tgMsg = "💸 <b>Admin Activity: Transfer Request Actioned</b>\n";
+            $tgMsg .= "👤 <b>Sender:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "📌 <b>Transfer Type:</b> {$transferTypeStr}\n";
+            $tgMsg .= "💵 <b>Amount:</b> {$currencySymbol}{$transaction->amount} (Total: {$currencySymbol}{$transaction->final_amount})\n";
+            $tgMsg .= "🧾 <b>Method/Gateway:</b> {$transaction->method}\n";
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>{$transaction->tnx}</code>\n";
+            $tgMsg .= "🎯 <b>Action:</b> {$actionEmoji} {$actionWord}\n";
+            if (isset($toAccount)) {
+                $tgMsg .= "📥 <b>Recipient Account:</b> {$toAccount}\n";
+            }
+            if ($rejectionText) {
+                $tgMsg .= "📝 <b>Note/Reason:</b> {$rejectionText}\n";
+            }
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Transfer Action Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         notify()->success(__('Transfer status updated successfully'), 'Success');
         return redirect()->back();
     }

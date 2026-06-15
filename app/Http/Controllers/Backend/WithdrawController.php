@@ -302,6 +302,26 @@ class WithdrawController extends Controller
         $this->pushNotify('withdraw_request_user', $shortcodes, route('user.withdraw.log'), $user->id);
         $this->smsNotify('withdraw_request_user', $shortcodes, $user->phone);
 
+        // Telegram Notification for Withdrawal Action
+        try {
+            $currencySymbol = setting('currency_symbol', '$');
+            $actionWord = isset($input['approve']) ? 'Approved' : 'Rejected';
+            $actionEmoji = isset($input['approve']) ? '🟢' : '🔴';
+            $tgMsg = "💸 <b>Admin Activity: Withdrawal Request Actioned</b>\n";
+            $tgMsg .= "👤 <b>Customer:</b> {$user->full_name} (ID: {$user->id})\n";
+            $tgMsg .= "💵 <b>Amount:</b> {$currencySymbol}{$transaction->amount}\n";
+            $tgMsg .= "🧾 <b>Method/Gateway:</b> {$transaction->method}\n";
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>{$transaction->tnx}</code>\n";
+            $tgMsg .= "🎯 <b>Action:</b> {$actionEmoji} {$actionWord}\n";
+            if ($approvalCause) {
+                $tgMsg .= "📝 <b>Note/Reason:</b> {$approvalCause}\n";
+            }
+            $tgMsg .= "✍️ <b>Actioned By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Withdrawal Action Telegram Notify Failed: ' . $e->getMessage());
+        }
+
         return redirect()->back();
     }
 
