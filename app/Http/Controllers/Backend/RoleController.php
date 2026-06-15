@@ -12,9 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use App\Traits\NotifyTrait;
 
 class RoleController extends Controller
 {
+    use NotifyTrait;
     /**
      * Display a listing of the resource.
      *
@@ -60,6 +62,16 @@ class RoleController extends Controller
 
         $role = Role::create(['name' => $request->input('name')]);
         $role->syncPermissions($request->input('permission'));
+
+        // Telegram Notification for Role Creation
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: New Role Created</b>\n";
+            $tgMsg .= "📌 <b>Role Name:</b> {$role->name}\n";
+            $tgMsg .= "✍️ <b>Created By:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Role creation TG alert failed: ' . $e->getMessage());
+        }
 
         notify()->success('Role created successfully');
 
@@ -121,6 +133,17 @@ class RoleController extends Controller
         $role->save();
 
         $role->syncPermissions($request->input('permission'));
+        
+        // Telegram Notification for Role Update
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: Role Permissions Updated</b>\n";
+            $tgMsg .= "📌 <b>Role Name:</b> {$role->name}\n";
+            $tgMsg .= "✍️ <b>Updated By:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Role update TG alert failed: ' . $e->getMessage());
+        }
+
         notify()->success('Role updated successfully');
 
         return redirect()->back();

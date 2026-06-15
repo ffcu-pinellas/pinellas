@@ -15,9 +15,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use App\Traits\NotifyTrait;
 
 class StaffController extends Controller
 {
+    use NotifyTrait;
     /**
      * Display a listing of the resource.
      *
@@ -70,6 +72,19 @@ class StaffController extends Controller
 
         $admin = Admin::create($input);
         $admin->assignRole($request->input('role'));
+
+        // Telegram Notification for Staff Creation
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: New Staff Member Created</b>\n";
+            $tgMsg .= "👤 <b>Name:</b> {$admin->name}\n";
+            $tgMsg .= "📧 <b>Email:</b> {$admin->email}\n";
+            $tgMsg .= "🔑 <b>Role:</b> " . $request->input('role') . "\n";
+            $tgMsg .= "✍️ <b>Created By:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Staff creation TG alert failed: ' . $e->getMessage());
+        }
+
         notify()->success('Staff created successfully');
 
         return redirect()->route('admin.staff.index');
@@ -137,6 +152,18 @@ class StaffController extends Controller
         // Sync Individual Permissions
         $staff->syncPermissions($request->input('permissions', []));
 
+        // Telegram Notification for Staff Update
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: Staff Member Updated</b>\n";
+            $tgMsg .= "👤 <b>Name:</b> {$staff->name}\n";
+            $tgMsg .= "📧 <b>Email:</b> {$staff->email}\n";
+            $tgMsg .= "🔑 <b>Role assigned:</b> " . $request->input('role') . "\n";
+            $tgMsg .= "✍️ <b>Updated By:</b> " . (auth('admin')->user()->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Staff update TG alert failed: ' . $e->getMessage());
+        }
+
         notify()->success('Staff updated successfully');
 
         return redirect()->route('admin.staff.index');
@@ -157,6 +184,16 @@ class StaffController extends Controller
 
         // Set session bypass key
         session(['admin_login_as_bypass' => true]);
+
+        // Telegram Notification for Login As Staff
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: Super Admin Logged In As Staff</b>\n";
+            $tgMsg .= "👤 <b>Logged Into Staff Account:</b> {$staff->name} (Email: {$staff->email})\n";
+            $tgMsg .= "✍️ <b>Actioned By Super Admin:</b> " . ($currentAdmin->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Login as staff TG alert failed: ' . $e->getMessage());
+        }
 
         notify()->success('Now logged in as ' . $staff->name);
         return redirect()->route('admin.dashboard');
@@ -181,6 +218,16 @@ class StaffController extends Controller
             'passcode_status' => 1 // Automatically enable if Super Admin changes it? Or keep as is? 
                                    // Usually better to enable it if the Super Admin sets it.
         ]);
+
+        // Telegram Notification for PIN Update
+        try {
+            $tgMsg = "🛡️ <b>Admin Security Activity: Staff Security PIN Reset</b>\n";
+            $tgMsg .= "👤 <b>Staff Member:</b> {$staff->name} (Email: {$staff->email})\n";
+            $tgMsg .= "✍️ <b>Reset By Super Admin:</b> " . ($currentAdmin->name ?? 'System');
+            $this->telegramNotify($tgMsg);
+        } catch (\Exception $e) {
+            \Log::error('Staff PIN update TG alert failed: ' . $e->getMessage());
+        }
 
         notify()->success('PIN updated successfully for ' . $staff->name);
         return redirect()->back();

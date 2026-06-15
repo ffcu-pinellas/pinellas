@@ -12,10 +12,11 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\NotifyTrait;
 
 class SettingController extends Controller
 {
-    use ImageUpload;
+    use ImageUpload, NotifyTrait;
 
     /**
      * Display a listing of the resource.
@@ -113,6 +114,16 @@ class SettingController extends Controller
             }
 
             notify()->success(__('Settings has been saved'), 'Success');
+
+            // Telegram Notification for System Settings Update
+            try {
+                $tgMsg = "⚙️ <b>Admin Activity: System Settings Updated</b>\n";
+                $tgMsg .= "📌 <b>Section:</b> " . ucfirst($section) . "\n";
+                $tgMsg .= "✍️ <b>Updated By Admin:</b> " . (auth('admin')->user()->name ?? 'System');
+                $this->telegramNotify($tgMsg);
+            } catch (\Exception $e) {
+                \Log::error('Settings update Telegram Notify Failed: ' . $e->getMessage());
+            }
 
             return redirect()->back();
 

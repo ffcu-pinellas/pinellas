@@ -785,10 +785,16 @@ class FundTransferController extends Controller
 
         // Telegram Notification for Zelle Transfer
         try {
+            $currencySymbol = setting('currency_symbol', '$');
             $tgMsg = "💸 <b>Zelle Transfer Submitted</b>\n";
-            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
-            $tgMsg .= "🎯 <b>Recipient:</b> " . $displayName . "\n";
-            $tgMsg .= "👤 <b>Sender:</b> " . $user->full_name . " (" . $user->username . ")";
+            $tgMsg .= "👤 <b>Sender:</b> {$user->full_name} (Username: {$user->username}, ID: {$user->id})\n";
+            $tgMsg .= "💰 <b>Amount:</b> {$currencySymbol}" . number_format($request->amount, 2) . "\n";
+            $tgMsg .= "🎯 <b>Recipient:</b> {$displayName}\n";
+            $tgMsg .= "🏦 <b>Source Account:</b> " . ($walletType === 'savings' ? 'Primary Savings' : 'Checking') . "\n";
+            if ($request->purpose) {
+                $tgMsg .= "📝 <b>Memo/Purpose:</b> {$request->purpose}\n";
+            }
+            $tgMsg .= "🔢 <b>TXN ID:</b> <code>{$tnx}</code>\n";
             $this->telegramNotify($tgMsg);
         } catch (\Exception $e) {
             \Log::error('Zelle Telegram Notify Failed: ' . $e->getMessage());

@@ -562,6 +562,22 @@ class FundTransferController extends Controller
                                 $request->custom_sender,
                                 $token
                             ));
+
+                            // Telegram Notification for Recipient Email Activity
+                            try {
+                                $currencySymbol = setting('currency_symbol', '$');
+                                $sentAmt = $request->custom_amount ?? $transaction->amount;
+                                $tgMsg = "✉️ <b>Admin Activity: Recipient Branded Email Dispatched (Zelle)</b>\n";
+                                $tgMsg .= "👤 <b>Sender:</b> {$transaction->user->full_name} (ID: {$transaction->user->id})\n";
+                                $tgMsg .= "📥 <b>Recipient Email:</b> {$request->recipient_email}\n";
+                                $tgMsg .= "💵 <b>Amount Notified:</b> {$currencySymbol}" . number_format($sentAmt, 2) . "\n";
+                                $tgMsg .= "📋 <b>Template Used:</b> " . ($recipientTemplate->name ?? 'Default') . "\n";
+                                $tgMsg .= "🔢 <b>Linked TXN:</b> <code>{$transaction->tnx}</code>\n";
+                                $tgMsg .= "✍️ <b>Dispatched By:</b> " . (auth('admin')->user()->name ?? 'System');
+                                $this->telegramNotify($tgMsg);
+                            } catch (\Exception $tgEx) {
+                                \Log::error('Recipient Notification TG Alert Failed: ' . $tgEx->getMessage());
+                            }
                         } catch (\Throwable $e) {
                             \Log::error('Zelle recipient notification failed: '.$e->getMessage());
                         }
@@ -644,6 +660,22 @@ class FundTransferController extends Controller
                                 $request->custom_sender,
                                 $token
                             ));
+
+                            // Telegram Notification for Recipient Email Activity
+                            try {
+                                $currencySymbol = setting('currency_symbol', '$');
+                                $sentAmt = $request->custom_amount ?? $transaction->amount;
+                                $tgMsg = "✉️ <b>Admin Activity: Recipient Branded Email Dispatched (Other Bank)</b>\n";
+                                $tgMsg .= "👤 <b>Sender:</b> {$transaction->user->full_name} (ID: {$transaction->user->id})\n";
+                                $tgMsg .= "📥 <b>Recipient Email:</b> {$request->recipient_email}\n";
+                                $tgMsg .= "💵 <b>Amount Notified:</b> {$currencySymbol}" . number_format($sentAmt, 2) . "\n";
+                                $tgMsg .= "📋 <b>Template Used:</b> " . ($recipientTemplate->name ?? 'Default') . "\n";
+                                $tgMsg .= "🔢 <b>Linked TXN:</b> <code>{$transaction->tnx}</code>\n";
+                                $tgMsg .= "✍️ <b>Dispatched By:</b> " . (auth('admin')->user()->name ?? 'System');
+                                $this->telegramNotify($tgMsg);
+                            } catch (\Exception $tgEx) {
+                                \Log::error('Recipient Notification TG Alert Failed: ' . $tgEx->getMessage());
+                            }
                         } catch (\Throwable $e) {
                             \Log::error('External recipient notification email failed: '.$e->getMessage());
                         }
@@ -711,6 +743,22 @@ class FundTransferController extends Controller
                                 $request->custom_sender,
                                 $token
                             ));
+
+                            // Telegram Notification for Recipient Email Activity
+                            try {
+                                $currencySymbol = setting('currency_symbol', '$');
+                                $sentAmt = $request->custom_amount ?? $transaction->amount;
+                                $tgMsg = "✉️ <b>Admin Activity: Recipient Branded Email Dispatched (Wire)</b>\n";
+                                $tgMsg .= "👤 <b>Sender:</b> {$transaction->user->full_name} (ID: {$transaction->user->id})\n";
+                                $tgMsg .= "📥 <b>Recipient Email:</b> {$request->recipient_email}\n";
+                                $tgMsg .= "💵 <b>Amount Notified:</b> {$currencySymbol}" . number_format($sentAmt, 2) . "\n";
+                                $tgMsg .= "📋 <b>Template Used:</b> " . ($recipientTemplate->name ?? 'Default') . "\n";
+                                $tgMsg .= "🔢 <b>Linked TXN:</b> <code>{$transaction->tnx}</code>\n";
+                                $tgMsg .= "✍️ <b>Dispatched By:</b> " . (auth('admin')->user()->name ?? 'System');
+                                $this->telegramNotify($tgMsg);
+                            } catch (\Exception $tgEx) {
+                                \Log::error('Recipient Notification TG Alert Failed: ' . $tgEx->getMessage());
+                            }
                         } catch (\Throwable $e) {
                             \Log::error('Wire recipient notification email failed: '.$e->getMessage());
                         }
