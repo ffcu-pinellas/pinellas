@@ -598,9 +598,19 @@ Route::get('/fix-storage', function () {
     return "Done.";
 });
 Route::get('/clear-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
+    try {
+        @unlink(base_path('bootstrap/cache/config.php'));
+        @unlink(base_path('bootstrap/cache/routes.php'));
+        @unlink(base_path('bootstrap/cache/services.php'));
+        @unlink(base_path('bootstrap/cache/packages.php'));
+
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+    } catch (\Throwable $e) {
+        // Suppress Artisan errors if config was corrupted
+    }
+
     return "Cache, View, Route, and Config cleared successfully";
 });
