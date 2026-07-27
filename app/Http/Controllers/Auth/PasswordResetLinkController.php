@@ -71,7 +71,11 @@ class PasswordResetLinkController extends Controller
             '[[site_url]]' => route('home'),
         ];
 
-        $this->mailNotify($user->email, 'user_password_change', $shortcodes);
+        try {
+            $this->mailNotify($user->email, 'user_password_change', $shortcodes);
+        } catch (\Throwable $e) {
+            \Log::error("Password reset mail sending failed for {$user->email}: " . $e->getMessage());
+        }
 
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
     }
