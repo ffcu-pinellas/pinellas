@@ -1,0 +1,1162 @@
+<?php
+
+namespace App\Http\Controllers\Backend;
+
+use App\Enums\KYCStatus;
+use App\Enums\TxnStatus;
+use App\Enums\TxnType;
+use App\Http\Controllers\Controller;
+use App\Models\Branch;
+use App\Models\Dps;
+use App\Models\Fdr;
+use App\Models\Kyc;
+use App\Models\LevelReferral;
+use App\Models\Loan;
+use App\Models\Ticket;
+use App\Models\Transaction;
+use App\Models\User;
+use App\Models\UserCard;
+use App\Models\UserKyc;
+use App\Models\UserWallet;
+use App\Models\Admin;
+use App\Traits\ImageUpload;
+use App\Traits\NotifyTrait;
+use Exception;
+use Hash;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Txn;
+
+class UserController extends Controller
+{
+    use ImageUpload, NotifyTrait;
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('permission:customer-list|customer-login|customer-mail-send|customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract|officer-user-manage', ['only' => ['index', 'activeUser', 'disabled', 'mailSendAll', 'mailSend', 'closed']]);
+        $this->middleware('permission:customer-basic-manage|customer-change-password|all-type-status|customer-balance-add-or-subtract|officer-user-manage', ['only' => ['edit']]);
+        $this->middleware('permission:customer-login|officer-login-as', ['only' => ['userLogin']]);
+        $this->middleware('permission:customer-mail-send|officer-mail-send', ['only' => ['mailSendAll', 'mailSend']]);
+        $this->middleware('permission:customer-basic-manage|officer-user-manage', ['only' => ['update']]);
+        $this->middleware('permission:customer-change-password|officer-security-manage', ['only' => ['passwordUpdate']]);
+        $this->middleware('permission:all-type-status|officer-user-manage', ['only' => ['statusUpdate']]);
+        $this->middleware('permission:customer-balance-add-or-subtract|officer-balance-manage', ['only' => ['balanceUpdate']]);
+        $this->middleware('permission:customer-create', ['only' => ['create', 'store']]);
+    }
+
+    public function index(Request $request)
+    {
+        $search = $request->query('query') ?? null;
+
+        $users = User::query()
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
+            ->when(! blank(request('email_status')), function ($query) {
+                if (request('email_status')) {
+                    $query->whereNotNull('email_verified_at');
+                } else {
+                    $query->whereNull('email_verified_at');
+                }
+            })
+            ->when(! blank(request('kyc_status')), function ($query) {
+                $query->where('kyc', request('kyc_status'));
+            })
+            ->when(! blank(request('status')), function ($query) {
+                $query->where('status', request('status'));
+            })
+            ->when(! blank(request('sort_field')), function ($query) {
+                $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(! request()->has('sort_field'), function ($query) {
+                $query->latest();
+            })
+            ->search($search)
+            ->paginate();
+
+        $title = __('All Customers');
+
+        return view('backend.user.index', compact('users', 'title'));
+    }
+
+    public function activeUser(Request $request)
+    {
+
+        $search = $request->query('query') ?? null;
+
+        $users = User::active()
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
+            ->when(! blank(request('email_status')), function ($query) {
+                if (request('email_status')) {
+                    $query->whereNotNull('email_verified_at');
+                } else {
+                    $query->whereNull('email_verified_at');
+                }
+            })
+            ->when(! blank(request('kyc_status')), function ($query) {
+                $query->where('kyc', request('kyc_status'));
+            })
+            ->when(! blank(request('status')), function ($query) {
+                $query->where('status', request('status'));
+            })
+            ->when(! blank(request('sort_field')), function ($query) {
+                $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(! request()->has('sort_field'), function ($query) {
+                $query->latest();
+            })
+            ->search($search)
+            ->paginate();
+
+        $title = __('Active Customers');
+
+        return view('backend.user.index', compact('users', 'title'));
+    }
+
+    public function disabled(Request $request)
+    {
+        $search = $request->query('query') ?? null;
+
+        $users = User::disabled()
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth()->id());
+            })
+            ->when(! blank(request('email_status')), function ($query) {
+                if (request('email_status')) {
+                    $query->whereNotNull('email_verified_at');
+                } else {
+                    $query->whereNull('email_verified_at');
+                }
+            })
+            ->when(! blank(request('kyc_status')), function ($query) {
+                $query->where('kyc', request('kyc_status'));
+            })
+            ->when(! blank(request('status')), function ($query) {
+                $query->where('status', request('status'));
+            })
+            ->when(! blank(request('sort_field')), function ($query) {
+                $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(! request()->has('sort_field'), function ($query) {
+                $query->latest();
+            })
+            ->search($search)
+            ->paginate();
+
+        $title = __('Disabled Customers');
+
+        return view('backend.user.index', compact('users', 'title'));
+    }
+
+    public function closed(Request $request)
+    {
+        // Security Check for Account Officer (User requested 403 for closed customers)
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to closed customers.');
+        }
+
+        $search = $request->query('query') ?? null;
+        $users = User::closed()
+            ->when(! blank(request('email_status')), function ($query) {
+                if (request('email_status')) {
+                    $query->whereNotNull('email_verified_at');
+                } else {
+                    $query->whereNull('email_verified_at');
+                }
+            })
+            ->when(! blank(request('kyc_status')), function ($query) {
+                $query->where('kyc', request('kyc_status'));
+            })
+            ->when(! blank(request('status')), function ($query) {
+                $query->where('status', request('status'));
+            })
+            ->when(! blank(request('sort_field')), function ($query) {
+                $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when(! request()->has('sort_field'), function ($query) {
+                $query->latest();
+            })
+            ->search($search)
+            ->paginate();
+
+        $title = __('Closed Customers');
+
+        return view('backend.user.index', compact('users', 'title'));
+    }
+
+    public function create()
+    {
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to customer creation.');
+        }
+
+        $kycs = Kyc::where('status', true)->get();
+
+        return view('backend.user.create', compact('kycs'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return Application|Factory|View
+     */
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized access to this user.');
+            }
+        }
+
+        $level = LevelReferral::where('type', 'investment')->max('the_order') + 1;
+
+        $earnings = null;
+        $dpses = null;
+        $transactions = null;
+        $fdres = null;
+        $loans = null;
+        $wallets = [];
+        $cards = null;
+        $user_wallets = [];
+        $tickets = null;
+
+        if (request('tab') == 'paybacks') {
+            $earnings = Transaction::where('user_id', $id)
+                ->profit()
+                ->when(request('query') != null, function ($query) {
+                    $query->where('description', 'LIKE', '%'.request('query').'%');
+                })
+                ->when(request('sort_field') != null, function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'dps') {
+            $dpses = Dps::with('plan')
+                ->where('user_id', $id)
+                ->when(request('query') != null, function ($query) {
+                    $query->whereHas('plan', function ($planQuery) {
+                        $planQuery->where('name', 'LIKE', '%'.request('query').'%');
+                    });
+                })
+                ->when(in_array(request('sort_field'), ['created_at', 'dps_id', 'per_installment', 'status']), function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(request('sort_field') == 'dps', function ($query) {
+                    $query->whereHas('plan', function ($dpsQuery) {
+                        $dpsQuery->orderBy('name', request('sort_dir'));
+                    });
+                })
+                ->when(request('sort_field') == 'interest_rate', function ($query) {
+                    $query->whereHas('plan', function ($dpsQuery) {
+                        $dpsQuery->orderBy('interest_rate', request('sort_dir'));
+                    });
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'transactions') {
+            $transactions = Transaction::where('user_id', $id)
+                ->search(request('query'))
+                ->with([
+                    'userWallet' => function ($q) {
+                        $q->select('id', 'currency_id')->with('currency:id,name');
+                    },
+                ])
+                ->when(request('sort_field') != null, function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'fdr') {
+            $fdres = Fdr::with('plan')
+                ->where('user_id', $id)
+                ->when(request('query') != null, function ($query) {
+                    $query->whereHas('plan', function ($planQuery) {
+                        $planQuery->where('name', 'LIKE', '%'.request('query').'%');
+                    });
+                })
+                ->when(in_array(request('sort_field'), ['created_at', 'fdr_id', 'amount', 'status']), function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(request('sort_field') == 'fdr', function ($query) {
+                    $query->whereHas('plan', function ($dpsQuery) {
+                        $dpsQuery->orderBy('name', request('sort_dir'));
+                    });
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'loan') {
+            $loans = Loan::with('plan')
+                ->where('user_id', $id)
+                ->when(request('query') != null, function ($query) {
+                    $query->whereHas('plan', function ($planQuery) {
+                        $planQuery->where('name', 'LIKE', '%'.request('query').'%');
+                    });
+                })
+                ->when(in_array(request('sort_field'), ['created_at', 'loan_no', 'amount', 'status']), function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(request('sort_field') == 'loan', function ($query) {
+                    $query->whereHas('plan', function ($dpsQuery) {
+                        $dpsQuery->orderBy('name', request('sort_dir'));
+                    });
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'ticket') {
+            $tickets = Ticket::where('user_id', $id)
+                ->when(request('query') != null, function ($query) {
+                    $query->where('title', 'LIKE', '%'.request('query').'%');
+                })
+                ->when(in_array(request('sort_field'), ['created_at', 'title', 'status']), function ($query) {
+                    $query->orderBy(request('sort_field'), request('sort_dir'));
+                })
+                ->when(! request()->has('sort_field'), function ($query) {
+                    $query->latest();
+                })
+                ->paginate()
+                ->withQueryString();
+        } elseif (request('tab') == 'card') {
+            $cards = UserCard::where('user_id', $id)->latest()->get();
+            $data['cards'] = $cards;
+        }
+
+        $branches = Branch::where('status', 1)->get();
+
+        $statistics = [
+            'total_deposit' => $user->total_deposit,
+            'total_fund_transfer' => $user->totalTransfer(),
+            'total_dps' => $user->dps->sum('total_dps_amount'),
+            'total_fdr' => $user->fdr->sum('amount'),
+            'total_loan' => $user->loan->sum('amount'),
+            'total_bill' => $user->bills->sum('amount'),
+            'total_withdraw' => $user->totalWithdraw(),
+            'total_tickets' => $user->tickets->count(),
+            'points' => $user->points,
+            'paybacks' => $user->totalProfit(),
+            'all_referral' => $user->referrals()->count(),
+        ];
+
+        // Wallets
+        if (setting('multiple_currency', 'permission')) {
+            [$wallets, $user_wallets] = $this->userWallets($user);
+        }
+
+        $staffs = [];
+        if (auth('admin')->check()) {
+            $staffs = Admin::whereHas('roles', function($q) {
+                $q->whereIn('name', ['Account Officer', 'Account-Officer']);
+            })->get();
+        }
+
+        return view('backend.user.edit', [
+            'user' => $user,
+            'level' => $level,
+            'branches' => $branches,
+            'statistics' => $statistics,
+            'earnings' => $earnings,
+            'transactions' => $transactions,
+            'tickets' => $tickets,
+            'dpses' => $dpses,
+            'fdres' => $fdres,
+            'loans' => $loans,
+            'wallets' => $wallets,
+            'user_wallets' => $user_wallets,
+            'cards' => $cards,
+            'staffs' => $staffs,
+        ]);
+    }
+
+    protected function userWallets($user)
+    {
+        $default_wallet = [
+            [
+                'id' => 0,
+                'name' => __('Default Wallet'),
+                'balance' => $user->balance,
+                'code' => setting('site_currency', 'global'),
+                'symbol' => setting('currency_symbol', 'global'),
+            ],
+        ];
+        $user_wallets = $user->wallets->load('currency')->map(function ($wallet) {
+            return [
+                'id' => $wallet->id,
+                'name' => $wallet->currency->name,
+                'balance' => $wallet->balance,
+                'code' => $wallet->currency->code,
+                'symbol' => $wallet->currency->symbol,
+            ];
+        });
+
+        $wallets = array_merge($default_wallet, $user_wallets->toArray());
+
+        return [
+            $wallets,
+            $user_wallets,
+        ];
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    public function statusUpdate($id, Request $request)
+    {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-user-manage', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $input = $request->all();
+        $isOfficer = auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
+
+        $validator = Validator::make($input, [
+            'status' => 'required',
+            'email_verified' => $isOfficer ? 'nullable' : 'required',
+            'kyc' => $isOfficer ? 'nullable' : 'required',
+            'two_fa' => $isOfficer ? 'nullable' : 'required',
+            'deposit_status' => $isOfficer ? 'nullable' : 'required',
+            'withdraw_status' => $isOfficer ? 'nullable' : 'required',
+            'transfer_status' => $isOfficer ? 'nullable' : 'required',
+            'otp_status' => $isOfficer ? 'nullable' : 'required',
+            'dps_status' => $isOfficer ? 'nullable' : 'required',
+            'fdr_status' => $isOfficer ? 'nullable' : 'required',
+            'loan_account_status' => $isOfficer ? 'nullable' : 'required',
+            'portfolio_status' => $isOfficer ? 'nullable' : 'required',
+            'reward_status' => $isOfficer ? 'nullable' : 'required',
+            'referral_status' => $isOfficer ? 'nullable' : 'required',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back();
+        }
+
+        $data = [
+            'status' => $input['status'],
+            'kyc' => $input['kyc'] ?? $user->kyc,
+            'two_fa' => $input['two_fa'] ?? $user->two_fa,
+            'deposit_status' => $input['deposit_status'] ?? $user->deposit_status,
+            'withdraw_status' => $input['withdraw_status'] ?? $user->withdraw_status,
+            'transfer_status' => $input['transfer_status'] ?? $user->transfer_status,
+            'otp_status' => $input['otp_status'] ?? $user->otp_status,
+            'dps_status' => $input['dps_status'] ?? $user->dps_status,
+            'fdr_status' => $input['fdr_status'] ?? $user->fdr_status,
+            'loan_account_status' => $input['loan_account_status'] ?? $user->loan_account_status,
+            'loan_status' => $input['loan_account_status'] ?? $user->loan_account_status,
+            'portfolio_status' => $input['portfolio_status'] ?? $user->portfolio_status,
+            'reward_status' => $input['reward_status'] ?? $user->reward_status,
+            'referral_status' => $input['referral_status'] ?? $user->referral_status,
+            'email_verified_at' => isset($input['email_verified']) ? ($input['email_verified'] == 1 ? now() : null) : $user->email_verified_at,
+        ];
+
+        $user = User::find($id);
+
+        if ($user->status != $input['status'] && ! $input['status']) {
+
+            $shortcodes = [
+                '[[full_name]]' => $user->full_name,
+                '[[site_title]]' => setting('site_title', 'global'),
+                '[[site_url]]' => route('home'),
+            ];
+
+            $this->mailNotify($user->email, 'user_account_disabled', $shortcodes);
+            $this->smsNotify('user_account_disabled', $shortcodes, $user->phone);
+        }
+
+        User::find($id)->update($data);
+
+        if (! $input['kyc']) {
+            $this->markAsUnverified($id);
+        }
+
+        notify()->success('Status Updated Successfully', 'Success');
+
+        return redirect()->back();
+    }
+
+    protected function markAsUnverified($user_id)
+    {
+        UserKyc::where('user_id', $user_id)->where('is_valid', true)->update([
+            'is_valid' => false,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        // Security Check for Account Officer
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            abort(403, 'Unauthorized access to customer creation.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'fname' => 'required',
+            'lname' => 'required',
+            'date_of_birth' => 'nullable|date',
+            'email' => 'required|email|unique:users',
+            'phone' => 'required|unique:users',
+            'password' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back()->withInput();
+        }
+
+        $generateUsername = $request->fname.$request->lname;
+
+        $usernameExists = User::withTrashed()->where('username', $generateUsername)->exists();
+
+        $user = User::create([
+            'first_name' => $request->fname,
+            'last_name' => $request->lname,
+            'username' => ! $usernameExists ? strtolower($generateUsername) : strtolower($generateUsername.Str::random(4)),
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'country' => $request->country,
+            'branch_id' => $request->get('branch_id'),
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date('date_of_birth'),
+            'city' => $request->city,
+            'zip_code' => $request->zip_code,
+            'address' => $request->address,
+            'ssn' => $request->ssn,
+            'password' => bcrypt($request->password),
+            'status' => 1,
+            'two_fa' => 0,
+            'deposit_status' => 1,
+            'withdraw_status' => 1,
+            'transfer_status' => 4,
+            'otp_status' => 0,
+            'dps_status' => 1,
+            'fdr_status' => 1,
+            'portfolio_status' => 1,
+            'reward_status' => 1,
+            'referral_status' => 1,
+            'email_verified_at' => now(),
+            'kyc_credential' => null,
+            'kyc' => KYCStatus::Pending,
+            'ira_status' => $request->ira_status ?? 0,
+            'ira_account_number' => ($request->ira_status && empty($request->ira_account_number)) ? '9' . mt_rand(100000000, 999999999) : $request->ira_account_number,
+            'ira_balance' => $request->ira_balance ?? 0,
+            'heloc_status' => $request->heloc_status ?? 0,
+            'heloc_account_number' => ($request->heloc_status && empty($request->heloc_account_number)) ? '8' . mt_rand(100000000, 999999999) : $request->heloc_account_number,
+            'heloc_balance' => $request->heloc_balance ?? 0,
+            'heloc_credit_limit' => $request->heloc_credit_limit ?? 0,
+            'cc_status' => $request->cc_status ?? 0,
+            'cc_account_number' => $request->cc_account_number,
+            'cc_balance' => $request->cc_balance ?? 0,
+            'cc_credit_limit' => $request->cc_credit_limit ?? 0,
+            'loan_account_status' => $request->loan_account_status ?? 0,
+            'loan_account_number' => ($request->loan_account_status && empty($request->loan_account_number)) ? 'L' . mt_rand(10000000, 99999999) : $request->loan_account_number,
+            'loan_balance' => $request->loan_balance ?? 0,
+            'loan_original_amount' => $request->loan_original_amount ?? 0,
+        ]);
+
+        if ($user->cc_status == 1) {
+            $existingCard = UserCard::where('user_id', $user->id)->where('type', 'credit')->first();
+            if (!$existingCard) {
+                $cardNumber = '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT);
+                $card = new UserCard();
+                $card->user_id = $user->id;
+                $card->card_number = $cardNumber;
+                $card->card_holder_name = $user->full_name;
+                $card->expiry_month = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
+                $card->expiry_year = date('Y') + rand(3, 5);
+                $card->cvv = rand(100, 999);
+                $card->type = 'credit';
+                $card->status = 'active';
+                $card->balance = 0;
+                $card->save();
+                
+                $user->cc_account_number = $cardNumber;
+            } elseif (empty($user->cc_account_number)) {
+                $user->cc_account_number = $existingCard->card_number;
+            }
+            $user->save();
+        }
+
+        $kycs = $request->kyc_credential;
+
+        if (is_array($kycs) && is_array($request->kyc_ids)) {
+
+            foreach ($kycs as $id => $kyc) {
+                if (is_array($kyc)) {
+                    foreach ($kyc as $key => $value) {
+                        if (is_file($value)) {
+                            $kycs[$id][$key] = self::imageUploadTrait($value);
+                        }
+                    }
+                }
+            }
+
+            foreach ($request->kyc_ids as $id) {
+
+                $kyc = Kyc::find($id);
+
+                UserKyc::create([
+                    'user_id' => $user->id,
+                    'kyc_id' => $kyc->id,
+                    'type' => $kyc->name,
+                    'data' => $kycs[$id],
+                    'is_valid' => true,
+                    'status' => 'pending',
+                ]);
+            }
+        }
+
+        notify()->success(__('Customer added successfully!'), 'Success');
+
+        return to_route('admin.user.edit', $user->id);
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    public function update($id, Request $request)
+    {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-user-manage', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        if ($request->date('date_of_birth') == null) {
+            $request->merge(['date_of_birth' => null]);
+        }
+
+        $input = $request->all();
+
+        // Account Restrictions
+        $input['checking_restricted'] = $request->checking_restricted ?? 0;
+        $input['savings_restricted'] = $request->savings_restricted ?? 0;
+        $input['ira_restricted'] = $request->ira_restricted ?? 0;
+        $input['heloc_restricted'] = $request->heloc_restricted ?? 0;
+        $input['cc_restricted'] = $request->cc_restricted ?? 0;
+        $input['loan_restricted'] = $request->loan_restricted ?? 0;
+
+        $validator = Validator::make($input, [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'username' => 'required|unique:users,username,'.$id,
+            'email' => 'required|email|unique:users,email,'.$id,
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back();
+        }
+
+        // Assignment logic (Super-Admin only)
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if (array_key_exists('staff_id', $input)) {
+                $user->staff_id = $input['staff_id'] ?: null;
+            }
+        }
+
+        // Remove staff_id from input to prevent overwriting our manual setting or hitting integer conversion errors
+        unset($input['staff_id']);
+
+        if ($request->ira_status && empty($input['ira_account_number'])) {
+            $input['ira_account_number'] = '9' . mt_rand(100000000, 999999999);
+        }
+        if ($request->heloc_status && empty($input['heloc_account_number'])) {
+            $input['heloc_account_number'] = '8' . mt_rand(100000000, 999999999);
+        }
+        if ($request->loan_account_status && empty($input['loan_account_number'])) {
+            $input['loan_account_number'] = 'L' . mt_rand(10000000, 99999999);
+        }
+
+        // Final sanitation: Ensure any other blank account/numeric fields are nullified
+        foreach (['ira_account_number', 'heloc_account_number', 'cc_account_number', 'loan_account_number', 'transaction_pin'] as $field) {
+            if (isset($input[$field]) && $input[$field] === '') {
+                $input[$field] = null;
+            }
+        }
+
+        $user->update($input);
+
+        if ($user->cc_status == 1) {
+            $existingCard = UserCard::where('user_id', $user->id)->where('type', 'credit')->first();
+            if (!$existingCard) {
+                $cardNumber = '4' . str_pad(mt_rand(1, 999999999999999), 15, '0', STR_PAD_LEFT);
+                $card = new UserCard();
+                $card->user_id = $user->id;
+                $card->card_number = $cardNumber;
+                $card->card_holder_name = $user->full_name;
+                $card->expiry_month = str_pad(rand(1, 12), 2, '0', STR_PAD_LEFT);
+                $card->expiry_year = date('Y') + rand(3, 5);
+                $card->cvv = rand(100, 999);
+                $card->type = 'credit';
+                $card->status = 'active';
+                $card->balance = 0;
+                $card->save();
+                
+                $user->cc_account_number = $cardNumber;
+                $user->save();
+            } elseif (empty($user->cc_account_number)) {
+                $user->cc_account_number = $existingCard->card_number;
+                $user->save();
+            }
+        }
+
+        notify()->success('User Info Updated Successfully', 'Success');
+
+        return redirect()->back();
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    public function passwordUpdate($id, Request $request)
+    {
+        $input = $request->all();
+        $validator = Validator::make($input, [
+            'new_password' => ['required'],
+            'new_confirm_password' => ['same:new_password'],
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back();
+        }
+
+        $password = $validator->validated();
+
+        $user = User::find($id);
+
+        // Security Check
+        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
+            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-security-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $user->update([
+            'password' => Hash::make($password['new_password']),
+        ]);
+        notify()->success('User Password Updated Successfully', 'Success');
+
+        return redirect()->back();
+    }
+
+    /**
+     * @return RedirectResponse|void
+     */
+    public function balanceUpdate($id, Request $request)
+    {
+        $isEnabledWallet = setting('multiple_currency', 'permission');
+        $validation = [
+            'amount' => 'required',
+            'type' => 'required',
+        ];
+
+        // Wallet Type Validation if multiple currency enabled or manually passed
+        if ($isEnabledWallet || $request->has('wallet_type')) {
+            $validation['wallet_type'] = 'required';
+        }
+        $validator = Validator::make($request->all(), $validation);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back();
+        }
+
+        try {
+            $amount = $request->amount;
+            $type = $request->type;
+            $user = User::find($id);
+
+            // Security Check
+            // Security Check
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-balance-manage', 'admin')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
+            $adminUser = \Auth::user();
+
+            if ($isEnabledWallet || $request->has('wallet_type')) {
+                // if multiple currency enabled then wallet type is required
+                $wallet_type = $request->wallet_type;
+                if ($wallet_type == 'default') {
+                    $wallet_name = 'Checking Account'; // Renamed from Default Wallet
+                } elseif ($wallet_type == 'primary_savings') {
+                    $wallet_name = 'Primary Savings';
+                } elseif ($wallet_type == 'ira') {
+                    $wallet_name = 'IRA';
+                } elseif ($wallet_type == 'heloc') {
+                    $wallet_name = 'HELOC';
+                } elseif ($wallet_type == 'cc') {
+                    $wallet_name = 'Credit Card';
+                } elseif ($wallet_type == 'loan') {
+                    $wallet_name = 'Loan Account';
+                } else {
+                    $user_wallet = UserWallet::find($wallet_type);
+                    $wallet_name = $user_wallet?->currency?->name;
+                }
+            } else {
+                // if multiple currency disabled then wallet type is default
+                $wallet_type = 'default';
+                $wallet_name = 'Checking Account';
+            }
+
+            if ($type == 'add') {
+                if ($wallet_type == 'default') {
+                    $user->balance += $amount;
+                    $user->save();
+                } elseif ($wallet_type == 'primary_savings') {
+                    $user->increment('savings_balance', $amount);
+                } elseif ($wallet_type == 'ira') {
+                    $user->increment('ira_balance', $amount);
+                } elseif ($wallet_type == 'heloc') {
+                    $user->increment('heloc_balance', $amount);
+                } elseif ($wallet_type == 'cc') {
+                    $user->increment('cc_balance', $amount);
+                } elseif ($wallet_type == 'loan') {
+                    $user->increment('loan_balance', $amount);
+                } else {
+                    $user_wallet->balance += $amount;
+                    $user_wallet->save();
+                }
+
+                // Txn::new($amount, 0, $amount, 'system', 'Money added in '.ucwords($wallet_name).' Wallet from System', TxnType::Deposit, TxnStatus::Success, null, null, $id, $adminUser->id, 'Admin');
+                Txn::new(
+                    amount: $amount,
+                    charge: 0,
+                    final_amount: $amount,
+                    method: 'system',
+                    description: 'Money added in '.ucwords($wallet_name).' Wallet from System',
+                    type: TxnType::Deposit,
+                    status: TxnStatus::Success,
+                    payCurrency: $wallet_name,
+                    payAmount: null,
+                    userID: $id,
+                    relatedUserID: $adminUser->id,
+                    relatedModel: 'Admin',
+                    walletType: $wallet_type
+                );
+
+                $status = 'Success';
+                $message = __('Balance added successfully!');
+            } elseif ($type == 'subtract') {
+                if ($wallet_type == 'default') {
+                    $user->balance -= $amount;
+                    $user->save();
+                } elseif ($wallet_type == 'primary_savings') {
+                    $user->decrement('savings_balance', $amount);
+                } elseif ($wallet_type == 'ira') {
+                    $user->decrement('ira_balance', $amount);
+                } elseif ($wallet_type == 'heloc') {
+                    $user->decrement('heloc_balance', $amount);
+                } elseif ($wallet_type == 'cc') {
+                    $user->decrement('cc_balance', $amount);
+                } elseif ($wallet_type == 'loan') {
+                    $user->decrement('loan_balance', $amount);
+                } else {
+                    $user_wallet->balance -= $amount;
+                    $user_wallet->save();
+                }
+
+                // Txn::new($amount, 0, $amount, 'system', 'Money subtract in '.ucwords($wallet_name).' Wallet from System', TxnType::Subtract, TxnStatus::Success, null, null, $id, $adminUser->id, 'Admin');
+
+                Txn::new(
+                    amount: $amount,
+                    charge: 0,
+                    final_amount: $amount,
+                    method: 'system',
+                    description: 'Money subtract in '.ucwords($wallet_name).' Wallet from System',
+                    type: TxnType::Subtract,
+                    status: TxnStatus::Success,
+                    payCurrency: $wallet_name,
+                    payAmount: null,
+                    userID: $id,
+                    relatedUserID: $adminUser->id,
+                    relatedModel: 'Admin',
+                    walletType: $wallet_type
+                );
+
+                $status = 'Success';
+                $message = __('Balance subtracted successfully!');
+            }
+
+            notify()->success($message, $status);
+
+            return redirect()->back();
+        } catch (Exception $e) {
+            $status = 'warning';
+            $message = __('something is wrong');
+            $code = 503;
+        }
+    }
+
+    /**
+     * @return Application|Factory|View
+     */
+    public function mailSendAll()
+    {
+        return view('backend.user.mail_send_all');
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    public function mailSend(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'subject' => 'required',
+            'message' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
+
+            return redirect()->back();
+        }
+
+        try {
+
+            $input = [
+                'subject' => $request->subject,
+                'message' => $request->message,
+            ];
+
+            $shortcodes = [
+                '[[subject]]' => $input['subject'],
+                '[[message]]' => $input['message'],
+                '[[site_title]]' => setting('site_title', 'global'),
+                '[[site_url]]' => route('home'),
+            ];
+
+            if (isset($request->id)) {
+            $user = User::find($request->id);
+
+            // Security Check for Account Officer
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-mail-send', 'admin')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
+            $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
+
+                $this->mailNotify($user->email, 'user_mail', $shortcodes);
+            } else {
+            // Restriction: Account Officers cannot send bulk mail to all users
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                abort(403, 'Unauthorized action. Account Officers cannot send bulk mail.');
+            }
+
+            $users = User::where('status', 1)->get();
+
+                foreach ($users as $user) {
+                    $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
+
+                    $this->mailNotify($user->email, 'user_mail', $shortcodes);
+                }
+            }
+            $status = 'Success';
+            $message = __('Mail Send Successfully');
+        } catch (Exception $e) {
+
+            $status = 'warning';
+            $message = __('Sorry, something is wrong');
+        }
+
+        notify()->$status($message, $status);
+
+        return redirect()->back();
+    }
+
+    /**
+     * @return RedirectResponse
+     */
+    public function userLogin($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-login-as', 'admin')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        Auth::guard('web')->loginUsingId($id);
+
+        return redirect()->route('user.dashboard');
+    }
+
+    public function destroy($id)
+    {
+
+        if (config('app.demo')) {
+            notify()->warning(__('You cannot change anything in this demo version'));
+
+            return redirect()->back();
+        }
+
+        try {
+
+            $user = User::find($id);
+            $user->kycs()->delete();
+            $user->transaction()->delete();
+            $user->dps()->delete();
+            $user->bill()->delete();
+            $user->fdr()->delete();
+            $user->loan()->delete();
+            $user->ticket()->delete();
+            $user->activities()->delete();
+            $user->messages()->delete();
+            $user->notifications()->delete();
+            $user->refferelLinks()->delete();
+            $user->withdrawAccounts()->delete();
+            $user->delete();
+
+            notify()->success(__('User deleted successfully'), 'Success');
+
+            return to_route('admin.user.index');
+        } catch (\Throwable $th) {
+            notify()->error(__('Sorry, something went wrong!'), 'Error');
+
+            return redirect()->back();
+        }
+    }
+
+    public function updateCardStatus($id)
+    {
+        $card = UserCard::findOrFail($id);
+
+        try {
+            if ($card->status == 'active') {
+                $card->status = 'inactive';
+                $msg = __('Card Frozen Successfully');
+            } else {
+                $card->status = 'active';
+                $msg = __('Card Unfrozen Successfully');
+            }
+            $card->save();
+
+            notify()->success($msg);
+
+            return back();
+        } catch (\Throwable $th) {
+            notify()->error($th->getMessage());
+
+            return back();
+        }
+    }
+
+    public function cardBalanceUpdate(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first());
+
+            return back();
+        }
+
+        try {
+            $card = UserCard::findOrFail($id);
+            $card->balance += $request->amount;
+            $card->save();
+
+            // Notify user and redirect back
+            notify()->success(__('Card balance updated successfully'));
+
+            return back();
+        } catch (\Throwable $th) {
+            notify()->error($th->getMessage());
+
+            return back();
+        }
+    }
+
+    public function resetCardPin(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'new_pin' => 'required|numeric|digits:4',
+            'confirm_pin' => 'required|same:new_pin',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first());
+            return back();
+        }
+
+        try {
+            $card = UserCard::with('user')->findOrFail($id);
+
+            // Security Check for Account Officers
+            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
+                    abort(403, 'Unauthorized action.');
+                }
+            }
+
+            $card->pin = $request->new_pin;
+            $card->save();
+
+            // Native Push Notification (User)
+            $this->pushNotify('new_user', [
+                '[[full_name]]' => $card->user->full_name,
+                '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset by your Account Officer.",
+            ], route('user.cards'), $card->user_id);
+
+            notify()->success(__('Card PIN reset successfully'));
+            return back();
+        } catch (\Throwable $th) {
+            notify()->error($th->getMessage());
+            return back();
+        }
+    }
+}
