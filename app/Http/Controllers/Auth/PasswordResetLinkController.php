@@ -37,31 +37,28 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request)
     {
-        $input = $request->input('email');
 
-        if (empty($input)) {
-            notify()->error(__('Please enter your email address or username.'), 'Error');
-            return redirect()->back()->with('error', __('Please enter your email address or username.'));
-        }
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users',
+        ]);
 
-        $user = \App\Models\User::where('email', $input)
-            ->orWhere('username', $input)
-            ->first();
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Error');
 
-        if (!$user || !$user->email) {
-            notify()->error(__('Email or Username not found!'), 'Error');
             return redirect()->back()->with('error', __('Email or Username not found!'));
         }
 
         $token = Str::random(64);
 
         DB::table('password_resets')->insert([
-            'email' => $user->email,
+            'email' => $request->email,
             'token' => $token,
             'created_at' => Carbon::now(),
         ]);
 
-        $url = route('password.reset', ['token' => $token, 'email' => $user->email]);
+        $url = route('password.reset', ['token' => $token, 'email' => $request->email]);
+
+        $user = \App\Models\User::where('email', $request->email)->first();
 
         $shortcodes = [
             '[[token]]' => $url,
@@ -71,12 +68,9 @@ class PasswordResetLinkController extends Controller
             '[[site_url]]' => route('home'),
         ];
 
-        try {
-            $this->mailNotify($user->email, 'user_password_change', $shortcodes);
-        } catch (\Throwable $e) {
-            \Log::error("Password reset mail sending failed for {$user->email}: " . $e->getMessage());
-        }
+        $this->mailNotify($request->email, 'user_password_change', $shortcodes);
 
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
+
     }
 }

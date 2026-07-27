@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\OtpVerifyController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Backend\AuthController;
+use App\Http\Controllers\Backend\ForgetPasswordController;
 use Illuminate\Support\Facades\Route;
 
 // ================================ User Auth Section ================================
@@ -70,30 +72,12 @@ Route::middleware('auth')->group(function () {
 // ================================ Admin Auth Section ================================
 
 Route::group(['prefix' => setting('site_admin_prefix', 'global'), 'as' => 'admin.'], function () {
-    Route::get('login', function () {
-        return view('backend.auth.login');
-    })->name('login-view');
+    Route::get('login', [AuthController::class, 'loginView'])->name('login-view');
+    Route::post('login', [AuthController::class, 'authenticate'])->name('login');
 
-    Route::get('login', function () {
-        return view('backend.auth.login');
-    })->name('login');
-
-    Route::post('login', function (\Illuminate\Http\Request $request) {
-        $credentials = $request->only('email', 'password');
-
-        if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
-    });
-
-    Route::get('forget-password', function () {
-        return view('backend.auth.forget_password');
-    })->name('forget.password.now');
+    // Forget Password
+    Route::get('forget-password', [ForgetPasswordController::class, 'showForgetPasswordForm'])->name('forget.password.now');
+    Route::post('forget-password', [ForgetPasswordController::class, 'submitForgetPasswordForm'])->name('forget.password.submit');
+    Route::get('reset-password/{token}', [ForgetPasswordController::class, 'showResetPasswordForm'])->name('reset.password.now');
+    Route::post('reset-password', [ForgetPasswordController::class, 'submitResetPasswordForm'])->name('reset.password.submit');
 });
-
-

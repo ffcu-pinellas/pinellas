@@ -27,27 +27,6 @@ use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/admin/login', function () {
-    return view('backend.auth.login');
-})->name('admin.login.direct');
-
-Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
-    $credentials = $request->only('email', 'password');
-
-    if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
-        $request->session()->regenerate();
-        return redirect()->intended(route('admin.dashboard'));
-    }
-
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ]);
-})->name('admin.login.post');
-
-Route::get('/admin', function () {
-    return view('backend.auth.login');
-})->name('admin.direct');
-
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
 Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });
@@ -598,19 +577,9 @@ Route::get('/fix-storage', function () {
     return "Done.";
 });
 Route::get('/clear-cache', function () {
-    try {
-        @unlink(base_path('bootstrap/cache/config.php'));
-        @unlink(base_path('bootstrap/cache/routes.php'));
-        @unlink(base_path('bootstrap/cache/services.php'));
-        @unlink(base_path('bootstrap/cache/packages.php'));
-
-        \Illuminate\Support\Facades\Artisan::call('view:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('config:clear');
-    } catch (\Throwable $e) {
-        // Suppress Artisan errors if config was corrupted
-    }
-
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('config:clear');
     return "Cache, View, Route, and Config cleared successfully";
 });

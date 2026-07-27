@@ -158,12 +158,19 @@ trait NotifyTrait
 
                 $details = $this->sanitizeMailTemplateDetails($details);
 
-                try {
-                    return Mail::to($email)->send(new MailSend($details));
-                } catch (\Throwable $e) {
-                    \Log::error("Mail sending failed for $email: " . $e->getMessage());
-                    return false;
-                }
+                if ($code == 'email_verification') {
+                return (new MailMessage)
+                    ->subject($details['subject'])
+                    ->markdown('backend.mail.user-mail-send', ['details' => $details]);
+            }
+
+            try {
+                return Mail::to($email)->send(new MailSend($details));
+            } catch (Exception $e) {
+                \Log::error("Mail sending failed for $email: " . $e->getMessage());
+                notify()->error('SMTP connection failed. Please check your Mail Configuration in .env', 'Error');
+                return false;
+            }
         } else {
             \Log::warning("Email template with code '$code' not found in database.");
             
@@ -215,9 +222,8 @@ trait NotifyTrait
 
             try {
                 return Mail::to($email)->send(new MailSend($details));
-            } catch (\Throwable $e) {
-                \Log::error("Mail fallback sending failed for $email: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-                notify()->error('Mail fallback error: ' . $e->getMessage(), 'Error');
+            } catch (Exception $e) {
+                \Log::error("Mail fallback sending failed for $email: " . $e->getMessage());
                 return false;
             }
         }

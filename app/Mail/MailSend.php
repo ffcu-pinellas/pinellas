@@ -29,22 +29,9 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        $fromEmail = trim((string) setting('email_from_address', 'mail'));
-        if (empty($fromEmail)) {
-            $fromEmail = trim((string) config('mail.from.address'));
-        }
-        if (empty($fromEmail)) {
-            $fromEmail = trim((string) config('mail.mailers.smtp.username'));
-        }
-        if (empty($fromEmail)) {
-            $fromEmail = trim((string) setting('support_email', 'global'));
-        }
-
-        $fromName = setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name');
-
-        $mail = $this->from($fromEmail, $fromName)
+        $mail = $this->from(setting('support_email', 'global'))
             ->subject($this->details['subject'])
-            ->view('backend.mail.user-mail-send', ['details' => $this->details]);
+            ->view('backend.mail.user-mail-send');
 
         if (isset($this->details['attachment'])) {
             $mail->attachData(
