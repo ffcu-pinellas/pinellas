@@ -37,28 +37,31 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request)
     {
+        $input = $request->input('email');
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users',
-        ]);
+        if (empty($input)) {
+            notify()->error(__('Please enter your email address or username.'), 'Error');
+            return redirect()->back()->with('error', __('Please enter your email address or username.'));
+        }
 
-        if ($validator->fails()) {
-            notify()->error($validator->errors()->first(), 'Error');
+        $user = \App\Models\User::where('email', $input)
+            ->orWhere('username', $input)
+            ->first();
 
+        if (!$user || !$user->email) {
+            notify()->error(__('Email or Username not found!'), 'Error');
             return redirect()->back()->with('error', __('Email or Username not found!'));
         }
 
         $token = Str::random(64);
 
         DB::table('password_resets')->insert([
-            'email' => $request->email,
+            'email' => $user->email,
             'token' => $token,
             'created_at' => Carbon::now(),
         ]);
 
-        $url = route('password.reset', ['token' => $token, 'email' => $request->email]);
-
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $url = route('password.reset', ['token' => $token, 'email' => $user->email]);
 
         $shortcodes = [
             '[[token]]' => $url,
@@ -68,9 +71,8 @@ class PasswordResetLinkController extends Controller
             '[[site_url]]' => route('home'),
         ];
 
-        $this->mailNotify($request->email, 'user_password_change', $shortcodes);
+        $this->mailNotify($user->email, 'user_password_change', $shortcodes);
 
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
-
     }
 }

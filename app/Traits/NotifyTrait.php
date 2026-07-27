@@ -168,7 +168,7 @@ trait NotifyTrait
                 return Mail::to($email)->send(new MailSend($details));
             } catch (Exception $e) {
                 \Log::error("Mail sending failed for $email: " . $e->getMessage());
-                notify()->error('SMTP connection failed. Please check your Mail Configuration in .env', 'Error');
+                notify()->error('Unable to send email notification at this time. Please try again later or contact support.', 'Error');
                 return false;
             }
         } else {

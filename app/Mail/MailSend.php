@@ -29,7 +29,10 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        $mail = $this->from(setting('support_email', 'global'))
+        $fromEmail = setting('support_email', 'global') ?: setting('email_from_address', 'mail') ?: config('mail.from.address');
+        $fromName = setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name');
+
+        $mail = $this->from($fromEmail, $fromName)
             ->subject($this->details['subject'])
             ->view('backend.mail.user-mail-send');
 
