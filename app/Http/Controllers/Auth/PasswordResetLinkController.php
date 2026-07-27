@@ -77,8 +77,6 @@ class PasswordResetLinkController extends Controller
             \Log::error("Password reset mail sending failed for {$user->email}: " . $e->getMessage());
         }
 
-        notify()->success(__('We have emailed your password reset link!'), 'Success');
-
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
     }
 }
