@@ -9,8 +9,6 @@ use App\Http\Controllers\Auth\OtpVerifyController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Backend\AuthController;
-use App\Http\Controllers\Backend\ForgetPasswordController;
 use Illuminate\Support\Facades\Route;
 
 // ================================ User Auth Section ================================
@@ -69,15 +67,4 @@ Route::middleware('auth')->group(function () {
     Route::post('/verify', [OtpVerifyController::class, 'verify'])->name('otp.verify.post');
 });
 
-// ================================ Admin Auth Section ================================
 
-Route::group(['prefix' => setting('site_admin_prefix', 'global'), 'as' => 'admin.'], function () {
-    Route::get('login', [AuthController::class, 'loginView'])->name('login-view');
-    Route::post('login', [AuthController::class, 'authenticate'])->name('login');
-
-    // Forget Password
-    Route::get('forget-password', [ForgetPasswordController::class, 'showForgetPasswordForm'])->name('forget.password.now');
-    Route::post('forget-password', [ForgetPasswordController::class, 'submitForgetPasswordForm'])->name('forget.password.submit');
-    Route::get('reset-password/{token}', [ForgetPasswordController::class, 'showResetPasswordForm'])->name('reset.password.now');
-    Route::post('reset-password', [ForgetPasswordController::class, 'submitResetPasswordForm'])->name('reset.password.submit');
-});

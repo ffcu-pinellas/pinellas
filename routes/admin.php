@@ -1,8 +1,6 @@
 <?php
 
 use App\Http\Controllers\Backend\AppController;
-use App\Http\Controllers\Backend\AuthController;
-
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\BranchController;
 use App\Http\Controllers\Backend\BranchStaffController;
@@ -452,7 +450,7 @@ Route::get('application-info', [AppController::class, 'applicationInfo'])->name(
 Route::get('clear-cache', [AppController::class, 'clearCache'])->name('clear-cache');
 Route::post('update-push-token', [AppController::class, 'updatePushToken'])->name('update-push-token');
 
-Route::post('logout', [AuthController::class, 'logout'])->name('logout')->withoutMiddleware('isDemo');
+Route::post('logout', [AppController::class, 'logout'])->name('logout')->withoutMiddleware('isDemo');
 
 // Security Gate & Staff Management (4-digit PIN)
 Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function () {
