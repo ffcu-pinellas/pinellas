@@ -42,7 +42,7 @@
                         <div class="header">
                             @php
                                 $logoPath = $details['site_logo_path'] ?? null;
-                                $canEmbed = $logoPath && file_exists($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
+                                $canEmbed = isset($message) && $logoPath && is_file($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
                             @endphp
 
                             @if($canEmbed)

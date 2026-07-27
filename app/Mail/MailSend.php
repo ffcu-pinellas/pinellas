@@ -34,7 +34,7 @@ class MailSend extends Mailable
 
         $mail = $this->from($fromEmail, $fromName)
             ->subject($this->details['subject'])
-            ->view('backend.mail.user-mail-send');
+            ->view('backend.mail.user-mail-send', ['details' => $this->details]);
 
         if (isset($this->details['attachment'])) {
             $mail->attachData(

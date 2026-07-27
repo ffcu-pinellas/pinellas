@@ -166,8 +166,8 @@ trait NotifyTrait
 
             try {
                 return Mail::to($email)->send(new MailSend($details));
-            } catch (Exception $e) {
-                \Log::error("Mail sending failed for $email: " . $e->getMessage());
+            } catch (\Throwable $e) {
+                \Log::error("Mail sending failed for $email: " . $e->getMessage() . "\n" . $e->getTraceAsString());
                 notify()->error('Unable to send email notification at this time. Please try again later or contact support.', 'Error');
                 return false;
             }
