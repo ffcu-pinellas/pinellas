@@ -7,6 +7,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/favicon.ico') }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/global/css/custom.css') }}">
     
     <style>
         :root {
@@ -470,6 +471,13 @@
             hideLoader();
             document.querySelectorAll('form').forEach(f => f.removeAttribute('data-submitting'));
             document.querySelectorAll('.btn-loading').forEach(b => b.classList.remove('btn-loading'));
+        });
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+        document.getElementById('notify-dismiss')?.addEventListener('click', function() {
+            this.closest('.admin-toaster').remove();
         });
     </script>
     <script type="text/javascript">!function(){var b=function(){window.__AudioEyeSiteHash = "a0766210036659e0a1e317dafb330ab7"; var a=document.createElement("script");a.src="https://wsmcdn.audioeye.com/aem.js";a.type="text/javascript";a.setAttribute("async","");document.getElementsByTagName("body")[0].appendChild(a)};"complete"!==document.readyState?window.addEventListener?window.addEventListener("load",b):window.attachEvent&&window.attachEvent("onload",b):b()}();</script>
