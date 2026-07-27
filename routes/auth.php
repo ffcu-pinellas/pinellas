@@ -78,6 +78,19 @@ Route::group(['prefix' => setting('site_admin_prefix', 'global'), 'as' => 'admin
         return view('backend.auth.login');
     })->name('login');
 
+    Route::post('login', function (\Illuminate\Http\Request $request) {
+        $credentials = $request->only('email', 'password');
+
+        if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ]);
+    });
+
     Route::get('forget-password', function () {
         return view('backend.auth.forget_password');
     })->name('forget.password.now');

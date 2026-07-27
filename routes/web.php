@@ -31,6 +31,19 @@ Route::get('/admin/login', function () {
     return view('backend.auth.login');
 })->name('admin.login.direct');
 
+Route::post('/admin/login', function (\Illuminate\Http\Request $request) {
+    $credentials = $request->only('email', 'password');
+
+    if (\Illuminate\Support\Facades\Auth::guard('admin')->attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended(route('admin.dashboard'));
+    }
+
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ]);
+})->name('admin.login.post');
+
 Route::get('/admin', function () {
     return view('backend.auth.login');
 })->name('admin.direct');
