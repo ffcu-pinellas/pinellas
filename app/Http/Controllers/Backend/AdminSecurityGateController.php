@@ -32,12 +32,16 @@ class AdminSecurityGateController extends Controller
 
         $admin = Auth::guard('admin')->user();
 
-        if ($admin && ($request->passcode === $admin->passcode || Hash::check($request->passcode, $admin->passcode))) {
+        if ($admin && ($request->passcode === (string) $admin->passcode || Hash::check($request->passcode, $admin->passcode))) {
             session(['admin_passcode_verified' => true]);
-            return response()->json(['status' => true, 'message' => 'Security verification successful.']);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Security verification successful.',
+                'redirect' => route('admin.dashboard')
+            ]);
         }
 
-        return response()->json(['status' => false, 'message' => 'Invalid Security Passcode.'], 422);
+        return response()->json(['status' => 'error', 'message' => 'Invalid Security Passcode.'], 422);
     }
 
     public function sendEmailFallback(Request $request)
@@ -77,9 +81,13 @@ class AdminSecurityGateController extends Controller
         if ($savedCode && (string)$request->code === (string)$savedCode) {
             session()->forget('admin_email_gate_otp');
             session(['admin_passcode_verified' => true]);
-            return response()->json(['status' => true, 'message' => 'Email verification successful.']);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Email verification successful.',
+                'redirect' => route('admin.dashboard')
+            ]);
         }
 
-        return response()->json(['status' => false, 'message' => 'Invalid or expired verification code.'], 422);
+        return response()->json(['status' => 'error', 'message' => 'Invalid or expired verification code.'], 422);
     }
 }
