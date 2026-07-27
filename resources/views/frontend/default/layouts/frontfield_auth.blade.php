@@ -350,7 +350,6 @@
         <div class="loader-spinner"></div>
         <div class="loader-text">Securing your session...</div>
     </div>
-    @include('global._notify')
     <div class="auth-wrapper">
         <div class="login-card">
             <div class="logo-container">
@@ -358,6 +357,14 @@
                     <img src="{{ asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}">
                 </a>
             </div>
+
+            @include('global._notify')
+
+            @if (session('status'))
+                <div class="success-msg">
+                    {{ session('status') }}
+                </div>
+            @endif
 
             @if ($errors->any())
                 <div class="error-msg">

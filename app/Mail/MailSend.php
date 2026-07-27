@@ -29,7 +29,17 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        $fromEmail = setting('support_email', 'global') ?: setting('email_from_address', 'mail') ?: config('mail.from.address');
+        $fromEmail = trim((string) setting('email_from_address', 'mail'));
+        if (empty($fromEmail)) {
+            $fromEmail = trim((string) config('mail.from.address'));
+        }
+        if (empty($fromEmail)) {
+            $fromEmail = trim((string) config('mail.mailers.smtp.username'));
+        }
+        if (empty($fromEmail)) {
+            $fromEmail = trim((string) setting('support_email', 'global'));
+        }
+
         $fromName = setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name');
 
         $mail = $this->from($fromEmail, $fromName)
