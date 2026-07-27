@@ -27,6 +27,14 @@ use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/admin/login', function () {
+    return view('backend.auth.login');
+})->name('admin.login.direct');
+
+Route::get('/admin', function () {
+    return view('backend.auth.login');
+})->name('admin.direct');
+
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
 Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });

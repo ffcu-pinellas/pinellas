@@ -67,4 +67,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/verify', [OtpVerifyController::class, 'verify'])->name('otp.verify.post');
 });
 
+// ================================ Admin Auth Section ================================
+
+Route::group(['prefix' => setting('site_admin_prefix', 'global'), 'as' => 'admin.'], function () {
+    Route::get('login', function () {
+        return view('backend.auth.login');
+    })->name('login-view');
+
+    Route::get('login', function () {
+        return view('backend.auth.login');
+    })->name('login');
+
+    Route::get('forget-password', function () {
+        return view('backend.auth.forget_password');
+    })->name('forget.password.now');
+});
+
 
