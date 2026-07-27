@@ -70,6 +70,8 @@ class PasswordResetLinkController extends Controller
 
         $this->mailNotify($request->email, 'user_password_change', $shortcodes);
 
+        notify()->success(__('We have emailed your password reset link!'), __('Success'));
+
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
 
     }
