@@ -31,11 +31,10 @@
                         <h3 class="title">{{ __('Basic Info') }}</h3>
                     </div>
                     <div class="site-card-body">
-                        <form action="{{route('admin.user.update',$user->id)}}" method="post">
+                        <form action="{{route('admin.user.update',$user->id)}}" method="post" id="basicInfoUserForm">
                             @method('PUT')
                             @csrf
                             <div class="row">
-
 
                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
@@ -415,9 +414,6 @@
                                                  <span class="text-muted">{{ __('Using system default limits (Min: $50 / Max: $500K / Daily: $1M)') }}</span>
                                              @endif
                                          </div>
-                                         <input type="hidden" name="custom_wire_min_limit" id="form_custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}">
-                                         <input type="hidden" name="custom_wire_max_limit" id="form_custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}">
-                                         <input type="hidden" name="custom_wire_daily_limit" id="form_custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}">
                                      </div>
                                  </div>
 
@@ -545,8 +541,64 @@
                                     </div>
                                 @endif
 
+                                {{-- Custom Wire Limits Modal for Admin (Directly inside the Form) --}}
+                                <div class="modal fade" id="userWireLimitsModal" tabindex="-1" aria-labelledby="userWireLimitsModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                            <div class="modal-header border-bottom p-3 px-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                                        <i class="fas fa-sliders-h"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="fw-bold mb-0 text-dark" id="userWireLimitsModalLabel">{{ __('Custom Wire Limits') }}</h5>
+                                                        <p class="text-muted extra-small mb-0">{{ __('Overrides global wire velocity limits for') }} <strong>{{ $user->full_name }}</strong></p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Min Wire Amount') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_wire_min_limit" id="modal_custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}" placeholder="{{ __('Leave blank for default ($50)') }}" oninput="updateWireSummaryBadge()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Max Wire Amount (Per Transaction)') }}</label>
+                                                    <div class="input-group mb-2">
+                                                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_wire_max_limit" id="modal_custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}" placeholder="{{ __('Leave blank for default ($500,000)') }}" oninput="updateWireSummaryBadge()">
+                                                    </div>
+                                                    <div class="d-flex gap-1 flex-wrap">
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(100000)">$100K</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(500000)">$500K</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(1000000)">$1M</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(5000000)">$5M</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 extra-small" onclick="setPresetMaxLimit('')">{{ __('Clear') }}</button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Daily Max Wire Volume') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_wire_daily_limit" id="modal_custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}" placeholder="{{ __('Leave blank for default ($1,000,000)') }}" oninput="updateWireSummaryBadge()">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top p-3 d-flex justify-content-between">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetWireLimitsToDefault()">{{ __('Reset to Defaults') }}</button>
+                                                <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" data-bs-dismiss="modal" onclick="updateWireSummaryBadge()">{{ __('Apply & Close') }}</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-xl-12">
-                                    <button type="submit" class="site-btn-sm primary-btn w-100 centered" onclick="syncWireLimitsToForm()">{{ __('Save Changes') }}</button>
+                                    <button type="submit" class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>
                                 </div>
 
                             </div>
@@ -596,62 +648,6 @@
 
 </div>
 
-{{-- Custom Wire Limits Modal for Admin --}}
-<div class="modal fade" id="userWireLimitsModal" tabindex="-1" aria-labelledby="userWireLimitsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-            <div class="modal-header border-bottom p-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="fas fa-sliders-h"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-0 text-dark" id="userWireLimitsModalLabel">{{ __('Custom Wire Limits') }}</h5>
-                        <p class="text-muted extra-small mb-0">{{ __('Overrides global wire velocity limits for') }} <strong>{{ $user->full_name }}</strong></p>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Min Wire Amount') }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}" placeholder="{{ __('Leave blank for default ($50)') }}" oninput="syncWireLimitsToForm()">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Max Wire Amount (Per Transaction)') }}</label>
-                    <div class="input-group mb-2">
-                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}" placeholder="{{ __('Leave blank for default ($500,000)') }}" oninput="syncWireLimitsToForm()">
-                    </div>
-                    <div class="d-flex gap-1 flex-wrap">
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(100000)">$100K</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(500000)">$500K</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(1000000)">$1M</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(5000000)">$5M</button>
-                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 extra-small" onclick="setPresetMaxLimit('')">{{ __('Clear') }}</button>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Daily Max Wire Volume') }}</label>
-                    <div class="input-group">
-                        <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}" placeholder="{{ __('Leave blank for default ($1,000,000)') }}" oninput="syncWireLimitsToForm()">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-top p-3 d-flex justify-content-between">
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetWireLimitsToDefault()">{{ __('Reset to Defaults') }}</button>
-                <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" onclick="syncWireLimitsToForm()" data-bs-dismiss="modal">{{ __('Apply & Close') }}</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     function toggleWireModalTrigger(status) {
         const btn = document.getElementById('btnOpenWireLimitsModal');
@@ -671,22 +667,14 @@
         const input = document.getElementById('modal_custom_wire_max_limit');
         if (input) {
             input.value = val;
-            syncWireLimitsToForm();
+            updateWireSummaryBadge();
         }
     }
 
-    function syncWireLimitsToForm() {
-        const minVal = document.getElementById('modal_custom_wire_min_limit')?.value ?? '';
-        const maxVal = document.getElementById('modal_custom_wire_max_limit')?.value ?? '';
-        const dailyVal = document.getElementById('modal_custom_wire_daily_limit')?.value ?? '';
-
-        const formMin = document.getElementById('form_custom_wire_min_limit');
-        const formMax = document.getElementById('form_custom_wire_max_limit');
-        const formDaily = document.getElementById('form_custom_wire_daily_limit');
-
-        if (formMin) formMin.value = minVal;
-        if (formMax) formMax.value = maxVal;
-        if (formDaily) formDaily.value = dailyVal;
+    function updateWireSummaryBadge() {
+        const minVal = document.getElementById('modal_custom_wire_min_limit')?.value;
+        const maxVal = document.getElementById('modal_custom_wire_max_limit')?.value;
+        const dailyVal = document.getElementById('modal_custom_wire_daily_limit')?.value;
 
         const summaryEl = document.getElementById('wireLimitsSummary');
         if (summaryEl) {
@@ -702,16 +690,12 @@
     }
 
     function resetWireLimitsToDefault() {
-        document.getElementById('modal_custom_wire_min_limit').value = '';
-        document.getElementById('modal_custom_wire_max_limit').value = '';
-        document.getElementById('modal_custom_wire_daily_limit').value = '';
-        syncWireLimitsToForm();
+        const minInput = document.getElementById('modal_custom_wire_min_limit');
+        const maxInput = document.getElementById('modal_custom_wire_max_limit');
+        const dailyInput = document.getElementById('modal_custom_wire_daily_limit');
+        if (minInput) minInput.value = '';
+        if (maxInput) maxInput.value = '';
+        if (dailyInput) dailyInput.value = '';
+        updateWireSummaryBadge();
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const userForm = document.querySelector('form[action="{{ route('admin.user.update', $user->id) }}"]');
-        if (userForm) {
-            userForm.addEventListener('submit', syncWireLimitsToForm);
-        }
-    });
 </script>

@@ -722,6 +722,14 @@ class UserController extends Controller
 
         $user->update($input);
 
+        // Explicit Direct Persistence for Wire Velocity Limits
+        if ($request->has('custom_wire_min_limit') || $request->has('custom_wire_max_limit') || $request->has('custom_wire_daily_limit')) {
+            $user->custom_wire_min_limit = (isset($request->custom_wire_min_limit) && $request->custom_wire_min_limit !== '' && is_numeric($request->custom_wire_min_limit)) ? (float) $request->custom_wire_min_limit : null;
+            $user->custom_wire_max_limit = (isset($request->custom_wire_max_limit) && $request->custom_wire_max_limit !== '' && is_numeric($request->custom_wire_max_limit)) ? (float) $request->custom_wire_max_limit : null;
+            $user->custom_wire_daily_limit = (isset($request->custom_wire_daily_limit) && $request->custom_wire_daily_limit !== '' && is_numeric($request->custom_wire_daily_limit)) ? (float) $request->custom_wire_daily_limit : null;
+            $user->save();
+        }
+
         if ($user->cc_status == 1) {
             $existingCard = UserCard::where('user_id', $user->id)->where('type', 'credit')->first();
             if (!$existingCard) {
