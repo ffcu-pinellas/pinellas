@@ -706,8 +706,26 @@
 
     function submitWireTransferWithSecurity() {
         const authCb = document.getElementById('authCheckbox');
-        if (!authCb.checked) {
-            alert('{{ __("Please acknowledge the settlement and wire authorization terms to continue.") }}');
+        if (!authCb || !authCb.checked) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '{{ __("Authorization Required") }}',
+                    text: '{{ __("Please acknowledge the settlement and wire authorization terms to continue.") }}',
+                    confirmButtonText: '{{ __("Acknowledge & Continue") }}',
+                    confirmButtonColor: '#00549b',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg'
+                    }
+                }).then(() => {
+                    if (authCb) {
+                        authCb.focus();
+                        authCb.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            } else {
+                if (authCb) authCb.focus();
+            }
             return;
         }
         SecurityGate.gate(document.getElementById('wireForm'));

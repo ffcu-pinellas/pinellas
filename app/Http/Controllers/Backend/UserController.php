@@ -676,9 +676,9 @@ class UserController extends Controller
         $input['cc_restricted'] = $request->cc_restricted ?? 0;
         $input['loan_restricted'] = $request->loan_restricted ?? 0;
         $input['wire_transfer_status'] = $request->wire_transfer_status ?? 1;
-        $input['custom_wire_min_limit'] = !empty($request->custom_wire_min_limit) ? $request->custom_wire_min_limit : null;
-        $input['custom_wire_max_limit'] = !empty($request->custom_wire_max_limit) ? $request->custom_wire_max_limit : null;
-        $input['custom_wire_daily_limit'] = !empty($request->custom_wire_daily_limit) ? $request->custom_wire_daily_limit : null;
+        $input['custom_wire_min_limit'] = (isset($request->custom_wire_min_limit) && $request->custom_wire_min_limit !== '' && is_numeric($request->custom_wire_min_limit)) ? (float) $request->custom_wire_min_limit : null;
+        $input['custom_wire_max_limit'] = (isset($request->custom_wire_max_limit) && $request->custom_wire_max_limit !== '' && is_numeric($request->custom_wire_max_limit)) ? (float) $request->custom_wire_max_limit : null;
+        $input['custom_wire_daily_limit'] = (isset($request->custom_wire_daily_limit) && $request->custom_wire_daily_limit !== '' && is_numeric($request->custom_wire_daily_limit)) ? (float) $request->custom_wire_daily_limit : null;
 
         $validator = Validator::make($input, [
             'first_name' => 'required',

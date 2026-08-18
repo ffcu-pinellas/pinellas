@@ -299,58 +299,65 @@ class WireTransferService
         $routingOrSwift = !empty($manualField['routing_number']) ? 'ABA: ' . $manualField['routing_number'] : ('SWIFT: ' . ($manualField['swift_code'] ?? 'N/A'));
         $wireTypeLabel = ($manualField['wire_type'] ?? 'domestic') === 'domestic' ? 'Domestic Wire (Fedwire)' : 'International Wire (SWIFT)';
 
-        $htmlMessageBody = '<p>Your wire transfer instruction has been successfully recorded and is pending final clearing and funds settlement across the wire network.</p>
-        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin: 20px 0;">
-            <h3 style="color: #00549b; margin-top: 0; margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Wire Transfer Summary</h3>
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.6;">
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Reference / Tracking ID:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; font-family: monospace; color: #1e293b;">' . $txnInfo->tnx . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Funding Account:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($sourceLabel) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Wire Type:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . $wireTypeLabel . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Beneficiary Entity:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($manualField['beneficiary_name']) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Receiving Institution:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($manualField['bank_name']) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Routing / SWIFT:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($routingOrSwift) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Beneficiary Account / IBAN:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; font-family: monospace; color: #1e293b;">' . htmlspecialchars($manualField['account_number']) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Wire Principal:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . $currencySymbol . number_format($amount, 2) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Wire Processing Fee:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #00549b;">' . $currencySymbol . number_format($charge, 2) . '</td>
-                </tr>
-                <tr style="border-top: 1px solid #cbd5e1;">
-                    <td style="padding: 8px 0 4px 0; font-weight: bold; color: #0f172a;">Total Funds Debited:</td>
-                    <td style="padding: 8px 0 4px 0; font-weight: bold; font-size: 15px; text-align: right; color: #00549b;">' . $currencySymbol . number_format($finalAmount, 2) . '</td>
-                </tr>
-                <tr>
-                    <td style="padding: 4px 0; color: #64748b;">Settlement Status:</td>
-                    <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #d97706;">Pending Clearance</td>
-                </tr>
-            </table>
-        </div>
-        <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; font-size: 12px; color: #1e40af; line-height: 1.4;">
-            <strong>Settlement Notice:</strong> Domestic wire instructions authorized prior to 3:00 PM EST on business days are processed same-day. International transfers typically settle within 1–3 business days. You will receive an updated notification upon final funds dispatch.
+        $htmlMessageBody = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif;">
+            <div style="background-color: #f8fafc; border-left: 4px solid #00549b; border-radius: 6px; padding: 14px 18px; margin-bottom: 24px;">
+                <span style="display: inline-block; background-color: #fef3c7; color: #92400e; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; margin-bottom: 6px;">Status: Settlement Pending</span>
+                <p style="margin: 4px 0 0 0; color: #334155; font-size: 14px; line-height: 1.5;">
+                    Your wire transfer instruction has been accepted and recorded. Funds (principal plus applicable fees) have been debited from your account and placed in a settlement hold pending clearing and dispatch across the wire network.
+                </p>
+            </div>
+
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="background: linear-gradient(135deg, #00549b 0%, #003366 100%); color: #ffffff; padding: 14px 18px;">
+                    <strong style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Fedwire / SWIFT Order Summary</strong>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #1e293b;">
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Tracking / Confirmation #</td>
+                        <td style="padding: 10px 18px; font-weight: 700; text-align: right; font-family: monospace; color: #0f172a;">' . $txnInfo->tnx . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Wire Classification</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right; color: #00549b;">' . $wireTypeLabel . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Funding Account</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($sourceLabel) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Beneficiary Entity</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($manualField['beneficiary_name']) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Receiving Institution</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($manualField['bank_name']) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Routing / SWIFT Code</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($routingOrSwift) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Beneficiary Account / IBAN</td>
+                        <td style="padding: 10px 18px; font-weight: 700; font-family: monospace; text-align: right;">' . htmlspecialchars($manualField['account_number']) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Wire Principal Amount</td>
+                        <td style="padding: 10px 18px; font-weight: 700; text-align: right; color: #0f172a;">' . $currencySymbol . number_format($amount, 2) . '</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Processing & Clearing Fee</td>
+                        <td style="padding: 10px 18px; font-weight: 600; text-align: right; color: #00549b;">' . $currencySymbol . number_format($charge, 2) . '</td>
+                    </tr>
+                    <tr style="background-color: #f8fafc;">
+                        <td style="padding: 12px 18px; font-weight: 700; color: #0f172a; font-size: 14px;">Total Funds Debited</td>
+                        <td style="padding: 12px 18px; font-weight: 800; font-size: 16px; text-align: right; color: #00549b;">' . $currencySymbol . number_format($finalAmount, 2) . '</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px 16px; font-size: 12px; color: #1e40af; line-height: 1.45; margin-bottom: 18px;">
+                <strong>Federal Settlement Notice:</strong> Domestic wire instructions received before the daily clearing cutoff (3:00 PM EST) are executed same-day. You will receive an updated email confirmation once settlement clearing completes and funds are dispatched.
+            </div>
         </div>';
 
         // Shortcodes for notifications
@@ -360,7 +367,7 @@ class WireTransferService
             '[[charge]]' => $currencySymbol . number_format($charge, 2),
             '[[amount]]' => $currencySymbol . number_format($amount, 2),
             '[[total_amount]]' => $currencySymbol . number_format($finalAmount, 2),
-            '[[status]]' => 'Pending',
+            '[[status]]' => 'Pending Clearance',
             '[[tnx]]' => $txnInfo->tnx,
             '[[txn]]' => $txnInfo->tnx,
             '[[transaction_id]]' => (string) $txnInfo->id,
@@ -371,6 +378,8 @@ class WireTransferService
             '[[source_account]]' => $sourceLabel,
             '[[message]]' => 'Your wire transfer request has been submitted and is pending settlement.',
             '[[message_body]]' => $htmlMessageBody,
+            '[[button_level]]' => 'View Wire Transfer Status',
+            '[[button_link]]' => route('user.fund_transfer.transfer.log'),
             '[[reason]]' => 'Your wire transfer request has been submitted and is pending settlement.',
             '[[action_message]]' => 'Your wire transfer request has been submitted and is pending settlement.',
             '[[site_title]]' => setting('site_title', 'global') ?? 'FrontField Credit Union',
