@@ -296,8 +296,8 @@ class WireTransferService
             Log::warning('Telegram Wire Notification Failed', ['error' => $e->getMessage()]);
         }
 
-        $routingOrSwift = !empty($manualField['routing_number']) ? 'ABA: ' . $manualField['routing_number'] : ('SWIFT: ' . ($manualField['swift_code'] ?? 'N/A'));
-        $wireTypeLabel = ($manualField['wire_type'] ?? 'domestic') === 'domestic' ? 'Domestic Wire (Fedwire)' : 'International Wire (SWIFT)';
+        $routingOrSwift = !$isInternational ? (!empty($manualField['routing_number']) ? 'ABA: ' . $manualField['routing_number'] : 'N/A') : (!empty($manualField['swift_code']) ? 'SWIFT: ' . $manualField['swift_code'] : 'N/A');
+        $wireTypeLabel = $isInternational ? 'International Wire (SWIFT)' : 'Domestic Wire (Fedwire)';
 
         $htmlMessageBody = '<div style="font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif;">
             <div style="background-color: #f8fafc; border-left: 4px solid #00549b; border-radius: 6px; padding: 14px 18px; margin-bottom: 24px;">
@@ -333,7 +333,7 @@ class WireTransferService
                         <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($manualField['bank_name']) . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Routing / SWIFT Code</td>
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">' . ($isInternational ? 'SWIFT / BIC Code' : 'ABA Routing Number') . '</td>
                         <td style="padding: 10px 18px; font-weight: 600; text-align: right;">' . htmlspecialchars($routingOrSwift) . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">

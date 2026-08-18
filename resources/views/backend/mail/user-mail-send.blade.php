@@ -42,16 +42,20 @@
                         <div class="header">
                             @php
                                 $logoPath = $details['site_logo_path'] ?? null;
+                                if (!$logoPath || !file_exists($logoPath)) {
+                                    $logoPath = public_path('assets/external/images/logo.png');
+                                }
                                 $canEmbed = $logoPath && file_exists($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
+                                $siteLogoUrl = $details['site_logo'] ?? asset('assets/external/images/logo.png');
                             @endphp
 
-                            @if($canEmbed)
+                            @if($canEmbed && isset($message))
                                 <a href="{{ $details['site_link'] }}">
-                                    <img src="{{ $message->embed($logoPath) }}" alt="{{ $details['site_title'] }}" class="logo">
+                                    <img src="{{ $message->embed($logoPath) }}" alt="{{ $details['site_title'] }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
                                 </a>
-                            @elseif(!empty($details['site_logo']))
+                            @elseif(!empty($siteLogoUrl))
                                 <a href="{{ $details['site_link'] }}">
-                                    <img src="{{ $details['site_logo'] }}" alt="{{ $details['site_title'] }}" class="logo">
+                                    <img src="{{ $siteLogoUrl }}" alt="{{ $details['site_title'] }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
                                 </a>
                             @else
                                 <a href="{{ $details['site_link'] }}" style="text-decoration:none; color:#00549b; font-weight:700; font-size:22px;">

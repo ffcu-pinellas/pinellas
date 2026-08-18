@@ -130,6 +130,9 @@ trait NotifyTrait
                 if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
                     $siteLogo = 'assets/'.$siteLogo;
                 }
+                if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
+                    $siteLogo = 'assets/external/images/logo.png';
+                }
 
                 $banner = $template->banner;
                 if ($banner && !Str::startsWith($banner, ['assets/', 'storage/'])) {
@@ -178,6 +181,9 @@ trait NotifyTrait
             $siteLogo = setting('site_logo', 'global');
             if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
                 $siteLogo = 'assets/'.$siteLogo;
+            }
+            if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
+                $siteLogo = 'assets/external/images/logo.png';
             }
 
             // Prioritize manual inputs from the Admin Modal (Subject and Email Details)

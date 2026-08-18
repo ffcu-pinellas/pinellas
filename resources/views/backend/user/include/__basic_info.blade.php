@@ -421,14 +421,14 @@
                                     <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Security & Authentication') }}</h5>
                                 </div>
 
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label">{{ __('Transaction PIN:') }}</label>
                                         <input type="text" class="box-input" name="transaction_pin" value="{{ $user->transaction_pin }}">
                                     </div>
                                 </div>
 
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
                                     <div class="site-input-groups">
                                         <label for="" class="box-input-label">{{ __('Security Preference:') }}</label>
                                         <select name="security_preference" class="form-control form-select">
@@ -437,66 +437,6 @@
                                             <option value="email" @selected($user->security_preference == 'email')>{{ __('Email Priority') }}</option>
                                             <option value="always_ask" @selected($user->security_preference == 'always_ask')>{{ __('Always Ask') }}</option>
                                         </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                    <div class="site-input-groups">
-                                        <label for="" class="box-input-label">{{ __('Phone Verification:') }}</label>
-                                        <div class="switch-field same-type">
-                                            <input type="radio" id="radio-five" name="phone_status" value="1" @checked($user->phone_status) />
-                                            <label for="radio-five">{{ __('Verified') }}</label>
-                                            <input type="radio" id="radio-six" name="phone_status" value="0" @checked(!$user->phone_status) />
-                                            <label for="radio-six">{{ __('Unverified') }}</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                    <div class="site-input-groups">
-                                        <label for="" class="box-input-label">{{ __('2FA Authentication:') }}</label>
-                                        <div class="switch-field same-type">
-                                            <input type="radio" id="radio-seven" name="two_fa" value="1" @checked($user->two_fa) />
-                                            <label for="radio-seven">{{ __('Enable') }}</label>
-                                            <input type="radio" id="radio-eight" name="two_fa" value="0" @checked(!$user->two_fa) />
-                                            <label for="radio-eight">{{ __('Disable') }}</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                    <div class="site-input-groups">
-                                        <label for="" class="box-input-label">{{ __('KYC:') }}</label>
-                                        <div class="switch-field same-type">
-                                            <input type="radio" id="radio-nine" name="kyc" value="1" @checked($user->kyc == \App\Enums\KYCStatus::Verified) />
-                                            <label for="radio-nine">{{ __('Verified') }}</label>
-                                            <input type="radio" id="radio-ten" name="kyc" value="0" @checked($user->kyc != \App\Enums\KYCStatus::Verified) />
-                                            <label for="radio-ten">{{ __('Unverified') }}</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                    <div class="site-input-groups">
-                                        <label for="" class="box-input-label">{{ __('Email Verification:') }}</label>
-                                        <div class="switch-field same-type">
-                                            <input type="radio" id="radio-eleven" name="ev" value="1" @checked($user->ev) />
-                                            <label for="radio-eleven">{{ __('Verified') }}</label>
-                                            <input type="radio" id="radio-twelve" name="ev" value="0" @checked(!$user->ev) />
-                                            <label for="radio-twelve">{{ __('Unverified') }}</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                    <div class="site-input-groups">
-                                        <label for="" class="box-input-label">{{ __('Account Status:') }}</label>
-                                        <div class="switch-field same-type">
-                                            <input type="radio" id="radio-thirteen" name="status" value="1" @checked($user->status == \App\Enums\KYCStatus::Verified) />
-                                            <label for="radio-thirteen">{{ __('Active') }}</label>
-                                            <input type="radio" id="radio-fourteen" name="status" value="0" @checked($user->status != \App\Enums\KYCStatus::Verified) />
-                                            <label for="radio-fourteen">{{ __('DeActive') }}</label>
-                                        </div>
                                     </div>
                                 </div>
 
