@@ -422,13 +422,9 @@
         color: #047857; 
         font-weight: 600; 
     }
-    /* Fixed Modal Stacking Context to guarantee no grey overlay on modal */
-    body > #limitBox {
-        z-index: 99999 !important;
-        position: fixed !important;
-    }
-    .modal-backdrop {
-        z-index: 99990 !important;
+    /* Clean Modal Stacking */
+    #limitBox, #securityGateModal {
+        z-index: 1055 !important;
     }
 </style>
 @endsection
@@ -439,6 +435,10 @@
         const limitModal = document.getElementById('limitBox');
         if (limitModal && limitModal.parentElement !== document.body) {
             document.body.appendChild(limitModal);
+        }
+        const sgModal = document.getElementById('securityGateModal');
+        if (sgModal && sgModal.parentElement !== document.body) {
+            document.body.appendChild(sgModal);
         }
     });
 

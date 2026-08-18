@@ -186,17 +186,23 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     public function getEffectiveWireMinLimit($defaultLimit = 0): float
     {
-        return !empty($this->custom_wire_min_limit) ? (float) $this->custom_wire_min_limit : (float) $defaultLimit;
+        return (isset($this->custom_wire_min_limit) && $this->custom_wire_min_limit !== '' && is_numeric($this->custom_wire_min_limit))
+            ? (float) $this->custom_wire_min_limit
+            : (float) $defaultLimit;
     }
 
     public function getEffectiveWireMaxLimit($defaultLimit = 0): float
     {
-        return !empty($this->custom_wire_max_limit) ? (float) $this->custom_wire_max_limit : (float) $defaultLimit;
+        return (isset($this->custom_wire_max_limit) && $this->custom_wire_max_limit !== '' && is_numeric($this->custom_wire_max_limit))
+            ? (float) $this->custom_wire_max_limit
+            : (float) $defaultLimit;
     }
 
     public function getEffectiveWireDailyLimit($defaultLimit = 0): float
     {
-        return !empty($this->custom_wire_daily_limit) ? (float) $this->custom_wire_daily_limit : (float) $defaultLimit;
+        return (isset($this->custom_wire_daily_limit) && $this->custom_wire_daily_limit !== '' && is_numeric($this->custom_wire_daily_limit))
+            ? (float) $this->custom_wire_daily_limit
+            : (float) $defaultLimit;
     }
 
     public function scopeStatus($query, $status)

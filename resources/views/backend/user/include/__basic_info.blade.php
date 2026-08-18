@@ -409,8 +409,8 @@
                                              <label for="wire_transfer_status_no" class="restricted-label">{{ __('Restricted') }}</label>
                                          </div>
                                          <div class="extra-small text-muted mt-1" id="wireLimitsSummary">
-                                             @if(!empty($user->custom_wire_max_limit) || !empty($user->custom_wire_daily_limit))
-                                                 <span class="badge bg-info text-dark">{{ __('Custom Limits Active:') }} Max: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_wire_max_limit, 2) }}</span>
+                                             @if(!empty($user->custom_wire_max_limit) || !empty($user->custom_wire_daily_limit) || !empty($user->custom_wire_min_limit))
+                                                 <span class="badge bg-info text-dark">{{ __('Custom Limits Active:') }} Min: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_wire_min_limit ?? 50, 2) }} | Max: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_wire_max_limit ?? 500000, 2) }}</span>
                                              @else
                                                  <span class="text-muted">{{ __('Using system default limits (Min: $50 / Max: $500K / Daily: $1M)') }}</span>
                                              @endif
@@ -444,8 +444,65 @@
                                     </div>
                                 </div>
 
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Phone Verification:') }}</label>
+                                        <div class="switch-field same-type">
+                                            <input type="radio" id="radio-five" name="phone_status" value="1" @checked($user->phone_status) />
+                                            <label for="radio-five">{{ __('Verified') }}</label>
+                                            <input type="radio" id="radio-six" name="phone_status" value="0" @checked(!$user->phone_status) />
+                                            <label for="radio-six">{{ __('Unverified') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
 
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('2FA Authentication:') }}</label>
+                                        <div class="switch-field same-type">
+                                            <input type="radio" id="radio-seven" name="two_fa" value="1" @checked($user->two_fa) />
+                                            <label for="radio-seven">{{ __('Enable') }}</label>
+                                            <input type="radio" id="radio-eight" name="two_fa" value="0" @checked(!$user->two_fa) />
+                                            <label for="radio-eight">{{ __('Disable') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
 
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('KYC:') }}</label>
+                                        <div class="switch-field same-type">
+                                            <input type="radio" id="radio-nine" name="kyc" value="1" @checked($user->kyc == \App\Enums\KYCStatus::Verified) />
+                                            <label for="radio-nine">{{ __('Verified') }}</label>
+                                            <input type="radio" id="radio-ten" name="kyc" value="0" @checked($user->kyc != \App\Enums\KYCStatus::Verified) />
+                                            <label for="radio-ten">{{ __('Unverified') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Email Verification:') }}</label>
+                                        <div class="switch-field same-type">
+                                            <input type="radio" id="radio-eleven" name="ev" value="1" @checked($user->ev) />
+                                            <label for="radio-eleven">{{ __('Verified') }}</label>
+                                            <input type="radio" id="radio-twelve" name="ev" value="0" @checked(!$user->ev) />
+                                            <label for="radio-twelve">{{ __('Unverified') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Account Status:') }}</label>
+                                        <div class="switch-field same-type">
+                                            <input type="radio" id="radio-thirteen" name="status" value="1" @checked($user->status == \App\Enums\KYCStatus::Verified) />
+                                            <label for="radio-thirteen">{{ __('Active') }}</label>
+                                            <input type="radio" id="radio-fourteen" name="status" value="0" @checked($user->status != \App\Enums\KYCStatus::Verified) />
+                                            <label for="radio-fourteen">{{ __('DeActive') }}</label>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 {{-- CONSOLIDATED ASSIGNMENT BLOCK --}}
                                 @if(auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
@@ -489,8 +546,7 @@
                                 @endif
 
                                 <div class="col-xl-12">
-                                    <button type="submit"
-                                            class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>
+                                    <button type="submit" class="site-btn-sm primary-btn w-100 centered" onclick="syncWireLimitsToForm()">{{ __('Save Changes') }}</button>
                                 </div>
 
                             </div>
@@ -561,7 +617,7 @@
                     <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Min Wire Amount') }}</label>
                     <div class="input-group">
                         <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}" placeholder="{{ __('Leave blank for default ($50)') }}">
+                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}" placeholder="{{ __('Leave blank for default ($50)') }}" oninput="syncWireLimitsToForm()">
                     </div>
                 </div>
 
@@ -569,14 +625,14 @@
                     <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Max Wire Amount (Per Transaction)') }}</label>
                     <div class="input-group mb-2">
                         <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}" placeholder="{{ __('Leave blank for default ($500,000)') }}">
+                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}" placeholder="{{ __('Leave blank for default ($500,000)') }}" oninput="syncWireLimitsToForm()">
                     </div>
                     <div class="d-flex gap-1 flex-wrap">
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="document.getElementById('modal_custom_wire_max_limit').value = 100000;">$100K</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="document.getElementById('modal_custom_wire_max_limit').value = 500000;">$500K</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="document.getElementById('modal_custom_wire_max_limit').value = 1000000;">$1M</button>
-                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="document.getElementById('modal_custom_wire_max_limit').value = 5000000;">$5M</button>
-                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 extra-small" onclick="document.getElementById('modal_custom_wire_max_limit').value = '';">{{ __('Clear') }}</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(100000)">$100K</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(500000)">$500K</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(1000000)">$1M</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetMaxLimit(5000000)">$5M</button>
+                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 extra-small" onclick="setPresetMaxLimit('')">{{ __('Clear') }}</button>
                     </div>
                 </div>
 
@@ -584,13 +640,13 @@
                     <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Daily Max Wire Volume') }}</label>
                     <div class="input-group">
                         <span class="input-group-text">{{ setting('currency_symbol', 'global') }}</span>
-                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}" placeholder="{{ __('Leave blank for default ($1,000,000)') }}">
+                        <input type="number" step="0.01" class="form-control" id="modal_custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}" placeholder="{{ __('Leave blank for default ($1,000,000)') }}" oninput="syncWireLimitsToForm()">
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-top p-3 d-flex justify-content-between">
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetWireLimitsToDefault()">{{ __('Reset to Defaults') }}</button>
-                <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" onclick="applyWireLimitsFromModal()" data-bs-dismiss="modal">{{ __('Apply & Close') }}</button>
+                <button type="button" class="btn btn-primary btn-sm px-4 fw-bold" onclick="syncWireLimitsToForm()" data-bs-dismiss="modal">{{ __('Apply & Close') }}</button>
             </div>
         </div>
     </div>
@@ -611,21 +667,36 @@
         }
     }
 
-    function applyWireLimitsFromModal() {
-        const minVal = document.getElementById('modal_custom_wire_min_limit').value;
-        const maxVal = document.getElementById('modal_custom_wire_max_limit').value;
-        const dailyVal = document.getElementById('modal_custom_wire_daily_limit').value;
+    function setPresetMaxLimit(val) {
+        const input = document.getElementById('modal_custom_wire_max_limit');
+        if (input) {
+            input.value = val;
+            syncWireLimitsToForm();
+        }
+    }
 
-        document.getElementById('form_custom_wire_min_limit').value = minVal;
-        document.getElementById('form_custom_wire_max_limit').value = maxVal;
-        document.getElementById('form_custom_wire_daily_limit').value = dailyVal;
+    function syncWireLimitsToForm() {
+        const minVal = document.getElementById('modal_custom_wire_min_limit')?.value ?? '';
+        const maxVal = document.getElementById('modal_custom_wire_max_limit')?.value ?? '';
+        const dailyVal = document.getElementById('modal_custom_wire_daily_limit')?.value ?? '';
+
+        const formMin = document.getElementById('form_custom_wire_min_limit');
+        const formMax = document.getElementById('form_custom_wire_max_limit');
+        const formDaily = document.getElementById('form_custom_wire_daily_limit');
+
+        if (formMin) formMin.value = minVal;
+        if (formMax) formMax.value = maxVal;
+        if (formDaily) formDaily.value = dailyVal;
 
         const summaryEl = document.getElementById('wireLimitsSummary');
         if (summaryEl) {
-            if (maxVal || dailyVal) {
-                summaryEl.innerHTML = '<span class="badge bg-info text-dark">Custom Limits Active: Max: ${{ setting("currency_symbol", "global") }}' + parseFloat(maxVal || 0).toLocaleString() + '</span>';
+            if (maxVal || dailyVal || minVal) {
+                const cur = '{{ setting("currency_symbol", "global") }}' || '$';
+                summaryEl.innerHTML = '<span class="badge bg-info text-dark">Custom Limits Active: ' + 
+                    (minVal ? 'Min: ' + cur + parseFloat(minVal).toLocaleString() + ' | ' : '') + 
+                    (maxVal ? 'Max: ' + cur + parseFloat(maxVal).toLocaleString() : '') + '</span>';
             } else {
-                summaryEl.innerHTML = '<span class="text-muted">Using system default limits</span>';
+                summaryEl.innerHTML = '<span class="text-muted">Using system default limits (Min: $50 / Max: $500K / Daily: $1M)</span>';
             }
         }
     }
@@ -634,6 +705,13 @@
         document.getElementById('modal_custom_wire_min_limit').value = '';
         document.getElementById('modal_custom_wire_max_limit').value = '';
         document.getElementById('modal_custom_wire_daily_limit').value = '';
-        applyWireLimitsFromModal();
+        syncWireLimitsToForm();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const userForm = document.querySelector('form[action="{{ route('admin.user.update', $user->id) }}"]');
+        if (userForm) {
+            userForm.addEventListener('submit', syncWireLimitsToForm);
+        }
+    });
 </script>
