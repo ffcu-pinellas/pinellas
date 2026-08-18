@@ -84,9 +84,9 @@
                                 <div class="icon-circle bg-info bg-opacity-10 text-info mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-university fa-lg"></i>
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">External Bank</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">Send via ACH or Wire to another bank.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">Another Bank</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">External & Wire</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Send via ACH (1-3 days) or Same-Day Wire.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">External & Wire</p>
                             </div>
                         </div>
                     </div>
@@ -119,6 +119,12 @@
                                     Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                     @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                 </option>
+                                @if(auth()->user()->ira_status == 1)
+                                <option value="ira" data-type="ira" data-balance="{{ auth()->user()->ira_balance }}" @disabled(auth()->user()->isRestricted('ira'))>
+                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->ira_balance, 2) }}
+                                    @if(auth()->user()->isRestricted('ira')) (Restricted) @endif
+                                </option>
+                                @endif
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}" @disabled(auth()->user()->isRestricted('heloc'))>
                                     HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
@@ -188,8 +194,17 @@
                             </div>
 
                             <div class="dynamic-field d-none" id="field-external">
+                                <div class="p-3 bg-light rounded-3 border mb-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fas fa-bolt text-warning me-1"></i> {{ __('Need a Fast Domestic or International Wire Transfer?') }}</div>
+                                        <div class="extra-small text-muted">{{ __('Send same-day high-value transfers via Fedwire or global SWIFT network.') }}</div>
+                                    </div>
+                                    <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-bold text-nowrap shadow-xs">
+                                        <i class="fas fa-paper-plane me-1"></i> {{ __('Wire Transfer') }}
+                                    </a>
+                                </div>
                                 <p class="small text-muted mb-0">
-                                    You will enter the recipient’s routing and account information on the next screen. The receiving financial institution is identified from your nine-digit ABA routing number.
+                                    {{ __('Or continue below to send standard External Bank ACH (1-3 Business Days). You will enter the recipient’s routing and account information on the next step.') }}
                                 </p>
                             </div>
                         </div>

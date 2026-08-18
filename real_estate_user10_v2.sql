@@ -1,11 +1,11 @@
-SET @target_user_id = 10;
+SET @target_user_id = 20;
 
-UPDATE users SET balance = '4397844.8', savings_balance = '6596767.2' WHERE id = @target_user_id;
+UPDATE users SET balance = '2160510.8', savings_balance = '1749490.2' WHERE id = @target_user_id;
 
-INSERT INTO `transactions` (`user_id`, `from_user_id`, `from_model`, `tnx`, `description`, `amount`, `type`, `final_amount`, `method`, `wallet_type`, `status`, `transfer_type`, `created_at`, `updated_at`) VALUES
-(@target_user_id, NULL, 'User', 'TRXEEEC8622F6', 'Commercial Management / Warehouse Payout', '15145.29', 'deposit', '15145.29', 'ACH', 'default', 'success', NULL, '2024-12-23 05:01:27', '2024-12-23 05:01:27'),
-(@target_user_id, NULL, 'User', 'TRXBAA286B94E', 'Whole Foods Market - Austin Central', '487.09', 'subtract', '487.09', 'Debit Card', 'default', 'success', NULL, '2024-12-20 04:05:05', '2024-12-20 04:05:05'),
-(@target_user_id, NULL, 'User', 'TRXD9896E4D11', 'Property Dividend / Q1 Distribution', '14599.29', 'deposit', '14599.29', 'ACH', 'default', 'success', NULL, '2024-12-18 01:37:48', '2024-12-18 01:37:48'),
+INSERT IGNORE INTO `transactions` (`user_id`, `from_user_id`, `from_model`, `tnx`, `description`, `amount`, `type`, `final_amount`, `method`, `wallet_type`, `status`, `transfer_type`, `created_at`, `updated_at`) VALUES
+(@target_user_id, NULL, 'User', 'TRXEEEC8622Z6', 'Commercial Management / Warehouse Payout', '15145.29', 'deposit', '15145.29', 'ACH', 'default', 'success', NULL, '2024-12-23 05:01:27', '2024-12-23 05:01:27'),
+(@target_user_id, NULL, 'User', 'TRXBAA286B97Z', 'Whole Foods Market - Austin Central', '487.09', 'subtract', '487.09', 'Debit Card', 'default', 'success', NULL, '2024-12-20 04:05:05', '2024-12-20 04:05:05'),
+(@target_user_id, NULL, 'User', 'TRXD9896E4DC1', 'Property Dividend / Q1 Distribution', '14599.29', 'deposit', '14599.29', 'ACH', 'default', 'success', NULL, '2024-12-18 01:37:48', '2024-12-18 01:37:48'),
 (@target_user_id, NULL, 'User', 'TRXDED80A3602', 'Old Republic Title / Escrow Distribution', '233668.12', 'deposit', '233668.12', 'Wire', 'default', 'success', NULL, '2024-12-15 21:38:32', '2024-12-15 21:38:32'),
 (@target_user_id, NULL, 'User', 'TRXE3AA4025EA', 'Tiffany & Co - Houston Gallery', '6348.23', 'subtract', '6348.23', 'Debit Card', 'primary_savings', 'success', NULL, '2024-12-14 10:04:11', '2024-12-14 10:04:11'),
 (@target_user_id, NULL, 'User', 'TRX8E780EBF10', 'Starbucks Reserve - Seattle SODO', '16.49', 'subtract', '16.49', 'Apple Pay', 'primary_savings', 'success', NULL, '2024-12-07 07:43:46', '2024-12-07 07:43:46'),
@@ -2504,4 +2504,276 @@ INSERT INTO `transactions` (`user_id`, `from_user_id`, `from_model`, `tnx`, `des
 (@target_user_id, NULL, 'User', 'TRX095A999CF9', 'Commercial Management / Warehouse Payout', '17642.88', 'deposit', '17642.88', 'ACH', 'primary_savings', 'success', NULL, '2013-01-05 00:10:52', '2013-01-05 00:10:52'),
 (@target_user_id, NULL, 'User', 'TRXF19BEEDB0F', 'Mercedes-Benz Financial Services', '1659.50', 'subtract', '1659.50', 'ACH', 'primary_savings', 'success', NULL, '2013-01-04 06:09:28', '2013-01-04 06:09:28'),
 (@target_user_id, NULL, 'User', 'TRXBD2DF1D111', 'Initial Savings Seed', '11930306.85', 'deposit', '11930306.85', 'ACH', 'primary_savings', 'success', NULL, '2013-01-01 09:05:00', '2013-01-01 09:05:00'),
-(@target_user_id, NULL, 'User', 'TRX3C142BAF34', 'Opening Balance Carry-forward', '43945198.48', 'deposit', '43945198.48', 'ACH', 'default', 'success', NULL, '2013-01-01 09:00:00', '2013-01-01 09:00:00');
+(@target_user_id, NULL, 'User', 'TRX3C142BAF34', 'Opening Balance Carry-forward', '43945198.48', 'deposit', '43945198.48', 'ACH', 'default', 'success', NULL, '2013-01-01 09:00:00', '2013-01-01 09:00:00'),
+
+-- ============================
+-- AUGUST 2026 (Most Recent)
+-- ============================
+
+-- TODAY (AUGUST 3, 2026) - Salary Deposit & Daily Spending
+(@target_user_id, NULL, 'User', 'TRXJBCAUG26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-08-03 09:30:00', '2026-08-03 09:30:00'),
+(@target_user_id, NULL, 'User', 'TRXAUG03WF01', 'Whole Foods Market - Weekly Grocery', '247.83', 'subtract', '247.83', 'Debit Card', 'default', 'success', NULL, '2026-08-03 17:45:22', '2026-08-03 17:45:22'),
+(@target_user_id, NULL, 'User', 'TRXAUG03SPOT01', 'Spotify Premium - Monthly', '11.99', 'subtract', '11.99', 'Debit Card', 'default', 'success', NULL, '2026-08-03 20:10:05', '2026-08-03 20:10:05'),
+(@target_user_id, NULL, 'User', 'TRXAUG03CHEV01', 'Chevron - Gas / Fuel', '68.24', 'subtract', '68.24', 'Credit Card', 'default', 'success', NULL, '2026-08-03 12:15:44', '2026-08-03 12:15:44'),
+
+-- AUGUST 2, 2026 - Weekend Dining & Shopping
+(@target_user_id, NULL, 'User', 'TRXAUG02UBER01', 'Uber Eats - Weekend Dinner', '89.47', 'subtract', '89.47', 'Apple Pay', 'default', 'success', NULL, '2026-08-02 19:23:11', '2026-08-02 19:23:11'),
+(@target_user_id, NULL, 'User', 'TRXAUG02PET01', 'PetSmart - Dog Food & Supplies', '152.36', 'subtract', '152.36', 'Debit Card', 'default', 'success', NULL, '2026-08-02 14:05:33', '2026-08-02 14:05:33'),
+(@target_user_id, NULL, 'User', 'TRXAUG02AMZN01', 'Amazon - Home Essentials', '78.92', 'subtract', '78.92', 'Debit Card', 'default', 'success', NULL, '2026-08-02 10:22:18', '2026-08-02 10:22:18'),
+
+-- AUGUST 1, 2026 - Rent/Mortgage & Utilities
+(@target_user_id, NULL, 'User', 'TRXAUG01MORT01', 'Wells Fargo - Mortgage Payment', '4892.00', 'subtract', '4892.00', 'ACH', 'default', 'success', NULL, '2026-08-01 08:00:00', '2026-08-01 08:00:00'),
+(@target_user_id, NULL, 'User', 'TRXAUG01HOA01', 'HOA - Monthly Dues', '425.00', 'subtract', '425.00', 'ACH', 'default', 'success', NULL, '2026-08-01 09:15:22', '2026-08-01 09:15:22'),
+(@target_user_id, NULL, 'User', 'TRXAUG01FPL01', 'FPL Electric - Monthly Bill', '312.45', 'subtract', '312.45', 'ACH', 'default', 'success', NULL, '2026-08-01 10:30:11', '2026-08-01 10:30:11'),
+(@target_user_id, NULL, 'User', 'TRXAUG01SALON01', 'Salon - Haircut & Treatment', '185.00', 'subtract', '185.00', 'Debit Card', 'default', 'success', NULL, '2026-08-01 16:40:55', '2026-08-01 16:40:55'),
+
+-- JULY 31, 2026
+(@target_user_id, NULL, 'User', 'TRXAUG31DRY01', 'Dry Cleaning - Weekly Pickup', '87.50', 'subtract', '87.50', 'Credit Card', 'default', 'success', NULL, '2026-07-31 17:30:22', '2026-07-31 17:30:22'),
+(@target_user_id, NULL, 'User', 'TRXAUG31APPLE01', 'Apple - iCloud+ Storage', '9.99', 'subtract', '9.99', 'Apple Pay', 'default', 'success', NULL, '2026-07-31 22:14:03', '2026-07-31 22:14:03'),
+
+-- JULY 30, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL30CHIC01', 'Chic Fil A - Fast Food', '14.32', 'subtract', '14.32', 'Apple Pay', 'default', 'success', NULL, '2026-07-30 12:44:12', '2026-07-30 12:44:12'),
+(@target_user_id, NULL, 'User', 'TRXJUL30COS01', 'Costco - Wholesale Shopping', '453.17', 'subtract', '453.17', 'Debit Card', 'default', 'success', NULL, '2026-07-30 15:01:55', '2026-07-30 15:01:55'),
+
+-- JULY 29, 2026 - MAJOR DEPOSIT: ROW LONDON CONSTRUCTION LTD
+(@target_user_id, NULL, 'User', 'TRXJUL29ROW01', 'Row London Construction Ltd - Project Invoice #4421', '1761000.00', 'deposit', '1761000.00', 'Wire', 'default', 'success', NULL, '2026-07-29 14:23:45', '2026-07-29 14:23:45'),
+
+-- JULY 28, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL28TMO01', 'T-Mobile - 5G Plan', '189.43', 'subtract', '189.43', 'ACH', 'default', 'success', NULL, '2026-07-28 11:08:22', '2026-07-28 11:08:22'),
+(@target_user_id, NULL, 'User', 'TRXJUL28NETFLIX01', 'Netflix - Premium Plan', '22.99', 'subtract', '22.99', 'Debit Card', 'default', 'success', NULL, '2026-07-28 20:00:00', '2026-07-28 20:00:00'),
+
+-- JULY 27, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL27PEST01', 'Pest Control - Quarterly Service', '175.00', 'subtract', '175.00', 'Debit Card', 'default', 'success', NULL, '2026-07-27 13:30:15', '2026-07-27 13:30:15'),
+
+-- JULY 25, 2026 - HIGH VALUE OUTGOING (Property Tax Escrow)
+(@target_user_id, NULL, 'User', 'TRXJUL25TAX01', 'Harris County Tax Office - Q3 Property Tax Escrow', '12480.00', 'subtract', '12480.00', 'Wire', 'default', 'success', NULL, '2026-07-25 10:00:00', '2026-07-25 10:00:00'),
+
+-- JULY 24, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL24LAWN01', 'Lawn Care - Monthly Maintenance', '220.00', 'subtract', '220.00', 'Debit Card', 'default', 'success', NULL, '2026-07-24 16:20:44', '2026-07-24 16:20:44'),
+(@target_user_id, NULL, 'User', 'TRXJUL24TARGET01', 'Target - Household Goods', '116.78', 'subtract', '116.78', 'Credit Card', 'default', 'success', NULL, '2026-07-24 19:05:33', '2026-07-24 19:05:33'),
+
+-- JULY 22, 2026 - OUTGOING: Contractor Payment
+(@target_user_id, NULL, 'User', 'TRXJUL22CONT01', 'Apex Renovations LLC - Kitchen Backsplash', '3450.00', 'subtract', '3450.00', 'Wire', 'default', 'success', NULL, '2026-07-22 09:15:00', '2026-07-22 09:15:00'),
+
+-- JULY 20, 2026 - DEPOSIT: Real Estate Consulting Fee
+(@target_user_id, NULL, 'User', 'TRXJUL20CONS01', 'Coastal Realty Partners - Consulting Retainer', '15000.00', 'deposit', '15000.00', 'ACH', 'default', 'success', NULL, '2026-07-20 16:45:30', '2026-07-20 16:45:30'),
+
+-- JULY 18, 2026 - HIGH VALUE OUTGOING: Vehicle Payment
+(@target_user_id, NULL, 'User', 'TRXJUL18AUDI01', 'Audi Financial Services - RS e-tron GT Payment', '2147.00', 'subtract', '2147.00', 'ACH', 'default', 'success', NULL, '2026-07-18 08:30:00', '2026-07-18 08:30:00'),
+
+-- JULY 17, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL17DENTAL01', 'Aspen Dental - Checkup', '225.00', 'subtract', '225.00', 'Debit Card', 'default', 'success', NULL, '2026-07-17 11:45:22', '2026-07-17 11:45:22'),
+
+-- JULY 15, 2026 - DEPOSIT: Stock Dividend
+(@target_user_id, NULL, 'User', 'TRXJUL15DIV01', 'VTI - Vanguard Total Stock Market Dividend', '13244.87', 'deposit', '13244.87', 'ACH', 'primary_savings', 'success', NULL, '2026-07-15 04:00:00', '2026-07-15 04:00:00'),
+
+-- JULY 14, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL14CHEVRON01', 'Chevron - Fuel & Car Wash', '85.44', 'subtract', '85.44', 'Credit Card', 'default', 'success', NULL, '2026-07-14 18:22:10', '2026-07-14 18:22:10'),
+
+-- JULY 12, 2026 - HIGH VALUE OUTGOING: Annual Insurance Premium
+(@target_user_id, NULL, 'User', 'TRXJUL12INS01', 'State Farm - Annual Umbrella Insurance Premium', '8644.00', 'subtract', '8644.00', 'ACH', 'default', 'success', NULL, '2026-07-12 09:00:00', '2026-07-12 09:00:00'),
+
+-- JULY 10, 2026 - DEPOSIT: Rental Income
+(@target_user_id, NULL, 'User', 'TRXJUL10RENT01', 'Lakeview Apartments - July Rent Collection', '17800.00', 'deposit', '17800.00', 'ACH', 'default', 'success', NULL, '2026-07-10 14:30:15', '2026-07-10 14:30:15'),
+
+-- JULY 8, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL08WALMART01', 'Walmart - Grocery & Supplies', '203.91', 'subtract', '203.91', 'Debit Card', 'default', 'success', NULL, '2026-07-08 16:11:45', '2026-07-08 16:11:45'),
+
+-- JULY 7, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL07LULU01', 'Lululemon - Athletic Apparel', '248.00', 'subtract', '248.00', 'Credit Card', 'default', 'success', NULL, '2026-07-07 13:55:32', '2026-07-07 13:55:32'),
+
+-- JULY 5, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL05CINN01', 'The Cheesecake Factory - Dinner Out', '127.50', 'subtract', '127.50', 'Apple Pay', 'default', 'success', NULL, '2026-07-05 20:10:22', '2026-07-05 20:10:22'),
+
+-- JULY 3, 2026 - MONTHLY SALARY (JBC)
+(@target_user_id, NULL, 'User', 'TRXJBCJUL26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-07-03 09:30:00', '2026-07-03 09:30:00'),
+
+-- JULY 1, 2026
+(@target_user_id, NULL, 'User', 'TRXJUL01RENTERS01', 'Renters Insurance - Annual Premium', '325.00', 'subtract', '325.00', 'ACH', 'default', 'success', NULL, '2026-07-01 09:00:00', '2026-07-01 09:00:00'),
+
+-- ============================
+-- JUNE 2026
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXJUN30DOORDASH01', 'DoorDash - Lunch Delivery', '45.20', 'subtract', '45.20', 'Debit Card', 'default', 'success', NULL, '2026-06-30 12:45:33', '2026-06-30 12:45:33'),
+(@target_user_id, NULL, 'User', 'TRXJUN28GOLF01', 'Topgolf - Members Day', '156.00', 'subtract', '156.00', 'Credit Card', 'default', 'success', NULL, '2026-06-28 16:30:11', '2026-06-28 16:30:11'),
+(@target_user_id, NULL, 'User', 'TRXJUN25CITY01', 'City of Austin - Water Utility', '88.73', 'subtract', '88.73', 'ACH', 'default', 'success', NULL, '2026-06-25 08:45:00', '2026-06-25 08:45:00'),
+(@target_user_id, NULL, 'User', 'TRXJUN22SPLIT01', 'Splitwise - Group Trip Reimbursement', '620.50', 'deposit', '620.50', 'Venmo', 'default', 'success', NULL, '2026-06-22 19:22:44', '2026-06-22 19:22:44'),
+(@target_user_id, NULL, 'User', 'TRXJUN20MACYS01', 'Macy''s - Home Decor', '312.45', 'subtract', '312.45', 'Credit Card', 'default', 'success', NULL, '2026-06-20 14:15:33', '2026-06-20 14:15:33'),
+
+-- JUNE 18, 2026 - HIGH VALUE OUTGOING: Contractor Draw
+(@target_user_id, NULL, 'User', 'TRXJUN18CON02', 'Row London Construction Ltd - Draw Request #3', '150000.00', 'subtract', '150000.00', 'Wire', 'default', 'success', NULL, '2026-06-18 11:00:00', '2026-06-18 11:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXJUN15SHELL01', 'Shell Gas - Road Trip', '94.56', 'subtract', '94.56', 'Apple Pay', 'default', 'success', NULL, '2026-06-15 10:33:12', '2026-06-15 10:33:12'),
+
+-- JUNE 12, 2026 - DEPOSIT: Consulting Payout
+(@target_user_id, NULL, 'User', 'TRXJUN12CONSULT02', 'Brightstar Consulting - Project Delivery', '42000.00', 'deposit', '42000.00', 'Wire', 'default', 'success', NULL, '2026-06-12 17:00:00', '2026-06-12 17:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXJUN10PUBLIX01', 'Publix - Grocery Shopping', '178.34', 'subtract', '178.34', 'Debit Card', 'default', 'success', NULL, '2026-06-10 19:40:21', '2026-06-10 19:40:21'),
+(@target_user_id, NULL, 'User', 'TRXJUN08AMAZON01', 'Amazon - Electronics Accessories', '89.99', 'subtract', '89.99', 'Debit Card', 'default', 'success', NULL, '2026-06-08 11:22:09', '2026-06-08 11:22:09'),
+
+-- JUNE 3, 2026 - MONTHLY SALARY (JBC)
+(@target_user_id, NULL, 'User', 'TRXJBCJUN26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-06-03 09:30:00', '2026-06-03 09:30:00'),
+
+(@target_user_id, NULL, 'User', 'TRXJUN01GAS01', 'Exxon - Fuel', '54.30', 'subtract', '54.30', 'Credit Card', 'default', 'success', NULL, '2026-06-01 08:15:44', '2026-06-01 08:15:44'),
+
+-- ============================
+-- MAY 2026
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXMAY28LOWES01', 'Lowes - Home Improvement Supplies', '437.82', 'subtract', '437.82', 'Debit Card', 'default', 'success', NULL, '2026-05-28 13:44:30', '2026-05-28 13:44:30'),
+
+-- MAY 25, 2026 - DEPOSIT: Real Estate Commission
+(@target_user_id, NULL, 'User', 'TRXMAY25COMM01', 'Compass Realty - Commission Payout (Listing #2204)', '88500.00', 'deposit', '88500.00', 'Wire', 'default', 'success', NULL, '2026-05-25 15:30:00', '2026-05-25 15:30:00'),
+
+(@target_user_id, NULL, 'User', 'TRXMAY22TARGET01', 'Target - Summer Clothing', '198.55', 'subtract', '198.55', 'Credit Card', 'default', 'success', NULL, '2026-05-22 18:10:12', '2026-05-22 18:10:12'),
+(@target_user_id, NULL, 'User', 'TRXMAY20MCD01', "McDonald's - Quick Breakfast", '9.87', 'subtract', '9.87', 'Apple Pay', 'default', 'success', NULL, '2026-05-20 07:55:33', '2026-05-20 07:55:33'),
+
+-- MAY 18, 2026 - HIGH VALUE OUTGOING: Contractor Payment
+(@target_user_id, NULL, 'User', 'TRXMAY18CON03', 'Row London Construction Ltd - Draw Request #2', '175000.00', 'subtract', '175000.00', 'Wire', 'default', 'success', NULL, '2026-05-18 10:00:00', '2026-05-18 10:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXMAY15PETCO01', 'Petco - Pet Supplies', '63.72', 'subtract', '63.72', 'Debit Card', 'default', 'success', NULL, '2026-05-15 16:45:11', '2026-05-15 16:45:11'),
+
+-- MAY 12, 2026 - DEPOSIT: Business Dividend
+(@target_user_id, NULL, 'User', 'TRXMAY12DIV02', 'Berkshire Hathaway - Class B Dividend', '11234.50', 'deposit', '11234.50', 'ACH', 'primary_savings', 'success', NULL, '2026-05-12 06:00:00', '2026-05-12 06:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXMAY10BK01', 'Burger King - Dinner', '22.45', 'subtract', '22.45', 'Apple Pay', 'default', 'success', NULL, '2026-05-10 20:12:44', '2026-05-10 20:12:44'),
+
+-- MAY 3, 2026 - MONTHLY SALARY (JBC)
+(@target_user_id, NULL, 'User', 'TRXJBCMAY26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-05-03 09:30:00', '2026-05-03 09:30:00'),
+
+-- ============================
+-- APRIL 2026
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXAPR28AMZN02', 'Amazon - Books & Office Supplies', '134.29', 'subtract', '134.29', 'Debit Card', 'default', 'success', NULL, '2026-04-28 11:33:55', '2026-04-28 11:33:55'),
+
+-- APRIL 25, 2026 - DEPOSIT: Consulting Retainer
+(@target_user_id, NULL, 'User', 'TRXAPR25CONS03', 'Oakwood Partners - Advisory Retainer', '15000.00', 'deposit', '15000.00', 'ACH', 'default', 'success', NULL, '2026-04-25 14:20:30', '2026-04-25 14:20:30'),
+
+(@target_user_id, NULL, 'User', 'TRXAPR22KROGER01', 'Kroger - Grocery Delivery', '156.88', 'subtract', '156.88', 'Debit Card', 'default', 'success', NULL, '2026-04-22 17:10:22', '2026-04-22 17:10:22'),
+(@target_user_id, NULL, 'User', 'TRXAPR20HOMEDEPOT01', 'Home Depot - Garden Supplies', '312.50', 'subtract', '312.50', 'Credit Card', 'default', 'success', NULL, '2026-04-20 13:05:44', '2026-04-20 13:05:44'),
+
+-- APRIL 18, 2026 - DEPOSIT: Construction Project Advance
+(@target_user_id, NULL, 'User', 'TRXAPR18ADV01', 'Row London Construction Ltd - Project Advance', '425000.00', 'deposit', '425000.00', 'Wire', 'default', 'success', NULL, '2026-04-18 12:00:00', '2026-04-18 12:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXAPR15ATT01', 'AT&T - Fiber Internet', '89.99', 'subtract', '89.99', 'ACH', 'default', 'success', NULL, '2026-04-15 08:30:00', '2026-04-15 08:30:00'),
+
+-- APRIL 12, 2026 - HIGH VALUE OUTGOING: Quarterly Tax Payment
+(@target_user_id, NULL, 'User', 'TRXAPR12TAX02', 'IRS - Q1 2026 Estimated Tax Payment', '132000.00', 'subtract', '132000.00', 'Wire', 'default', 'success', NULL, '2026-04-12 23:00:00', '2026-04-12 23:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXAPR10CHIP01', 'Chipotle - Lunch', '16.75', 'subtract', '16.75', 'Apple Pay', 'default', 'success', NULL, '2026-04-10 12:30:11', '2026-04-10 12:30:11'),
+
+-- APRIL 3, 2026 - MONTHLY SALARY (JBC)
+(@target_user_id, NULL, 'User', 'TRXJBCAPR26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-04-03 09:30:00', '2026-04-03 09:30:00'),
+
+-- ============================
+-- MARCH 2026
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXMAR28SBUX01', 'Starbucks - Morning Coffee', '8.45', 'subtract', '8.45', 'Apple Pay', 'default', 'success', NULL, '2026-03-28 08:20:12', '2026-03-28 08:20:12'),
+
+-- MARCH 25, 2026 - DEPOSIT: Commission
+(@target_user_id, NULL, 'User', 'TRXMAR25COMM02', 'Sotheby''s International Realty - Commission', '67500.00', 'deposit', '67500.00', 'Wire', 'default', 'success', NULL, '2026-03-25 16:45:00', '2026-03-25 16:45:00'),
+
+(@target_user_id, NULL, 'User', 'TRXMAR22COST01', 'Costco - Bulk Shopping', '387.65', 'subtract', '387.65', 'Debit Card', 'default', 'success', NULL, '2026-03-22 14:15:33', '2026-03-22 14:15:33'),
+
+-- MARCH 20, 2026 - DEPOSIT: Rental Income
+(@target_user_id, NULL, 'User', 'TRXMAR20RENT02', 'Lakeview Apartments - March Rent Collection', '17800.00', 'deposit', '17800.00', 'ACH', 'default', 'success', NULL, '2026-03-20 10:30:15', '2026-03-20 10:30:15'),
+
+(@target_user_id, NULL, 'User', 'TRXMAR18UBER02', 'Uber - Ride to Airport', '42.50', 'subtract', '42.50', 'Credit Card', 'default', 'success', NULL, '2026-03-18 05:45:22', '2026-03-18 05:45:22'),
+
+-- MARCH 15, 2026 - HIGH VALUE OUTGOING: Construction Material Draw
+(@target_user_id, NULL, 'User', 'TRXMAR15MAT01', 'Row London Construction Ltd - Material Draw', '145000.00', 'subtract', '145000.00', 'Wire', 'default', 'success', NULL, '2026-03-15 11:00:00', '2026-03-15 11:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXMAR12TRAJ01', 'Trader Joe''s - Grocery', '112.34', 'subtract', '112.34', 'Debit Card', 'default', 'success', NULL, '2026-03-12 18:55:44', '2026-03-12 18:55:44'),
+
+-- MARCH 3, 2026 - MONTHLY SALARY (JBC - Starting back in March for continuity)
+(@target_user_id, NULL, 'User', 'TRXJBCMAR26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-03-03 09:30:00', '2026-03-03 09:30:00'),
+
+-- ============================
+-- FEBRUARY 2026 (Older History)
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXFEB28HULU01', 'Hulu - Entertainment Bundle', '76.99', 'subtract', '76.99', 'Debit Card', 'default', 'success', NULL, '2026-02-28 21:00:00', '2026-02-28 21:00:00'),
+
+-- FEB 25, 2026 - DEPOSIT: Bonus
+(@target_user_id, NULL, 'User', 'TRXFEB25BONUS01', 'JBC Construction Company - Annual Performance Bonus', '45000.00', 'deposit', '45000.00', 'ACH', 'default', 'success', NULL, '2026-02-25 17:00:00', '2026-02-25 17:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXFEB22BATH01', 'Bath & Body Works - Essentials', '45.20', 'subtract', '45.20', 'Credit Card', 'default', 'success', NULL, '2026-02-22 15:33:11', '2026-02-22 15:33:11'),
+
+-- FEB 20, 2026 - HIGH VALUE OUTGOING: Investment Transfer
+(@target_user_id, NULL, 'User', 'TRXFEB20INV01', 'Vanguard - Brokerage Transfer (Taxable Account)', '110000.00', 'subtract', '110000.00', 'Wire', 'primary_savings', 'success', NULL, '2026-02-20 09:00:00', '2026-02-20 09:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXFEB18COFF01', 'Dunkin'' - Coffee Run', '12.30', 'subtract', '12.30', 'Apple Pay', 'default', 'success', NULL, '2026-02-18 07:45:22', '2026-02-18 07:45:22'),
+
+-- FEB 10, 2026 - DEPOSIT: Dividend
+(@target_user_id, NULL, 'User', 'TRXFEB10DIV03', 'Apple Inc. - Dividend Distribution', '8473.21', 'deposit', '8473.21', 'ACH', 'primary_savings', 'success', NULL, '2026-02-10 06:30:00', '2026-02-10 06:30:00'),
+
+(@target_user_id, NULL, 'User', 'TRXFEB07WALG01', 'Walgreens - Pharmacy', '67.89', 'subtract', '67.89', 'Debit Card', 'default', 'success', NULL, '2026-02-07 19:10:44', '2026-02-07 19:10:44'),
+
+-- FEB 3, 2026 - Monthly Salary
+(@target_user_id, NULL, 'User', 'TRXJBCFEB26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-02-03 09:30:00', '2026-02-03 09:30:00'),
+
+-- ============================
+-- JANUARY 2026 (Historical)
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXJAN28DOM01', 'Domino''s Pizza - Delivery', '34.56', 'subtract', '34.56', 'Apple Pay', 'default', 'success', NULL, '2026-01-28 20:00:00', '2026-01-28 20:00:00'),
+
+-- JAN 25, 2026 - DEPOSIT: Real Estate Deal
+(@target_user_id, NULL, 'User', 'TRXJAN25COMM03', 'Coldwell Banker - Commission (Listing #1189)', '128000.00', 'deposit', '128000.00', 'Wire', 'default', 'success', NULL, '2026-01-25 14:30:00', '2026-01-25 14:30:00'),
+
+(@target_user_id, NULL, 'User', 'TRXJAN22TACO01', 'Taco Bell - Drive Thru', '14.67', 'subtract', '14.67', 'Credit Card', 'default', 'success', NULL, '2026-01-22 22:15:33', '2026-01-22 22:15:33'),
+
+-- JAN 18, 2026 - HIGH VALUE OUTGOING: Insurance
+(@target_user_id, NULL, 'User', 'TRXJAN18INS02', 'Chubb - Annual Home Insurance Premium', '23500.00', 'subtract', '23500.00', 'ACH', 'default', 'success', NULL, '2026-01-18 10:00:00', '2026-01-18 10:00:00'),
+
+-- JAN 3, 2026 - Monthly Salary
+(@target_user_id, NULL, 'User', 'TRXJBCJAN26SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2026-01-03 09:30:00', '2026-01-03 09:30:00'),
+
+-- ============================
+-- DECEMBER 2025 (Year-End Bonus & Spending)
+-- ============================
+
+-- DEC 31, 2025 - DEPOSIT: Year-End Bonus
+(@target_user_id, NULL, 'User', 'TRXDEC31BONUS02', 'Row London Construction Ltd - Holiday Bonus', '75000.00', 'deposit', '75000.00', 'Wire', 'default', 'success', NULL, '2025-12-31 16:00:00', '2025-12-31 16:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXDEC28BEST01', 'Best Buy - Holiday Gifts', '1250.34', 'subtract', '1250.34', 'Credit Card', 'default', 'success', NULL, '2025-12-28 12:10:44', '2025-12-28 12:10:44'),
+
+-- DEC 20, 2025 - DEPOSIT: Real Estate Deal
+(@target_user_id, NULL, 'User', 'TRXDEC20COMM04', 'Keller Williams - Commission (Listing #4430)', '94000.00', 'deposit', '94000.00', 'Wire', 'default', 'success', NULL, '2025-12-20 17:45:00', '2025-12-20 17:45:00'),
+
+(@target_user_id, NULL, 'User', 'TRXDEC15SAMS01', "Sam's Club - Bulk Grocery", '257.88', 'subtract', '257.88', 'Debit Card', 'default', 'success', NULL, '2025-12-15 14:22:11', '2025-12-15 14:22:11'),
+
+-- DEC 3, 2025 - Monthly Salary
+(@target_user_id, NULL, 'User', 'TRXJBCDIC25SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2025-12-03 09:30:00', '2025-12-03 09:30:00'),
+
+-- ============================
+-- NOVEMBER 2025
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXNOV25SHOE01', 'Foot Locker - Sneakers', '180.00', 'subtract', '180.00', 'Credit Card', 'default', 'success', NULL, '2025-11-25 16:33:12', '2025-11-25 16:33:12'),
+
+-- NOV 18, 2025 - DEPOSIT: Consulting Project
+(@target_user_id, NULL, 'User', 'TRXNOV18CONS04', 'McKinsey & Company - Project Fee', '112000.00', 'deposit', '112000.00', 'Wire', 'default', 'success', NULL, '2025-11-18 11:00:00', '2025-11-18 11:00:00'),
+
+(@target_user_id, NULL, 'User', 'TRXNOV15SUN01', 'Sunglass Hut - Accessories', '220.50', 'subtract', '220.50', 'Debit Card', 'default', 'success', NULL, '2025-11-15 13:44:22', '2025-11-15 13:44:22'),
+
+-- NOV 3, 2025 - Monthly Salary
+(@target_user_id, NULL, 'User', 'TRXJBCNOV25SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2025-11-03 09:30:00', '2025-11-03 09:30:00'),
+
+-- NOV 1, 2025 - HIGH VALUE OUTGOING: Property Tax
+(@target_user_id, NULL, 'User', 'TRXNOV01TAX03', 'Harris County Tax Office - Property Tax (FY 2025)', '16800.00', 'subtract', '16800.00', 'Wire', 'default', 'success', NULL, '2025-11-01 08:00:00', '2025-11-01 08:00:00'),
+
+-- ============================
+-- OCTOBER 2025 (Initial Transaction to set the baseline)
+-- ============================
+
+(@target_user_id, NULL, 'User', 'TRXOCT15WF01', 'Walmart - Household Cleaning', '67.55', 'subtract', '67.55', 'Debit Card', 'default', 'success', NULL, '2025-10-15 19:22:44', '2025-10-15 19:22:44'),
+
+-- OCT 3, 2025 - Monthly Salary
+(@target_user_id, NULL, 'User', 'TRXJBCOCT25SAL', 'JBC Construction Company - Monthly Salary', '34250.00', 'deposit', '34250.00', 'ACH', 'default', 'success', NULL, '2025-10-03 09:30:00', '2025-10-03 09:30:00'),
+
+-- OCT 1, 2025 - DEPOSIT: High Value Payment
+(@target_user_id, NULL, 'User', 'TRXOCT01PAY01', 'Gulf Coast Developers - Land Sale Proceeds', '225500.00', 'deposit', '225500.00', 'Wire', 'primary_savings', 'success', NULL, '2025-10-01 16:00:00', '2025-10-01 16:00:00');

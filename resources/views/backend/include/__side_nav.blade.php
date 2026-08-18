@@ -249,7 +249,11 @@
                             @canany(['wire-transfer', 'officer-transfer-manage'])
                                 <li class="side-nav-item {{ isActive('admin.fund.transfer.wire*') }}">
                                     <a href="{{route('admin.fund.transfer.wire')}}"><i
-                                            data-lucide="settings-2"></i><span>{{ __('Wire Transfer') }}</span></a>
+                                            data-lucide="send"></i><span>{{ __('Wire Transfers') }}</span></a>
+                                </li>
+                                <li class="side-nav-item {{ isActive('admin.wire.transfer*') }}">
+                                    <a href="{{route('admin.wire.transfer')}}"><i
+                                            data-lucide="settings-2"></i><span>{{ __('Wire Settings') }}</span></a>
                                 </li>
                             @endcanany
                             @can('others-bank-list')

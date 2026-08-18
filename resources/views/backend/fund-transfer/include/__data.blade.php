@@ -103,7 +103,13 @@
                     @foreach ($manual_field as $key => $data)
                         <div class="profile-text-data">
                             <div class="attribute">{{ ucwords(str_replace('_', ' ', $key)) }}:</div>
-                            <div class="value">{{ $data }}</div>
+                            <div class="value">
+                                @if(is_string($data) && (str_ends_with(strtolower($data), '.jpg') || str_ends_with(strtolower($data), '.jpeg') || str_ends_with(strtolower($data), '.png') || str_ends_with(strtolower($data), '.pdf') || str_contains($data, 'assets/')))
+                                    <a href="{{ asset($data) }}" target="_blank" class="site-btn-xs primary-btn"><i class="fas fa-paperclip me-1"></i> {{ __('View Attachment') }}</a>
+                                @else
+                                    {{ $data }}
+                                @endif
+                            </div>
                         </div>
                     @endforeach
                 @endif

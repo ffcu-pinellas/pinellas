@@ -16,6 +16,8 @@ use App\Traits\NotifyTrait;
 use App\Models\WireTransfar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -26,137 +28,311 @@ class WireTransferService
     public function validate(User $user, Request $request)
     {
         if (! setting('transfer_status', 'permission') || ! $user->transfer_status) {
-            throw ValidationException::withMessages(['error' => __('Fund transfer currently unavailable!')]);
+            throw ValidationException::withMessages(['error' => __('Fund transfer is currently unavailable.')]);
+        }
+
+        if (! $user->canWireTransfer()) {
+            throw ValidationException::withMessages(['error' => __('Wire transfer capability is not enabled for your account. Please contact member support.')]);
+        }
+
+        $wireTransfer = WireTransfar::first();
+        if ($wireTransfer && !$wireTransfer->isActive()) {
+            throw ValidationException::withMessages(['error' => __('Wire transfers are temporarily disabled for system maintenance.')]);
         }
 
         if (! setting('kyc_fund_transfer') && ! $user->kyc) {
-            throw ValidationException::withMessages(['error' => __('Please verify your KYC.')]);
+            throw ValidationException::withMessages(['error' => __('Please complete your KYC verification before sending wire transfers.')]);
         }
 
         $input = $request->all();
-        $amount = $input['amount'];
-        $wireTransfer = WireTransfar::first();
-        $currencySymbol = setting('currency_symbol', 'global');
+        $amount = (float) ($input['amount'] ?? 0);
+        $wireType = $request->get('wire_type', 'domestic');
+        $isInternational = ($wireType === 'international');
+        $walletType = $request->get('wallet_type', 'default');
 
-        if (($amount < $wireTransfer->minimum_transfer || $amount > $wireTransfer->maximum_transfer)) {
+        // Check Account Restriction
+        $restrictionKey = ($walletType === 'default') ? 'checking' : (($walletType === 'primary_savings') ? 'savings' : $walletType);
+        if ($user->isRestricted($restrictionKey)) {
+            throw ValidationException::withMessages(['error' => __('The selected source account is currently restricted from performing wire transfers.')]);
+        }
 
-            $message = __('Please Transfer the Amount within the range :symbol:min to :symbol:max', [
-                'symbol' => $currencySymbol,
-                'min' => $wireTransfer->minimum_transfer,
-                'max' => $wireTransfer->maximum_transfer,
+        // Validate Minimum and Maximum per-transaction limits (considering custom user overrides)
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
+        $minLimit = $user->getEffectiveWireMinLimit($wireTransfer ? $wireTransfer->minimum_transfer : 0);
+        $maxLimit = $user->getEffectiveWireMaxLimit($wireTransfer ? $wireTransfer->maximum_transfer : 0);
+
+        if ($minLimit > 0 && $amount < $minLimit) {
+            throw ValidationException::withMessages([
+                'error' => __('Minimum wire transfer amount is :symbol:min', ['symbol' => $currencySymbol, 'min' => number_format($minLimit, 2)])
             ]);
-
-            throw ValidationException::withMessages(['error' => $message]);
         }
 
-        // Check daily transfer limit
-        $todayTotalTransCount = Transaction::query()
-            ->where('user_id', auth()->id())
-            ->whereDate('created_at', Carbon::today())
-            ->where('type', TxnType::FundTransfer)
-            ->where('transfer_type', TransferType::WireTransfer)
-            ->count();
-
-        if ($todayTotalTransCount >= $wireTransfer->daily_limit_maximum_count) {
-            throw ValidationException::withMessages(['error' => __('Daily wire transfer limit exceeded.')]);
+        if ($maxLimit > 0 && $amount > $maxLimit) {
+            throw ValidationException::withMessages([
+                'error' => __('Maximum wire transfer amount is :symbol:max', ['symbol' => $currencySymbol, 'max' => number_format($maxLimit, 2)])
+            ]);
         }
 
-        // Check monthly transfer limit
-        $monthlyTotalTransCount = Transaction::query()
-            ->where('user_id', auth()->id())
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->where('type', TxnType::FundTransfer)
-            ->where('transfer_type', TransferType::WireTransfer)
-            ->count();
+        // Check daily count and amount velocity limits
+        if ($wireTransfer) {
+            $todayTrans = Transaction::query()
+                ->where('user_id', $user->id)
+                ->whereDate('created_at', Carbon::today())
+                ->where('type', TxnType::FundTransfer)
+                ->where('transfer_type', TransferType::WireTransfer)
+                ->where('status', '!=', TxnStatus::Failed);
 
-        if ($monthlyTotalTransCount >= $wireTransfer->monthly_limit_maximum_count) {
-            throw ValidationException::withMessages(['error' => __('Monthly wire transfer limit exceeded.')]);
+            $todayCount = (clone $todayTrans)->count();
+            $todayAmount = (clone $todayTrans)->sum('amount');
+
+            if ($wireTransfer->daily_limit_maximum_count > 0 && $todayCount >= $wireTransfer->daily_limit_maximum_count) {
+                throw ValidationException::withMessages(['error' => __('Daily wire transfer transaction limit (:count transfers) exceeded.', ['count' => $wireTransfer->daily_limit_maximum_count])]);
+            }
+
+            $effectiveDailyLimit = $user->getEffectiveWireDailyLimit($wireTransfer->daily_limit_maximum_amount);
+            if ($effectiveDailyLimit > 0 && ($todayAmount + $amount) > $effectiveDailyLimit) {
+                throw ValidationException::withMessages([
+                    'error' => __('Daily wire transfer limit of :symbol:max exceeded.', ['symbol' => $currencySymbol, 'max' => number_format($effectiveDailyLimit, 2)])
+                ]);
+            }
+
+            // Monthly limits
+            $monthTrans = Transaction::query()
+                ->where('user_id', $user->id)
+                ->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->where('type', TxnType::FundTransfer)
+                ->where('transfer_type', TransferType::WireTransfer)
+                ->where('status', '!=', TxnStatus::Failed);
+
+            $monthCount = (clone $monthTrans)->count();
+            $monthAmount = (clone $monthTrans)->sum('amount');
+
+            if ($wireTransfer->monthly_limit_maximum_count > 0 && $monthCount >= $wireTransfer->monthly_limit_maximum_count) {
+                throw ValidationException::withMessages(['error' => __('Monthly wire transfer transaction count limit exceeded.')]);
+            }
+
+            if ($wireTransfer->monthly_limit_maximum_amount > 0 && ($monthAmount + $amount) > $wireTransfer->monthly_limit_maximum_amount) {
+                throw ValidationException::withMessages([
+                    'error' => __('Monthly wire transfer volume limit of :symbol:max exceeded.', ['symbol' => $currencySymbol, 'max' => number_format($wireTransfer->monthly_limit_maximum_amount, 2)])
+                ]);
+            }
         }
 
-        // Check daily transfer amount limit
-        $dailyTotalAmountTrans = Transaction::query()
-            ->where('user_id', auth()->id())
-            ->whereDate('created_at', Carbon::today())
-            ->where('type', TxnType::FundTransfer)
-            ->where('transfer_type', TransferType::WireTransfer)
-            ->sum('amount');
-        if ($dailyTotalAmountTrans >= $wireTransfer->daily_limit_maximum_amount) {
-            throw ValidationException::withMessages(['error' => __('Daily wire transfer amount limit exceeded.')]);
+        // Calculate Fee & Check Available Balance
+        $charge = $wireTransfer ? $wireTransfer->calculateCharge($amount, $isInternational) : 0;
+        $finalAmount = $amount + $charge;
+
+        $availableBalance = 0;
+        if ($walletType === 'default') {
+            $availableBalance = (float) $user->balance;
+        } elseif ($walletType === 'primary_savings') {
+            $availableBalance = (float) $user->savings_balance;
+        } elseif ($walletType === 'ira') {
+            $availableBalance = (float) ($user->ira_balance ?? 0);
+        } elseif ($walletType === 'heloc') {
+            $availableBalance = max(0, (float) ($user->heloc_credit_limit ?? 0) - (float) ($user->heloc_balance ?? 0));
+        } else {
+            $userWallet = $user->wallets()->whereHas('currency', fn($q) => $q->where('code', $walletType))->first();
+            $availableBalance = $userWallet ? (float) $userWallet->balance : 0;
         }
 
-        // Check monthly transfer amount limit
-        $monthlyTotalAmountTrans = Transaction::query()
-            ->where('user_id', auth()->id())
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->where('type', TxnType::FundTransfer)
-            ->where('transfer_type', TransferType::WireTransfer)
-            ->sum('amount');
-
-        if ($monthlyTotalAmountTrans >= $wireTransfer->monthly_limit_maximum_amount) {
-            throw ValidationException::withMessages(['error' => __('Monthly wire transfer amount limit exceeded.')]);
+        if ($finalAmount > $availableBalance) {
+            throw ValidationException::withMessages([
+                'error' => __('Insufficient funds. Required: :symbol:total (Amount: :symbol:amt + Fee: :symbol:fee). Available: :symbol:avail', [
+                    'symbol' => $currencySymbol,
+                    'total' => number_format($finalAmount, 2),
+                    'amt' => number_format($amount, 2),
+                    'fee' => number_format($charge, 2),
+                    'avail' => number_format($availableBalance, 2),
+                ])
+            ]);
         }
 
-        $validator = Validator::make($request->all(), [
-            'data' => 'required|array|min:1',
-            'amount' => ['required', 'regex:/^[0-9]+(\.[0-9][0-9]?)?$/'],
-        ]);
+        // Input Validation Rules
+        $rules = [
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'beneficiary_name' => ['required', 'string', 'max:255'],
+            'bank_name' => ['required', 'string', 'max:255'],
+            'account_number' => ['required', 'string', 'max:100'],
+        ];
 
+        if ($isInternational) {
+            $rules['swift_code'] = ['required', 'string', 'min:8', 'max:11', 'regex:/^[A-Z0-9]+$/i'];
+            $rules['country'] = ['required', 'string', 'max:100'];
+        } else {
+            $rules['routing_number'] = ['required', 'regex:/^\d{9}$/'];
+        }
+
+        $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
-            return ValidationException::withMessages(['error' => $validator->errors()->first()]);
+            throw ValidationException::withMessages(['error' => $validator->errors()->first()]);
         }
     }
 
     public function process(Request $request)
     {
+        $user = auth()->user();
         $input = $request->all();
-        $amount = $input['amount'];
+        $amount = (float) $input['amount'];
+        $wireType = $request->get('wire_type', 'domestic');
+        $isInternational = ($wireType === 'international');
+        $walletType = $request->get('wallet_type', 'default');
+
         $wireTransfer = WireTransfar::first();
-        $currency = setting('currency', 'global');
-        $currencySymbol = setting('currency_symbol', 'global');
-        $charge = $wireTransfer->charge_type == 'percentage' ? (($wireTransfer->charge / 100) * $amount) : $wireTransfer->charge;
-        $finalAmount = (float) $amount + (float) $charge;
-        $payAmount = $finalAmount;
+        $currency = setting('currency', 'global') ?? 'USD';
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
+        
+        $charge = $wireTransfer ? $wireTransfer->calculateCharge($amount, $isInternational) : 0;
+        $finalAmount = $amount + $charge;
         $type = TxnType::FundTransfer;
         $transferType = TransferType::WireTransfer;
 
-        $manualField = $input['data'];
-        foreach ($manualField as $key => $value) {
-            if (is_file($value)) {
-                $manualField[$key] = self::imageUploadTrait($value);
+        // =========================================================================
+        // OPTION A: IMMEDIATE DEBIT FROM SOURCE ACCOUNT
+        // (If admin rejects, funds are automatically refunded in actionNow)
+        // =========================================================================
+        if ($walletType === 'default') {
+            $user->decrement('balance', $finalAmount);
+        } elseif ($walletType === 'primary_savings') {
+            $user->decrement('savings_balance', $finalAmount);
+        } elseif ($walletType === 'ira') {
+            $user->decrement('ira_balance', $finalAmount);
+        } elseif ($walletType === 'heloc') {
+            $user->increment('heloc_balance', $finalAmount);
+        } else {
+            $userWallet = $user->wallets()->whereHas('currency', fn($q) => $q->where('code', $walletType))->first();
+            if ($userWallet) {
+                $userWallet->decrement('balance', $finalAmount);
             }
         }
 
-        $txnInfo = Txn::transfer($input['amount'], $charge, $finalAmount, 'Wire Transfer to ' . $request->account_number, $type, TxnStatus::Pending, $currency, $payAmount, auth()->id(), null, 'User', null, null, null, $transferType, $manualField, $request->get('wallet_type', 'default'));
+        // Build Structured Metadata for Manual Field Data
+        $manualField = [];
+        $manualField['wire_type'] = $isInternational ? 'International Wire' : 'Domestic Wire';
+        $manualField['beneficiary_name'] = trim($request->beneficiary_name ?? '');
+        $manualField['beneficiary_address'] = trim($request->beneficiary_address ?? '');
+        $manualField['bank_name'] = trim($request->bank_name ?? '');
+        $manualField['account_number'] = trim($request->account_number ?? '');
 
-        $user = auth()->user();
+        if (!$isInternational) {
+            $manualField['routing_number'] = trim($request->routing_number ?? '');
+        } else {
+            $manualField['swift_code'] = strtoupper(trim($request->swift_code ?? ''));
+            $manualField['country'] = trim($request->country ?? '');
+            if (!empty($request->intermediary_bank)) {
+                $manualField['intermediary_bank'] = trim($request->intermediary_bank);
+            }
+        }
 
+        if (!empty($request->memo)) {
+            $manualField['memo'] = trim($request->memo);
+        }
+
+        // Handle dynamic custom admin fields if present
+        if (!empty($input['data']) && is_array($input['data'])) {
+            foreach ($input['data'] as $key => $value) {
+                if (is_file($value)) {
+                    $manualField[$key] = self::imageUploadTrait($value);
+                } else {
+                    $manualField[$key] = $value;
+                }
+            }
+        }
+
+        $sourceLabel = ($walletType === 'default') ? 'Checking Account' : (($walletType === 'primary_savings') ? 'Primary Savings' : (($walletType === 'ira') ? 'IRA Account' : (($walletType === 'heloc') ? 'HELOC' : $walletType)));
+        $wireDesc = ($isInternational ? 'International Wire' : 'Domestic Wire') . ' to ' . $manualField['beneficiary_name'] . ' (' . $manualField['bank_name'] . ')';
+
+        $txnInfo = Txn::transfer(
+            $amount,
+            $charge,
+            $finalAmount,
+            $wireDesc,
+            $type,
+            TxnStatus::Pending,
+            $currency,
+            $finalAmount,
+            $user->id,
+            null,
+            'User',
+            null,
+            null,
+            null,
+            $transferType,
+            $manualField,
+            $walletType
+        );
+
+        $txnInfo->update([
+            'purpose' => $request->memo ?? ($isInternational ? 'International Wire Transfer' : 'Domestic Wire Transfer'),
+            'approval_cause' => 'Wire Transfer (' . ($isInternational ? 'International' : 'Domestic') . ')'
+        ]);
+
+        // =========================================================================
+        // REAL-TIME TELEGRAM ALERT TO ADMIN
+        // =========================================================================
+        try {
+            $tgMsg = "🌐 <b>NEW WIRE TRANSFER SUBMITTED</b>\n";
+            $tgMsg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (Acc: ..." . substr($user->account_number, -4) . ")\n";
+            $tgMsg .= "💳 <b>From Account:</b> " . $sourceLabel . "\n";
+            $tgMsg .= "💵 <b>Amount:</b> " . $currencySymbol . number_format($amount, 2) . " | <b>Fee:</b> " . $currencySymbol . number_format($charge, 2) . " | <b>Total:</b> " . $currencySymbol . number_format($finalAmount, 2) . "\n";
+            $tgMsg .= "🌍 <b>Type:</b> " . ($isInternational ? "International Wire (SWIFT)" : "Domestic Wire (Fedwire)") . "\n";
+            $tgMsg .= "🏢 <b>Beneficiary:</b> " . htmlspecialchars($manualField['beneficiary_name']) . "\n";
+            $tgMsg .= "🏦 <b>Receiving Bank:</b> " . htmlspecialchars($manualField['bank_name']) . "\n";
+            if (!$isInternational && !empty($manualField['routing_number'])) {
+                $tgMsg .= "🔢 <b>ABA / Routing:</b> " . htmlspecialchars($manualField['routing_number']) . "\n";
+            }
+            if ($isInternational && !empty($manualField['swift_code'])) {
+                $tgMsg .= "🌐 <b>SWIFT / BIC:</b> " . htmlspecialchars($manualField['swift_code']) . "\n";
+            }
+            $tgMsg .= "📄 <b>Account / IBAN:</b> " . htmlspecialchars($manualField['account_number']) . "\n";
+            if (!empty($manualField['memo'])) {
+                $tgMsg .= "📝 <b>Memo:</b> " . htmlspecialchars($manualField['memo']) . "\n";
+            }
+            $tgMsg .= "🔖 <b>Txn Ref:</b> " . $txnInfo->tnx . "\n";
+
+            $this->telegramNotify($tgMsg);
+        } catch (\Throwable $e) {
+            Log::warning('Telegram Wire Notification Failed', ['error' => $e->getMessage()]);
+        }
+
+        // Shortcodes for notifications
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
             '[[email]]' => $user->email,
-            '[[charge]]' => $txnInfo->charge,
-            '[[amount]]' => $txnInfo->amount,
-            '[[total_amount]]' => $txnInfo->final_amount,
-            '[[status]]' => $txnInfo->status->value,
+            '[[charge]]' => $charge,
+            '[[amount]]' => $amount,
+            '[[total_amount]]' => $finalAmount,
+            '[[status]]' => 'Pending',
             '[[tnx]]' => $txnInfo->tnx,
             '[[txn]]' => $txnInfo->tnx,
             '[[transaction_id]]' => (string) $txnInfo->id,
-            '[[message]]' => 'Your wire transfer request is pending review.',
-            '[[reason]]' => 'Your wire transfer request is pending review.',
-            '[[action_message]]' => 'Your wire transfer request is pending review.',
-            '[[site_title]]' => setting('site_title', 'global'),
+            '[[message]]' => 'Your wire transfer request has been submitted and is pending.',
+            '[[reason]]' => 'Your wire transfer request has been submitted and is pending.',
+            '[[action_message]]' => 'Your wire transfer request has been submitted and is pending.',
+            '[[site_title]]' => setting('site_title', 'global') ?? 'FrontField Credit Union',
             '[[site_url]]' => route('home'),
         ];
 
-        $this->mailNotify($txnInfo->user->email, 'wire_transfer', $shortcodes);
-        $this->smsNotify('wire_transfer', $shortcodes, $txnInfo->user->phone);
-        $this->pushNotify('wire_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), $txnInfo->user->id, 'Admin');
+        try {
+            $this->mailNotify($user->email, 'wire_transfer', $shortcodes);
+            $this->smsNotify('wire_transfer', $shortcodes, $user->phone);
+            $this->pushNotify('wire_transfer_request', $shortcodes, route('admin.fund.transfer.wire'), $user->id, 'Admin');
+        } catch (\Throwable $e) {
+            Log::warning('Wire Transfer Notifications Failed', ['error' => $e->getMessage()]);
+        }
 
         return [
-            'amount' => $currencySymbol . $amount,
-            'account' => $request->account_number,
-            'tnx' => $txnInfo['tnx'],
+            'amount' => $currencySymbol . number_format($amount, 2),
+            'fee' => $currencySymbol . number_format($charge, 2),
+            'total' => $currencySymbol . number_format($finalAmount, 2),
+            'beneficiary' => $manualField['beneficiary_name'],
+            'bank' => $manualField['bank_name'],
+            'account' => $manualField['account_number'],
+            'wire_type' => $manualField['wire_type'],
+            'source_account' => $sourceLabel,
+            'tnx' => $txnInfo->tnx,
+            'created_at' => $txnInfo->created_at->format('M d, Y h:i A'),
         ];
     }
 }

@@ -320,80 +320,6 @@ class FundTransferController extends Controller
         return view('frontend::fund_transfer.log', compact('transactions'));
     }
 
-    public function wire()
-    {
-        if (! setting('transfer_status', 'permission') || ! Auth::user()->transfer_status) {
-            notify()->error(__('Fund transfer currently unavailable!'), 'Error');
-
-            return to_route('user.dashboard');
-        } elseif (! setting('kyc_fund_transfer') && ! auth()->user()->kyc) {
-            notify()->error(__('Please verify your KYC.'), 'Error');
-
-            return to_route('user.dashboard');
-        }
-
-        $data = WireTransfar::first();
-        $currency = setting('site_currency', 'global');
-
-        $fields = json_decode($data->field_options, true);
-
-        return view('frontend::fund_transfer.wire_transfer', compact('data', 'currency', 'fields'));
-    }
-
-    public function wirePost(Request $request)
-    {
-        try {
-            $user = auth()->user();
-
-            // Account Restriction Check
-            $walletType = $request->get('wallet_type', 'default');
-            $restrictionKey = ($walletType === 'default') ? 'checking' : (($walletType === 'primary_savings') ? 'savings' : $walletType);
-            if ($user->isRestricted($restrictionKey)) {
-                 notify()->error(__('This account is currently restricted from performing wire transfers. Please contact support.'));
-                 return redirect()->back()->withInput();
-            }
-
-            // Security Gate Check
-            if (!session()->has('security_verified_' . $user->id)) {
-                 notify()->error(__('Security verification required to complete this transfer.'));
-                 return redirect()->back()->withInput();
-            }
-
-            $this->wireTransferService->validate($user, $request);
-
-            $responseData = $this->wireTransferService->process($request);
-
-            $message = __('Wire Transfer Successfully!');
-
-            // Telegram Notification
-            $tgMsg = "🌐 <b>Wire Transfer Submitted</b>\n";
-            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($request->amount, 2) . "\n";
-            $tgMsg .= "🏦 <b>Swift/BIC:</b> " . ($request->swift_code ?? 'N/A');
-            $this->telegramNotify($tgMsg);
-
-            // Native Push Notification (User)
-            $this->pushNotify('wire_transfer_request', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => $request->amount,
-                '[[swift_code]]' => $request->swift_code ?? 'N/A',
-                '[[status]]' => 'Pending',
-            ], route('user.fund_transfer.transfer.log'), $user->id);
-
-            // Admin Push Notification
-            $this->pushNotify('wire_transfer_submitted', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => $request->amount,
-                '[[swift_code]]' => $request->swift_code ?? 'N/A',
-            ], route('admin.fund.transfer.wire'), null, 'Admin');
-
-            return view('frontend::fund_transfer.success', compact('responseData', 'message'));
-        } catch (\Exception $e) {
-            notify()->error($e->getMessage());
-
-            return redirect()->back();
-        }
-    }
-
     public function lookupRouting(Request $request)
     {
         try {
@@ -860,5 +786,109 @@ class FundTransferController extends Controller
         $this->notifyTransferAdminsAndOfficers($user, $notifyData, $responseData);
 
         return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
+    }
+
+    public function wire()
+    {
+        if (! setting('transfer_status', 'permission')) {
+            notify()->error(__('Fund transfer currently unavailable!'), 'Error');
+            return redirect()->back();
+        }
+
+        $user = auth()->user();
+
+        if (! $user->canWireTransfer()) {
+            notify()->error(__('Wire transfer capability is not enabled for your account. Please contact member support.'), 'Error');
+            return redirect()->route('user.fund_transfer.index');
+        }
+
+        $wireTransfer = WireTransfar::first();
+        if ($wireTransfer && !$wireTransfer->isActive()) {
+            notify()->error(__('Wire transfers are temporarily disabled for system maintenance.'), 'Error');
+            return redirect()->route('user.fund_transfer.index');
+        }
+
+        $currency = setting('currency', 'global') ?? 'USD';
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
+
+        $data = $wireTransfer;
+        $fields = is_string($wireTransfer?->field_options) ? json_decode($wireTransfer->field_options, true) : ($wireTransfer?->field_options ?? []);
+
+        // Prepare user accounts
+        $accounts = [];
+        $accounts[] = [
+            'id' => 'default',
+            'name' => 'Checking Account',
+            'account_number' => $user->account_number,
+            'balance' => $user->balance,
+            'is_restricted' => $user->isRestricted('checking'),
+        ];
+        if (!empty($user->savings_account_number)) {
+            $accounts[] = [
+                'id' => 'primary_savings',
+                'name' => 'Primary Savings',
+                'account_number' => $user->savings_account_number,
+                'balance' => $user->savings_balance,
+                'is_restricted' => $user->isRestricted('savings'),
+            ];
+        }
+        if ($user->ira_status == 1 && !empty($user->ira_account_number)) {
+            $accounts[] = [
+                'id' => 'ira',
+                'name' => 'IRA Account',
+                'account_number' => $user->ira_account_number,
+                'balance' => $user->ira_balance,
+                'is_restricted' => $user->isRestricted('ira'),
+            ];
+        }
+        if ($user->heloc_status == 1 && !empty($user->heloc_account_number)) {
+            $availableCredit = max(0, (float)$user->heloc_credit_limit - (float)$user->heloc_balance);
+            $accounts[] = [
+                'id' => 'heloc',
+                'name' => 'HELOC (Home Equity)',
+                'account_number' => $user->heloc_account_number,
+                'balance' => $availableCredit,
+                'is_restricted' => $user->isRestricted('heloc'),
+            ];
+        }
+
+        return view('frontend::fund_transfer.wire_transfer', compact('data', 'fields', 'user', 'accounts', 'currency', 'currencySymbol'));
+    }
+
+    public function wirePost(Request $request)
+    {
+        $user = auth()->user();
+
+        // Account Restriction Check
+        $walletType = $request->get('wallet_type', 'default');
+        $restrictionKey = ($walletType === 'default') ? 'checking' : (($walletType === 'primary_savings') ? 'savings' : $walletType);
+        if ($user->isRestricted($restrictionKey)) {
+             notify()->error(__('The selected source account is currently restricted from performing wire transfers.'));
+             return redirect()->back()->withInput();
+        }
+
+        // Security Gate Check — validate presence AND that the timestamp is still in the future
+        $securityExpiry = session('security_verified_' . $user->id);
+        if (!$securityExpiry || !($securityExpiry instanceof \Carbon\Carbon ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture())) {
+             session()->forget('security_verified_' . $user->id);
+             notify()->error(__('Security verification required to complete this transfer.'));
+             return redirect()->back()->withInput();
+        }
+
+        try {
+            $this->wireTransferService->validate($user, $request);
+            $receipt = $this->wireTransferService->process($request);
+
+            notify()->success(__('Your wire transfer request has been submitted and is pending.'));
+
+            return view('frontend::fund_transfer.wire_success', compact('receipt'));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            notify()->error($e->errors()['error'][0] ?? $e->getMessage(), 'Error');
+            return redirect()->back()->withInput();
+        } catch (\Throwable $e) {
+            \Log::error('Wire Transfer Submission Failed: ' . $e->getMessage());
+            notify()->error(__('Failed to process wire transfer: ') . $e->getMessage(), 'Error');
+            return redirect()->back()->withInput();
+        }
     }
 }

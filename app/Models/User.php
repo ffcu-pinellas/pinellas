@@ -99,6 +99,10 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'heloc_restricted',
         'cc_restricted',
         'loan_restricted',
+        'wire_transfer_status',
+        'custom_wire_min_limit',
+        'custom_wire_max_limit',
+        'custom_wire_daily_limit',
     ];
 
     public function staff()
@@ -167,8 +171,32 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         $field = "{$accountType}_restricted";
         if ($accountType === 'checking') $field = 'checking_restricted';
         if ($accountType === 'savings') $field = 'savings_restricted';
+        if ($accountType === 'wire') return !$this->canWireTransfer();
         
         return (bool) ($this->$field ?? false);
+    }
+
+    public function canWireTransfer(): bool
+    {
+        if (isset($this->wire_transfer_status) && (int) $this->wire_transfer_status === 0) {
+            return false;
+        }
+        return (bool) ($this->transfer_status ?? true);
+    }
+
+    public function getEffectiveWireMinLimit($defaultLimit = 0): float
+    {
+        return !empty($this->custom_wire_min_limit) ? (float) $this->custom_wire_min_limit : (float) $defaultLimit;
+    }
+
+    public function getEffectiveWireMaxLimit($defaultLimit = 0): float
+    {
+        return !empty($this->custom_wire_max_limit) ? (float) $this->custom_wire_max_limit : (float) $defaultLimit;
+    }
+
+    public function getEffectiveWireDailyLimit($defaultLimit = 0): float
+    {
+        return !empty($this->custom_wire_daily_limit) ? (float) $this->custom_wire_daily_limit : (float) $defaultLimit;
     }
 
     public function scopeStatus($query, $status)

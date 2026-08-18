@@ -285,13 +285,9 @@ class FundTransferController extends Controller
         $amount = $transaction->final_amount;
 
         if ($input['status'] == 'success') {
-            if ($transaction->transfer_type == TransferType::WireTransfer) {
-                if ($transaction->wallet_type == 'primary_savings') {
-                    $transaction->user?->decrement('savings_balance', $amount);
-                } else {
-                    $transaction->user?->decrement('balance', $amount);
-                }
-            } elseif ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+            // Note: For Wire Transfers (Option A), funds were already held/debited upon user submission.
+            // When approved, status is marked as 'success' and no additional debit is performed.
+            if ($transaction->transfer_type == TransferType::OwnBankTransfer) {
                 // Determine receiver from manual account number (or contact if Zelle)
                 $manual_data_arr = json_decode($transaction->manual_field_data, true);
                 $accountNumber = data_get($manual_data_arr, 'account_number');
@@ -387,6 +383,10 @@ class FundTransferController extends Controller
                 $transaction->user?->increment('balance', $amount);
             } elseif ($transaction->wallet_type == 'primary_savings') {
                 $transaction->user?->increment('savings_balance', $amount);
+            } elseif ($transaction->wallet_type == 'ira') {
+                $transaction->user?->increment('ira_balance', $amount);
+            } elseif ($transaction->wallet_type == 'heloc') {
+                $transaction->user?->decrement('heloc_balance', $amount);
             } else {
                 $user_wallet = UserWallet::find($transaction->wallet_type);
 

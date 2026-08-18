@@ -393,16 +393,41 @@
                                     </div>
                                 </div>
 
-                                {{-- Loan Restriction --}}
+                                {{-- Wire Transfer Restriction --}}
                                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
                                     <div class="site-input-groups">
-                                        <label for="" class="box-input-label text-danger">{{ __('Restrict Loan Account:') }}</label>
+                                        <label for="" class="box-input-label text-danger">{{ __('Wire Transfer Permission:') }}</label>
                                         <div class="switch-field restriction-switch" style="margin-top: 5px;">
-                                            <input type="radio" id="loan_restricted_yes" name="loan_restricted" value="1" @checked($user->loan_restricted == 1) />
-                                            <label for="loan_restricted_yes" class="restricted-label">{{ __('Restricted') }}</label>
-                                            <input type="radio" id="loan_restricted_no" name="loan_restricted" value="0" @checked($user->loan_restricted == 0) />
-                                            <label for="loan_restricted_no" class="active-label">{{ __('Active') }}</label>
+                                            <input type="radio" id="wire_transfer_status_yes" name="wire_transfer_status" value="1" @checked(($user->wire_transfer_status ?? 1) == 1) />
+                                            <label for="wire_transfer_status_yes" class="active-label">{{ __('Enabled') }}</label>
+                                            <input type="radio" id="wire_transfer_status_no" name="wire_transfer_status" value="0" @checked(($user->wire_transfer_status ?? 1) == 0) />
+                                            <label for="wire_transfer_status_no" class="restricted-label">{{ __('Restricted') }}</label>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-12 mt-3 mb-2">
+                                    <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Custom Wire Transfer Limits (Optional Overrides)') }}</h5>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Custom Min Wire Amount:') }}</label>
+                                        <input type="number" step="0.01" class="box-input" name="custom_wire_min_limit" value="{{ $user->custom_wire_min_limit }}" placeholder="{{ __('Leave blank for system default') }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Custom Max Wire Amount:') }}</label>
+                                        <input type="number" step="0.01" class="box-input" name="custom_wire_max_limit" value="{{ $user->custom_wire_max_limit }}" placeholder="{{ __('Leave blank for system default') }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label">{{ __('Custom Daily Max Wire Amount:') }}</label>
+                                        <input type="number" step="0.01" class="box-input" name="custom_wire_daily_limit" value="{{ $user->custom_wire_daily_limit }}" placeholder="{{ __('Leave blank for system default') }}">
                                     </div>
                                 </div>
 

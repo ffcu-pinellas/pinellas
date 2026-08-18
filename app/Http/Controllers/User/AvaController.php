@@ -43,6 +43,9 @@ class AvaController extends Controller
             case 'EMERGENCY':
                 return $this->handleEmergency();
 
+            case 'WIRE_TRANSFER':
+                return $this->handleWireTransfer();
+
             case 'TRANSFERS':
                 return $this->handleTransfers();
 
@@ -136,8 +139,9 @@ class AvaController extends Controller
             // 4. Security & Profile modifications
             ['regex' => '/(change|update|reset|forgot|modify|setup).*(password|pin|passcode|email|phone|profile|address|settings|2fa|two factor)/', 'name' => 'SECURITY_PROFILE'],
             
-            // 5. Transactional Intents (Transfers, Bills, Deposits)
-            ['regex' => '/(transfer|send|wire|zelle|pay a person|move money)/', 'name' => 'TRANSFERS'],
+            // 5. Transactional Intents (Wire, Transfers, Bills, Deposits)
+            ['regex' => '/(wire|swift|fedwire|wire transfer|international wire|send wire|wire money|wire fee|wire limit)/', 'name' => 'WIRE_TRANSFER'],
+            ['regex' => '/(transfer|send|zelle|pay a person|move money)/', 'name' => 'TRANSFERS'],
             ['regex' => '/(pay|schedule).*(bill|utility|utilities|electric)/', 'name' => 'BILL_PAY'],
             ['regex' => '/(deposit|scan).*(check|mobile)/', 'name' => 'DEPOSITS'],
 
@@ -168,6 +172,29 @@ class AvaController extends Controller
         }
 
         return ['name' => 'UNKNOWN'];
+    }
+
+    private function handleWireTransfer()
+    {
+        $wire = \App\Models\WireTransfar::first();
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
+        $domFee = $wire ? (($wire->charge_type === 'percentage') ? $wire->charge . '%' : $currencySymbol . number_format($wire->charge, 2)) : '$25.00';
+        $intlFee = $wire ? (($wire->international_charge_type === 'percentage') ? ($wire->international_charge ?? 45) . '%' : $currencySymbol . number_format($wire->international_charge ?? 45.00, 2)) : '$45.00';
+
+        $msg = "You can send high-value <strong>Domestic (Fedwire)</strong> and <strong>International (SWIFT)</strong> wire transfers directly from your Checking, Savings, IRA, or HELOC account.<br><br>";
+        $msg .= "• <strong>Domestic Wires:</strong> Same-day delivery via 9-digit ABA Routing (Fee: {$domFee})<br>";
+        $msg .= "• <strong>International Wires:</strong> Global delivery via SWIFT/BIC & IBAN (Fee: {$intlFee})<br>";
+        $msg .= "• <strong>Cutoff:</strong> Orders submitted before 3:00 PM EST are processed on the same business day.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Domestic & International Wire Transfers',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Send Wire Transfer', 'url' => route('user.fund_transfer.transfer.wire'), 'class' => 'btn-primary'],
+                ['label' => 'All Transfer Options', 'url' => route('user.fund_transfer.index'), 'class' => 'btn-outline-primary']
+            ]
+        ]);
     }
 
     private function handleTransfers()

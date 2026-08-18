@@ -209,6 +209,9 @@
             <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
                 <i data-lucide="repeat"></i> <span>Transfers</span>
             </a>
+            <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.transfer.wire') ? 'active' : '' }}">
+                <i class="fas fa-paper-plane"></i> <span>Wire Transfer</span>
+            </a>
             <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
                 <i class="fas fa-users"></i> <span>Member Transfers</span>
             </a>
