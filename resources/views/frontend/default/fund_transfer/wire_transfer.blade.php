@@ -164,8 +164,15 @@
                         {{-- Domestic ABA Routing Input --}}
                         <div class="col-md-6" id="fieldDomesticRouting">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('ABA / Fedwire Routing Number (9 Digits)') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('e.g., 021000021') }}" oninput="performRoutingLookup(this.value)">
-                            <div id="routingLookupFeedback" class="extra-small mt-1 text-muted"></div>
+                            <input type="text" inputmode="numeric" class="form-control form-control-lg border-2 rounded-3" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('9 digits routing number') }}" oninput="this.value = this.value.replace(/[^0-9]/g, ''); performRoutingLookup(this.value)">
+                            <div id="routingLookupStatus" class="small mt-1"></div>
+                            <div class="routing-lookup-verified d-none mt-2 p-3 rounded-3" id="routingLookupCard">
+                                <span class="routing-lookup-verified__icon" aria-hidden="true"><i class="fas fa-university"></i></span>
+                                <div>
+                                    <div class="fw-bold text-dark" id="lookupBankName"></div>
+                                    <div class="small routing-lookup-verified__sub" id="lookupBankState">{{ __('Receiving financial institution (verified)') }}</div>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- International SWIFT/BIC Input --}}
@@ -391,6 +398,30 @@
     .shadow-xs {
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
+    /* Verified receiving institution (routing lookup) */
+    .routing-lookup-verified {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+    }
+    .routing-lookup-verified__icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        background: #10b981;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .routing-lookup-verified__sub { 
+        color: #047857; 
+        font-weight: 600; 
+        margin-top: 0.2rem; 
+    }
     /* Fixed Modal Stacking Context to prevent grey foreground overlay */
     #limitBox {
         z-index: 1070 !important;
@@ -612,39 +643,57 @@
         document.getElementById('revTotalDebit').innerText = currencySymbol + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    let lookupTimer = null;
     function performRoutingLookup(routing) {
-        const cleanRouting = routing.replace(/\D/g, '');
-        const feedback = document.getElementById('routingLookupFeedback');
-        
-        if (cleanRouting.length === 9) {
-            feedback.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Checking ABA registry...</span>';
-            
-            fetch('{{ route("user.fund_transfer.lookup-routing") }}', {
+        const cleanRouting = routing.trim().replace(/\D/g, '');
+        const statusEl = document.getElementById('routingLookupStatus');
+        const cardEl = document.getElementById('routingLookupCard');
+        const bankNameEl = document.getElementById('lookupBankName');
+        const bankInput = document.getElementById('wireBankName');
+
+        cardEl.classList.add('d-none');
+        statusEl.innerHTML = '';
+
+        if (cleanRouting.length !== 9) return;
+
+        statusEl.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> {{ __("Verifying ABA routing number…") }}</span>';
+
+        if (lookupTimer) clearTimeout(lookupTimer);
+        lookupTimer = setTimeout(() => {
+            fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({ routing_number: cleanRouting })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'verified' && data.bank_name) {
-                    feedback.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> ' + data.bank_name + '</span>';
-                    const bankInput = document.getElementById('wireBankName');
-                    if (!bankInput.value.trim()) {
-                        bankInput.value = data.bank_name;
+            .then(async response => {
+                const text = await response.text();
+                let body = {};
+                try { body = text ? JSON.parse(text) : {}; } catch (e) { body = {}; }
+                return { ok: response.ok, status: response.status, body };
+            })
+            .then(({ok, status, body}) => {
+                if (ok && body.status === 'verified') {
+                    bankNameEl.innerText = body.bank_name;
+                    cardEl.classList.remove('d-none');
+                    statusEl.innerHTML = '<span class="text-success small fw-semibold"><i class="fas fa-check-circle me-1"></i> {{ __("Receiving institution verified.") }}</span>';
+                    if (bankInput) {
+                        bankInput.value = body.bank_name;
                     }
+                } else if (body.status === 'manual_required') {
+                    statusEl.innerHTML = '<span class="text-warning small">' + (body.message || '{{ __("Enter the receiving institution\'s name manually.") }}') + '</span>';
                 } else {
-                    feedback.innerHTML = '<span class="text-muted"><i class="fas fa-info-circle me-1"></i> Standard ABA Fedwire Format</span>';
+                    statusEl.innerHTML = '<span class="text-muted small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
                 }
             })
             .catch(() => {
-                feedback.innerHTML = '<span class="text-muted"><i class="fas fa-check me-1"></i> 9-Digit Format Valid</span>';
+                statusEl.innerHTML = '<span class="text-muted small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
             });
-        } else {
-            feedback.innerHTML = '';
-        }
+        }, 200);
     }
 
     function submitWireTransferWithSecurity() {
