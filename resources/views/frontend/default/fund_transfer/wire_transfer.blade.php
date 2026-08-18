@@ -8,22 +8,22 @@
 <div class="row justify-content-center">
     @include('frontend::fund_transfer.include.__header')
 
-    <div class="col-xl-9 col-lg-11 col-12 mt-4">
+    <div class="col-xl-9 col-lg-11 col-12 mt-3">
         {{-- Page Header --}}
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
             <div>
-                <h2 class="fw-bold mb-1 text-dark">{{ __('Domestic & International Wire Transfer') }}</h2>
-                <p class="text-muted mb-0 small">{{ __('Send high-value, secure wire transfers via Fedwire or global SWIFT network.') }}</p>
+                <h4 class="fw-bold mb-1 text-dark">{{ __('Domestic & International Wire Transfer') }}</h4>
+                <p class="text-muted mb-0 small">{{ __('Send high-value wire transfers via Fedwire or global SWIFT network.') }}</p>
             </div>
             <div>
-                <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#limitBox">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold" data-bs-toggle="modal" data-bs-target="#limitBox">
                     <i class="fas fa-sliders-h me-1"></i> {{ __('View Limits & Policy') }}
                 </button>
             </div>
         </div>
 
         {{-- Progress Wizard Steps Indicator --}}
-        <div class="card border-0 shadow-xs rounded-4 p-3 mb-4 bg-white">
+        <div class="card border-0 shadow-xs rounded-3 p-3 mb-3 bg-white">
             <div class="d-flex justify-content-between align-items-center position-relative px-2 px-md-4">
                 <div class="wizard-step-indicator active d-flex align-items-center gap-2" id="stepIndicator1">
                     <span class="step-num rounded-circle d-flex align-items-center justify-content-center fw-bold">1</span>
@@ -43,27 +43,27 @@
         </div>
 
         {{-- Main Transfer Wizard Form Card --}}
-        <div class="site-card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+        <div class="site-card border-0 shadow-sm rounded-3 overflow-hidden mb-4 bg-white">
             <form action="{{ route('user.fund_transfer.transfer.wire.post') }}" method="POST" id="wireForm" enctype="multipart/form-data">
                 @csrf
 
                 {{-- ========================================================================= --}}
                 {{-- STEP 1: WIRE TYPE & AMOUNT SETUP --}}
                 {{-- ========================================================================= --}}
-                <div class="wizard-pane p-4 p-md-5" id="wireStep1">
-                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                <div class="wizard-pane p-4 p-md-4" id="wireStep1">
+                    <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
                         <i class="fas fa-wallet text-primary me-2"></i> {{ __('Step 1: Wire Transfer Setup') }}
-                    </h5>
+                    </h6>
 
                     {{-- Wire Type Switcher --}}
-                    <div class="mb-4">
-                        <label class="form-label small text-uppercase fw-bold text-muted mb-3 d-block">{{ __('Select Wire Transfer Classification') }}</label>
-                        <div class="row g-3">
+                    <div class="mb-3">
+                        <label class="form-label extra-small text-uppercase fw-bold text-muted mb-2 d-block">{{ __('Select Wire Transfer Classification') }}</label>
+                        <div class="row g-2">
                             <div class="col-md-6">
                                 <label class="wire-type-card p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all active" id="cardDomestic">
                                     <input type="radio" name="wire_type" value="domestic" class="form-check-input me-3 mt-0" checked onchange="handleWireTypeChange('domestic')">
                                     <div>
-                                        <div class="fw-bold text-dark mb-0">{{ __('Domestic Wire (Fedwire)') }}</div>
+                                        <div class="fw-bold text-dark mb-0 fs-6">{{ __('Domestic Wire (Fedwire)') }}</div>
                                         <div class="text-muted extra-small">{{ __('Same-day settlement to US financial institutions via ABA Routing.') }}</div>
                                     </div>
                                 </label>
@@ -72,7 +72,7 @@
                                 <label class="wire-type-card p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all" id="cardInternational">
                                     <input type="radio" name="wire_type" value="international" class="form-check-input me-3 mt-0" onchange="handleWireTypeChange('international')">
                                     <div>
-                                        <div class="fw-bold text-dark mb-0">{{ __('International Wire (SWIFT)') }}</div>
+                                        <div class="fw-bold text-dark mb-0 fs-6">{{ __('International Wire (SWIFT)') }}</div>
                                         <div class="text-muted extra-small">{{ __('Cross-border settlement via SWIFT/BIC & IBAN code.') }}</div>
                                     </div>
                                 </label>
@@ -80,11 +80,11 @@
                         </div>
                     </div>
 
-                    <div class="row g-4">
+                    <div class="row g-3">
                         {{-- From Account --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Funding Account') }} <span class="text-danger">*</span></label>
-                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none rounded-3" id="wireWalletSelect" onchange="updateSummaryCalculations()" required>
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Funding Account') }} <span class="text-danger">*</span></label>
+                            <select name="wallet_type" class="form-select border shadow-none rounded-2 py-2" id="wireWalletSelect" onchange="updateSummaryCalculations()" required>
                                 @foreach($accounts as $acc)
                                     <option value="{{ $acc['id'] }}" 
                                             data-name="{{ $acc['name'] }}"
@@ -100,10 +100,10 @@
 
                         {{-- Wire Amount --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Wire Principal Amount') }} <span class="text-danger">*</span></label>
-                            <div class="input-group input-group-lg shadow-xs rounded-3 overflow-hidden border border-2">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Wire Principal Amount') }} <span class="text-danger">*</span></label>
+                            <div class="input-group shadow-xs rounded-2 overflow-hidden border">
                                 <span class="input-group-text bg-light border-0 fw-bold text-muted">{{ $currencySymbol }}</span>
-                                <input type="number" step="0.01" class="form-control border-0 fw-bold" name="amount" id="wireAmountInput" required placeholder="0.00" oninput="updateSummaryCalculations()">
+                                <input type="number" step="0.01" class="form-control border-0 fw-bold py-2" name="amount" id="wireAmountInput" required placeholder="0.00" oninput="updateSummaryCalculations()">
                             </div>
                             <div class="d-flex justify-content-between extra-small text-muted mt-1 px-1">
                                 <span>{{ __('Min:') }} {{ $currencySymbol }}{{ number_format($user->getEffectiveWireMinLimit($data?->minimum_transfer ?? 50.00), 2) }}</span>
@@ -113,11 +113,11 @@
                         </div>
 
                         {{-- Step 1 Live Summary Preview --}}
-                        <div class="col-12 mt-4">
+                        <div class="col-12 mt-3">
                             <div class="p-3 rounded-3 border bg-light d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
                                 <div>
-                                    <span class="text-muted small d-block">{{ __('Estimated Total Settlement Debit:') }}</span>
-                                    <span class="fw-bolder fs-4 text-dark" id="step1TotalDebit">{{ $currencySymbol }}0.00</span>
+                                    <span class="text-muted extra-small text-uppercase d-block">{{ __('Estimated Total Settlement Debit:') }}</span>
+                                    <span class="fw-bold fs-5 text-dark" id="step1TotalDebit">{{ $currencySymbol }}0.00</span>
                                     <span class="text-muted extra-small ms-2" id="step1FeeBreakdown">({{ __('Includes Wire Fee:') }} {{ $currencySymbol }}25.00)</span>
                                 </div>
                                 <div>
@@ -128,8 +128,8 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                        <button type="button" class="btn btn-primary rounded-pill px-4 py-3 fw-bold" onclick="validateAndGoToStep2()">
-                            {{ __('Next: Recipient Details') }} <i class="fas fa-arrow-right ms-2"></i>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" onclick="validateAndGoToStep2()">
+                            {{ __('Next: Recipient Details') }} <i class="fas fa-arrow-right ms-1"></i>
                         </button>
                     </div>
                 </div>
@@ -137,92 +137,92 @@
                 {{-- ========================================================================= --}}
                 {{-- STEP 2: BENEFICIARY & RECEIVING BANK DETAILS --}}
                 {{-- ========================================================================= --}}
-                <div class="wizard-pane p-4 p-md-5 d-none" id="wireStep2">
-                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                <div class="wizard-pane p-4 p-md-4 d-none" id="wireStep2">
+                    <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
                         <i class="fas fa-university text-primary me-2"></i> {{ __('Step 2: Recipient & Receiving Bank Details') }}
-                    </h5>
+                    </h6>
 
-                    <div class="row g-4">
+                    <div class="row g-3">
                         {{-- Beneficiary Name --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Full / Business Name') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_name" id="wireBeneficiaryName" required placeholder="{{ __('e.g., Apex Global Escrow LLC') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Beneficiary Full / Business Name') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="beneficiary_name" id="wireBeneficiaryName" required placeholder="{{ __('e.g., Apex Global Escrow LLC') }}">
                         </div>
 
                         {{-- Beneficiary Physical Address --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Physical Street Address') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_address" id="wireBeneficiaryAddress" placeholder="{{ __('e.g., 100 Main St, Suite 400, New York, NY') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Beneficiary Physical Street Address') }}</label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="beneficiary_address" id="wireBeneficiaryAddress" placeholder="{{ __('e.g., 100 Main St, Suite 400, New York, NY') }}">
                         </div>
 
                         {{-- Receiving Bank Name --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Receiving Bank Name') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="bank_name" id="wireBankName" required placeholder="{{ __('e.g., JPMorgan Chase Bank, N.A.') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Receiving Bank Name') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="bank_name" id="wireBankName" required placeholder="{{ __('e.g., JPMorgan Chase Bank, N.A.') }}">
                         </div>
 
                         {{-- Domestic ABA Routing Input --}}
                         <div class="col-md-6" id="fieldDomesticRouting">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('ABA / Fedwire Routing Number (9 Digits)') }} <span class="text-danger">*</span></label>
-                            <input type="text" inputmode="numeric" class="form-control form-control-lg border-2 rounded-3" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('9 digits routing number') }}" oninput="this.value = this.value.replace(/[^0-9]/g, ''); performRoutingLookup(this.value)">
-                            <div id="routingLookupStatus" class="small mt-1"></div>
-                            <div class="routing-lookup-verified d-none mt-2 p-3 rounded-3" id="routingLookupCard">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('ABA / Fedwire Routing Number (9 Digits)') }} <span class="text-danger">*</span></label>
+                            <input type="text" inputmode="numeric" class="form-control border rounded-2 py-2" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('9 digits routing number') }}" oninput="this.value = this.value.replace(/[^0-9]/g, ''); performRoutingLookup(this.value)">
+                            <div id="routingLookupStatus" class="extra-small mt-1"></div>
+                            <div class="routing-lookup-verified d-none mt-2 p-2 rounded-2" id="routingLookupCard">
                                 <span class="routing-lookup-verified__icon" aria-hidden="true"><i class="fas fa-university"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark" id="lookupBankName"></div>
-                                    <div class="small routing-lookup-verified__sub" id="lookupBankState">{{ __('Receiving financial institution (verified)') }}</div>
+                                    <div class="fw-bold text-dark small" id="lookupBankName"></div>
+                                    <div class="extra-small routing-lookup-verified__sub" id="lookupBankState">{{ __('Receiving financial institution (verified)') }}</div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- International SWIFT/BIC Input --}}
                         <div class="col-md-6 d-none" id="fieldInternationalSwift">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('SWIFT / BIC Code (8-11 Characters)') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3 text-uppercase" name="swift_code" id="wireSwiftCode" maxlength="11" placeholder="{{ __('e.g., CHASUS33XXX') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('SWIFT / BIC Code (8-11 Characters)') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control border rounded-2 py-2 text-uppercase" name="swift_code" id="wireSwiftCode" maxlength="11" placeholder="{{ __('e.g., CHASUS33XXX') }}">
                         </div>
 
                         {{-- Account / IBAN Number --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted" id="accountNumberFieldLabel">{{ __('Beneficiary Account Number') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="account_number" id="wireAccountNumber" required placeholder="{{ __('Enter recipient account number') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted" id="accountNumberFieldLabel">{{ __('Beneficiary Account Number') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="account_number" id="wireAccountNumber" required placeholder="{{ __('Enter recipient account number') }}">
                         </div>
 
                         {{-- International Country Selector --}}
                         <div class="col-md-6 d-none" id="fieldInternationalCountry">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Bank Country') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="country" id="wireCountry" placeholder="{{ __('e.g., United Kingdom, Germany, Japan') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Beneficiary Bank Country') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="country" id="wireCountry" placeholder="{{ __('e.g., United Kingdom, Germany, Japan') }}">
                         </div>
 
                         {{-- International Intermediary Bank --}}
                         <div class="col-12 d-none" id="fieldInternationalIntermediary">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Intermediary / Correspondent Bank (Optional)') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="intermediary_bank" id="wireIntermediaryBank" placeholder="{{ __('e.g., Bank of New York Mellon (SWIFT: IRVTUS3N)') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Intermediary / Correspondent Bank (Optional)') }}</label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="intermediary_bank" id="wireIntermediaryBank" placeholder="{{ __('e.g., Bank of New York Mellon (SWIFT: IRVTUS3N)') }}">
                         </div>
 
                         {{-- Payment Memo / Reference --}}
                         <div class="col-12">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Payment Reference / Memo (Optional)') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="memo" id="wireMemo" placeholder="{{ __('e.g., Invoice #1042 / Escrow Account Deposit') }}">
+                            <label class="form-label extra-small text-uppercase fw-bold text-muted">{{ __('Payment Reference / Memo (Optional)') }}</label>
+                            <input type="text" class="form-control border rounded-2 py-2" name="memo" id="wireMemo" placeholder="{{ __('e.g., Invoice #1042 / Escrow Account Deposit') }}">
                         </div>
 
                         {{-- Dynamic Custom Admin Fields (Filtered for genuine custom additions only) --}}
                         @if(!empty($fields) && is_array($fields))
                             @foreach ($fields as $key => $field)
                                 <div class="{{ ($field['type'] ?? '') == 'textarea' ? 'col-12' : 'col-md-6' }}">
-                                    <label class="form-label small text-uppercase fw-bold text-muted">
+                                    <label class="form-label extra-small text-uppercase fw-bold text-muted">
                                         {{ $field['name'] }}
                                         @if (($field['validation'] ?? '') == 'required') <span class="text-danger">*</span> @endif
                                     </label>
                                     
                                     @if (($field['type'] ?? '') == 'file')
-                                        <div class="border-2 border-dashed rounded-3 p-3 text-center bg-light position-relative">
-                                            <input type="file" name="data[{{ $field['name'] }}]" class="form-control" @if (($field['validation'] ?? '') == 'required') required @endif>
+                                        <div class="border border-dashed rounded-2 p-2 text-center bg-light">
+                                            <input type="file" name="data[{{ $field['name'] }}]" class="form-control form-control-sm" @if (($field['validation'] ?? '') == 'required') required @endif>
                                             <div class="extra-small text-muted mt-1">{{ __('Accepted formats: PDF, JPG, PNG') }}</div>
                                         </div>
                                     @elseif(($field['type'] ?? '') == 'textarea')
-                                        <textarea class="form-control border-2 rounded-3" name="data[{{ $field['name'] }}]" rows="3" @if (($field['validation'] ?? '') == 'required') required @endif placeholder="Enter {{ strtolower($field['name']) }}..."></textarea>
+                                        <textarea class="form-control border rounded-2" name="data[{{ $field['name'] }}]" rows="2" @if (($field['validation'] ?? '') == 'required') required @endif placeholder="Enter {{ strtolower($field['name']) }}..."></textarea>
                                     @else
-                                        <input type="text" class="form-control form-control-lg border-2 rounded-3" name="data[{{ $field['name'] }}]" @if (($field['validation'] ?? '') == 'required') required @endif placeholder="Enter {{ strtolower($field['name']) }}...">
+                                        <input type="text" class="form-control border rounded-2 py-2" name="data[{{ $field['name'] }}]" @if (($field['validation'] ?? '') == 'required') required @endif placeholder="Enter {{ strtolower($field['name']) }}...">
                                     @endif
                                 </div>
                             @endforeach
@@ -232,11 +232,11 @@
                     </div>
 
                     <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold" onclick="goToStep(1)">
-                            <i class="fas fa-arrow-left me-2"></i> {{ __('Back: Setup') }}
+                        <button type="button" class="btn btn-light border rounded-pill px-4 py-2 fw-semibold text-muted" onclick="goToStep(1)">
+                            <i class="fas fa-arrow-left me-1"></i> {{ __('Back: Setup') }}
                         </button>
-                        <button type="button" class="btn btn-primary rounded-pill px-4 py-3 fw-bold" onclick="validateAndGoToStep3()">
-                            {{ __('Next: Review & Authorize') }} <i class="fas fa-arrow-right ms-2"></i>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold" onclick="validateAndGoToStep3()">
+                            {{ __('Next: Review & Authorize') }} <i class="fas fa-arrow-right ms-1"></i>
                         </button>
                     </div>
                 </div>
@@ -244,62 +244,62 @@
                 {{-- ========================================================================= --}}
                 {{-- STEP 3: REVIEW, FINANCIAL DISCLOSURE & AUTHORIZATION --}}
                 {{-- ========================================================================= --}}
-                <div class="wizard-pane p-4 p-md-5 d-none" id="wireStep3">
-                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                <div class="wizard-pane p-4 p-md-4 d-none" id="wireStep3">
+                    <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom">
                         <i class="fas fa-clipboard-check text-primary me-2"></i> {{ __('Step 3: Review & Authorize Settlement') }}
-                    </h5>
+                    </h6>
 
-                    <div class="p-4 rounded-3 border bg-light bg-opacity-75 mb-4">
-                        <div class="row g-3">
+                    <div class="p-3 rounded-3 border bg-light bg-opacity-75 mb-3">
+                        <div class="row g-2">
                             <div class="col-sm-6">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Funding Source') }}</span>
-                                <strong class="text-dark" id="revSourceAccount">-</strong>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Funding Source') }}</span>
+                                <strong class="text-dark small" id="revSourceAccount">-</strong>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Wire Classification') }}</span>
-                                <span class="badge bg-primary px-3 py-1 rounded-pill" id="revWireType">Domestic Fedwire</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Wire Classification') }}</span>
+                                <span class="badge bg-primary px-2 py-1 rounded-pill small" id="revWireType">Domestic Fedwire</span>
                             </div>
 
                             <div class="col-12"><hr class="my-1"></div>
 
                             <div class="col-sm-6">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Beneficiary Entity') }}</span>
-                                <strong class="text-dark fs-6" id="revBeneficiaryName">-</strong>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Beneficiary Entity') }}</span>
+                                <strong class="text-dark small" id="revBeneficiaryName">-</strong>
                                 <div class="text-muted extra-small" id="revBeneficiaryAddress"></div>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Receiving Institution') }}</span>
-                                <strong class="text-dark fs-6" id="revBankName">-</strong>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Receiving Institution') }}</span>
+                                <strong class="text-dark small" id="revBankName">-</strong>
                                 <div class="text-muted extra-small" id="revRoutingSwift"></div>
                             </div>
 
                             <div class="col-12"><hr class="my-1"></div>
 
                             <div class="col-sm-6">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Beneficiary Account / IBAN') }}</span>
-                                <span class="font-monospace fw-bold text-dark" id="revAccountNumber">-</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Beneficiary Account / IBAN') }}</span>
+                                <span class="font-monospace fw-bold text-dark small" id="revAccountNumber">-</span>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Transfer Principal') }}</span>
-                                <span class="fw-bold text-dark fs-6" id="revPrincipalAmount">{{ $currencySymbol }}0.00</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Transfer Principal') }}</span>
+                                <span class="fw-bold text-dark small" id="revPrincipalAmount">{{ $currencySymbol }}0.00</span>
                             </div>
 
                             <div class="col-12"><hr class="my-1"></div>
 
                             <div class="col-sm-6">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Wire Settlement & Processing Fee') }}</span>
-                                <span class="fw-bold text-primary" id="revWireFee">{{ $currencySymbol }}0.00</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Wire Settlement & Processing Fee') }}</span>
+                                <span class="fw-bold text-primary small" id="revWireFee">{{ $currencySymbol }}0.00</span>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <span class="text-muted small text-uppercase d-block">{{ __('Total Settlement Debit') }}</span>
-                                <span class="fw-bolder text-dark fs-4" id="revTotalDebit">{{ $currencySymbol }}0.00</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Total Settlement Debit') }}</span>
+                                <span class="fw-bold text-dark fs-5" id="revTotalDebit">{{ $currencySymbol }}0.00</span>
                             </div>
                         </div>
                     </div>
 
                     {{-- Professional Financial Settlement Notice --}}
-                    <div class="alert alert-info border-0 rounded-3 small d-flex align-items-start gap-2 mb-4">
-                        <i class="fas fa-shield-alt fs-5 text-primary mt-1"></i>
+                    <div class="alert alert-info border-0 rounded-2 extra-small d-flex align-items-start gap-2 mb-3 p-3">
+                        <i class="fas fa-shield-alt fs-6 text-primary mt-1"></i>
                         <div>
                             <strong>{{ __('Settlement Policy Notice:') }}</strong><br>
                             {{ __('Funds (transfer principal and applicable wire processing fees) are debited immediately upon order authorization and placed into a pending settlement hold until clearing and final funds dispatch.') }}
@@ -309,20 +309,20 @@
                     {{-- Mandatory Authorization Checkbox --}}
                     <div class="form-check mb-4">
                         <input class="form-check-input" type="checkbox" id="authCheckbox" required>
-                        <label class="form-check-label small text-muted" for="authCheckbox">
+                        <label class="form-check-label extra-small text-muted" for="authCheckbox">
                             {{ __('I certify that I am authorized to initiate this wire transfer and that the recipient bank and routing details provided above are verified and accurate. I understand that wire transfers are irrevocable once dispatched.') }}
                         </label>
                     </div>
 
                     <div class="d-flex justify-content-between pt-3 border-top">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold" onclick="goToStep(2)">
-                            <i class="fas fa-arrow-left me-2"></i> {{ __('Back: Edit Details') }}
+                        <button type="button" class="btn btn-light border rounded-pill px-4 py-2 fw-semibold text-muted" onclick="goToStep(2)">
+                            <i class="fas fa-arrow-left me-1"></i> {{ __('Back: Edit') }}
                         </button>
                         <button type="submit" 
                                 id="btnSubmitWire"
                                 onclick="event.preventDefault(); submitWireTransferWithSecurity();"
-                                class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm btn-lg">
-                            <i class="fas fa-paper-plane me-2"></i> {{ __('Authorize & Submit Wire Transfer') }}
+                                class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
+                            <i class="fas fa-paper-plane me-1"></i> {{ __('Authorize & Submit Wire') }}
                         </button>
                     </div>
                 </div>
@@ -330,15 +330,15 @@
         </div>
 
         {{-- Professional Regulatory & Wire Instructions Notice --}}
-        <div class="card border-0 bg-white shadow-xs rounded-4 p-4 mb-5">
-            <h6 class="fw-bold text-dark mb-2">
+        <div class="card border-0 bg-white shadow-xs rounded-3 p-3 mb-5">
+            <h6 class="fw-bold text-dark mb-2 small">
                 <i class="fas fa-info-circle text-primary me-1"></i> {{ __('Wire Transfer Terms & Cutoff Times') }}
             </h6>
-            <div class="small text-muted">
+            <div class="extra-small text-muted">
                 @if(!empty($data?->instructions) && !str_contains($data->instructions, 'retrieved the existing JSON data'))
                     {!! $data->instructions !!}
                 @else
-                    <p class="mb-2"><strong>{{ __('Wire Transfer Processing & Cutoff Times:') }}</strong></p>
+                    <p class="mb-1"><strong>{{ __('Wire Transfer Processing & Cutoff Times:') }}</strong></p>
                     <ul class="mb-0 ps-3">
                         <li><strong>{{ __('Domestic Fedwire:') }}</strong> {{ __('Outgoing domestic wire instructions submitted and authorized prior to 3:00 PM EST on business days are processed on the same business day. Orders received after cutoff will process the following business day.') }}</li>
                         <li><strong>{{ __('International SWIFT:') }}</strong> {{ __('Outgoing international wire transfers are subject to intermediary correspondent banking clearing times (typically 1–3 business days).') }}</li>
@@ -362,11 +362,11 @@
         opacity: 1;
     }
     .wizard-step-indicator .step-num {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         background-color: #e9ecef;
         color: #6c757d;
-        font-size: 14px;
+        font-size: 13px;
         border-radius: 50%;
     }
     .wizard-step-indicator.active .step-num {
@@ -393,7 +393,7 @@
         box-shadow: 0 2px 8px rgba(93, 120, 255, 0.15);
     }
     .extra-small {
-        font-size: 0.75rem;
+        font-size: 0.78rem;
     }
     .shadow-xs {
         box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -402,13 +402,13 @@
     .routing-lookup-verified {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.6rem;
         background: #ecfdf5;
         border: 1px solid #a7f3d0;
     }
     .routing-lookup-verified__icon {
-        width: 2.25rem;
-        height: 2.25rem;
+        width: 1.9rem;
+        height: 1.9rem;
         border-radius: 50%;
         background: #10b981;
         color: #fff;
@@ -416,24 +416,32 @@
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        font-size: 0.85rem;
     }
     .routing-lookup-verified__sub { 
         color: #047857; 
         font-weight: 600; 
-        margin-top: 0.2rem; 
     }
-    /* Fixed Modal Stacking Context to prevent grey foreground overlay */
-    #limitBox {
-        z-index: 1070 !important;
+    /* Fixed Modal Stacking Context to guarantee no grey overlay on modal */
+    body > #limitBox {
+        z-index: 99999 !important;
+        position: fixed !important;
     }
     .modal-backdrop {
-        z-index: 1060 !important;
+        z-index: 99990 !important;
     }
 </style>
 @endsection
 
 @section('script')
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const limitModal = document.getElementById('limitBox');
+        if (limitModal && limitModal.parentElement !== document.body) {
+            document.body.appendChild(limitModal);
+        }
+    });
+
     const domesticFee = {{ (float)($data?->charge ?? 25.00) }};
     const domesticFeeType = '{{ $data?->charge_type ?? "fixed" }}';
     const intlFee = {{ (float)($data?->international_charge ?? 45.00) }};
@@ -526,7 +534,7 @@
             document.getElementById('stepIndicator3').classList.add('active');
             populateReviewStep();
         }
-        window.scrollTo({ top: 150, behavior: 'smooth' });
+        window.scrollTo({ top: 120, behavior: 'smooth' });
     }
 
     function validateAndGoToStep2() {
@@ -680,18 +688,18 @@
                 if (ok && body.status === 'verified') {
                     bankNameEl.innerText = body.bank_name;
                     cardEl.classList.remove('d-none');
-                    statusEl.innerHTML = '<span class="text-success small fw-semibold"><i class="fas fa-check-circle me-1"></i> {{ __("Receiving institution verified.") }}</span>';
+                    statusEl.innerHTML = '<span class="text-success extra-small fw-semibold"><i class="fas fa-check-circle me-1"></i> {{ __("Receiving institution verified.") }}</span>';
                     if (bankInput) {
                         bankInput.value = body.bank_name;
                     }
                 } else if (body.status === 'manual_required') {
-                    statusEl.innerHTML = '<span class="text-warning small">' + (body.message || '{{ __("Enter the receiving institution\'s name manually.") }}') + '</span>';
+                    statusEl.innerHTML = '<span class="text-warning extra-small">' + (body.message || '{{ __("Enter the receiving institution\'s name manually.") }}') + '</span>';
                 } else {
-                    statusEl.innerHTML = '<span class="text-muted small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
+                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
                 }
             })
             .catch(() => {
-                statusEl.innerHTML = '<span class="text-muted small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
+                statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA format") }}</span>';
             });
         }, 200);
     }

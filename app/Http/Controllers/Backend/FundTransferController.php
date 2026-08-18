@@ -659,25 +659,104 @@ class FundTransferController extends Controller
         } else {
             // Wire Transfer
             $bankName = data_get($manual_data, 'bank_name') ?? 'External Bank';
+            $beneficiaryName = data_get($manual_data, 'beneficiary_name') ?? data_get($manual_data, 'name_of_account') ?? 'Beneficiary';
             $targetAccount = data_get($manual_data, 'account_number');
             $targetLast4 = substr($targetAccount, -4);
             $toAccount = strtoupper($bankName) . ' (... ' . $targetLast4 . ')';
+            $currencySymbol = setting('currency_symbol', 'global') ?? '$';
+            $routingOrSwift = !empty(data_get($manual_data, 'routing_number')) ? 'ABA: ' . data_get($manual_data, 'routing_number') : ('SWIFT: ' . (data_get($manual_data, 'swift_code') ?? 'N/A'));
+
+            if ($transaction->status->value == 'failed') {
+                $htmlBody = '<p>Your wire transfer request has been cancelled. All debited funds (principal amount plus processing fees) have been automatically refunded to your account balance.</p>
+                <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 18px; margin: 20px 0;">
+                    <h3 style="color: #b91c1c; margin-top: 0; margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid #fecaca; padding-bottom: 8px;">Cancellation & Refund Notice</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.6;">
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Tracking ID:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; font-family: monospace; color: #1e293b;">' . $transaction->tnx . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Beneficiary:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($beneficiaryName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Receiving Bank:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($bankName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Refunded Amount:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; font-size: 15px; color: #b91c1c;">' . $currencySymbol . number_format($transaction->final_amount, 2) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Reason for Cancellation:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #b91c1c;">' . htmlspecialchars($rejectionText !== '' ? $rejectionText : 'Order cancelled by financial operations.') . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Account Status:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #15803d;">Funds Restored to Balance</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">If you have questions regarding this cancellation, please contact our wire operations support team.</p>';
+            } else {
+                $htmlBody = '<p>Your wire transfer has been reviewed, authorized, and successfully dispatched across the wire clearing network.</p>
+                <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 18px; margin: 20px 0;">
+                    <h3 style="color: #15803d; margin-top: 0; margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid #bbf7d0; padding-bottom: 8px;">Dispatched Wire Details</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.6;">
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Confirmation / Tracking ID:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; font-family: monospace; color: #1e293b;">' . $transaction->tnx . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Beneficiary:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($beneficiaryName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Receiving Institution:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($bankName) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Routing / SWIFT:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . htmlspecialchars($routingOrSwift) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Dispatched Principal:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #15803d;">' . $currencySymbol . number_format($transaction->amount, 2) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Settlement Fee:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #1e293b;">' . $currencySymbol . number_format($transaction->charge, 2) . '</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #bbf7d0;">
+                            <td style="padding: 8px 0 4px 0; font-weight: bold; color: #0f172a;">Total Debited:</td>
+                            <td style="padding: 8px 0 4px 0; font-weight: bold; font-size: 15px; text-align: right; color: #15803d;">' . $currencySymbol . number_format($transaction->final_amount, 2) . '</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b;">Execution Status:</td>
+                            <td style="padding: 4px 0; font-weight: bold; text-align: right; color: #15803d;">Completed / Dispatched</td>
+                        </tr>
+                    </table>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">The receiving financial institution has been credited. Final posting to the beneficiary account depends on the receiving bank’s internal posting schedules.</p>';
+            }
 
             $shortcodes = array_merge($txnShortcodes, [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
-                '[[charge]]' => $transaction->charge,
-                '[[amount]]' => $transaction->amount,
-                '[[total_amount]]' => $transaction->final_amount,
+                '[[charge]]' => $currencySymbol . number_format($transaction->charge, 2),
+                '[[amount]]' => $currencySymbol . number_format($transaction->amount, 2),
+                '[[total_amount]]' => $currencySymbol . number_format($transaction->final_amount, 2),
                 '[[status]]' => $transaction->status->value,
                 '[[to_account]]' => $toAccount,
                 '[[account_number]]' => $toAccount,
-                '[[name_of_account]]' => data_get($manual_data, 'name_of_account'),
+                '[[beneficiary_name]]' => $beneficiaryName,
+                '[[name_of_account]]' => $beneficiaryName,
                 '[[swift_code]]' => data_get($manual_data, 'swift_code'),
                 '[[bank_name]]' => $bankName,
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? 'N/A',
                 '[[phone_number]]' => data_get($manual_data, 'phone_number'),
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
+                '[[message_body]]' => $htmlBody,
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => setting('site_title', 'global'),
                 '[[site_url]]' => route('home'),
@@ -718,9 +797,10 @@ class FundTransferController extends Controller
                 }
             }
 
-
-            $this->mailNotify($transaction->user->email, 'wire_transfer', $shortcodes);
-            $this->smsNotify('wire_transfer', $shortcodes, $transaction->user->phone);
+            $mailCode = ($transaction->status->value == 'success') ? 'wire_transfer_approved' : 'wire_transfer_rejected';
+            $smsCode = ($transaction->status->value == 'success') ? 'wire_transfer_approved' : 'wire_transfer_rejected';
+            $this->mailNotify($transaction->user->email, $mailCode, $shortcodes);
+            $this->smsNotify($smsCode, $shortcodes, $transaction->user->phone);
             $this->pushNotify('wire_transfer_request', $shortcodes, route('user.fund_transfer.transfer.log'), $transaction->user->id);
         }
 

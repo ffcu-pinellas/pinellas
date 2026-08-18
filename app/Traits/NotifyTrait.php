@@ -204,7 +204,19 @@ trait NotifyTrait
             ];
 
             // Specific Fallbacks for commonly missing templates
-            if ($code === 'remote_deposit_submitted') {
+            if ($code === 'wire_transfer' || $code === 'wire_transfer_request') {
+                $details['subject'] = 'Wire Transfer Order Submitted - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['title'] = 'Wire Transfer Submitted';
+                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer instruction has been successfully recorded and is pending final clearing and settlement.';
+            } elseif ($code === 'wire_transfer_approved') {
+                $details['subject'] = 'Wire Transfer Dispatched & Settlement Complete - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['title'] = 'Wire Transfer Completed';
+                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer has been reviewed, authorized, and successfully dispatched.';
+            } elseif ($code === 'wire_transfer_rejected') {
+                $details['subject'] = 'Wire Transfer Order Cancelled & Refunded - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['title'] = 'Wire Order Cancelled';
+                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer request could not be processed and has been cancelled. Funds have been refunded to your account balance.';
+            } elseif ($code === 'remote_deposit_submitted') {
                 $details['subject'] = 'Check Deposit Received - ' . setting('site_title', 'global');
                 $details['title'] = 'Check Received';
                 $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? 'the specified amount') . ' to your ' . ($shortcodes['[[account_name]]'] ?? 'account') . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.';

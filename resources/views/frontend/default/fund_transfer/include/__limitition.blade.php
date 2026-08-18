@@ -1,6 +1,6 @@
-<div class="modal fade" id="limitBox" tabindex="-1" aria-labelledby="limitBoxLabel" aria-hidden="true" style="z-index: 1075 !important;">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; z-index: 1080 !important; background-color: #ffffff;">
+<div class="modal fade" id="limitBox" tabindex="-1" aria-labelledby="limitBoxLabel" aria-hidden="true" style="z-index: 99999 !important;">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="z-index: 100000 !important;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; z-index: 100001 !important; background-color: #ffffff;">
             <div class="modal-header border-bottom p-4 pb-3">
                 <div class="d-flex align-items-center gap-2">
                     <div class="rounded-circle bg-primary bg-opacity-10 p-2 text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
