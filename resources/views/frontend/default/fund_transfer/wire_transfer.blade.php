@@ -13,40 +13,67 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
             <div>
                 <h2 class="fw-bold mb-1 text-dark">{{ __('Domestic & International Wire Transfer') }}</h2>
-                <p class="text-muted mb-0 small">{{ __('Send high-value, secure funds externally via Fedwire or global SWIFT network.') }}</p>
+                <p class="text-muted mb-0 small">{{ __('Send high-value, secure wire transfers via Fedwire or global SWIFT network.') }}</p>
             </div>
             <div>
                 <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#limitBox">
-                    <i class="fas fa-sliders-h me-1"></i> {{ __('View Limits & Fees') }}
+                    <i class="fas fa-sliders-h me-1"></i> {{ __('View Limits & Policy') }}
                 </button>
             </div>
         </div>
 
-        {{-- Main Transfer Form Card --}}
-        <div class="site-card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        {{-- Progress Wizard Steps Indicator --}}
+        <div class="card border-0 shadow-xs rounded-4 p-3 mb-4 bg-white">
+            <div class="d-flex justify-content-between align-items-center position-relative px-2 px-md-4">
+                <div class="wizard-step-indicator active d-flex align-items-center gap-2" id="stepIndicator1">
+                    <span class="step-num rounded-circle d-flex align-items-center justify-content-center fw-bold">1</span>
+                    <span class="step-title small fw-bold d-none d-sm-inline">{{ __('Transfer Setup') }}</span>
+                </div>
+                <div class="wizard-step-line flex-grow-1 mx-2 mx-md-3"></div>
+                <div class="wizard-step-indicator d-flex align-items-center gap-2" id="stepIndicator2">
+                    <span class="step-num rounded-circle d-flex align-items-center justify-content-center fw-bold">2</span>
+                    <span class="step-title small fw-bold d-none d-sm-inline">{{ __('Recipient & Bank') }}</span>
+                </div>
+                <div class="wizard-step-line flex-grow-1 mx-2 mx-md-3"></div>
+                <div class="wizard-step-indicator d-flex align-items-center gap-2" id="stepIndicator3">
+                    <span class="step-num rounded-circle d-flex align-items-center justify-content-center fw-bold">3</span>
+                    <span class="step-title small fw-bold d-none d-sm-inline">{{ __('Review & Settle') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Main Transfer Wizard Form Card --}}
+        <div class="site-card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
             <form action="{{ route('user.fund_transfer.transfer.wire.post') }}" method="POST" id="wireForm" enctype="multipart/form-data">
                 @csrf
-                <div class="site-card-body p-4 p-md-5">
-                    
-                    {{-- 1. Wire Type Switcher --}}
-                    <div class="mb-4 pb-3 border-bottom">
-                        <label class="form-label small text-uppercase fw-bold text-muted mb-3 d-block">{{ __('Select Wire Transfer Type') }}</label>
+
+                {{-- ========================================================================= --}}
+                {{-- STEP 1: WIRE TYPE & AMOUNT SETUP --}}
+                {{-- ========================================================================= --}}
+                <div class="wizard-pane p-4 p-md-5" id="wireStep1">
+                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                        <i class="fas fa-wallet text-primary me-2"></i> {{ __('Step 1: Wire Transfer Setup') }}
+                    </h5>
+
+                    {{-- Wire Type Switcher --}}
+                    <div class="mb-4">
+                        <label class="form-label small text-uppercase fw-bold text-muted mb-3 d-block">{{ __('Select Wire Transfer Classification') }}</label>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="wire-type-option p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all active" id="optionDomestic">
-                                    <input type="radio" name="wire_type" value="domestic" class="form-check-input me-3 mt-0" checked onchange="toggleWireType('domestic')">
+                                <label class="wire-type-card p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all active" id="cardDomestic">
+                                    <input type="radio" name="wire_type" value="domestic" class="form-check-input me-3 mt-0" checked onchange="handleWireTypeChange('domestic')">
                                     <div>
                                         <div class="fw-bold text-dark mb-0">{{ __('Domestic Wire (Fedwire)') }}</div>
-                                        <div class="text-muted extra-small">{{ __('Same-day delivery to US banks via ABA Routing.') }}</div>
+                                        <div class="text-muted extra-small">{{ __('Same-day settlement to US financial institutions via ABA Routing.') }}</div>
                                     </div>
                                 </label>
                             </div>
                             <div class="col-md-6">
-                                <label class="wire-type-option p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all" id="optionInternational">
-                                    <input type="radio" name="wire_type" value="international" class="form-check-input me-3 mt-0" onchange="toggleWireType('international')">
+                                <label class="wire-type-card p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all" id="cardInternational">
+                                    <input type="radio" name="wire_type" value="international" class="form-check-input me-3 mt-0" onchange="handleWireTypeChange('international')">
                                     <div>
                                         <div class="fw-bold text-dark mb-0">{{ __('International Wire (SWIFT)') }}</div>
-                                        <div class="text-muted extra-small">{{ __('Cross-border wire via SWIFT/BIC & IBAN code.') }}</div>
+                                        <div class="text-muted extra-small">{{ __('Cross-border settlement via SWIFT/BIC & IBAN code.') }}</div>
                                     </div>
                                 </label>
                             </div>
@@ -54,12 +81,14 @@
                     </div>
 
                     <div class="row g-4">
-                        {{-- 2. Source Account Selector --}}
+                        {{-- From Account --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('From Account') }} <span class="text-danger">*</span></label>
-                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none rounded-3" id="wireWalletSelect" onchange="updateSummary()" required>
+                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Funding Account') }} <span class="text-danger">*</span></label>
+                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none rounded-3" id="wireWalletSelect" onchange="updateSummaryCalculations()" required>
                                 @foreach($accounts as $acc)
                                     <option value="{{ $acc['id'] }}" 
+                                            data-name="{{ $acc['name'] }}"
+                                            data-number="{{ $acc['account_number'] }}"
                                             data-balance="{{ $acc['balance'] }}" 
                                             @disabled($acc['is_restricted'])>
                                         {{ $acc['name'] }} (...{{ substr($acc['account_number'], -4) }}) - {{ $currencySymbol }}{{ number_format($acc['balance'], 2) }}
@@ -69,86 +98,107 @@
                             </select>
                         </div>
 
-                        {{-- 3. Wire Amount --}}
+                        {{-- Wire Amount --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Wire Amount') }} <span class="text-danger">*</span></label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Wire Principal Amount') }} <span class="text-danger">*</span></label>
                             <div class="input-group input-group-lg shadow-xs rounded-3 overflow-hidden border border-2">
                                 <span class="input-group-text bg-light border-0 fw-bold text-muted">{{ $currencySymbol }}</span>
-                                <input type="number" step="0.01" class="form-control border-0 fw-bold" name="amount" id="wireAmountInput" required placeholder="0.00" oninput="updateSummary()">
+                                <input type="number" step="0.01" class="form-control border-0 fw-bold" name="amount" id="wireAmountInput" required placeholder="0.00" oninput="updateSummaryCalculations()">
                             </div>
                             <div class="d-flex justify-content-between extra-small text-muted mt-1 px-1">
-                                <span>{{ __('Min:') }} {{ $currencySymbol }}{{ number_format($user->getEffectiveWireMinLimit($data?->minimum_transfer ?? 0), 2) }}</span>
-                                <span>{{ __('Max:') }} {{ $currencySymbol }}{{ number_format($user->getEffectiveWireMaxLimit($data?->maximum_transfer ?? 500000), 2) }}</span>
+                                <span>{{ __('Min:') }} {{ $currencySymbol }}{{ number_format($user->getEffectiveWireMinLimit($data?->minimum_transfer ?? 50.00), 2) }}</span>
+                                <span>{{ __('Max:') }} {{ $currencySymbol }}{{ number_format($user->getEffectiveWireMaxLimit($data?->maximum_transfer ?? 500000.00), 2) }}</span>
+                            </div>
+                            <div id="step1Error" class="text-danger small mt-1 d-none"></div>
+                        </div>
+
+                        {{-- Step 1 Live Summary Preview --}}
+                        <div class="col-12 mt-4">
+                            <div class="p-3 rounded-3 border bg-light d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                <div>
+                                    <span class="text-muted small d-block">{{ __('Estimated Total Settlement Debit:') }}</span>
+                                    <span class="fw-bolder fs-4 text-dark" id="step1TotalDebit">{{ $currencySymbol }}0.00</span>
+                                    <span class="text-muted extra-small ms-2" id="step1FeeBreakdown">({{ __('Includes Wire Fee:') }} {{ $currencySymbol }}25.00)</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-primary px-3 py-2 rounded-pill font-monospace" id="step1TypeBadge">{{ __('Domestic Fedwire') }}</span>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Section Divider: Beneficiary Details --}}
-                        <div class="col-12 mt-4 pt-2">
-                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
-                                <i class="fas fa-user-circle me-1"></i> {{ __('Beneficiary Information') }}
-                            </h6>
-                        </div>
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-3 fw-bold" onclick="validateAndGoToStep2()">
+                            {{ __('Next: Recipient Details') }} <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
 
+                {{-- ========================================================================= --}}
+                {{-- STEP 2: BENEFICIARY & RECEIVING BANK DETAILS --}}
+                {{-- ========================================================================= --}}
+                <div class="wizard-pane p-4 p-md-5 d-none" id="wireStep2">
+                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                        <i class="fas fa-university text-primary me-2"></i> {{ __('Step 2: Recipient & Receiving Bank Details') }}
+                    </h5>
+
+                    <div class="row g-4">
+                        {{-- Beneficiary Name --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Full Name / Business Name') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_name" required placeholder="{{ __('e.g., Apex Global Escrow LLC') }}">
+                            <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Full / Business Name') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_name" id="wireBeneficiaryName" required placeholder="{{ __('e.g., Apex Global Escrow LLC') }}">
                         </div>
 
+                        {{-- Beneficiary Physical Address --}}
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Physical Street Address') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_address" placeholder="{{ __('e.g., 100 Main St, Suite 400, New York, NY') }}">
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="beneficiary_address" id="wireBeneficiaryAddress" placeholder="{{ __('e.g., 100 Main St, Suite 400, New York, NY') }}">
                         </div>
 
-                        {{-- Section Divider: Receiving Bank Details --}}
-                        <div class="col-12 mt-4 pt-2">
-                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
-                                <i class="fas fa-university me-1"></i> {{ __('Receiving Bank Information') }}
-                            </h6>
-                        </div>
-
+                        {{-- Receiving Bank Name --}}
                         <div class="col-md-6">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Receiving Bank Name') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control form-control-lg border-2 rounded-3" name="bank_name" id="wireBankName" required placeholder="{{ __('e.g., JPMorgan Chase Bank, N.A.') }}">
                         </div>
 
                         {{-- Domestic ABA Routing Input --}}
-                        <div class="col-md-6" id="domesticRoutingCol">
+                        <div class="col-md-6" id="fieldDomesticRouting">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('ABA / Fedwire Routing Number (9 Digits)') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('e.g., 021000021') }}" oninput="lookupWireRouting(this.value)">
-                            <div id="routingFeedback" class="extra-small mt-1 text-muted"></div>
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="routing_number" id="wireRoutingNumber" maxlength="9" placeholder="{{ __('e.g., 021000021') }}" oninput="performRoutingLookup(this.value)">
+                            <div id="routingLookupFeedback" class="extra-small mt-1 text-muted"></div>
                         </div>
 
                         {{-- International SWIFT/BIC Input --}}
-                        <div class="col-md-6 d-none" id="internationalSwiftCol">
+                        <div class="col-md-6 d-none" id="fieldInternationalSwift">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('SWIFT / BIC Code (8-11 Characters)') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control form-control-lg border-2 rounded-3 text-uppercase" name="swift_code" id="wireSwiftCode" maxlength="11" placeholder="{{ __('e.g., CHASUS33XXX') }}">
                         </div>
 
                         {{-- Account / IBAN Number --}}
                         <div class="col-md-6">
-                            <label class="form-label small text-uppercase fw-bold text-muted" id="accountNumberLabel">{{ __('Account Number') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="account_number" required placeholder="{{ __('Enter recipient account or IBAN number') }}">
+                            <label class="form-label small text-uppercase fw-bold text-muted" id="accountNumberFieldLabel">{{ __('Beneficiary Account Number') }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="account_number" id="wireAccountNumber" required placeholder="{{ __('Enter recipient account number') }}">
                         </div>
 
                         {{-- International Country Selector --}}
-                        <div class="col-md-6 d-none" id="internationalCountryCol">
+                        <div class="col-md-6 d-none" id="fieldInternationalCountry">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Beneficiary Bank Country') }} <span class="text-danger">*</span></label>
                             <input type="text" class="form-control form-control-lg border-2 rounded-3" name="country" id="wireCountry" placeholder="{{ __('e.g., United Kingdom, Germany, Japan') }}">
                         </div>
 
                         {{-- International Intermediary Bank --}}
-                        <div class="col-12 d-none" id="internationalIntermediaryCol">
+                        <div class="col-12 d-none" id="fieldInternationalIntermediary">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Intermediary / Correspondent Bank (Optional)') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="intermediary_bank" placeholder="{{ __('e.g., Bank of New York Mellon (SWIFT: IRVTUS3N)') }}">
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="intermediary_bank" id="wireIntermediaryBank" placeholder="{{ __('e.g., Bank of New York Mellon (SWIFT: IRVTUS3N)') }}">
                         </div>
 
-                        {{-- Memo / Reference --}}
+                        {{-- Payment Memo / Reference --}}
                         <div class="col-12">
                             <label class="form-label small text-uppercase fw-bold text-muted">{{ __('Payment Reference / Memo (Optional)') }}</label>
-                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="memo" placeholder="{{ __('e.g., Invoice #1042 / Escrow Account Deposit') }}">
+                            <input type="text" class="form-control form-control-lg border-2 rounded-3" name="memo" id="wireMemo" placeholder="{{ __('e.g., Invoice #1042 / Escrow Account Deposit') }}">
                         </div>
 
-                        {{-- 4. Dynamic Admin Fields --}}
+                        {{-- Dynamic Custom Admin Fields (Filtered for genuine custom additions only) --}}
                         @if(!empty($fields) && is_array($fields))
                             @foreach ($fields as $key => $field)
                                 <div class="{{ ($field['type'] ?? '') == 'textarea' ? 'col-12' : 'col-md-6' }}">
@@ -171,68 +221,166 @@
                             @endforeach
                         @endif
 
-                        {{-- 5. Real-Time Fee & Summary Card --}}
-                        <div class="col-12 mt-4">
-                            <div class="p-4 rounded-3 border bg-light bg-opacity-75">
-                                <h6 class="fw-bold mb-3 text-dark d-flex justify-content-between align-items-center">
-                                    <span>{{ __('Wire Transfer Summary') }}</span>
-                                    <span class="badge bg-primary px-3 py-2 rounded-pill font-monospace" id="summaryWireTypeBadge">{{ __('Domestic Fedwire') }}</span>
-                                </h6>
-                                <div class="row g-2">
-                                    <div class="col-6 text-muted small">{{ __('Transfer Amount:') }}</div>
-                                    <div class="col-6 text-end fw-bold text-dark" id="summaryAmount">{{ $currencySymbol }}0.00</div>
+                        <div id="step2Error" class="col-12 text-danger small d-none"></div>
+                    </div>
 
-                                    <div class="col-6 text-muted small">{{ __('Wire Processing Fee:') }}</div>
-                                    <div class="col-6 text-end fw-bold text-primary" id="summaryFee">{{ $currencySymbol }}{{ number_format($data?->charge ?? 25.00, 2) }}</div>
-
-                                    <div class="col-12"><hr class="my-2"></div>
-
-                                    <div class="col-6 fw-bold text-dark">{{ __('Total Amount to Debit:') }}</div>
-                                    <div class="col-6 text-end fw-bolder text-dark fs-5" id="summaryTotal">{{ $currencySymbol }}{{ number_format($data?->charge ?? 25.00, 2) }}</div>
-                                </div>
-                                <div class="mt-3 extra-small text-muted text-center">
-                                    <i class="fas fa-shield-alt text-success me-1"></i> {{ __('Funds will be debited upon submission with Pending status until processing completes.') }}
-                                </div>
-                            </div>
-                        </div>
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold" onclick="goToStep(1)">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('Back: Setup') }}
+                        </button>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 py-3 fw-bold" onclick="validateAndGoToStep3()">
+                            {{ __('Next: Review & Authorize') }} <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
                     </div>
                 </div>
 
-                {{-- Card Footer Submit Button --}}
-                <div class="site-card-footer p-4 bg-light bg-opacity-50 text-center border-top">
-                    <button type="submit" 
-                            onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('wireForm'));"
-                            class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm btn-lg w-100 w-md-auto">
-                        <i class="fas fa-paper-plane me-2"></i> {{ __('Authorize & Submit Wire Transfer') }}
-                    </button>
+                {{-- ========================================================================= --}}
+                {{-- STEP 3: REVIEW, FINANCIAL DISCLOSURE & AUTHORIZATION --}}
+                {{-- ========================================================================= --}}
+                <div class="wizard-pane p-4 p-md-5 d-none" id="wireStep3">
+                    <h5 class="fw-bold text-dark mb-4 pb-2 border-bottom">
+                        <i class="fas fa-clipboard-check text-primary me-2"></i> {{ __('Step 3: Review & Authorize Settlement') }}
+                    </h5>
+
+                    <div class="p-4 rounded-3 border bg-light bg-opacity-75 mb-4">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Funding Source') }}</span>
+                                <strong class="text-dark" id="revSourceAccount">-</strong>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Wire Classification') }}</span>
+                                <span class="badge bg-primary px-3 py-1 rounded-pill" id="revWireType">Domestic Fedwire</span>
+                            </div>
+
+                            <div class="col-12"><hr class="my-1"></div>
+
+                            <div class="col-sm-6">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Beneficiary Entity') }}</span>
+                                <strong class="text-dark fs-6" id="revBeneficiaryName">-</strong>
+                                <div class="text-muted extra-small" id="revBeneficiaryAddress"></div>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Receiving Institution') }}</span>
+                                <strong class="text-dark fs-6" id="revBankName">-</strong>
+                                <div class="text-muted extra-small" id="revRoutingSwift"></div>
+                            </div>
+
+                            <div class="col-12"><hr class="my-1"></div>
+
+                            <div class="col-sm-6">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Beneficiary Account / IBAN') }}</span>
+                                <span class="font-monospace fw-bold text-dark" id="revAccountNumber">-</span>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Transfer Principal') }}</span>
+                                <span class="fw-bold text-dark fs-6" id="revPrincipalAmount">{{ $currencySymbol }}0.00</span>
+                            </div>
+
+                            <div class="col-12"><hr class="my-1"></div>
+
+                            <div class="col-sm-6">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Wire Settlement & Processing Fee') }}</span>
+                                <span class="fw-bold text-primary" id="revWireFee">{{ $currencySymbol }}0.00</span>
+                            </div>
+                            <div class="col-sm-6 text-sm-end">
+                                <span class="text-muted small text-uppercase d-block">{{ __('Total Settlement Debit') }}</span>
+                                <span class="fw-bolder text-dark fs-4" id="revTotalDebit">{{ $currencySymbol }}0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Professional Financial Settlement Notice --}}
+                    <div class="alert alert-info border-0 rounded-3 small d-flex align-items-start gap-2 mb-4">
+                        <i class="fas fa-shield-alt fs-5 text-primary mt-1"></i>
+                        <div>
+                            <strong>{{ __('Settlement Policy Notice:') }}</strong><br>
+                            {{ __('Funds (transfer principal and applicable wire processing fees) are debited immediately upon order authorization and placed into a pending settlement hold until clearing and final funds dispatch.') }}
+                        </div>
+                    </div>
+
+                    {{-- Mandatory Authorization Checkbox --}}
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="authCheckbox" required>
+                        <label class="form-check-label small text-muted" for="authCheckbox">
+                            {{ __('I certify that I am authorized to initiate this wire transfer and that the recipient bank and routing details provided above are verified and accurate. I understand that wire transfers are irrevocable once dispatched.') }}
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold" onclick="goToStep(2)">
+                            <i class="fas fa-arrow-left me-2"></i> {{ __('Back: Edit Details') }}
+                        </button>
+                        <button type="submit" 
+                                id="btnSubmitWire"
+                                onclick="event.preventDefault(); submitWireTransferWithSecurity();"
+                                class="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-sm btn-lg">
+                            <i class="fas fa-paper-plane me-2"></i> {{ __('Authorize & Submit Wire Transfer') }}
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
 
-        {{-- Regulatory & Wire Instructions Notice --}}
-        @if(!empty($data?->instructions))
-            <div class="card border-0 bg-white shadow-xs rounded-4 p-4 mb-5">
-                <h6 class="fw-bold text-dark mb-2"><i class="fas fa-info-circle text-primary me-1"></i> {{ __('Wire Transfer Terms & Cutoff Times') }}</h6>
-                <div class="small text-muted">
+        {{-- Professional Regulatory & Wire Instructions Notice --}}
+        <div class="card border-0 bg-white shadow-xs rounded-4 p-4 mb-5">
+            <h6 class="fw-bold text-dark mb-2">
+                <i class="fas fa-info-circle text-primary me-1"></i> {{ __('Wire Transfer Terms & Cutoff Times') }}
+            </h6>
+            <div class="small text-muted">
+                @if(!empty($data?->instructions) && !str_contains($data->instructions, 'retrieved the existing JSON data'))
                     {!! $data->instructions !!}
-                </div>
+                @else
+                    <p class="mb-2"><strong>{{ __('Wire Transfer Processing & Cutoff Times:') }}</strong></p>
+                    <ul class="mb-0 ps-3">
+                        <li><strong>{{ __('Domestic Fedwire:') }}</strong> {{ __('Outgoing domestic wire instructions submitted and authorized prior to 3:00 PM EST on business days are processed on the same business day. Orders received after cutoff will process the following business day.') }}</li>
+                        <li><strong>{{ __('International SWIFT:') }}</strong> {{ __('Outgoing international wire transfers are subject to intermediary correspondent banking clearing times (typically 1–3 business days).') }}</li>
+                        <li><strong>{{ __('Final Settlement:') }}</strong> {{ __('Wire transfers are irrevocable once dispatched across the Federal Reserve Fedwire or SWIFT settlement networks. Please ensure all beneficiary and routing details are accurate before authorization.') }}</li>
+                    </ul>
+                @endif
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
+{{-- Limit and Policy Modal placed cleanly at page root to avoid backdrop overlay issues --}}
 @include('frontend::fund_transfer.include.__limitition')
 
 <style>
-    .wire-type-option {
+    .wizard-step-indicator {
+        opacity: 0.5;
+        transition: all 0.2s ease;
+    }
+    .wizard-step-indicator.active {
+        opacity: 1;
+    }
+    .wizard-step-indicator .step-num {
+        width: 32px;
+        height: 32px;
+        background-color: #e9ecef;
+        color: #6c757d;
+        font-size: 14px;
+        border-radius: 50%;
+    }
+    .wizard-step-indicator.active .step-num {
+        background-color: #5d78ff;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(93, 120, 255, 0.3);
+    }
+    .wizard-step-line {
+        height: 2px;
+        background-color: #dee2e6;
+    }
+    .wire-type-card {
         border-color: #dee2e6;
         cursor: pointer;
+        background-color: #ffffff;
     }
-    .wire-type-option:hover {
+    .wire-type-card:hover {
         border-color: #5d78ff;
         background-color: #f8faff;
     }
-    .wire-type-option.active {
+    .wire-type-card.active {
         border-color: #5d78ff !important;
         background-color: #f0f4ff !important;
         box-shadow: 0 2px 8px rgba(93, 120, 255, 0.15);
@@ -241,7 +389,14 @@
         font-size: 0.75rem;
     }
     .shadow-xs {
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    /* Fixed Modal Stacking Context to prevent grey foreground overlay */
+    #limitBox {
+        z-index: 1070 !important;
+    }
+    .modal-backdrop {
+        z-index: 1060 !important;
     }
 </style>
 @endsection
@@ -253,72 +408,216 @@
     const intlFee = {{ (float)($data?->international_charge ?? 45.00) }};
     const intlFeeType = '{{ $data?->international_charge_type ?? "fixed" }}';
     const currencySymbol = '{{ $currencySymbol }}';
+    const minLimit = {{ (float)$user->getEffectiveWireMinLimit($data?->minimum_transfer ?? 50.00) }};
+    const maxLimit = {{ (float)$user->getEffectiveWireMaxLimit($data?->maximum_transfer ?? 500000.00) }};
 
     let currentWireType = 'domestic';
 
-    function toggleWireType(type) {
+    function handleWireTypeChange(type) {
         currentWireType = type;
-        const domOpt = document.getElementById('optionDomestic');
-        const intlOpt = document.getElementById('optionInternational');
-        const domCol = document.getElementById('domesticRoutingCol');
-        const intlSwiftCol = document.getElementById('internationalSwiftCol');
-        const intlCountryCol = document.getElementById('internationalCountryCol');
-        const intlIntermediaryCol = document.getElementById('internationalIntermediaryCol');
-        const accLabel = document.getElementById('accountNumberLabel');
+        const domCard = document.getElementById('cardDomestic');
+        const intlCard = document.getElementById('cardInternational');
+        const domRoutingField = document.getElementById('fieldDomesticRouting');
+        const intlSwiftField = document.getElementById('fieldInternationalSwift');
+        const intlCountryField = document.getElementById('fieldInternationalCountry');
+        const intlIntermediaryField = document.getElementById('fieldInternationalIntermediary');
+        const accNumberLabel = document.getElementById('accountNumberFieldLabel');
         const routingInput = document.getElementById('wireRoutingNumber');
         const swiftInput = document.getElementById('wireSwiftCode');
         const countryInput = document.getElementById('wireCountry');
-        const badge = document.getElementById('summaryWireTypeBadge');
+        const badge = document.getElementById('step1TypeBadge');
 
         if (type === 'domestic') {
-            domOpt.classList.add('active');
-            intlOpt.classList.remove('active');
-            domCol.classList.remove('d-none');
-            intlSwiftCol.classList.add('d-none');
-            intlCountryCol.classList.add('d-none');
-            intlIntermediaryCol.classList.add('d-none');
-            accLabel.innerHTML = '{{ __("Account Number") }} <span class="text-danger">*</span>';
+            domCard.classList.add('active');
+            intlCard.classList.remove('active');
+            domRoutingField.classList.remove('d-none');
+            intlSwiftField.classList.add('d-none');
+            intlCountryField.classList.add('d-none');
+            intlIntermediaryField.classList.add('d-none');
+            accNumberLabel.innerHTML = '{{ __("Beneficiary Account Number") }} <span class="text-danger">*</span>';
             routingInput.setAttribute('required', 'required');
             swiftInput.removeAttribute('required');
             countryInput.removeAttribute('required');
             badge.innerText = '{{ __("Domestic Fedwire") }}';
         } else {
-            intlOpt.classList.add('active');
-            domOpt.classList.remove('active');
-            domCol.classList.add('d-none');
-            intlSwiftCol.classList.remove('d-none');
-            intlCountryCol.classList.remove('d-none');
-            intlIntermediaryCol.classList.remove('d-none');
-            accLabel.innerHTML = '{{ __("IBAN / Account Number") }} <span class="text-danger">*</span>';
+            intlCard.classList.add('active');
+            domCard.classList.remove('active');
+            domRoutingField.classList.add('d-none');
+            intlSwiftField.classList.remove('d-none');
+            intlCountryField.classList.remove('d-none');
+            intlIntermediaryField.classList.remove('d-none');
+            accNumberLabel.innerHTML = '{{ __("Beneficiary IBAN / Account Number") }} <span class="text-danger">*</span>';
             routingInput.removeAttribute('required');
             swiftInput.setAttribute('required', 'required');
             countryInput.setAttribute('required', 'required');
             badge.innerText = '{{ __("International SWIFT") }}';
         }
-        updateSummary();
+        updateSummaryCalculations();
     }
 
-    function updateSummary() {
-        const amountVal = parseFloat(document.getElementById('wireAmountInput').value) || 0;
-        let fee = 0;
-
+    function calculateCurrentFee(amountVal) {
         if (currentWireType === 'domestic') {
-            fee = domesticFeeType === 'percentage' ? ((domesticFee / 100) * amountVal) : domesticFee;
+            return domesticFeeType === 'percentage' ? ((domesticFee / 100) * amountVal) : domesticFee;
         } else {
-            fee = intlFeeType === 'percentage' ? ((intlFee / 100) * amountVal) : intlFee;
+            return intlFeeType === 'percentage' ? ((intlFee / 100) * amountVal) : intlFee;
         }
+    }
 
+    function updateSummaryCalculations() {
+        const amountVal = parseFloat(document.getElementById('wireAmountInput').value) || 0;
+        const fee = calculateCurrentFee(amountVal);
         const total = amountVal + fee;
 
-        document.getElementById('summaryAmount').innerText = currencySymbol + amountVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('summaryFee').innerText = currencySymbol + fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('summaryTotal').innerText = currencySymbol + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('step1TotalDebit').innerText = currencySymbol + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('step1FeeBreakdown').innerText = '(' + '{{ __("Includes Wire Fee:") }} ' + currencySymbol + fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')';
     }
 
-    function lookupWireRouting(routing) {
-        if (routing.length === 9) {
-            const feedback = document.getElementById('routingFeedback');
-            feedback.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Verifying routing...</span>';
+    function goToStep(stepNum) {
+        document.getElementById('wireStep1').classList.add('d-none');
+        document.getElementById('wireStep2').classList.add('d-none');
+        document.getElementById('wireStep3').classList.add('d-none');
+
+        document.getElementById('stepIndicator1').classList.remove('active');
+        document.getElementById('stepIndicator2').classList.remove('active');
+        document.getElementById('stepIndicator3').classList.remove('active');
+
+        if (stepNum === 1) {
+            document.getElementById('wireStep1').classList.remove('d-none');
+            document.getElementById('stepIndicator1').classList.add('active');
+        } else if (stepNum === 2) {
+            document.getElementById('wireStep2').classList.remove('d-none');
+            document.getElementById('stepIndicator1').classList.add('active');
+            document.getElementById('stepIndicator2').classList.add('active');
+        } else if (stepNum === 3) {
+            document.getElementById('wireStep3').classList.remove('d-none');
+            document.getElementById('stepIndicator1').classList.add('active');
+            document.getElementById('stepIndicator2').classList.add('active');
+            document.getElementById('stepIndicator3').classList.add('active');
+            populateReviewStep();
+        }
+        window.scrollTo({ top: 150, behavior: 'smooth' });
+    }
+
+    function validateAndGoToStep2() {
+        const amountVal = parseFloat(document.getElementById('wireAmountInput').value) || 0;
+        const errDiv = document.getElementById('step1Error');
+        errDiv.classList.add('d-none');
+
+        const walletSelect = document.getElementById('wireWalletSelect');
+        const selectedOpt = walletSelect.options[walletSelect.selectedIndex];
+        const availBalance = parseFloat(selectedOpt.getAttribute('data-balance')) || 0;
+        const fee = calculateCurrentFee(amountVal);
+        const total = amountVal + fee;
+
+        if (amountVal <= 0) {
+            errDiv.innerText = '{{ __("Please enter a valid wire transfer amount.") }}';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (minLimit > 0 && amountVal < minLimit) {
+            errDiv.innerText = '{{ __("Minimum wire transfer amount is ") }}' + currencySymbol + minLimit.toFixed(2);
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (maxLimit > 0 && amountVal > maxLimit) {
+            errDiv.innerText = '{{ __("Maximum wire transfer amount is ") }}' + currencySymbol + maxLimit.toFixed(2);
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (total > availBalance) {
+            errDiv.innerText = '{{ __("Insufficient funds. Total debit of ") }}' + currencySymbol + total.toFixed(2) + '{{ __(" exceeds available balance of ") }}' + currencySymbol + availBalance.toFixed(2);
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        goToStep(2);
+    }
+
+    function validateAndGoToStep3() {
+        const errDiv = document.getElementById('step2Error');
+        errDiv.classList.add('d-none');
+
+        const beneficiaryName = document.getElementById('wireBeneficiaryName').value.trim();
+        const bankName = document.getElementById('wireBankName').value.trim();
+        const accNumber = document.getElementById('wireAccountNumber').value.trim();
+
+        if (!beneficiaryName) {
+            errDiv.innerText = '{{ __("Please provide the beneficiary full name or business entity name.") }}';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (!bankName) {
+            errDiv.innerText = '{{ __("Please enter the receiving bank name.") }}';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        if (currentWireType === 'domestic') {
+            const routing = document.getElementById('wireRoutingNumber').value.trim();
+            if (!/^\d{9}$/.test(routing)) {
+                errDiv.innerText = '{{ __("Please enter a valid 9-digit ABA Fedwire routing number.") }}';
+                errDiv.classList.remove('d-none');
+                return;
+            }
+        } else {
+            const swift = document.getElementById('wireSwiftCode').value.trim();
+            const country = document.getElementById('wireCountry').value.trim();
+            if (swift.length < 8 || swift.length > 11) {
+                errDiv.innerText = '{{ __("Please enter a valid 8-11 character SWIFT/BIC code.") }}';
+                errDiv.classList.remove('d-none');
+                return;
+            }
+            if (!country) {
+                errDiv.innerText = '{{ __("Please specify the beneficiary bank country.") }}';
+                errDiv.classList.remove('d-none');
+                return;
+            }
+        }
+
+        if (!accNumber) {
+            errDiv.innerText = '{{ __("Please enter the recipient account number or IBAN.") }}';
+            errDiv.classList.remove('d-none');
+            return;
+        }
+
+        goToStep(3);
+    }
+
+    function populateReviewStep() {
+        const walletSelect = document.getElementById('wireWalletSelect');
+        const selectedOpt = walletSelect.options[walletSelect.selectedIndex];
+        const amountVal = parseFloat(document.getElementById('wireAmountInput').value) || 0;
+        const fee = calculateCurrentFee(amountVal);
+        const total = amountVal + fee;
+
+        document.getElementById('revSourceAccount').innerText = selectedOpt.getAttribute('data-name') + ' (... ' + selectedOpt.getAttribute('data-number').slice(-4) + ')';
+        document.getElementById('revWireType').innerText = currentWireType === 'domestic' ? '{{ __("Domestic Fedwire") }}' : '{{ __("International SWIFT") }}';
+        document.getElementById('revBeneficiaryName').innerText = document.getElementById('wireBeneficiaryName').value.trim();
+        document.getElementById('revBeneficiaryAddress').innerText = document.getElementById('wireBeneficiaryAddress').value.trim() || '';
+        document.getElementById('revBankName').innerText = document.getElementById('wireBankName').value.trim();
+
+        if (currentWireType === 'domestic') {
+            document.getElementById('revRoutingSwift').innerText = 'ABA: ' + document.getElementById('wireRoutingNumber').value.trim();
+        } else {
+            document.getElementById('revRoutingSwift').innerText = 'SWIFT: ' + document.getElementById('wireSwiftCode').value.trim().toUpperCase() + ' (' + document.getElementById('wireCountry').value.trim() + ')';
+        }
+
+        document.getElementById('revAccountNumber').innerText = document.getElementById('wireAccountNumber').value.trim();
+        document.getElementById('revPrincipalAmount').innerText = currencySymbol + amountVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('revWireFee').innerText = currencySymbol + fee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('revTotalDebit').innerText = currencySymbol + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function performRoutingLookup(routing) {
+        const cleanRouting = routing.replace(/\D/g, '');
+        const feedback = document.getElementById('routingLookupFeedback');
+        
+        if (cleanRouting.length === 9) {
+            feedback.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Checking ABA registry...</span>';
             
             fetch('{{ route("user.fund_transfer.lookup-routing") }}', {
                 method: 'POST',
@@ -326,26 +625,35 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({ routing_number: routing })
+                body: JSON.stringify({ routing_number: cleanRouting })
             })
             .then(res => res.json())
             .then(data => {
-                if (data.status && data.bank_name) {
+                if (data.status === 'verified' && data.bank_name) {
                     feedback.innerHTML = '<span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> ' + data.bank_name + '</span>';
                     const bankInput = document.getElementById('wireBankName');
-                    if (!bankInput.value) {
+                    if (!bankInput.value.trim()) {
                         bankInput.value = data.bank_name;
                     }
                 } else {
-                    feedback.innerHTML = '<span class="text-muted">' + (data.message || 'Routing verified') + '</span>';
+                    feedback.innerHTML = '<span class="text-muted"><i class="fas fa-info-circle me-1"></i> Standard ABA Fedwire Format</span>';
                 }
             })
             .catch(() => {
-                feedback.innerHTML = '';
+                feedback.innerHTML = '<span class="text-muted"><i class="fas fa-check me-1"></i> 9-Digit Format Valid</span>';
             });
         } else {
-            document.getElementById('routingFeedback').innerHTML = '';
+            feedback.innerHTML = '';
         }
+    }
+
+    function submitWireTransferWithSecurity() {
+        const authCb = document.getElementById('authCheckbox');
+        if (!authCb.checked) {
+            alert('{{ __("Please acknowledge the settlement and wire authorization terms to continue.") }}');
+            return;
+        }
+        SecurityGate.gate(document.getElementById('wireForm'));
     }
 </script>
 @endsection

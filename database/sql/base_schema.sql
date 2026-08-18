@@ -8919,7 +8919,7 @@ CREATE TABLE `wire_transfars` (
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 /*!40000 ALTER TABLE `wire_transfars` DISABLE KEYS */;
 INSERT INTO `wire_transfars` VALUES
-(1,10.00,10000.00,10,'percentage',100000.00,5,5000000.00,100,'<p>In this example, we retrieved the existing JSON data, modified it, and then saved it back to the database.</p>','{\"1\": {\"name\": \"Account Name\", \"type\": \"text\", \"validation\": \"required\"}, \"2\": {\"name\": \"Account Number\", \"type\": \"text\", \"validation\": \"required\"}, \"3\": {\"name\": \"Full Name\", \"type\": \"text\", \"validation\": \"required\"}, \"4\": {\"name\": \"Phone Number\", \"type\": \"text\", \"validation\": \"required\"}, \"5\": {\"name\": \"SWIFT Code or IBAN Number\", \"type\": \"text\", \"validation\": \"required\"}}','2023-12-13 06:35:08','2023-12-13 06:35:08');
+(1,50.00,500000.00,25.00,'fixed',1000000.00,10,5000000.00,50,'<p><strong>Wire Transfer Processing &amp; Cutoff Times:</strong></p><ul><li><strong>Domestic Fedwire:</strong> Outgoing domestic wire instructions submitted and authorized prior to 3:00 PM EST on business days are processed on the same day.</li><li><strong>International SWIFT:</strong> Outgoing international wire transfers typically settle within 1–3 business days.</li><li><strong>Final Settlement:</strong> Wire transfers are irrevocable once dispatched across the Federal Reserve Fedwire or SWIFT settlement networks.</li></ul>','[]','2023-12-13 06:35:08','2023-12-13 06:35:08');
 /*!40000 ALTER TABLE `wire_transfars` ENABLE KEYS */;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;

@@ -329,6 +329,7 @@ class FundTransferController extends Controller
 
             $routingNumber = preg_replace('/\D/', '', (string) $request->routing_number);
 
+            // 1. Check local OthersBank table
             $bankFromCode = OthersBank::where('code', $routingNumber)->first();
             if ($bankFromCode) {
                 return response()->json([
@@ -341,28 +342,75 @@ class FundTransferController extends Controller
                 ]);
             }
 
+            // 2. High-speed local Fedwire / ABA Routing Directory
+            $commonRoutingMap = [
+                '021000021' => 'JPMorgan Chase Bank, N.A.',
+                '026009593' => 'Bank of America, N.A.',
+                '121000358' => 'Bank of America, N.A.',
+                '011000138' => 'Bank of America, N.A.',
+                '121000248' => 'Wells Fargo Bank, N.A.',
+                '121140399' => 'Wells Fargo Bank, N.A.',
+                '021000089' => 'Citibank, N.A.',
+                '091000022' => 'U.S. Bank, N.A.',
+                '071921891' => 'PNC Bank, N.A.',
+                '043000096' => 'PNC Bank, N.A.',
+                '051405515' => 'Capital One, N.A.',
+                '056073573' => 'Capital One, N.A.',
+                '011103093' => 'TD Bank, N.A.',
+                '031101266' => 'TD Bank, N.A.',
+                '061000104' => 'Truist Bank',
+                '063100277' => 'Regions Bank',
+                '071000301' => 'BMO Harris Bank, N.A.',
+                '042000013' => 'Fifth Third Bank, N.A.',
+                '041000124' => 'KeyBank, N.A.',
+                '121202211' => 'Charles Schwab Bank, SSB',
+                '031000503' => 'Fidelity Investments (UMB Bank)',
+                '256074974' => 'Navy Federal Credit Union',
+                '255078009' => 'State Employees\' Credit Union',
+                '321171184' => 'Golden 1 Credit Union',
+                '021001208' => 'BNY Mellon, N.A.',
+                '124001545' => 'Goldman Sachs Bank USA',
+                '021214897' => 'Morgan Stanley Bank, N.A.',
+                '263182817' => 'Suncoast Credit Union',
+                '263177327' => 'VyStar Credit Union',
+                '263184048' => 'Achieva Credit Union',
+                '263179260' => 'MIDFLORIDA Credit Union',
+                '263182367' => 'Pinellas County Teachers CU',
+            ];
+
+            if (isset($commonRoutingMap[$routingNumber])) {
+                $bankName = $commonRoutingMap[$routingNumber];
+                $bank = $this->resolveOrCreateOtherBank($routingNumber, $bankName);
+                return response()->json([
+                    'status' => 'verified',
+                    'bank_id' => $bank->id,
+                    'bank_name' => $bank->name,
+                    'logo' => $bank->logo,
+                    'charge_type' => $this->mapChargeTypeForFrontend($bank->charge_type),
+                    'charge' => (float) $bank->charge,
+                ]);
+            }
+
+            // 3. External API Lookup with Cache
             $cacheKey = 'routing_lookup_' . $routingNumber;
-            $lookup = Cache::remember($cacheKey, now()->addHours(12), function () use ($routingNumber) {
+            $lookup = Cache::remember($cacheKey, now()->addHours(24), function () use ($routingNumber) {
                 try {
-                    $response = Http::timeout(8)->acceptJson()->get("https://bankrouting.io/api/v1/aba/{$routingNumber}");
-                    if (! $response->successful()) {
-                        return null;
+                    $response = Http::timeout(4)->acceptJson()->get("https://bankrouting.io/api/v1/aba/{$routingNumber}");
+                    if ($response->successful()) {
+                        $bankName = data_get($response->json(), 'data.bank_name');
+                        if ($bankName) return ['bank_name' => trim($bankName)];
                     }
-                    $json = $response->json();
-                    $bankName = data_get($json, 'data.bank_name');
-                    if (! $bankName) {
-                        return null;
+                } catch (\Throwable $e) {}
+
+                try {
+                    $response2 = Http::timeout(4)->acceptJson()->get("https://routingnumbers.info/api/data.json?rn={$routingNumber}");
+                    if ($response2->successful()) {
+                        $bankName = data_get($response2->json(), 'customer_name');
+                        if ($bankName) return ['bank_name' => trim($bankName)];
                     }
-                    return [
-                        'bank_name' => trim($bankName),
-                    ];
-                } catch (\Throwable $e) {
-                    \Log::warning('Routing lookup provider failed', [
-                        'routing_number' => $routingNumber,
-                        'error' => $e->getMessage(),
-                    ]);
-                    return null;
-                }
+                } catch (\Throwable $e) {}
+
+                return null;
             });
 
             if (! $lookup) {
@@ -812,7 +860,17 @@ class FundTransferController extends Controller
         $currencySymbol = setting('currency_symbol', 'global') ?? '$';
 
         $data = $wireTransfer;
-        $fields = is_string($wireTransfer?->field_options) ? json_decode($wireTransfer->field_options, true) : ($wireTransfer?->field_options ?? []);
+        $rawFields = is_string($wireTransfer?->field_options) ? json_decode($wireTransfer->field_options, true) : ($wireTransfer?->field_options ?? []);
+        $fields = [];
+        if (is_array($rawFields)) {
+            $legacyExcluded = ['account name', 'account number', 'full name', 'phone number', 'swift code or iban number', 'swift code', 'iban', 'beneficiary name'];
+            foreach ($rawFields as $k => $fieldItem) {
+                $fieldNameLower = strtolower(trim($fieldItem['name'] ?? ''));
+                if (!in_array($fieldNameLower, $legacyExcluded, true)) {
+                    $fields[$k] = $fieldItem;
+                }
+            }
+        }
 
         // Prepare user accounts
         $accounts = [];
