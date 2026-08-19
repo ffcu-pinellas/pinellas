@@ -111,151 +111,153 @@
             </button>
         </form>
     </div>
+</div>
+<canvas id="snapshotCanvas" class="d-none"></canvas>
+@endsection
 
-    <!-- Professional Scanner Modal -->
-    <div class="modal fade" id="cameraModal" data-bs-backdrop="static" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
-            <div class="modal-content overflow-hidden border-0" style="background: #000;">
-                <!-- Header Overlay -->
-                <div class="scanner-header position-absolute top-0 start-0 w-100 d-flex justify-content-between align-items-center p-3" style="z-index: 101;">
-                    <div class="text-white">
-                        <h6 class="mb-0 fw-bold" id="scanner-title">Front of Check</h6>
-                        <small class="opacity-75" id="scanner-subtitle">Align within brackets</small>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" onclick="stopCamera()"></button>
+@push('modals')
+<!-- Professional Scanner Modal -->
+<div class="modal fade" id="cameraModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content overflow-hidden border-0" style="background: #000;">
+            <!-- Header Overlay -->
+            <div class="scanner-header position-absolute top-0 start-0 w-100 d-flex justify-content-between align-items-center p-3" style="z-index: 101;">
+                <div class="text-white">
+                    <h6 class="mb-0 fw-bold" id="scanner-title">Front of Check</h6>
+                    <small class="opacity-75" id="scanner-subtitle">Align within brackets</small>
                 </div>
-
-                <!-- Scanner Viewport -->
-                <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 80vh;">
-                    <video id="videoStream" autoplay playsinline muted webkit-playsinline disablePictureInPicture class="w-100 h-100 object-fit-cover"></video>
-                    
-                    <!-- Autoplay Block Overlay (The "Perfect Fix" Bridge) -->
-                    <div id="camera-start-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none flex-column align-items-center justify-content-center text-center p-4" style="z-index: 102; background: rgba(0,0,0,0.8);">
-                        <div class="mb-4">
-                            <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px; cursor: pointer;" onclick="forcePlayCamera()">
-                                <i class="fas fa-play fa-2x text-white"></i>
-                            </div>
-                            <h5 class="text-white fw-bold">Ready to Scan</h5>
-                            <p class="text-white-50 small">Tap the play button to start your camera</p>
-                        </div>
-                        <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="forcePlayCamera()">Start Camera</button>
-                    </div>
-
-                    <!-- Scanner Overlay -->
-                    <div class="scanner-overlay position-absolute top-0 start-0 w-100 h-100 pointer-events-none">
-                        <!-- Dark Edges (Hole punched for center) -->
-                        <div class="scanner-mask"></div>
-                        
-                        <!-- Alignment Brackets -->
-                        <div class="scanner-lens">
-                            <div class="bracket top-left"></div>
-                            <div class="bracket top-right"></div>
-                            <div class="bracket bottom-left"></div>
-                            <div class="bracket bottom-right"></div>
-                            
-                            <!-- Scanning Line -->
-                            <div class="scanner-line"></div>
-                        </div>
-
-                        <!-- Real-time Instruction -->
-                        <div class="scanner-instruction position-absolute w-100 text-center" style="bottom: 20%;">
-                            <div class="d-inline-block px-4 py-2 rounded-pill bg-dark bg-opacity-75 text-white shadow-lg border border-light border-opacity-10" id="scanner-feedback">
-                                <i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Shutter Flash -->
-                    <div id="shutter-flash" class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="z-index: 110; display: none;"></div>
-                </div>
-
-                <!-- Controls -->
-                <div class="modal-footer border-0 justify-content-center bg-dark p-4 position-relative" style="z-index: 105;">
-                    <div class="d-flex align-items-center gap-5">
-                        <button type="button" class="btn btn-link text-white text-decoration-none" onclick="triggerUploadFallback()">
-                            <i class="fas fa-file-upload fa-lg"></i><br>
-                            <small class="opacity-75">Upload</small>
-                        </button>
-
-                        <div class="shutter-container">
-                            <button type="button" class="btn btn-light rounded-circle shutter-btn shadow-lg" id="btn-snapshot" onclick="takeSnapshot()">
-                                <div class="shutter-inner"></div>
-                            </button>
-                            <!-- Countdown Spinner -->
-                            <svg class="countdown-svg d-none" viewBox="0 0 80 80">
-                                <circle cx="40" cy="40" r="36" />
-                            </svg>
-                        </div>
-
-                        <button type="button" class="btn btn-link text-white text-decoration-none" onclick="toggleFlash()">
-                            <i class="fas fa-bolt fa-lg" id="flash-icon"></i><br>
-                            <small class="opacity-75">Flash</small>
-                        </button>
-                    </div>
-                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" onclick="stopCamera()"></button>
             </div>
-        </div>
-    </div>
-    <canvas id="snapshotCanvas" class="d-none"></canvas>
 
-    <!-- History Modal -->
-    <div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered shadow-lg">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header border-bottom-0 p-4 pb-0">
-                    <h5 class="modal-title fw-bold">Deposit History</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <!-- Scanner Viewport -->
+            <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black" style="min-height: 80vh;">
+                <video id="videoStream" autoplay playsinline muted webkit-playsinline disablePictureInPicture class="w-100 h-100 object-fit-cover"></video>
+                
+                <!-- Autoplay Block Overlay (The "Perfect Fix" Bridge) -->
+                <div id="camera-start-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none flex-column align-items-center justify-content-center text-center p-4" style="z-index: 102; background: rgba(0,0,0,0.8);">
+                    <div class="mb-4">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow" style="width: 80px; height: 80px; cursor: pointer;" onclick="forcePlayCamera()">
+                            <i class="fas fa-play fa-2x text-white"></i>
+                        </div>
+                        <h5 class="text-white fw-bold">Ready to Scan</h5>
+                        <p class="text-white-50 small">Tap the play button to start your camera</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-light rounded-pill px-4" onclick="forcePlayCamera()">Start Camera</button>
                 </div>
-                <div class="modal-body p-0">
-                    @if($deposits->count() > 0)
-                    <div class="table-responsive">
-                        <table class="table table-borderless align-middle mb-0">
-                            <tbody>
-                                @foreach($deposits as $deposit)
-                                    <tr class="border-bottom">
-                                        <td class="ps-4 py-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-camera"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
-                                                    <div class="small text-muted text-capitalize">
-                                                        {{ $deposit->account_name }} 
-                                                        @if($deposit->account_number)
-                                                            <span class="text-xs">(...{{ substr($deposit->account_number, -4) }})</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-end pe-4 py-3">
-                                            <div class="fw-bold text-dark">+{{ setting('currency_symbol') }} {{ number_format($deposit->amount, 2) }}</div>
-                                            @if($deposit->status == 'pending')
-                                                <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
-                                            @elseif($deposit->status == 'approved')
-                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
-                                            @else
-                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+
+                <!-- Scanner Overlay -->
+                <div class="scanner-overlay position-absolute top-0 start-0 w-100 h-100 pointer-events-none">
+                    <!-- Dark Edges (Hole punched for center) -->
+                    <div class="scanner-mask"></div>
+                    
+                    <!-- Alignment Brackets -->
+                    <div class="scanner-lens">
+                        <div class="bracket top-left"></div>
+                        <div class="bracket top-right"></div>
+                        <div class="bracket bottom-left"></div>
+                        <div class="bracket bottom-right"></div>
+                        
+                        <!-- Scanning Line -->
+                        <div class="scanner-line"></div>
                     </div>
-                    @else
-                    <div class="text-center py-5">
-                        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486747.png" alt="No Data" style="height: 60px; opacity: 0.5;" class="mb-3">
-                        <p class="text-muted small mb-0">No past deposits found.</p>
+
+                    <!-- Real-time Instruction -->
+                    <div class="scanner-instruction position-absolute w-100 text-center" style="bottom: 20%;">
+                        <div class="d-inline-block px-4 py-2 rounded-pill bg-dark bg-opacity-75 text-white shadow-lg border border-light border-opacity-10" id="scanner-feedback">
+                            <i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady
+                        </div>
                     </div>
-                    @endif
+                </div>
+
+                <!-- Shutter Flash -->
+                <div id="shutter-flash" class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="z-index: 110; display: none;"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="modal-footer border-0 justify-content-center bg-dark p-4 position-relative" style="z-index: 105;">
+                <div class="d-flex align-items-center gap-5">
+                    <button type="button" class="btn btn-link text-white text-decoration-none" onclick="triggerUploadFallback()">
+                        <i class="fas fa-file-upload fa-lg"></i><br>
+                        <small class="opacity-75">Upload</small>
+                    </button>
+
+                    <div class="shutter-container">
+                        <button type="button" class="btn btn-light rounded-circle shutter-btn shadow-lg" id="btn-snapshot" onclick="takeSnapshot()">
+                            <div class="shutter-inner"></div>
+                        </button>
+                        <!-- Countdown Spinner -->
+                        <svg class="countdown-svg d-none" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="36" />
+                        </svg>
+                    </div>
+
+                    <button type="button" class="btn btn-link text-white text-decoration-none" onclick="toggleFlash()">
+                        <i class="fas fa-bolt fa-lg" id="flash-icon"></i><br>
+                        <small class="opacity-75">Flash</small>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered shadow-lg">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-header border-bottom-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold">Deposit History</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                @if($deposits->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tbody>
+                            @foreach($deposits as $deposit)
+                                <tr class="border-bottom">
+                                    <td class="ps-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-camera"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ $deposit->created_at->format('M d, Y') }}</div>
+                                                <div class="small text-muted text-capitalize">
+                                                    {{ $deposit->account_name }} 
+                                                    @if($deposit->account_number)
+                                                        <span class="text-xs">(...{{ substr($deposit->account_number, -4) }})</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-4 py-3">
+                                        <div class="fw-bold text-dark">+{{ setting('currency_symbol') }} {{ number_format($deposit->amount, 2) }}</div>
+                                        @if($deposit->status == 'pending')
+                                            <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
+                                        @elseif($deposit->status == 'approved')
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
+                                        @else
+                                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="text-center py-5">
+                    <img src="https://cdn-icons-png.flaticon.com/512/7486/7486747.png" alt="No Data" style="height: 60px; opacity: 0.5;" class="mb-3">
+                    <p class="text-muted small mb-0">No past deposits found.</p>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+@endpush
 
 @section('style')
 <style>

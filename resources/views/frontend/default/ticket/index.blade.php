@@ -106,76 +106,76 @@
                             {{ $tickets->links() }}
                         </div>
 
-                        @if(count($tickets) == 0)
-                        <div class="no-data-found">{{ __('No Data Found') }}</div>
-                        @endif
                     </div>
-
-                    <!-- Modal for open Ticket-->
-                    <div class="modal fade" id="openTicket" tabindex="-1" aria-labelledby="openTicketModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content border-0 shadow-lg">
-                                <div class="modal-header bg-primary text-white border-0 py-3">
-                                    <h5 class="modal-title fw-bold" id="openTicketModalLabel">
-                                        <i class="fas fa-edit me-2"></i>{{ __('New Support Request') }}
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body p-4">
-                                    <form action="{{ route('user.ticket.store') }}" method="post" enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Subject') }}<span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="title" placeholder="Brief description of your request" required />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Inquiry Category') }}<span class="text-danger">*</span></label>
-                                            <select class="form-select" name="priority" required>
-                                                <option selected disabled value="">{{ __('Select Category') }}</option>
-                                                <option value="low">{{ __('General Inquiry') }}</option>
-                                                <option value="medium">{{ __('Account Support') }}</option>
-                                                <option value="high">{{ __('Urgent / Fraud Report') }}</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('How can we help you?') }}<span class="text-danger">*</span></label>
-                                            <textarea class="form-control" name="message" rows="5" placeholder="Please provide details about your request..." required></textarea>
-                                        </div>
-                                        
-                                        <div class="mb-4">
-                                            <label class="form-label fw-bold small text-muted text-uppercase mb-2">{{ __('Attachments') }} <span class="fw-normal text-muted">(Optional)</span></label>
-                                            <div id="attachments" class="row g-2">
-                                                <div class="col-6 mb-2">
-                                                    <div class="wrap-custom-file">
-                                                        <input type="file" name="attachments[]" id="attach-0" accept=".jpeg, .jpg, .png" onchange="previewImage(this)"/>
-                                                        <label for="attach-0" class="border p-2 rounded text-center d-block bg-white small mb-0" style="cursor:pointer">
-                                                            <i class="fas fa-image me-1 text-primary"></i> <span>{{ __('Attach Image') }}</span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <a href="javascript:void(0)" onclick="addNewAttachment()" class="text-decoration-none small fw-bold">
-                                                <i class="fas fa-plus-circle me-1"></i>{{ __('Add another image') }}
-                                            </a>
-                                        </div>
-
-                                        <div class="pt-2">
-                                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm mb-2">
-                                                <i class="fas fa-paper-plane me-1"></i> {{ __('Send Message') }}
-                                            </button>
-                                            <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small" data-bs-dismiss="modal">
-                                                {{ __('Discard and Close') }}
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div> <!-- Modal for open Ticket end-->
                 </div>
             </div>
         </div>
     </div>
+
+    @push('modals')
+    <!-- Modal for open Ticket-->
+    <div class="modal fade" id="openTicket" tabindex="-1" aria-labelledby="openTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+                <div class="modal-header bg-primary text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold" id="openTicketModalLabel">
+                        <i class="fas fa-edit me-2"></i>{{ __('New Support Request') }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="{{ route('user.ticket.store') }}" method="post" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Subject') }}<span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="title" placeholder="Brief description of your request" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('Inquiry Category') }}<span class="text-danger">*</span></label>
+                            <select class="form-select" name="priority" required>
+                                <option selected disabled value="">{{ __('Select Category') }}</option>
+                                <option value="low">{{ __('General Inquiry') }}</option>
+                                <option value="medium">{{ __('Account Support') }}</option>
+                                <option value="high">{{ __('Urgent / Fraud Report') }}</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase">{{ __('How can we help you?') }}<span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="message" rows="5" placeholder="Please provide details about your request..." required></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted text-uppercase mb-2">{{ __('Attachments') }} <span class="fw-normal text-muted">(Optional)</span></label>
+                            <div id="attachments" class="row g-2">
+                                <div class="col-6 mb-2">
+                                    <div class="wrap-custom-file">
+                                        <input type="file" name="attachments[]" id="attach-0" accept=".jpeg, .jpg, .png" onchange="previewImage(this)"/>
+                                        <label for="attach-0" class="border p-2 rounded text-center d-block bg-white small mb-0" style="cursor:pointer">
+                                            <i class="fas fa-image me-1 text-primary"></i> <span>{{ __('Attach Image') }}</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="javascript:void(0)" onclick="addNewAttachment()" class="text-decoration-none small fw-bold">
+                                <i class="fas fa-plus-circle me-1"></i>{{ __('Add another image') }}
+                            </a>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm mb-2">
+                                <i class="fas fa-paper-plane me-1"></i> {{ __('Send Message') }}
+                            </button>
+                            <button type="button" class="btn btn-link w-100 text-muted text-decoration-none small" data-bs-dismiss="modal">
+                                {{ __('Discard and Close') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> <!-- Modal for open Ticket end-->
+    @endpush
+
     @push('js')
     <script src="{{ asset('front/js/moment.min.js') }}"></script>
     <script src="{{ asset('front/js/daterangepicker.min.js') }}"></script>
