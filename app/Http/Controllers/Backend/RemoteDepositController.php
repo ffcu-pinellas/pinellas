@@ -19,9 +19,9 @@ class RemoteDepositController extends Controller
     public function index()
     {
         $deposits = RemoteDeposit::with('user')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->latest()->paginate(15);
@@ -33,8 +33,8 @@ class RemoteDepositController extends Controller
         $deposit = RemoteDeposit::with('user')->findOrFail($id);
         
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($deposit->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-deposit-manage')) {
                 abort(403, 'Unauthorized action.');
             }
         }
@@ -90,8 +90,8 @@ class RemoteDepositController extends Controller
         $deposit = RemoteDeposit::with('user')->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($deposit->user?->staff_id != auth()->id() || !auth()->user()->can('officer-deposit-manage')) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($deposit->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-deposit-manage')) {
                 abort(403, 'Unauthorized action.');
             }
         }

@@ -60,8 +60,8 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::query()
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->where('staff_id', auth()->id());
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth('admin')->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
@@ -86,8 +86,9 @@ class UserController extends Controller
             ->paginate();
 
         $title = __('All Customers');
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
 
-        return view('backend.user.index', compact('users', 'title'));
+        return view('backend.user.index', compact('users', 'title', 'currencySymbol'));
     }
 
     public function activeUser(Request $request)
@@ -96,8 +97,8 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::active()
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->where('staff_id', auth()->id());
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth('admin')->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
@@ -122,8 +123,9 @@ class UserController extends Controller
             ->paginate();
 
         $title = __('Active Customers');
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
 
-        return view('backend.user.index', compact('users', 'title'));
+        return view('backend.user.index', compact('users', 'title', 'currencySymbol'));
     }
 
     public function disabled(Request $request)
@@ -131,8 +133,8 @@ class UserController extends Controller
         $search = $request->query('query') ?? null;
 
         $users = User::disabled()
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->where('staff_id', auth()->id());
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth('admin')->id());
             })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
@@ -157,8 +159,9 @@ class UserController extends Controller
             ->paginate();
 
         $title = __('Disabled Customers');
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
 
-        return view('backend.user.index', compact('users', 'title'));
+        return view('backend.user.index', compact('users', 'title', 'currencySymbol'));
     }
 
     public function closed(Request $request)
@@ -193,8 +196,9 @@ class UserController extends Controller
             ->paginate();
 
         $title = __('Closed Customers');
+        $currencySymbol = setting('currency_symbol', 'global') ?? '$';
 
-        return view('backend.user.index', compact('users', 'title'));
+        return view('backend.user.index', compact('users', 'title', 'currencySymbol'));
     }
 
     public function create()
@@ -398,6 +402,7 @@ class UserController extends Controller
             'user_wallets' => $user_wallets,
             'cards' => $cards,
             'staffs' => $staffs,
+            'currencySymbol' => setting('currency_symbol', 'global') ?? '$',
         ]);
     }
 
@@ -813,8 +818,8 @@ class UserController extends Controller
         $user = User::find($id);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer']) && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'])) {
-            if ($user->staff_id != auth()->id() || !auth()->user()->can('officer-security-manage')) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-security-manage')) {
                 abort(403, 'Unauthorized action.');
             }
         }
@@ -1181,8 +1186,8 @@ class UserController extends Controller
             $card = UserCard::with('user')->findOrFail($id);
 
             // Security Check for Account Officers
-            if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-                if ($card->user?->staff_id != auth()->id() || !auth()->user()->can('officer-card-manage')) {
+            if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($card->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-card-manage')) {
                     abort(403, 'Unauthorized action.');
                 }
             }

@@ -34,7 +34,7 @@
                                             <a href="{{ route('admin.user.disabled') }}"><i data-lucide="user-x"></i>{{ __('Disabled
                                                 Customers') }}</a>
                                         </li>
-                                        @if(!auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin'))
+                                        @if(auth('admin')->check() && !auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin'))
                                             <li class="{{ isActive('admin.user.new') }}">
                                                 <a href="{{ route('admin.user.new') }}"><i data-lucide="user-plus"></i>{{
                                     __('Add New Customer') }}</a>

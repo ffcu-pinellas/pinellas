@@ -124,7 +124,7 @@ class AppController extends Controller
             $data['passcode'] = Hash::make($request->passcode);
         }
 
-        auth()->user()->update($data);
+        $user->update($data);
         notify()->success('Profile Update Successfully');
 
         return redirect()->back();

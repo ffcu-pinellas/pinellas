@@ -88,7 +88,7 @@
                                              width="40">
                                     @else
                                         <span
-                                            class="avatar-text">{{ $ticket->user->first_name[0] }} {{ $ticket->user->last_name[0] }}</span>
+                                            class="avatar-text">{{ strtoupper(substr($ticket->user?->first_name ?? '', 0, 1) . substr($ticket->user?->last_name ?? '', 0, 1) ?: 'U') }}</span>
                                     @endif
                                 </div>
                                 <div class="message-body">

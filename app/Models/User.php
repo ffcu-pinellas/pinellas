@@ -272,31 +272,32 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     public function getUpdatedAtAttribute(): string
     {
-        return Carbon::parse($this->attributes['updated_at'])->format('d M Y h:i A');
+        return !empty($this->attributes['updated_at']) ? Carbon::parse($this->attributes['updated_at'])->format('d M Y h:i A') : '';
     }
 
     public function getAvatarPathAttribute()
     {
-        return $this->attributes['avatar'] !== null && file_exists(base_path('assets/'.$this->attributes['avatar'])) ? asset($this->attributes['avatar']) : null;
+        return !empty($this->attributes['avatar']) && file_exists(base_path('assets/'.$this->attributes['avatar'])) ? asset($this->attributes['avatar']) : null;
     }
 
     public function getAccountNumberAttribute()
     {
-        return setting('account_number_prefix', 'global').$this->attributes['account_number'];
+        return setting('account_number_prefix', 'global').($this->attributes['account_number'] ?? '');
     }
 
     public function getCreatedAtAttribute(): string
     {
-        return Carbon::parse($this->attributes['created_at'])->format('d M Y h:i A');
+        return !empty($this->attributes['created_at']) ? Carbon::parse($this->attributes['created_at'])->format('d M Y h:i A') : '';
     }
 
     public function getFullNameAttribute(): string
     {
-        return ucwords($this->first_name.' '.$this->last_name);
+        return ucwords(($this->first_name ?? '').' '.($this->last_name ?? ''));
     }
 
     public function getKycTypeAttribute(): string
     {
+        if (empty($this->attributes['id'])) return '';
         $kycs = UserKyc::where('user_id', $this->attributes['id'])->pluck('kyc_id');
 
         $types = Kyc::whereIn('id', $kycs)->pluck('name')->implode(',');
@@ -306,17 +307,26 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     public function getKycTimeAttribute(): string
     {
-        return json_decode($this->attributes['kyc_credential'], true)['kyc_time_of_time'] ?? '';
+        $cred = !empty($this->attributes['kyc_credential']) ? json_decode($this->attributes['kyc_credential'], true) : [];
+        return $cred['kyc_time_of_time'] ?? '';
     }
 
     public function getTotalProfitAttribute(): string
     {
-        return $this->totalProfit();
+        try {
+            return (string) $this->totalProfit();
+        } catch (\Throwable $e) {
+            return '0.00';
+        }
     }
 
     public function getTotalDepositAttribute(): string
     {
-        return $this->totalDeposit();
+        try {
+            return (string) $this->totalDeposit();
+        } catch (\Throwable $e) {
+            return '0.00';
+        }
     }
 
     public function totalProfit($days = null)

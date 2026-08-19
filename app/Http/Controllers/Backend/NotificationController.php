@@ -19,23 +19,23 @@ class NotificationController extends Controller
     public function latestNotification()
     {
         $notifications = Notification::where('for', 'admin')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->latest()->take(10)->get();
         $totalUnread = Notification::where('for', 'admin')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->where('read', 0)->count();
         $totalCount = Notification::where('for', 'admin')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->get()->count();
@@ -56,9 +56,9 @@ class NotificationController extends Controller
     public function all()
     {
         $notifications = Notification::where('for', 'admin')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->latest()->paginate(10);
@@ -145,9 +145,9 @@ class NotificationController extends Controller
     {
         if ($id == 0) {
             Notification::where('for', 'admin')
-                ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                     $query->whereHas('user', function ($q) {
-                        $q->where('staff_id', auth()->id());
+                        $q->where('staff_id', auth('admin')->id());
                     });
                 })
                 ->update(['read' => 1]);

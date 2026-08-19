@@ -51,14 +51,14 @@
                                     <td>{{ $dps->dps_id }}</td>
                                     <td>{{ $dps->plan->interest_rate }}%</td>
                                     <td>
-                                        {{ $currencySymbol.$dps->per_installment }}
+                                         {{ ($currencySymbol ?? '$').$dps->per_installment }}
                                     </td>
                                     <td>{{ nextInstallment($dps->id, \App\Models\DpsTransaction::class, 'dps_id') }}</td>
                                     <td>
                                         {{ $dps->plan->total_installment }}
                                     </td>
                                     <td>
-                                        {{ $currencySymbol.getTotalMature($dps) }}
+                                        {{ ($currencySymbol ?? '$').getTotalMature($dps) }}
                                     </td>
                                     <td>
                                         @if($dps->status->value == 'running')

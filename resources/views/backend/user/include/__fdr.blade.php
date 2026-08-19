@@ -49,9 +49,9 @@
                                     <td>{{ $fdr->plan?->name }}</td>
                                     <td>{{ $fdr->fdr_id }}</td>
                                     <td>
-                                        {{ $currencySymbol.$fdr->amount }}
+                                        {{ ($currencySymbol ?? '$').$fdr->amount }}
                                     </td>
-                                    <td>{{ $currencySymbol.$fdr->profit() }}</td>
+                                    <td>{{ ($currencySymbol ?? '$').$fdr->profit() }}</td>
                                     <td>
                                         @php
                                             $trx = \App\Models\FDRTransaction::where('fdr_id', $fdr->id)->where('paid_amount', null)->first();
@@ -62,7 +62,7 @@
                                         {{ $fdr->totalInstallment() }}
                                     </td>
                                     <td>
-                                        {{ $currencySymbol.$fdr->transactions->sum('paid_amount') }}
+                                        {{ ($currencySymbol ?? '$').$fdr->transactions->sum('paid_amount') }}
                                     </td>
 
                                     <td>

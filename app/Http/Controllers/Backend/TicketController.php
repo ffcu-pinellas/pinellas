@@ -33,9 +33,9 @@ class TicketController extends Controller
         $status = $request->status ?? 'all';
         $tickets = Ticket::search($search)
             ->status($status)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(request('query') != null, function ($query) {
@@ -57,8 +57,8 @@ class TicketController extends Controller
         $ticket = Ticket::uuid($uuid);
 
         // Advanced Security Check for Account Officers
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($ticket->user->staff_id != auth()->id()) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($ticket->user->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
         }
@@ -71,8 +71,8 @@ class TicketController extends Controller
         $ticket = Ticket::uuid($uuid);
 
         // Advanced Security Check for Account Officers
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($ticket->user->staff_id != auth()->id()) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($ticket->user->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
         }
@@ -116,8 +116,8 @@ class TicketController extends Controller
         $ticket = Ticket::uuid($input['uuid']);
 
         // Advanced Security Check for Account Officers
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($ticket->user->staff_id != auth()->id()) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($ticket->user->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access to this ticket.');
             }
         }

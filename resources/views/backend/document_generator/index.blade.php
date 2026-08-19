@@ -98,7 +98,7 @@
                                                         <label for="user_id" style="font-weight: 600; font-size: 13px;">{{ __('Option A: Select Registered Customer') }}</label>
                                                         <select class="form-select" name="user_id" id="user_id">
                                                             <option value="">{{ __('-- Select Registered Customer --') }}</option>
-                                                            @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
+                                                            @if(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
                                                                 <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
                                                             @endif
                                                             @foreach($users as $user)

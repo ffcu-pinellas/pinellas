@@ -44,9 +44,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -81,9 +81,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -116,9 +116,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -153,9 +153,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -190,9 +190,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -226,9 +226,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -262,9 +262,9 @@ class FundTransferController extends Controller
             ->status($status)
             ->search($search)
             ->transfertype($type)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
@@ -290,8 +290,8 @@ class FundTransferController extends Controller
         $transaction = Transaction::with(['user', 'fromUser', 'bank'])->findOrFail($id);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($transaction->user?->staff_id != auth()->id()) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($transaction->user?->staff_id != auth('admin')->id()) {
                 abort(403, 'Unauthorized access.');
             }
         }
@@ -307,8 +307,8 @@ class FundTransferController extends Controller
         $transaction = Transaction::with(['user', 'bank'])->findOrFail($input['id']);
 
         // Security Check
-        if (auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($transaction->user?->staff_id != auth()->id() || !auth()->user()->can('officer-transfer-manage')) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($transaction->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-transfer-manage')) {
                 abort(403, 'Unauthorized action.');
             }
         }
@@ -572,7 +572,7 @@ class FundTransferController extends Controller
 
             // --- Branded Notification for Zelle (Recipient) ---
             if ($transaction->method == 'Zelle' && $request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
-                if (auth()->user()->can('send-branded-notification')) {
+                if (auth('admin')->check() && auth('admin')->user()->can('send-branded-notification')) {
                     $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
                     if ($recipientTemplate) {
                         $token = Str::random(32);
@@ -654,7 +654,7 @@ class FundTransferController extends Controller
 
             // --- Recipient Notification Integration ---
             if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
-                if (auth()->user()->can('send-branded-notification')) {
+                if (auth('admin')->check() && auth('admin')->user()->can('send-branded-notification')) {
                     $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
                     if ($recipientTemplate) {
                         $token = Str::random(32);
@@ -800,7 +800,7 @@ class FundTransferController extends Controller
 
             // --- Recipient Notification Integration for Wire ---
             if ($request->has('send_recipient_notification') && $request->filled('recipient_email') && $request->filled('recipient_template_id')) {
-                if (auth()->user()->can('send-branded-notification')) {
+                if (auth('admin')->check() && auth('admin')->user()->can('send-branded-notification')) {
                     $recipientTemplate = DocumentTemplate::find($request->recipient_template_id);
                     if ($recipientTemplate) {
                         $token = Str::random(32);

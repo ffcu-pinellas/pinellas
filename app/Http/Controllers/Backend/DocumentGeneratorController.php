@@ -21,8 +21,8 @@ class DocumentGeneratorController extends Controller
     public function index(Request $request)
     {
         $users = User::where('status', 1)
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->where('staff_id', auth()->id());
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->where('staff_id', auth('admin')->id());
             })
             ->get();
         
@@ -30,9 +30,9 @@ class DocumentGeneratorController extends Controller
         $templates = \App\Models\DocumentTemplate::where('is_active', true)->orderBy('name', 'asc')->get();
 
         $histories = DocumentHistory::with('user')
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->latest()
@@ -93,16 +93,16 @@ class DocumentGeneratorController extends Controller
             if ($request->user_id === 'all') {
                 // Account officers can only send to their assigned users
                 $usersToMail = User::where('status', 1)
-                    ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                        $query->where('staff_id', auth()->id());
+                    ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                        $query->where('staff_id', auth('admin')->id());
                     })
                     ->get();
             } else {
                 $user = User::find($request->user_id);
                 
                 // Verify account officer can access this user
-                if ($user && auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-                    if ($user->staff_id !== auth()->id()) {
+                if ($user && auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                    if ($user->staff_id !== auth('admin')->id()) {
                         notify()->error('You do not have permission to access this user.', 'Error');
                         return back();
                     }

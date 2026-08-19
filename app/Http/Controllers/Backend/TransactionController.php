@@ -55,9 +55,9 @@ class TransactionController extends Controller
             ->when(in_array(request('sort_field'), ['created_at', 'final_amount', 'type', 'description']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(request('sort_field') == 'user', function ($query) {
@@ -91,9 +91,9 @@ class TransactionController extends Controller
             ->when(in_array(request('sort_field'), ['created_at', 'balance']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
-            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth()->id());
+                    $q->where('staff_id', auth('admin')->id());
                 });
             })
             ->when(request('sort_field') == 'user', function ($query) {

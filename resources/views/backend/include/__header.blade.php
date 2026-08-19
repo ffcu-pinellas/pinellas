@@ -38,23 +38,23 @@
             <div class="single-nav-right admin-notifications">
                 @php
                     $notifications = App\Models\Notification::with('user')->where('for','admin')
-                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                        ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                             $query->whereHas('user', function ($q) {
-                                $q->where('staff_id', auth()->id());
+                                $q->where('staff_id', auth('admin')->id());
                             });
                         })
                         ->latest()->take(10)->get();
                     $totalUnread = App\Models\Notification::with('user')->where('for','admin')
-                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                        ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                             $query->whereHas('user', function ($q) {
-                                $q->where('staff_id', auth()->id());
+                                $q->where('staff_id', auth('admin')->id());
                             });
                         })
                         ->where('read', 0)->count();
                     $totalCount = App\Models\Notification::with('user')->where('for','admin')
-                        ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                        ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                             $query->whereHas('user', function ($q) {
-                                $q->where('staff_id', auth()->id());
+                                $q->where('staff_id', auth('admin')->id());
                             });
                         })
                         ->get()->count();

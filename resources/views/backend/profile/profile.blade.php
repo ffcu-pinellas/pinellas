@@ -30,7 +30,7 @@
                                         accept=".gif, .jpg, .png"
                                     />
                                     <label for="admin_profile_image" class="file-ok"
-                                           style="background-image: url({{ asset(auth()->user()->avatar) }})">
+                                           style="background-image: url({{ asset(auth('admin')->user()?->avatar ?? '') }})">
                                         <img
                                             class="upload-icon"
                                             src="{{ asset('global/materials/upload.svg') }}"
@@ -40,8 +40,8 @@
                                     </label>
                                 </div>
                                 <div class="title-des mb-0">
-                                    <h4>{{ auth()->user()->name }}</h4>
-                                    <p class="mb-0"> {{  str_replace('-', ' ', auth()->user()->getRoleNames()->first() )  }} </p>
+                                    <h4>{{ auth('admin')->user()?->name }}</h4>
+                                    <p class="mb-0"> {{  str_replace('-', ' ', auth('admin')->user()?->getRoleNames()?->first() ?? '' )  }} </p>
                                 </div>
                             </div>
                         </div>

@@ -71,8 +71,8 @@
                                         <a href="{{ route('admin.user.edit',$user->id) }}" class="link">{{ Str::limit($user->username,15) }}</a>
                                     </td>
                                     <td>{{ Str::limit($user->email,20) }}</td>
-                                    <td>{{ $currencySymbol.$user->balance }}</td>
-                                    <td>{{ $currencySymbol.$user->total_profit }}</td>
+                                    <td>{{ ($currencySymbol ?? '$') . $user->balance }}</td>
+                                    <td>{{ ($currencySymbol ?? '$') . $user->total_profit }}</td>
                                     <td>
                                         @if($user->email_verified_at != null)
                                             <div class="site-badge success">{{ __('Verified') }}</div>

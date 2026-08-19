@@ -49,9 +49,9 @@
                                     <td>{{ $loan->plan->name }}</td>
                                     <td>{{ $loan->loan_no }}</td>
                                     <td>
-                                        {{ $currencySymbol.$loan->amount }}
+                                        {{ ($currencySymbol ?? '$').$loan->amount }}
                                     </td>
-                                    <td>{{ $currencySymbol.($loan->amount / 100 ) * $loan->plan->per_installment }}</td>
+                                    <td>{{ ($currencySymbol ?? '$').(($loan->amount / 100 ) * $loan->plan->per_installment) }}</td>
                                     <td>
                                         @if($loan->status == App\Enums\LoanStatus::Reviewing)
                                             -
@@ -63,7 +63,7 @@
                                         {{ $loan->plan->total_installment }}
                                     </td>
                                     <td>
-                                        {{ $currencySymbol.$loan->transactions->sum('amount') }}
+                                        {{ ($currencySymbol ?? '$').$loan->transactions->sum('amount') }}
                                     </td>
 
                                     <td>

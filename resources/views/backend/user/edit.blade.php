@@ -37,7 +37,7 @@
                                                 alt="{{ $user->full_name }}" />
                                         </div>
                                     @else
-                                        <div class="avatar-text">{{ $user->first_name[0] . $user->last_name[0] }}</div>
+                                        <div class="avatar-text">{{ strtoupper(substr($user->first_name ?? '', 0, 1) . substr($user->last_name ?? '', 0, 1) ?: 'U') }}</div>
                                     @endif
 
                                     @if ($user->portfolio != null)
@@ -207,7 +207,7 @@
                                     <i data-lucide="plus-circle"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span
+                                    <h4>{{ $currencySymbol ?? '$' }}<span
                                             class="count">{{ $statistics['total_deposit'] }}</span> </h4>
                                     <p>{{ __('Total Deposit') }}</p>
                                 </div>
@@ -219,7 +219,7 @@
                                     <i data-lucide="send"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span
+                                    <h4>{{ $currencySymbol ?? '$' }}<span
                                             class="count">{{ $statistics['total_fund_transfer'] }}</span> </h4>
                                     <p>{{ __('Total Fund Transfer') }}</p>
                                 </div>
@@ -231,7 +231,7 @@
                                     <i data-lucide="archive"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span class="count">{{ $statistics['total_dps'] }}</span>
+                                    <h4>{{ $currencySymbol ?? '$' }}<span class="count">{{ $statistics['total_dps'] }}</span>
                                     </h4>
                                     <p>{{ __('Total DPS') }}</p>
                                 </div>
@@ -243,7 +243,7 @@
                                     <i data-lucide="book"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span class="count">{{ $statistics['total_fdr'] }}</span>
+                                    <h4>{{ $currencySymbol ?? '$' }}<span class="count">{{ $statistics['total_fdr'] }}</span>
                                     </h4>
                                     <p>{{ __('Total FDR') }}</p>
                                 </div>
@@ -255,7 +255,7 @@
                                     <i data-lucide="alert-triangle"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span class="count">{{ $statistics['total_loan'] }}</span>
+                                    <h4>{{ $currencySymbol ?? '$' }}<span class="count">{{ $statistics['total_loan'] }}</span>
                                     </h4>
                                     <p>{{ __('Total Loan') }}</p>
                                 </div>
@@ -267,7 +267,7 @@
                                     <i data-lucide="credit-card"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span class="count">{{ $statistics['total_bill'] }}</span>
+                                    <h4>{{ $currencySymbol ?? '$' }}<span class="count">{{ $statistics['total_bill'] }}</span>
                                     </h4>
                                     <p>{{ __('Total Pay Bill') }}</p>
                                 </div>
@@ -279,7 +279,7 @@
                                     <i data-lucide="box"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }}<span
+                                    <h4>{{ $currencySymbol ?? '$' }}<span
                                             class="count">{{ $statistics['total_withdraw'] }}</span> </h4>
                                     <p>{{ __('Total Withdraw') }}</p>
                                 </div>
@@ -291,7 +291,7 @@
                                     <i data-lucide="credit-card"></i>
                                 </div>
                                 <div class="content">
-                                    <h4>{{ $currencySymbol }} <span class="count">{{ $statistics['paybacks'] }}</span>
+                                    <h4>{{ $currencySymbol ?? '$' }} <span class="count">{{ $statistics['paybacks'] }}</span>
                                     </h4>
                                     <p>{{ __('Total Paybacks') }}</p>
                                 </div>

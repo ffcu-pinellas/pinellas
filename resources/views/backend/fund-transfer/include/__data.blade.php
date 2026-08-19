@@ -137,7 +137,7 @@
         <textarea name="message" class="form-textarea mb-0" placeholder="Details Message"></textarea>
     </div>
 
-    @if(($transaction->transfer_type->value != 'own_bank_transfer' || $transaction->method == 'Zelle') && auth()->user()->can('send-branded-notification'))
+    @if(($transaction->transfer_type->value != 'own_bank_transfer' || $transaction->method == 'Zelle') && (auth('admin')->check() && auth('admin')->user()->can('send-branded-notification')))
     <div class="recipient-notification-section mt-4 p-3 border rounded" style="background: #f0f7ff; border-color: #cfe2ff !important;">
         <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" name="send_recipient_notification" id="send_recipient_notification" value="1">

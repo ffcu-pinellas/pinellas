@@ -169,7 +169,7 @@
                 </div>
             </div>
 
-            @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
+            @if(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
             <div class="row mt-4">
                 <!-- Officer Performance -->
                 <div class="col-xl-12">
