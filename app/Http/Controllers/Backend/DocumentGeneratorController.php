@@ -26,6 +26,7 @@ class DocumentGeneratorController extends Controller
             })
             ->get();
         
+        \App\Services\EmailTemplateAutoSync::sync();
         $templates = \App\Models\DocumentTemplate::where('is_active', true)->orderBy('name', 'asc')->get();
 
         $histories = DocumentHistory::with('user')
@@ -232,8 +233,10 @@ class DocumentGeneratorController extends Controller
                 $parsedEmailContent = $parseVars($emailContent, $targetUser);
 
                 $isStandaloneHtml = \Illuminate\Support\Str::startsWith(trim($parsedEmailContent), ['<!DOCTYPE', '<html']) || (\Illuminate\Support\Str::startsWith(trim($parsedEmailContent), '<table') && \Illuminate\Support\Str::contains($parsedEmailContent, ['Zelle', 'width="100%"']));
+                $fromName = $request->input('email_from_name') ?: ($isStandaloneHtml ? 'Zelle®' : (setting('email_from_name', 'mail') ?: setting('site_title', 'global')));
 
                 $details = [
+                    'from_name' => $fromName,
                     'subject' => $parsedSubject,
                     'title' => $title,
                     'salutation' => $parsedSalutation,

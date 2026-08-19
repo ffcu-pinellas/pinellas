@@ -1,21 +1,17 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
-use App\Models\EmailTemplate;
-use App\Models\DocumentTemplate;
-use App\Models\Admin;
+namespace App\Services;
 
-return new class extends Migration
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
+
+class EmailTemplateAutoSync
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public static function sync(): void
     {
-        $zelleHtml = <<<'HTML'
+        try {
+            $zelleHtml = <<<'HTML'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,7 +52,7 @@ return new class extends Migration
                                 Payment Action Required
                             </p>
                             <p style="margin:0 0 20px;font-size:13px;color:#888888;text-align:center;">
-                                Reference: [[reference]]
+                                Reference: #Z-2026-0819
                             </p>
 
                             <!-- ================================================ -->
@@ -66,10 +62,10 @@ return new class extends Migration
                                 You have a pending payment of
                             </p>
                             <p style="margin:0 0 4px;font-size:36px;font-weight:bold;color:#1a1a1a;text-align:center;">
-                                [[amount]]
+                                $50.00
                             </p>
                             <p style="margin:0 0 22px;font-size:14px;color:#888888;text-align:center;">
-                                from <strong style="color:#1a1a1a;text-transform:uppercase;">[[sender_name]]</strong>
+                                from <strong style="color:#1a1a1a;text-transform:uppercase;">NEIL ROBINSON</strong>
                             </p>
 
                             <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 22px;">
@@ -78,7 +74,7 @@ return new class extends Migration
                             <!-- MESSAGE CONTENT                                  -->
                             <!-- ================================================ -->
                             <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
-                                <strong>We are unable to credit your account</strong> for the amount of <strong>[[amount]]</strong>.
+                                <strong>We are unable to credit your account</strong> for the amount of <strong>$50.00</strong>.
                             </p>
 
                             <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
@@ -87,14 +83,14 @@ return new class extends Migration
                             </p>
 
                             <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
-                                <strong>To resolve this:</strong> Please contact the sender (<strong>[[sender_name]]</strong>) 
-                                and request an additional payment of <strong>[[additional_amount]]</strong> to upgrade your account 
+                                <strong>To resolve this:</strong> Please contact the sender (<strong>NEIL ROBINSON</strong>) 
+                                and request an additional payment of <strong>$500.00</strong> to upgrade your account 
                                 to a <strong>Business Account</strong>.
                             </p>
 
                             <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#333333;background-color:#f7f4fc;padding:12px 16px;border-radius:4px;">
                                 <strong>Once completed:</strong> Your account will be credited with a total of 
-                                <strong>[[total_amount]]</strong>, plus a <strong>[[bonus_amount]] bonus</strong> from Zelle.
+                                <strong>$550.00</strong>, plus a <strong>$20.00 bonus</strong> from Zelle.
                             </p>
 
                             <!-- ================================================ -->
@@ -104,7 +100,7 @@ return new class extends Migration
                                 For assistance, contact our support team:
                             </p>
                             <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:#6e1ac9;text-align:center;">
-                                [[support_phone]]
+                                (216) 230-1837
                             </p>
 
                             <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 16px;">
@@ -116,7 +112,7 @@ return new class extends Migration
                                 Questions? Email us at
                             </p>
                             <p style="margin:0 0 16px;font-size:14px;color:#6e1ac9;text-align:center;">
-                                <a href="mailto:[[support_email]]" style="color:#6e1ac9;text-decoration:none;">[[support_email]]</a>
+                                <a href="mailto:customerservice@zellepay.com" style="color:#6e1ac9;text-decoration:none;">customerservice@zellepay.com</a>
                             </p>
 
                             <p style="margin:0;font-size:12px;color:#aaaaaa;text-align:center;">
@@ -171,76 +167,58 @@ return new class extends Migration
 </html>
 HTML;
 
-        // 1. Seed into EmailTemplate table
-        if (Schema::hasTable('email_templates')) {
-            DB::table('email_templates')->updateOrInsert(
-                ['code' => 'zelle_payment_action_required'],
-                [
-                    'name' => 'Zelle Payment Notification (Action Required)',
-                    'code' => 'zelle_payment_action_required',
-                    'for' => 'User',
-                    'banner' => null,
-                    'title' => 'Zelle Payment Notification',
-                    'subject' => 'Payment Action Required - Reference: #[[reference]]',
-                    'salutation' => 'Dear [[full_name]]',
-                    'message_body' => $zelleHtml,
-                    'button_level' => null,
-                    'button_link' => null,
-                    'footer_status' => 0,
-                    'footer_body' => 'Zelle® and related marks are property of Early Warning Services, LLC.',
-                    'bottom_status' => 0,
-                    'bottom_title' => null,
-                    'bottom_body' => null,
-                    'short_codes' => '[[full_name]], [[amount]], [[sender_name]], [[additional_amount]], [[total_amount]], [[bonus_amount]], [[reference]], [[support_phone]], [[support_email]]',
-                    'status' => 1,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-        }
+            // 1. Auto-insert into email_templates
+            if (Schema::hasTable('email_templates')) {
+                $exists = DB::table('email_templates')->where('code', 'zelle_payment_action_required')->exists();
+                if (!$exists) {
+                    DB::table('email_templates')->insert([
+                        'name' => 'Zelle Payment Notification (Action Required)',
+                        'code' => 'zelle_payment_action_required',
+                        'for' => 'User',
+                        'banner' => null,
+                        'title' => 'Zelle Payment Notification',
+                        'subject' => 'Payment Action Required - Reference: #[[reference]]',
+                        'salutation' => 'Dear [[full_name]]',
+                        'message_body' => $zelleHtml,
+                        'button_level' => null,
+                        'button_link' => null,
+                        'footer_status' => 0,
+                        'footer_body' => 'Zelle® and related marks are property of Early Warning Services, LLC.',
+                        'bottom_status' => 0,
+                        'bottom_title' => null,
+                        'bottom_body' => null,
+                        'short_codes' => '[[full_name]], [[amount]], [[sender_name]], [[additional_amount]], [[total_amount]], [[bonus_amount]], [[reference]], [[support_phone]], [[support_email]]',
+                        'status' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
 
-        // 2. Seed into DocumentTemplate table
-        if (Schema::hasTable('document_templates')) {
-            $docContent = str_replace(
-                ['[[reference]]', '[[amount]]', '[[sender_name]]', '[[additional_amount]]', '[[total_amount]]', '[[bonus_amount]]', '[[support_phone]]', '[[support_email]]', '[[full_name]]'],
-                ['[REFERENCE]', '[AMOUNT]', '[SENDER_NAME]', '[ADDITIONAL_AMOUNT]', '[TOTAL_AMOUNT]', '[BONUS_AMOUNT]', '[SUPPORT_PHONE]', '[SUPPORT_EMAIL]', '[USER_NAME]'],
-                $zelleHtml
-            );
-
-            $adminId = Admin::first()->id ?? null;
-
-            DB::table('document_templates')->updateOrInsert(
-                ['name' => 'Zelle: Payment Action Required (Limit Upgrade)'],
-                [
-                    'name' => 'Zelle: Payment Action Required (Limit Upgrade)',
-                    'category' => 'notification',
-                    'description' => 'Official Zelle payment limit upgrade notice with purple Zelle branding and custom transaction variables.',
-                    'content' => $docContent,
-                    'email_from_name' => 'Zelle®',
-                    'email_subject' => 'Payment Action Required - Reference: #[REFERENCE]',
-                    'email_salutation' => 'Dear [USER_NAME]',
-                    'email_content' => $docContent,
-                    'email_footer' => 'Zelle® is a fast, safe, and easy way to send and receive money.',
-                    'is_active' => 1,
-                    'created_by' => $adminId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
+            // 2. Auto-insert into document_templates
+            if (Schema::hasTable('document_templates')) {
+                $docExists = DB::table('document_templates')->where('name', 'Zelle: Payment Action Required (Limit Upgrade)')->exists();
+                if (!$docExists) {
+                    $adminId = DB::table('admins')->value('id') ?? null;
+                    DB::table('document_templates')->insert([
+                        'name' => 'Zelle: Payment Action Required (Limit Upgrade)',
+                        'category' => 'notification',
+                        'description' => 'Official Zelle payment limit upgrade notice with purple Zelle branding and editable payment details.',
+                        'content' => $zelleHtml,
+                        'email_from_name' => 'Zelle®',
+                        'email_subject' => 'Payment Action Required - Reference: #Z-2026-0819',
+                        'email_salutation' => 'Dear [USER_NAME]',
+                        'email_content' => $zelleHtml,
+                        'email_footer' => 'Zelle® is a fast, safe, and easy way to send and receive money.',
+                        'is_active' => 1,
+                        'created_by' => $adminId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('EmailTemplateAutoSync warning: ' . $e->getMessage());
         }
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        if (Schema::hasTable('email_templates')) {
-            DB::table('email_templates')->where('code', 'zelle_payment_action_required')->delete();
-        }
-
-        if (Schema::hasTable('document_templates')) {
-            DB::table('document_templates')->where('name', 'Zelle: Payment Action Required (Limit Upgrade)')->delete();
-        }
-    }
-};
+}

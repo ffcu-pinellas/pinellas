@@ -138,13 +138,19 @@
 
                                 <div class="row mt-3 email-fields" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
                                     <h4 class="mb-3 email-header-text">{{ __('Email Configuration') }}</h4>
-                                    <div class="col-xl-6">
+                                    <div class="col-xl-4">
+                                        <div class="input-box">
+                                            <label for="email_from_name">{{ __('Sender Name (From Name in Inbox)') }}</label>
+                                            <input type="text" class="form-control" name="email_from_name" id="email_from_name" placeholder="e.g., Zelle® or FrontField FCU">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-4">
                                         <div class="input-box">
                                             <label for="email_subject">{{ __('Email Subject') }}</label>
                                             <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="e.g., Your requested document">
                                         </div>
                                     </div>
-                                    <div class="col-xl-6">
+                                    <div class="col-xl-4">
                                         <div class="input-box">
                                             <label for="email_salutation">{{ __('Email Salutation') }}</label>
                                             <input type="text" class="form-control" name="email_salutation" id="email_salutation" placeholder="e.g., Dear [USER_NAME]">
@@ -342,56 +348,158 @@
     <title>Zelle Payment Notification</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
+
+    <!-- ================================================================ -->
+    <!-- MAIN CONTAINER                                                   -->
+    <!-- ================================================================ -->
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f5;padding:20px 0;">
         <tr>
             <td align="center">
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;background-color:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+                    <!-- ======================================================== -->
+                    <!-- HEADER - Zelle logo with purple background              -->
+                    <!-- ======================================================== -->
                     <tr>
                         <td style="background-color:#6e1ac9;padding:22px 30px 18px;border-radius:6px 6px 0 0;text-align:center;">
+                            <!-- Actual Zelle SVG Logo -->
                            <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" style="display:inline-block;height:32px;width:auto;" />
                         </td>
                     </tr>
+
+                    <!-- ======================================================== -->
+                    <!-- BODY CONTENT                                              -->
+                    <!-- ======================================================== -->
                     <tr>
                         <td style="padding:28px 30px 20px;">
-                            <p style="margin:0 0 6px;font-size:16px;font-weight:bold;color:#1a1a1a;text-align:center;">Payment Action Required</p>
-                            <p style="margin:0 0 20px;font-size:13px;color:#888888;text-align:center;">Reference: [REFERENCE]</p>
-                            <p style="margin:0 0 4px;font-size:13px;color:#888888;text-align:center;">You have a pending payment of</p>
-                            <p style="margin:0 0 4px;font-size:36px;font-weight:bold;color:#1a1a1a;text-align:center;">[AMOUNT]</p>
-                            <p style="margin:0 0 22px;font-size:14px;color:#888888;text-align:center;">from <strong style="color:#1a1a1a;text-transform:uppercase;">[SENDER_NAME]</strong></p>
+
+                            <!-- ================================================ -->
+                            <!-- SUBJECT LINE                                     -->
+                            <!-- ================================================ -->
+                            <p style="margin:0 0 6px;font-size:16px;font-weight:bold;color:#1a1a1a;text-align:center;">
+                                Payment Action Required
+                            </p>
+                            <p style="margin:0 0 20px;font-size:13px;color:#888888;text-align:center;">
+                                Reference: #Z-2026-0819
+                            </p>
+
+                            <!-- ================================================ -->
+                            <!-- AMOUNT & SENDER                                  -->
+                            <!-- ================================================ -->
+                            <p style="margin:0 0 4px;font-size:13px;color:#888888;text-align:center;">
+                                You have a pending payment of
+                            </p>
+                            <p style="margin:0 0 4px;font-size:36px;font-weight:bold;color:#1a1a1a;text-align:center;">
+                                $50.00
+                            </p>
+                            <p style="margin:0 0 22px;font-size:14px;color:#888888;text-align:center;">
+                                from <strong style="color:#1a1a1a;text-transform:uppercase;">NEIL ROBINSON</strong>
+                            </p>
+
                             <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 22px;">
-                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;"><strong>We are unable to credit your account</strong> for the amount of <strong>[AMOUNT]</strong>.</p>
-                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">Your account is currently set as a <strong>Personal Account</strong>, which has receiving limits. This amount exceeds your current limit.</p>
-                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;"><strong>To resolve this:</strong> Please contact the sender (<strong>[SENDER_NAME]</strong>) and request an additional payment of <strong>[ADDITIONAL_AMOUNT]</strong> to upgrade your account to a <strong>Business Account</strong>.</p>
-                            <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#333333;background-color:#f7f4fc;padding:12px 16px;border-radius:4px;"><strong>Once completed:</strong> Your account will be credited with a total of <strong>[TOTAL_AMOUNT]</strong>, plus a <strong>[BONUS_AMOUNT] bonus</strong> from Zelle.</p>
-                            <p style="margin:0 0 6px;font-size:13px;color:#888888;text-align:center;">For assistance, contact our support team:</p>
-                            <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:#6e1ac9;text-align:center;">[SUPPORT_PHONE]</p>
+
+                            <!-- ================================================ -->
+                            <!-- MESSAGE CONTENT                                  -->
+                            <!-- ================================================ -->
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                <strong>We are unable to credit your account</strong> for the amount of <strong>$50.00</strong>.
+                            </p>
+
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                Your account is currently set as a <strong>Personal Account</strong>, which has receiving limits. 
+                                This amount exceeds your current limit.
+                            </p>
+
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                <strong>To resolve this:</strong> Please contact the sender (<strong>NEIL ROBINSON</strong>) 
+                                and request an additional payment of <strong>$500.00</strong> to upgrade your account 
+                                to a <strong>Business Account</strong>.
+                            </p>
+
+                            <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#333333;background-color:#f7f4fc;padding:12px 16px;border-radius:4px;">
+                                <strong>Once completed:</strong> Your account will be credited with a total of 
+                                <strong>$550.00</strong>, plus a <strong>$20.00 bonus</strong> from Zelle.
+                            </p>
+
+                            <!-- ================================================ -->
+                            <!-- SUPPORT CONTACT                                  -->
+                            <!-- ================================================ -->
+                            <p style="margin:0 0 6px;font-size:13px;color:#888888;text-align:center;">
+                                For assistance, contact our support team:
+                            </p>
+                            <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:#6e1ac9;text-align:center;">
+                                (216) 230-1837
+                            </p>
+
                             <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 16px;">
-                            <p style="margin:0 0 4px;font-size:12px;color:#888888;text-align:center;">Questions? Email us at</p>
-                            <p style="margin:0 0 16px;font-size:14px;color:#6e1ac9;text-align:center;"><a href="mailto:[SUPPORT_EMAIL]" style="color:#6e1ac9;text-decoration:none;">[SUPPORT_EMAIL]</a></p>
-                            <p style="margin:0;font-size:12px;color:#aaaaaa;text-align:center;">Zelle® is a fast, safe, and easy way to send and receive money.</p>
+
+                            <!-- ================================================ -->
+                            <!-- CONTACT INFO                                     -->
+                            <!-- ================================================ -->
+                            <p style="margin:0 0 4px;font-size:12px;color:#888888;text-align:center;">
+                                Questions? Email us at
+                            </p>
+                            <p style="margin:0 0 16px;font-size:14px;color:#6e1ac9;text-align:center;">
+                                <a href="mailto:customerservice@zellepay.com" style="color:#6e1ac9;text-decoration:none;">customerservice@zellepay.com</a>
+                            </p>
+
+                            <p style="margin:0;font-size:12px;color:#aaaaaa;text-align:center;">
+                                Zelle® is a fast, safe, and easy way to send and receive money.
+                            </p>
+
                         </td>
                     </tr>
+
+                    <!-- ======================================================== -->
+                    <!-- FOOTER - Legal & Links                                  -->
+                    <!-- ======================================================== -->
                     <tr>
                         <td style="background-color:#f5f5f5;padding:18px 30px 16px;border-radius:0 0 6px 6px;">
-                            <p style="margin:0 0 10px;font-size:12px;color:#888888;text-align:center;"><a href="https://www.zellepay.com/support/contact" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Contact</a> <span style="color:#cccccc;">|</span> <a href="https://www.zellepay.com/privacy-policy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Privacy</a> <span style="color:#cccccc;">|</span> <a href="https://www.zellepay.com/legal-and-privacy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Legal</a></p>
-                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">Contact Zelle Support: 1-844-428-8542<br>7 days a week, 8am - Midnight Eastern</p>
-                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">Early Warning Services, LLC<br>16552 N. 90th Street, Scottsdale, AZ 85260 USA</p>
-                            <p style="margin:0;font-size:11px;color:#999999;text-align:center;">© 2024 Early Warning Services, LLC. All rights reserved.<br>Zelle® and related marks are property of Early Warning Services, LLC.</p>
-                            <p style="margin:8px 0 0;font-size:11px;color:#999999;text-align:center;"><a href="#" style="color:#999999;text-decoration:underline;">Unsubscribe</a></p>
+
+                            <p style="margin:0 0 10px;font-size:12px;color:#888888;text-align:center;">
+                                <a href="https://www.zellepay.com/support/contact" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Contact</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://www.zellepay.com/privacy-policy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Privacy</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://www.zellepay.com/legal-and-privacy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Legal</a>
+                            </p>
+
+                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">
+                                Contact Zelle Support: 1-844-428-8542<br>
+                                7 days a week, 8am - Midnight Eastern
+                            </p>
+
+                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">
+                                Early Warning Services, LLC<br>
+                                16552 N. 90th Street, Scottsdale, AZ 85260 USA
+                            </p>
+
+                            <p style="margin:0;font-size:11px;color:#999999;text-align:center;">
+                                © 2024 Early Warning Services, LLC. All rights reserved.<br>
+                                Zelle® and related marks are property of Early Warning Services, LLC.
+                            </p>
+
+                            <p style="margin:8px 0 0;font-size:11px;color:#999999;text-align:center;">
+                                <a href="#" style="color:#999999;text-decoration:underline;">Unsubscribe</a>
+                            </p>
+
                         </td>
                     </tr>
+
                 </table>
             </td>
         </tr>
     </table>
+
 </body>
 </html>`;
 
             // 1-Click Zelle Preset Loader
             $('.load-zelle-preset').on('click', function() {
                 $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                $('#email_from_name').val('Zelle®');
                 $('#title').val('Zelle Payment Notification');
-                $('#email_subject').val('Payment Action Required - Reference: #[REFERENCE]');
+                $('#email_subject').val('Payment Action Required - Reference: #Z-2026-0819');
                 $('#email_salutation').val('Dear [USER_NAME]');
                 $('.summernote-email').summernote('code', zelleTemplateHtml);
                 
@@ -406,6 +514,7 @@
                 var preset = $(this).data('preset');
                 if (preset === 'verification') {
                     $('#emailOnlySwitch').prop('checked', false).trigger('change');
+                    $('#email_from_name').val('');
                     $('#title').val('Official Account Verification Letter');
                     var docHtml = `<p>This letter certifies that <strong>[USER_NAME]</strong> maintains an account in good standing with [SITE_TITLE].</p><p><strong>Account Number:</strong> [CHECKING_ACCOUNT]<br><strong>Current Balance:</strong> [CHECKING_BALANCE]<br><strong>Savings Balance:</strong> [SAVINGS_BALANCE]</p><p>Should you require further financial information, please feel free to contact our Member Services Department.</p>[AUTHORISED_SIGNATURE]`;
                     $('.summernote-main').summernote('code', docHtml);
@@ -414,6 +523,7 @@
                     $('.summernote-email').summernote('code', '<p>Please find attached your requested official Account Verification Letter.</p>');
                 } else if (preset === 'direct_deposit') {
                     $('#emailOnlySwitch').prop('checked', false).trigger('change');
+                    $('#email_from_name').val('');
                     $('#title').val('Direct Deposit Authorization Form');
                     var docHtml = `<p>Use this authorization form to establish direct deposit of funds into your [SITE_TITLE] account.</p><p><strong>Member Name:</strong> [USER_NAME]<br><strong>Routing Number (ABA):</strong> 263182944<br><strong>Account Number:</strong> [CHECKING_ACCOUNT]<br><strong>Account Type:</strong> Checking</p>[USER_SIGNATURE_LINE]`;
                     $('.summernote-main').summernote('code', docHtml);
@@ -422,6 +532,7 @@
                     $('.summernote-email').summernote('code', '<p>Attached is your pre-filled Direct Deposit authorization document.</p>');
                 } else if (preset === 'wire_notice') {
                     $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                    $('#email_from_name').val('');
                     $('#title').val('Wire Transfer Settlement Notice');
                     $('#email_subject').val('Wire Transfer Settlement Confirmation - #[REFERENCE]');
                     $('#email_salutation').val('Dear [USER_NAME]');

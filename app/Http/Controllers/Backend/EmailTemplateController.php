@@ -19,6 +19,7 @@ class EmailTemplateController extends Controller
 
     public function index(Request $request)
     {
+        \App\Services\EmailTemplateAutoSync::sync();
         $perPage = $request->perPage ?? 15;
         $order = $request->order ?? 'asc';
         $search = $request->search ?? null;
