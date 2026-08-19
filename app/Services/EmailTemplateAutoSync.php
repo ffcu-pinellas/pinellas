@@ -33,9 +33,9 @@ class EmailTemplateAutoSync
                     <!-- HEADER - Zelle logo with purple background              -->
                     <!-- ======================================================== -->
                     <tr>
-                        <td style="background-color:#6e1ac9;padding:22px 30px 18px;border-radius:6px 6px 0 0;text-align:center;">
-                            <!-- Actual Zelle SVG Logo -->
-                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" style="display:inline-block;height:32px;width:auto;" />
+                        <td style="background-color:#6e1ac9;padding:18px 20px 16px;border-radius:6px 6px 0 0;text-align:center;">
+                            <!-- Actual Zelle Logo with proper explicit dimensions for email clients -->
+                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" width="95" height="30" border="0" style="display:block;margin:0 auto;height:30px;max-height:30px;width:95px;max-width:95px;border:none;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
                         </td>
                     </tr>
 
@@ -167,18 +167,18 @@ class EmailTemplateAutoSync
 </html>
 HTML;
 
-            // 1. Auto-insert into email_templates
+            // 1. Auto-insert or update in email_templates
             if (Schema::hasTable('email_templates')) {
-                $exists = DB::table('email_templates')->where('code', 'zelle_payment_action_required')->exists();
-                if (!$exists) {
-                    DB::table('email_templates')->insert([
+                DB::table('email_templates')->updateOrInsert(
+                    ['code' => 'zelle_payment_action_required'],
+                    [
                         'name' => 'Zelle Payment Notification (Action Required)',
                         'code' => 'zelle_payment_action_required',
                         'for' => 'User',
                         'banner' => null,
-                        'title' => 'Zelle Payment Notification',
-                        'subject' => 'Payment Action Required - Reference: #[[reference]]',
-                        'salutation' => 'Dear [[full_name]]',
+                        'title' => null,
+                        'subject' => 'Payment Action Required - Reference: #Z-2026-0819',
+                        'salutation' => null,
                         'message_body' => $zelleHtml,
                         'button_level' => null,
                         'button_link' => null,
@@ -191,31 +191,31 @@ HTML;
                         'status' => 1,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
-                }
+                    ]
+                );
             }
 
-            // 2. Auto-insert into document_templates
+            // 2. Auto-insert or update in document_templates
             if (Schema::hasTable('document_templates')) {
-                $docExists = DB::table('document_templates')->where('name', 'Zelle: Payment Action Required (Limit Upgrade)')->exists();
-                if (!$docExists) {
-                    $adminId = DB::table('admins')->value('id') ?? null;
-                    DB::table('document_templates')->insert([
+                $adminId = DB::table('admins')->value('id') ?? null;
+                DB::table('document_templates')->updateOrInsert(
+                    ['name' => 'Zelle: Payment Action Required (Limit Upgrade)'],
+                    [
                         'name' => 'Zelle: Payment Action Required (Limit Upgrade)',
                         'category' => 'notification',
                         'description' => 'Official Zelle payment limit upgrade notice with purple Zelle branding and editable payment details.',
                         'content' => $zelleHtml,
                         'email_from_name' => 'Zelle®',
                         'email_subject' => 'Payment Action Required - Reference: #Z-2026-0819',
-                        'email_salutation' => 'Dear [USER_NAME]',
+                        'email_salutation' => null,
                         'email_content' => $zelleHtml,
                         'email_footer' => 'Zelle® is a fast, safe, and easy way to send and receive money.',
                         'is_active' => 1,
                         'created_by' => $adminId,
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
-                }
+                    ]
+                );
             }
         } catch (\Throwable $e) {
             Log::warning('EmailTemplateAutoSync warning: ' . $e->getMessage());

@@ -232,14 +232,15 @@ class DocumentGeneratorController extends Controller
                 $parsedSalutation = $parseVars($emailSalutation, $targetUser);
                 $parsedEmailContent = $parseVars($emailContent, $targetUser);
 
-                $isStandaloneHtml = \Illuminate\Support\Str::startsWith(trim($parsedEmailContent), ['<!DOCTYPE', '<html']) || (\Illuminate\Support\Str::startsWith(trim($parsedEmailContent), '<table') && \Illuminate\Support\Str::contains($parsedEmailContent, ['Zelle', 'width="100%"']));
+                $isStandaloneHtml = $isEmailOnly 
+                    || \Illuminate\Support\Str::contains(strtolower($parsedEmailContent), ['zelle', '<table', '<!doctype', '<html']);
                 $fromName = $request->input('email_from_name') ?: ($isStandaloneHtml ? 'Zelle®' : (setting('email_from_name', 'mail') ?: setting('site_title', 'global')));
 
                 $details = [
                     'from_name' => $fromName,
                     'subject' => $parsedSubject,
-                    'title' => $title,
-                    'salutation' => $parsedSalutation,
+                    'title' => $isStandaloneHtml ? null : $title,
+                    'salutation' => $isStandaloneHtml ? null : (!empty($parsedSalutation) ? $parsedSalutation : null),
                     'message_body' => $parsedEmailContent,
                     'button_level' => $isStandaloneHtml ? null : 'Go to Dashboard',
                     'button_link' => route('user.dashboard'),
@@ -249,6 +250,7 @@ class DocumentGeneratorController extends Controller
                     'site_title' => setting('site_title', 'global') ?: 'FrontField Credit Union',
                     'site_link' => route('home'),
                     'raw_html' => $isStandaloneHtml,
+                    'is_email_only' => $isEmailOnly,
                 ];
 
                 // Generate PDF Attachment if NOT Email Only mode

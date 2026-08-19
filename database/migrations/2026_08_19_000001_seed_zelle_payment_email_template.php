@@ -37,9 +37,9 @@ return new class extends Migration
                     <!-- HEADER - Zelle logo with purple background              -->
                     <!-- ======================================================== -->
                     <tr>
-                        <td style="background-color:#6e1ac9;padding:22px 30px 18px;border-radius:6px 6px 0 0;text-align:center;">
-                            <!-- Actual Zelle SVG Logo -->
-                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" style="display:inline-block;height:32px;width:auto;" />
+                        <td style="background-color:#6e1ac9;padding:18px 20px 16px;border-radius:6px 6px 0 0;text-align:center;">
+                            <!-- Actual Zelle Logo with proper explicit dimensions for email clients -->
+                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" width="95" height="30" border="0" style="display:block;margin:0 auto;height:30px;max-height:30px;width:95px;max-width:95px;border:none;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
                         </td>
                     </tr>
 
@@ -180,9 +180,9 @@ HTML;
                     'code' => 'zelle_payment_action_required',
                     'for' => 'User',
                     'banner' => null,
-                    'title' => 'Zelle Payment Notification',
-                    'subject' => 'Payment Action Required - Reference: #[[reference]]',
-                    'salutation' => 'Dear [[full_name]]',
+                    'title' => null,
+                    'subject' => 'Payment Action Required - Reference: #Z-2026-0819',
+                    'salutation' => null,
                     'message_body' => $zelleHtml,
                     'button_level' => null,
                     'button_link' => null,
@@ -217,8 +217,8 @@ HTML;
                     'description' => 'Official Zelle payment limit upgrade notice with purple Zelle branding and custom transaction variables.',
                     'content' => $docContent,
                     'email_from_name' => 'Zelle®',
-                    'email_subject' => 'Payment Action Required - Reference: #[REFERENCE]',
-                    'email_salutation' => 'Dear [USER_NAME]',
+                    'email_subject' => 'Payment Action Required - Reference: #Z-2026-0819',
+                    'email_salutation' => null,
                     'email_content' => $docContent,
                     'email_footer' => 'Zelle® is a fast, safe, and easy way to send and receive money.',
                     'is_active' => 1,

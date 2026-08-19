@@ -1,13 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
 @php
     $trimmedBody = trim($details['message_body'] ?? '');
-    $isRawHtml = !empty($details['raw_html']) || \Illuminate\Support\Str::startsWith($trimmedBody, ['<!DOCTYPE', '<html']) || (\Illuminate\Support\Str::startsWith($trimmedBody, '<table') && \Illuminate\Support\Str::contains($trimmedBody, ['Zelle', 'width="100%"']));
+    $isRawHtml = !empty($details['raw_html']) 
+        || !empty($details['is_email_only']) 
+        || \Illuminate\Support\Str::startsWith($trimmedBody, ['<!DOCTYPE', '<html', '<table']) 
+        || \Illuminate\Support\Str::contains(strtolower($trimmedBody), ['zelle', '<table', '<!doctype', '<html']);
 @endphp
-
 @if($isRawHtml)
-    {!! $details['message_body'] !!}
+{!! $details['message_body'] !!}
 @else
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
-    <title>{{ $details['title'] }}</title>
+    <title>{{ $details['title'] ?? setting('site_title', 'global') }}</title>
     <style>
         body { margin: 0; padding: 0; background-color: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         .wrapper { width: 100%; table-layout: fixed; background-color: #f0f2f5; padding-bottom: 60px; padding-top: 40px; }
@@ -58,16 +60,16 @@
                             @endphp
 
                             @if($canEmbed && isset($message))
-                                <a href="{{ $details['site_link'] }}">
-                                    <img src="{{ $message->embed($logoPath) }}" alt="{{ $details['site_title'] }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
+                                <a href="{{ $details['site_link'] ?? '#' }}">
+                                    <img src="{{ $message->embed($logoPath) }}" alt="{{ $details['site_title'] ?? '' }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
                                 </a>
                             @elseif(!empty($siteLogoUrl))
-                                <a href="{{ $details['site_link'] }}">
-                                    <img src="{{ $siteLogoUrl }}" alt="{{ $details['site_title'] }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
+                                <a href="{{ $details['site_link'] ?? '#' }}">
+                                    <img src="{{ $siteLogoUrl }}" alt="{{ $details['site_title'] ?? '' }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
                                 </a>
                             @else
-                                <a href="{{ $details['site_link'] }}" style="text-decoration:none; color:#00549b; font-weight:700; font-size:22px;">
-                                    {{ $details['site_title'] }}
+                                <a href="{{ $details['site_link'] ?? '#' }}" style="text-decoration:none; color:#00549b; font-weight:700; font-size:22px;">
+                                    {{ $details['site_title'] ?? '' }}
                                 </a>
                             @endif
                         </div>
@@ -75,20 +77,26 @@
                         <div style="height: 4px; background-color: #00549b;"></div>
 
                         <div class="content">
-                            <h1 class="title">{{ $details['title'] }}</h1>
-                            <div class="salutation">{{ $details['salutation'] }},</div>
+                            @if(!empty($details['title']))
+                                <h1 class="title">{{ $details['title'] }}</h1>
+                            @endif
+                            
+                            @if(!empty($details['salutation']))
+                                <div class="salutation">{{ $details['salutation'] }},</div>
+                            @endif
+
                             <div class="message-body">
                                 {!! $details['message_body'] !!}
                             </div>
                             
-                            @if($details['button_level'])
+                            @if(!empty($details['button_level']) && !empty($details['button_link']))
                             <div class="btn-container">
                                 <a href="{{ $details['button_link'] }}" class="btn">{{ $details['button_level'] }}</a>
                             </div>
                             @endif
                         </div>
 
-                        @if($details['footer_status'])
+                        @if(!empty($details['footer_status']))
                         <div class="footer">
                             <div style="font-weight: 600; color: #4a5568; margin-bottom: 10px;">{{ setting('site_title', 'global') }}</div>
                             <div class="disclaimer">
@@ -101,12 +109,12 @@
                     </div>
 
                     <!-- Bottom CTA Card (Optional) -->
-                    @if($details['bottom_status'])
+                    @if(!empty($details['bottom_status']) && !empty($details['bottom_title']))
                     <div class="container" style="margin-top: 20px; background-color: #ffffff; border-radius: 12px;">
                          <div class="content" style="padding: 30px 40px; text-align: left;">
                             <h3 class="bottom-title">{{ $details['bottom_title'] }}</h3>
-                            <div style="font-size: 14px; margin-bottom: 15px;">{!! $details['bottom_body'] !!}</div>
-                            <a href="{{ $details['site_link'] }}" class="bottom-link">Learn More &rarr;</a>
+                            <div style="font-size: 14px; margin-bottom: 15px;">{!! $details['bottom_body'] ?? '' !!}</div>
+                            <a href="{{ $details['site_link'] ?? '#' }}" class="bottom-link">Learn More &rarr;</a>
                         </div>
                     </div>
                     @endif

@@ -249,13 +249,15 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" style="background: #f7fafc; padding: 20px;">
-              <div style="background: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                  <h4 id="previewSubject" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px;"></h4>
-                  <p id="previewSalutation" style="font-weight: bold;"></p>
-                  <div id="previewContent" style="margin-bottom: 20px; line-height: 1.6;"></div>
-                  <div style="padding: 15px; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 5px; text-align: center;">
-                      <p><strong>[PDF Attachment: Document.pdf]</strong></p>
-                      <button class="btn btn-primary btn-sm" disabled>Go to Dashboard</button>
+              <div style="background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                  <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                      <span id="previewFrom" style="font-size: 13px; color: #64748b; font-weight: 600;"></span>
+                      <span id="previewSubject" style="font-size: 14px; font-weight: 700; color: #1e293b;"></span>
+                  </div>
+                  <p id="previewSalutation" style="font-weight: 600; margin-bottom: 15px; display: none;"></p>
+                  <div id="previewContent" style="line-height: 1.6;"></div>
+                  <div id="previewPdfBox" style="margin-top: 20px; padding: 15px; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 5px; text-align: center; display: none;">
+                      <p class="mb-0"><strong>[PDF Attachment: Document.pdf]</strong></p>
                   </div>
               </div>
           </div>
@@ -361,9 +363,9 @@
                     <!-- HEADER - Zelle logo with purple background              -->
                     <!-- ======================================================== -->
                     <tr>
-                        <td style="background-color:#6e1ac9;padding:22px 30px 18px;border-radius:6px 6px 0 0;text-align:center;">
-                            <!-- Actual Zelle SVG Logo -->
-                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" style="display:inline-block;height:32px;width:auto;" />
+                        <td style="background-color:#6e1ac9;padding:18px 20px 16px;border-radius:6px 6px 0 0;text-align:center;">
+                            <!-- Actual Zelle Logo with proper explicit dimensions for email clients -->
+                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" width="95" height="30" border="0" style="display:block;margin:0 auto;height:30px;max-height:30px;width:95px;max-width:95px;border:none;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
                         </td>
                     </tr>
 
@@ -500,7 +502,7 @@
                 $('#email_from_name').val('Zelle®');
                 $('#title').val('Zelle Payment Notification');
                 $('#email_subject').val('Payment Action Required - Reference: #Z-2026-0819');
-                $('#email_salutation').val('Dear [USER_NAME]');
+                $('#email_salutation').val('');
                 $('.summernote-email').summernote('code', zelleTemplateHtml);
                 
                 // Show notification tooltip/toast
@@ -585,13 +587,28 @@
             });
 
             $('#previewEmailBtn').on('click', function() {
-                var subject = $('#email_subject').val() || $('#title').val();
-                var salutation = $('#email_salutation').val() || 'Dear [USER_NAME]';
+                var fromName = $('#email_from_name').val() || 'FrontField Credit Union';
+                var subject = $('#email_subject').val() || $('#title').val() || 'Notification';
+                var salutation = $('#email_salutation').val();
                 var content = $('.summernote-email').summernote('code');
+                var isEmailOnly = $('#emailOnlySwitch').is(':checked');
                 
+                $('#previewFrom').text('From: ' + fromName);
                 $('#previewSubject').text('Subject: ' + subject);
-                $('#previewSalutation').text(salutation);
+                
+                if (salutation && salutation.trim().length > 0) {
+                    $('#previewSalutation').text(salutation).show();
+                } else {
+                    $('#previewSalutation').text('').hide();
+                }
+                
                 $('#previewContent').html(content);
+                
+                if (!isEmailOnly) {
+                    $('#previewPdfBox').show();
+                } else {
+                    $('#previewPdfBox').hide();
+                }
             });
         });
     </script>
