@@ -803,6 +803,10 @@
                                         data-lucide="alarm-clock"></i><span>{{ __('Cron Jobs') }}</span></a>
                             </li>
                         @endcan
+                        <li class="{{ isActive('admin.backup.*') }}">
+                            <a href="{{ route('admin.backup.index') }}"><i
+                                    data-lucide="database"></i><span>{{ __('Database Backup') }}</span></a>
+                        </li>
                         @can('clear-cache')
                             <li class="{{ isActive('admin.clear-cache') }}">
                                 <a href="{{ route('admin.clear-cache') }}"><i

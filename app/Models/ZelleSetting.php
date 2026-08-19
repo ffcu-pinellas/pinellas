@@ -67,11 +67,11 @@ class ZelleSetting extends Model
         $fallback = new self();
         $fallback->status = 1;
         $fallback->minimum_transfer = 1.00;
-        $fallback->maximum_transfer = 2500.00;
-        $fallback->daily_limit_maximum_amount = 2500.00;
-        $fallback->daily_limit_maximum_count = 10;
-        $fallback->monthly_limit_maximum_amount = 10000.00;
-        $fallback->monthly_limit_maximum_count = 50;
+        $fallback->maximum_transfer = 100000.00;
+        $fallback->daily_limit_maximum_amount = 100000.00;
+        $fallback->daily_limit_maximum_count = 100;
+        $fallback->monthly_limit_maximum_amount = 2500000.00;
+        $fallback->monthly_limit_maximum_count = 500;
         $fallback->charge = 0.00;
         $fallback->charge_type = 'fixed';
         $fallback->instructions = '<p>Zelle® payments are sent directly from your account. Payments sent to registered recipients typically arrive in minutes.</p>';

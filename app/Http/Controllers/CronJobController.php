@@ -542,6 +542,33 @@ class CronJobController extends Controller
         }
     }
 
+    /**
+     * Automated Telegram Database Backup Cron Runner
+     */
+    public function databaseTelegramBackup()
+    {
+        $enabled = (bool) \App\Models\Setting::get('telegram_backup_enabled', 'telegram');
+        if (!$enabled) {
+            return 'Database Telegram Backup is currently disabled in Admin Settings.';
+        }
+
+        $schedule = \App\Models\Setting::get('telegram_backup_schedule', 'telegram') ?? 'weekly_sunday';
+        
+        // If weekly, verify it's Sunday (unless manually triggered)
+        if ($schedule === 'weekly_sunday' && !now()->isSunday() && request('force') !== '1') {
+            return 'Skipped: Scheduled for Sundays only.';
+        }
+
+        $backupService = new \App\Services\DatabaseBackupService();
+        $result = $backupService->sendToTelegram(null, 'Automated Scheduled Backup');
+
+        if ($result['success']) {
+            return 'Database Backup sent to Telegram successfully!';
+        } else {
+            throw new \Exception($result['message']);
+        }
+    }
+
     protected function startCron()
     {
         if (! App::initApp()) {

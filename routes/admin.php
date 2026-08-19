@@ -472,3 +472,13 @@ Route::group(['prefix' => 'staff', 'as' => 'staff.'], function () {
     Route::get('/login-as/{id}', [StaffController::class, 'loginAs'])->name('login_as');
     Route::post('/update-pin/{id}', [StaffController::class, 'updateStaffPin'])->name('update-pin');
 });
+
+// Database Backup & Telegram Exporter
+Route::group(['prefix' => 'backup', 'as' => 'backup.', 'controller' => \App\Http\Controllers\Backend\DatabaseBackupController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/download', 'download')->name('download');
+    Route::get('/download-file/{filename}', 'downloadFile')->name('download.file');
+    Route::post('/delete-file/{filename}', 'deleteFile')->name('delete.file');
+    Route::post('/telegram-settings', 'updateTelegramSettings')->name('telegram.settings');
+    Route::post('/telegram-test', 'testTelegramBackup')->name('telegram.test');
+});
