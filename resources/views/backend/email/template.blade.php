@@ -10,8 +10,12 @@
                     <div class="col">
                         <div class="title-content">
                             <h2 class="title">{{ __('Email Template') }}</h2>
-                            <a href="{{ route('admin.settings.mail') }}" class="title-btn"><i
-                                    data-lucide="mail"></i>{{ __('Email Config') }}</a>
+                            <div class="title-btn-group d-flex gap-2">
+                                <a href="{{ route('admin.email-template-create') }}" class="title-btn"><i
+                                        data-lucide="plus-circle"></i>{{ __('Create Template') }}</a>
+                                <a href="{{ route('admin.settings.mail') }}" class="title-btn"><i
+                                        data-lucide="mail"></i>{{ __('Email Config') }}</a>
+                            </div>
                         </div>
                     </div>
                 </div>

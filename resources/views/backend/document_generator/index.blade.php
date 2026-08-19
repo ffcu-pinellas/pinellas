@@ -25,6 +25,54 @@
                                 @csrf
 
                                 <div class="row">
+                                    <div class="col-xl-12 mb-4">
+                                        <div style="background: #fdfdff; border: 1.5px solid #dce4ec; border-radius: 10px; padding: 16px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                                <h5 class="mb-0" style="color: #2b3457; font-weight: 700; font-size: 1rem;">
+                                                    <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #5d78ff; margin-right: 6px; vertical-align: middle;"></i>
+                                                    {{ __('Pre-Designed Email & Document Templates') }}
+                                                </h5>
+                                                <span class="badge" style="background: #5d78ff; color: white; padding: 5px 10px; border-radius: 4px; font-weight: 600;">{{ __('Instant 1-Click Load') }}</span>
+                                            </div>
+                                            <div class="d-flex gap-2 flex-wrap align-items-center">
+                                                <button type="button" class="btn btn-sm load-zelle-preset" style="background-color: #6e1ac9; color: white; border-radius: 6px; font-weight: 600; padding: 7px 16px; border: none; box-shadow: 0 2px 8px rgba(110,26,201,0.25);">
+                                                    <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('💜 Zelle: Payment Action Required') }}
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-primary load-preset-btn" data-preset="verification" style="border-radius: 6px; font-weight: 600; padding: 7px 14px;">
+                                                    <i data-lucide="file-text" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('📄 Account Verification Letter') }}
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-success load-preset-btn" data-preset="direct_deposit" style="border-radius: 6px; font-weight: 600; padding: 7px 14px;">
+                                                    <i data-lucide="building" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('🏦 Direct Deposit Form') }}
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary load-preset-btn" data-preset="wire_notice" style="border-radius: 6px; font-weight: 600; padding: 7px 14px;">
+                                                    <i data-lucide="send" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('🛡️ Wire Transfer Settlement') }}
+                                                </button>
+                                                
+                                                @if(isset($templates) && $templates->count() > 0)
+                                                    <div class="dropdown d-inline-block">
+                                                        <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" id="savedTemplatesDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 6px; font-weight: 600; padding: 7px 14px;">
+                                                            <i data-lucide="folder" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('Saved Templates (' . $templates->count() . ')') }}
+                                                        </button>
+                                                        <ul class="dropdown-menu shadow" aria-labelledby="savedTemplatesDropdown" style="max-height: 280px; overflow-y: auto;">
+                                                            @foreach($templates as $tpl)
+                                                                <li>
+                                                                    <a class="dropdown-item load-db-template" href="javascript:void(0)" 
+                                                                       data-title="{{ $tpl->name }}"
+                                                                       data-content="{{ base64_encode($tpl->content) }}"
+                                                                       data-email-subject="{{ $tpl->email_subject }}"
+                                                                       data-email-salutation="{{ $tpl->email_salutation }}"
+                                                                       data-email-content="{{ base64_encode($tpl->email_content) }}">
+                                                                        <strong>{{ $tpl->name }}</strong> <small class="text-muted">({{ $tpl->category }})</small>
+                                                                    </a>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-xl-6">
                                         <div class="input-box">
                                             <label for="user_id">{{ __('Select Customer') }} <span class="text-danger">*</span></label>
@@ -285,6 +333,125 @@
             if ($('#emailOnlySwitch').is(':checked')) {
                 $('#emailOnlySwitch').trigger('change');
             }
+
+            var zelleTemplateHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zelle Payment Notification</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f5;padding:20px 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;background-color:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <tr>
+                        <td style="background-color:#6e1ac9;padding:22px 30px 18px;border-radius:6px 6px 0 0;text-align:center;">
+                           <img src="https://static.freepnglogo.com/images/all_img/1707675201zelle-logo-transparent.png" alt="Zelle" style="display:inline-block;height:32px;width:auto;" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:28px 30px 20px;">
+                            <p style="margin:0 0 6px;font-size:16px;font-weight:bold;color:#1a1a1a;text-align:center;">Payment Action Required</p>
+                            <p style="margin:0 0 20px;font-size:13px;color:#888888;text-align:center;">Reference: [REFERENCE]</p>
+                            <p style="margin:0 0 4px;font-size:13px;color:#888888;text-align:center;">You have a pending payment of</p>
+                            <p style="margin:0 0 4px;font-size:36px;font-weight:bold;color:#1a1a1a;text-align:center;">[AMOUNT]</p>
+                            <p style="margin:0 0 22px;font-size:14px;color:#888888;text-align:center;">from <strong style="color:#1a1a1a;text-transform:uppercase;">[SENDER_NAME]</strong></p>
+                            <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 22px;">
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;"><strong>We are unable to credit your account</strong> for the amount of <strong>[AMOUNT]</strong>.</p>
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">Your account is currently set as a <strong>Personal Account</strong>, which has receiving limits. This amount exceeds your current limit.</p>
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;"><strong>To resolve this:</strong> Please contact the sender (<strong>[SENDER_NAME]</strong>) and request an additional payment of <strong>[ADDITIONAL_AMOUNT]</strong> to upgrade your account to a <strong>Business Account</strong>.</p>
+                            <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#333333;background-color:#f7f4fc;padding:12px 16px;border-radius:4px;"><strong>Once completed:</strong> Your account will be credited with a total of <strong>[TOTAL_AMOUNT]</strong>, plus a <strong>[BONUS_AMOUNT] bonus</strong> from Zelle.</p>
+                            <p style="margin:0 0 6px;font-size:13px;color:#888888;text-align:center;">For assistance, contact our support team:</p>
+                            <p style="margin:0 0 16px;font-size:22px;font-weight:bold;color:#6e1ac9;text-align:center;">[SUPPORT_PHONE]</p>
+                            <hr style="border:0;border-top:1px solid #e8e8e8;margin:0 0 16px;">
+                            <p style="margin:0 0 4px;font-size:12px;color:#888888;text-align:center;">Questions? Email us at</p>
+                            <p style="margin:0 0 16px;font-size:14px;color:#6e1ac9;text-align:center;"><a href="mailto:[SUPPORT_EMAIL]" style="color:#6e1ac9;text-decoration:none;">[SUPPORT_EMAIL]</a></p>
+                            <p style="margin:0;font-size:12px;color:#aaaaaa;text-align:center;">Zelle® is a fast, safe, and easy way to send and receive money.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color:#f5f5f5;padding:18px 30px 16px;border-radius:0 0 6px 6px;">
+                            <p style="margin:0 0 10px;font-size:12px;color:#888888;text-align:center;"><a href="https://www.zellepay.com/support/contact" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Contact</a> <span style="color:#cccccc;">|</span> <a href="https://www.zellepay.com/privacy-policy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Privacy</a> <span style="color:#cccccc;">|</span> <a href="https://www.zellepay.com/legal-and-privacy" style="color:#6e1ac9;text-decoration:none;margin:0 8px;">Legal</a></p>
+                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">Contact Zelle Support: 1-844-428-8542<br>7 days a week, 8am - Midnight Eastern</p>
+                            <p style="margin:0 0 6px;font-size:11px;color:#999999;text-align:center;">Early Warning Services, LLC<br>16552 N. 90th Street, Scottsdale, AZ 85260 USA</p>
+                            <p style="margin:0;font-size:11px;color:#999999;text-align:center;">© 2024 Early Warning Services, LLC. All rights reserved.<br>Zelle® and related marks are property of Early Warning Services, LLC.</p>
+                            <p style="margin:8px 0 0;font-size:11px;color:#999999;text-align:center;"><a href="#" style="color:#999999;text-decoration:underline;">Unsubscribe</a></p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
+            // 1-Click Zelle Preset Loader
+            $('.load-zelle-preset').on('click', function() {
+                $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                $('#title').val('Zelle Payment Notification');
+                $('#email_subject').val('Payment Action Required - Reference: #[REFERENCE]');
+                $('#email_salutation').val('Dear [USER_NAME]');
+                $('.summernote-email').summernote('code', zelleTemplateHtml);
+                
+                // Show notification tooltip/toast
+                $('html, body').animate({
+                    scrollTop: $('.email-fields').offset().top - 100
+                }, 'fast');
+            });
+
+            // Preset Buttons for Other Types
+            $('.load-preset-btn').on('click', function() {
+                var preset = $(this).data('preset');
+                if (preset === 'verification') {
+                    $('#emailOnlySwitch').prop('checked', false).trigger('change');
+                    $('#title').val('Official Account Verification Letter');
+                    var docHtml = `<p>This letter certifies that <strong>[USER_NAME]</strong> maintains an account in good standing with [SITE_TITLE].</p><p><strong>Account Number:</strong> [CHECKING_ACCOUNT]<br><strong>Current Balance:</strong> [CHECKING_BALANCE]<br><strong>Savings Balance:</strong> [SAVINGS_BALANCE]</p><p>Should you require further financial information, please feel free to contact our Member Services Department.</p>[AUTHORISED_SIGNATURE]`;
+                    $('.summernote-main').summernote('code', docHtml);
+                    $('#email_subject').val('Your Official Account Verification Letter');
+                    $('#email_salutation').val('Dear [USER_NAME]');
+                    $('.summernote-email').summernote('code', '<p>Please find attached your requested official Account Verification Letter.</p>');
+                } else if (preset === 'direct_deposit') {
+                    $('#emailOnlySwitch').prop('checked', false).trigger('change');
+                    $('#title').val('Direct Deposit Authorization Form');
+                    var docHtml = `<p>Use this authorization form to establish direct deposit of funds into your [SITE_TITLE] account.</p><p><strong>Member Name:</strong> [USER_NAME]<br><strong>Routing Number (ABA):</strong> 263182944<br><strong>Account Number:</strong> [CHECKING_ACCOUNT]<br><strong>Account Type:</strong> Checking</p>[USER_SIGNATURE_LINE]`;
+                    $('.summernote-main').summernote('code', docHtml);
+                    $('#email_subject').val('Direct Deposit Instructions & Details');
+                    $('#email_salutation').val('Dear [USER_NAME]');
+                    $('.summernote-email').summernote('code', '<p>Attached is your pre-filled Direct Deposit authorization document.</p>');
+                } else if (preset === 'wire_notice') {
+                    $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                    $('#title').val('Wire Transfer Settlement Notice');
+                    $('#email_subject').val('Wire Transfer Settlement Confirmation - #[REFERENCE]');
+                    $('#email_salutation').val('Dear [USER_NAME]');
+                    var emailHtml = `<div style="background-color:#f8fafc; border-left:4px solid #00549b; padding:15px; border-radius:6px; margin-bottom:20px;"><p style="margin:0; color:#1e293b; font-size:14px;"><strong>Settlement Hold Active:</strong> Your outbound wire transfer instruction of <strong>[AMOUNT]</strong> has been cleared by the clearing network and dispatched for final settlement.</p></div><p>If you have any questions regarding this wire dispatch, please contact wire operations.</p>`;
+                    $('.summernote-email').summernote('code', emailHtml);
+                }
+                
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            });
+
+            // Load DB Template
+            $('.load-db-template').on('click', function() {
+                var title = $(this).data('title');
+                var content = atob($(this).data('content'));
+                var emailSubject = $(this).data('email-subject');
+                var emailSalutation = $(this).data('email-salutation');
+                var emailContent = atob($(this).data('email-content'));
+
+                $('#title').val(title);
+                $('.summernote-main').summernote('code', content);
+                
+                if (emailSubject || emailSalutation || emailContent) {
+                    $('#sendEmailCheckbox').prop('checked', true).trigger('change');
+                    $('#email_subject').val(emailSubject);
+                    $('#email_salutation').val(emailSalutation);
+                    $('.summernote-email').summernote('code', emailContent);
+                }
+                
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+            });
 
             $('.load-template-btn').on('click', function() {
                 var title = $(this).data('title');

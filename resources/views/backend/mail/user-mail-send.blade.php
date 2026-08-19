@@ -1,5 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+@php
+    $trimmedBody = trim($details['message_body'] ?? '');
+    $isRawHtml = !empty($details['raw_html']) || \Illuminate\Support\Str::startsWith($trimmedBody, ['<!DOCTYPE', '<html']) || (\Illuminate\Support\Str::startsWith($trimmedBody, '<table') && \Illuminate\Support\Str::contains($trimmedBody, ['Zelle', 'width="100%"']));
+@endphp
+
+@if($isRawHtml)
+    {!! $details['message_body'] !!}
+@else
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -108,3 +116,5 @@
     </table>
 </body>
 </html>
+@endif
+

@@ -397,6 +397,8 @@ Route::post('language-keyword-update', [LanguageController::class, 'keywordUpdat
 Route::get('language-sync-missing', [LanguageController::class, 'syncMissing'])->name('language-sync-missing');
 
 Route::get('email-template', [EmailTemplateController::class, 'index'])->name('email-template');
+Route::get('email-template-create', [EmailTemplateController::class, 'create'])->name('email-template-create');
+Route::post('email-template-store', [EmailTemplateController::class, 'store'])->name('email-template-store');
 Route::get('email-template-edit/{id}', [EmailTemplateController::class, 'edit'])->name('email-template-edit');
 Route::post('email-template-update', [EmailTemplateController::class, 'update'])->name('email-template-update');
 

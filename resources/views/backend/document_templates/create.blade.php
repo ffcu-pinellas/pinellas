@@ -53,7 +53,7 @@
 
                                     <div class="col-xl-12 mt-4">
                                         <div class="input-box">
-                                            <label for="content">{{ __('PDF Document Content') }} <span class="text-danger">*</span></label>
+                                            <label for="content">{{ __('PDF Document Content') }} <small class="text-muted">({{ __('Optional if creating Email Only template') }})</small></label>
                                             <div class="alert alert-info">
                                                 <strong>{{ __('Available Variables:') }}</strong><br>
                                                 <div class="mt-2 mb-2 d-flex gap-2 flex-wrap">
@@ -71,7 +71,7 @@
                                                     <button type="button" class="btn btn-sm btn-outline-dark insert-var" data-target=".summernote-main" data-var="[USER_SIGNATURE_LINE]">[USER_SIGNATURE_LINE]</button>
                                                 </div>
                                             </div>
-                                            <textarea class="form-control summernote-main" name="content" id="content" required></textarea>
+                                            <textarea class="form-control summernote-main" name="content" id="content"></textarea>
                                         </div>
                                     </div>
 

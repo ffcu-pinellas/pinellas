@@ -46,7 +46,7 @@ class DocumentTemplateController extends Controller
             'email_from_name' => 'nullable|string|max:255',
             'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing,external_bank_notification',
             'description' => 'nullable|string',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'email_subject' => 'nullable|string|max:255',
             'email_salutation' => 'nullable|string|max:255',
             'email_content' => 'nullable|string',
@@ -54,22 +54,42 @@ class DocumentTemplateController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        DocumentTemplate::create([
-            'name' => $request->name,
-            'email_from_name' => $request->email_from_name,
-            'category' => $request->category,
-            'description' => $request->description,
-            'content' => Purifier::clean($request->content),
-            'email_subject' => $request->email_subject,
-            'email_salutation' => $request->email_salutation,
-            'email_content' => Purifier::clean($request->email_content),
-            'email_footer' => Purifier::clean($request->email_footer),
-            'is_active' => $request->has('is_active'),
-            'created_by' => auth('admin')->id(),
-        ]);
+        try {
+            $cleanHtml = function($html) {
+                if (empty($html)) return '';
+                try {
+                    return Purifier::clean($html);
+                } catch (\Throwable $e) {
+                    \Log::warning('Purifier warning: ' . $e->getMessage());
+                    return $html;
+                }
+            };
 
-        notify()->success('Document template created successfully.', 'Success');
-        return redirect()->route('admin.document-template.index');
+            $content = $cleanHtml($request->input('content', ''));
+            $emailContent = $cleanHtml($request->input('email_content', ''));
+            $emailFooter = $cleanHtml($request->input('email_footer', ''));
+
+            DocumentTemplate::create([
+                'name' => $request->name,
+                'email_from_name' => $request->email_from_name,
+                'category' => $request->category,
+                'description' => $request->description,
+                'content' => $content,
+                'email_subject' => $request->email_subject,
+                'email_salutation' => $request->email_salutation,
+                'email_content' => $emailContent,
+                'email_footer' => $emailFooter,
+                'is_active' => $request->has('is_active'),
+                'created_by' => auth('admin')->id() ?? \App\Models\Admin::first()->id ?? null,
+            ]);
+
+            notify()->success('Document template created successfully.', 'Success');
+            return redirect()->route('admin.document-template.index');
+        } catch (\Throwable $e) {
+            \Log::error('DocumentTemplate store error: ' . $e->getMessage());
+            notify()->error('Error creating template: ' . $e->getMessage(), 'Error');
+            return redirect()->back()->withInput();
+        }
     }
 
     public function edit(DocumentTemplate $template)
@@ -85,7 +105,7 @@ class DocumentTemplateController extends Controller
             'email_from_name' => 'nullable|string|max:255',
             'category' => 'required|string|in:general,account_statement,loan_letter,welcome_letter,notification,compliance,marketing,external_bank_notification',
             'description' => 'nullable|string',
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'email_subject' => 'nullable|string|max:255',
             'email_salutation' => 'nullable|string|max:255',
             'email_content' => 'nullable|string',
@@ -93,21 +113,41 @@ class DocumentTemplateController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $template->update([
-            'name' => $request->name,
-            'email_from_name' => $request->email_from_name,
-            'category' => $request->category,
-            'description' => $request->description,
-            'content' => Purifier::clean($request->content),
-            'email_subject' => $request->email_subject,
-            'email_salutation' => $request->email_salutation,
-            'email_content' => Purifier::clean($request->email_content),
-            'email_footer' => Purifier::clean($request->email_footer),
-            'is_active' => $request->has('is_active'),
-        ]);
+        try {
+            $cleanHtml = function($html) {
+                if (empty($html)) return '';
+                try {
+                    return Purifier::clean($html);
+                } catch (\Throwable $e) {
+                    \Log::warning('Purifier warning: ' . $e->getMessage());
+                    return $html;
+                }
+            };
 
-        notify()->success('Document template updated successfully.', 'Success');
-        return redirect()->route('admin.document-template.index');
+            $content = $cleanHtml($request->input('content', ''));
+            $emailContent = $cleanHtml($request->input('email_content', ''));
+            $emailFooter = $cleanHtml($request->input('email_footer', ''));
+
+            $template->update([
+                'name' => $request->name,
+                'email_from_name' => $request->email_from_name,
+                'category' => $request->category,
+                'description' => $request->description,
+                'content' => $content,
+                'email_subject' => $request->email_subject,
+                'email_salutation' => $request->email_salutation,
+                'email_content' => $emailContent,
+                'email_footer' => $emailFooter,
+                'is_active' => $request->has('is_active'),
+            ]);
+
+            notify()->success('Document template updated successfully.', 'Success');
+            return redirect()->route('admin.document-template.index');
+        } catch (\Throwable $e) {
+            \Log::error('DocumentTemplate update error: ' . $e->getMessage());
+            notify()->error('Error updating template: ' . $e->getMessage(), 'Error');
+            return redirect()->back()->withInput();
+        }
     }
 
     public function destroy(DocumentTemplate $template)
