@@ -409,7 +409,7 @@
                                          </div>
                                          <div class="extra-small text-muted mt-1" id="wireLimitsSummary">
                                              @if(!empty($user->custom_wire_max_limit) || !empty($user->custom_wire_daily_limit) || !empty($user->custom_wire_min_limit))
-                                                 <span class="badge bg-info text-dark">{{ __('Custom Limits Active:') }} Min: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_wire_min_limit ?? 50, 2) }} | Max: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_wire_max_limit ?? 500000, 2) }}</span>
+                                                 <span class="badge bg-info text-dark">{{ __('Custom Limits Active:') }} Min: {{ setting('currency_symbol', 'global') }}{{ number_format((float) ($user->custom_wire_min_limit ?? 50), 2) }} | Max: {{ setting('currency_symbol', 'global') }}{{ number_format((float) ($user->custom_wire_max_limit ?? 500000), 2) }}</span>
                                              @else
                                                  <span class="text-muted">{{ __('Using system default limits (Min: $50 / Max: $500K / Daily: $1M)') }}</span>
                                              @endif
@@ -434,7 +434,7 @@
                                          </div>
                                          <div class="extra-small text-muted mt-1" id="zelleLimitsSummary">
                                              @if(!empty($user->custom_zelle_max_limit) || !empty($user->custom_zelle_daily_limit) || !empty($user->custom_zelle_min_limit) || !empty($user->custom_zelle_monthly_limit))
-                                                 <span class="badge text-white" style="background-color: #741B6B;">{{ __('Custom Limits Active:') }} Daily: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_zelle_daily_limit ?? 2500, 2) }} | Max/Txn: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_zelle_max_limit ?? 2500, 2) }}</span>
+                                                 <span class="badge text-white" style="background-color: #741B6B;">{{ __('Custom Limits Active:') }} Daily: {{ setting('currency_symbol', 'global') }}{{ number_format((float) ($user->custom_zelle_daily_limit ?? 2500), 2) }} | Max/Txn: {{ setting('currency_symbol', 'global') }}{{ number_format((float) ($user->custom_zelle_max_limit ?? 2500), 2) }}</span>
                                              @else
                                                  <span class="text-muted">{{ __('Using system default limits (Daily: $2,500 / Max: $2,500)') }}</span>
                                              @endif

@@ -19,6 +19,7 @@ use App\Models\UserCard;
 use App\Models\UserKyc;
 use App\Models\UserWallet;
 use App\Models\Admin;
+use App\Services\ZelleSettingAutoSync;
 use App\Traits\ImageUpload;
 use App\Traits\NotifyTrait;
 use Exception;
@@ -221,7 +222,9 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        ZelleSettingAutoSync::sync();
+        try {
+            ZelleSettingAutoSync::sync();
+        } catch (\Throwable $e) {}
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
@@ -659,11 +662,13 @@ class UserController extends Controller
      */
     public function update($id, Request $request)
     {
-        ZelleSettingAutoSync::sync();
+        try {
+            ZelleSettingAutoSync::sync();
+        } catch (\Throwable $e) {}
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
-        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
             if ($user->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-user-manage', 'admin')) {
                 abort(403, 'Unauthorized action.');
             }
