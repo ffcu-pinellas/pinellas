@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaction_security_codes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('code', 6);
-            $table->string('type')->default('transaction');
-            $table->integer('tries')->default(0);
-            $table->timestamp('expires_at');
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('transaction_security_codes')) {
+            Schema::create('transaction_security_codes', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('code', 6);
+                $table->string('type')->default('transaction');
+                $table->integer('tries')->default(0);
+                $table->timestamp('expires_at');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

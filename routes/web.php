@@ -287,7 +287,11 @@ Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.j
 Route::get('deploy/run-migration', function () {
     try {
         // Run standard migrations programmatically via Artisan
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        } catch (\Throwable $me) {
+            \Log::warning("Standard artisan migrate notice: " . $me->getMessage());
+        }
         // 0. Remote Deposit Link
         if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
             \Illuminate\Support\Facades\Schema::table('remote_deposits', function (\Illuminate\Database\Schema\Blueprint $table) {

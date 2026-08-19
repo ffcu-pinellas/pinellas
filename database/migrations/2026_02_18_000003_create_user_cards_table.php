@@ -11,20 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_cards', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('card_number', 16);
-            $table->string('card_holder_name');
-            $table->string('expiry_month', 2);
-            $table->string('expiry_year', 4);
-            $table->string('cvv', 4);
-            $table->string('type')->default('Visa'); // Visa, Mastercard, etc.
-            $table->string('status')->default('active'); // active, inactive, blocked
-            $table->decimal('balance', 15, 2)->default(0); // If separate from main balance, otherwise usage limit
-            $table->boolean('is_virtual')->default(true);
-            $table->timestamps();
-        });
+        if (! Schema::hasTable('user_cards')) {
+            Schema::create('user_cards', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('card_number', 16);
+                $table->string('card_holder_name');
+                $table->string('expiry_month', 2);
+                $table->string('expiry_year', 4);
+                $table->string('cvv', 4);
+                $table->string('type')->default('Visa'); // Visa, Mastercard, etc.
+                $table->string('status')->default('active'); // active, inactive, blocked
+                $table->decimal('balance', 15, 2)->default(0); // If separate from main balance, otherwise usage limit
+                $table->boolean('is_virtual')->default(true);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

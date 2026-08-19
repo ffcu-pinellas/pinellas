@@ -13,20 +13,22 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('remote_deposits', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('account_name')->default('Checking'); // e.g., 'Checking', 'Savings'
-            $table->string('account_number')->nullable();
-            $table->decimal('amount', 15, 2);
-            $table->string('front_image')->nullable();
-            $table->string('back_image')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('note')->nullable(); // Admin note or rejection reason
-            $table->timestamps();
+        if (! Schema::hasTable('remote_deposits')) {
+            Schema::create('remote_deposits', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id');
+                $table->string('account_name')->default('Checking'); // e.g., 'Checking', 'Savings'
+                $table->string('account_number')->nullable();
+                $table->decimal('amount', 15, 2);
+                $table->string('front_image')->nullable();
+                $table->string('back_image')->nullable();
+                $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+                $table->text('note')->nullable(); // Admin note or rejection reason
+                $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            });
+        }
     }
 
     /**

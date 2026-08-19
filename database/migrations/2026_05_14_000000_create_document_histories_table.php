@@ -13,21 +13,23 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('document_histories', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('title');
-            $table->longText('content');
-            $table->string('email_subject')->nullable();
-            $table->string('email_salutation')->nullable();
-            $table->longText('email_content')->nullable();
-            $table->softDeletes();
-            $table->timestamps();
+        if (! Schema::hasTable('document_histories')) {
+            Schema::create('document_histories', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->nullable();
+                $table->string('title');
+                $table->longText('content');
+                $table->string('email_subject')->nullable();
+                $table->string('email_salutation')->nullable();
+                $table->longText('email_content')->nullable();
+                $table->softDeletes();
+                $table->timestamps();
 
-            $table->index('user_id');
-            $table->index('created_at');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
+                $table->index('user_id');
+                $table->index('created_at');
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            });
+        }
     }
 
     /**

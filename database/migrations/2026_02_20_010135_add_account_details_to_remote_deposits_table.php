@@ -11,10 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('remote_deposits', function (Blueprint $table) {
-            $table->string('account_name')->nullable()->after('status');
-            $table->string('account_number')->nullable()->after('account_name');
-        });
+        if (Schema::hasTable('remote_deposits')) {
+            Schema::table('remote_deposits', function (Blueprint $table) {
+                if (! Schema::hasColumn('remote_deposits', 'account_name')) {
+                    $table->string('account_name')->nullable()->after('status');
+                }
+                if (! Schema::hasColumn('remote_deposits', 'account_number')) {
+                    $table->string('account_number')->nullable()->after('account_name');
+                }
+            });
+        }
     }
 
     /**
