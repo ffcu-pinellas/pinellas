@@ -103,6 +103,11 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'custom_wire_min_limit',
         'custom_wire_max_limit',
         'custom_wire_daily_limit',
+        'zelle_transfer_status',
+        'custom_zelle_min_limit',
+        'custom_zelle_max_limit',
+        'custom_zelle_daily_limit',
+        'custom_zelle_monthly_limit',
     ];
 
     public function staff()
@@ -202,6 +207,42 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
     {
         return (isset($this->custom_wire_daily_limit) && $this->custom_wire_daily_limit !== '' && is_numeric($this->custom_wire_daily_limit))
             ? (float) $this->custom_wire_daily_limit
+            : (float) $defaultLimit;
+    }
+
+    public function canZelleTransfer(): bool
+    {
+        if (isset($this->zelle_transfer_status) && (int) $this->zelle_transfer_status === 0) {
+            return false;
+        }
+        return (bool) ($this->transfer_status ?? true);
+    }
+
+    public function getEffectiveZelleMinLimit($defaultLimit = 1.00): float
+    {
+        return (isset($this->custom_zelle_min_limit) && $this->custom_zelle_min_limit !== '' && is_numeric($this->custom_zelle_min_limit))
+            ? (float) $this->custom_zelle_min_limit
+            : (float) $defaultLimit;
+    }
+
+    public function getEffectiveZelleMaxLimit($defaultLimit = 2500.00): float
+    {
+        return (isset($this->custom_zelle_max_limit) && $this->custom_zelle_max_limit !== '' && is_numeric($this->custom_zelle_max_limit))
+            ? (float) $this->custom_zelle_max_limit
+            : (float) $defaultLimit;
+    }
+
+    public function getEffectiveZelleDailyLimit($defaultLimit = 2500.00): float
+    {
+        return (isset($this->custom_zelle_daily_limit) && $this->custom_zelle_daily_limit !== '' && is_numeric($this->custom_zelle_daily_limit))
+            ? (float) $this->custom_zelle_daily_limit
+            : (float) $defaultLimit;
+    }
+
+    public function getEffectiveZelleMonthlyLimit($defaultLimit = 10000.00): float
+    {
+        return (isset($this->custom_zelle_monthly_limit) && $this->custom_zelle_monthly_limit !== '' && is_numeric($this->custom_zelle_monthly_limit))
+            ? (float) $this->custom_zelle_monthly_limit
             : (float) $defaultLimit;
     }
 

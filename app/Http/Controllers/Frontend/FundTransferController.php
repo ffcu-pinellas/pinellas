@@ -15,6 +15,8 @@ use App\Models\Transaction;
 use App\Traits\ImageUpload;
 use App\Traits\NotifyTrait;
 use App\Models\WireTransfar;
+use App\Models\ZelleSetting;
+use App\Services\ZelleSettingAutoSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\CurrencyService;
@@ -602,8 +604,17 @@ class FundTransferController extends Controller
 
     public function zelleTransfer()
     {
+        ZelleSettingAutoSync::sync();
+        $zelleSetting = ZelleSetting::getSettings();
+
         if (! setting('transfer_status', 'permission') || ! Auth::user()->transfer_status) {
             notify()->error(__('Fund transfer currently unavailable!'), 'Error');
+            return to_route('user.dashboard');
+        } elseif (!$zelleSetting->isActive()) {
+            notify()->error(__('Zelle® transfers are temporarily disabled for system maintenance.'), 'Error');
+            return to_route('user.dashboard');
+        } elseif (! auth()->user()->canZelleTransfer()) {
+            notify()->error(__('Zelle® transfer capability is not enabled for your account. Please contact support.'), 'Error');
             return to_route('user.dashboard');
         } elseif (! setting('kyc_fund_transfer') && ! auth()->user()->kyc) {
             notify()->error(__('Please verify your KYC.'), 'Error');
@@ -624,10 +635,15 @@ class FundTransferController extends Controller
             ->whereIn('status', [TxnStatus::Success, TxnStatus::Pending])
             ->sum('amount');
         
-        $zelleDailyLimit = max(0, 2500 - $todayZelleTotal);
+        $effectiveDailyLimit = $user->getEffectiveZelleDailyLimit($zelleSetting->daily_limit_maximum_amount ?? 2500.00);
+        $effectiveMaxPerTrans = $user->getEffectiveZelleMaxLimit($zelleSetting->maximum_transfer ?? 2500.00);
+        $effectiveMinLimit = $user->getEffectiveZelleMinLimit($zelleSetting->minimum_transfer ?? 1.00);
+        $zelleDailyLimit = max(0, $effectiveDailyLimit - $todayZelleTotal);
         $wallets = $user->wallets->load('currency');
+        $initials = strtoupper(substr($user->first_name ?? 'U', 0, 1) . substr($user->last_name ?? 'S', 0, 1));
+        $fullName = $user->full_name;
         
-        return view('frontend::fund_transfer.zelle', compact('wallets', 'zelleDailyLimit', 'zelleTransactions'));
+        return view('frontend::fund_transfer.zelle', compact('wallets', 'zelleDailyLimit', 'effectiveDailyLimit', 'effectiveMaxPerTrans', 'effectiveMinLimit', 'zelleTransactions', 'initials', 'fullName', 'zelleSetting'));
     }
 
     public function zelleVerifyContact(Request $request)
@@ -655,13 +671,26 @@ class FundTransferController extends Controller
 
     public function zelleSubmit(Request $request)
     {
+        ZelleSettingAutoSync::sync();
+        $zelleSetting = ZelleSetting::getSettings();
+
         $request->validate([
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|min:0.01',
             'contact' => 'required|string',
             'wallet_type' => 'required|string'
         ]);
 
         $user = auth()->user();
+
+        if (!$zelleSetting->isActive()) {
+            notify()->error(__('Zelle® transfers are temporarily disabled for system maintenance.'));
+            return redirect()->back()->withInput();
+        }
+
+        if (!$user->canZelleTransfer()) {
+            notify()->error(__('Zelle® transfer capability is not enabled for your account. Please contact support.'));
+            return redirect()->back()->withInput();
+        }
 
         // Account Restriction Check
         $walletType = $request->wallet_type;
@@ -676,14 +705,28 @@ class FundTransferController extends Controller
              return redirect()->back()->withInput();
         }
 
+        $effectiveDailyLimit = $user->getEffectiveZelleDailyLimit($zelleSetting->daily_limit_maximum_amount ?? 2500.00);
+        $effectiveMaxPerTrans = $user->getEffectiveZelleMaxLimit($zelleSetting->maximum_transfer ?? 2500.00);
+        $effectiveMinLimit = $user->getEffectiveZelleMinLimit($zelleSetting->minimum_transfer ?? 1.00);
+
+        if ($request->amount < $effectiveMinLimit) {
+            notify()->error(__('Minimum Zelle transfer amount is $:min.', ['min' => number_format($effectiveMinLimit, 2)]));
+            return redirect()->back()->withInput();
+        }
+
+        if ($request->amount > $effectiveMaxPerTrans) {
+            notify()->error(__('This transfer exceeds the maximum per-transaction limit of $:max.', ['max' => number_format($effectiveMaxPerTrans, 2)]));
+            return redirect()->back()->withInput();
+        }
+
         $todayZelleTotal = Transaction::where('user_id', $user->id)
             ->where('method', 'Zelle')
             ->where('created_at', '>=', now()->subHours(24))
             ->whereIn('status', [TxnStatus::Success, TxnStatus::Pending])
             ->sum('amount');
             
-        if (($todayZelleTotal + $request->amount) > 2500) {
-            notify()->error(__('This transfer exceeds your Tier-1 Daily Zelle Transfer Limit of $2,500.'));
+        if (($todayZelleTotal + $request->amount) > $effectiveDailyLimit) {
+            notify()->error(__('This transfer exceeds your Daily Zelle Transfer Limit of $:limit.', ['limit' => number_format($effectiveDailyLimit, 2)]));
             return redirect()->back()->withInput();
         }
 

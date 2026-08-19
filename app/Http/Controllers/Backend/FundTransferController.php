@@ -27,7 +27,7 @@ class FundTransferController extends Controller
         $this->middleware('permission:all-transfers|officer-transfer-manage', ['only' => ['all']]);
         $this->middleware('permission:allied-transfers|officer-transfer-manage', ['only' => ['allied']]);
         $this->middleware('permission:other-bank-transfers|officer-transfer-manage', ['only' => ['other']]);
-        $this->middleware('permission:wire-transfer|officer-transfer-manage', ['only' => ['wire']]);
+        $this->middleware('permission:wire-transfer|officer-transfer-manage', ['only' => ['wire', 'zelle']]);
         $this->middleware('permission:fund-transfer-approval|officer-transfer-manage', ['only' => ['details', 'actionNow']]);
     }
 
@@ -245,6 +245,42 @@ class FundTransferController extends Controller
             ->paginate($perPage);
 
         $statusForFrontend = 'Wire';
+
+        return view('backend.fund-transfer.index', compact('lists', 'statusForFrontend'));
+    }
+
+    public function zelle(Request $request)
+    {
+        $perPage = $request->perPage ?? 15;
+        $search = $request->search ?? null;
+        $type = $request->type ?? 'all';
+        $status = $request->status ?? 'all';
+
+        $lists = Transaction::with('user')
+            ->zelleTransfer()
+            ->fundTransfar()
+            ->status($status)
+            ->search($search)
+            ->transfertype($type)
+            ->when(auth()->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('staff_id', auth()->id());
+                });
+            })
+            ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
+                $query->orderBy(request('sort_field'), request('sort_dir'));
+            })
+            ->when($request->sort_field == 'sender', function ($query) {
+                $query->whereHas('user', function ($userQuery) {
+                    $userQuery->orderBy('username', request('sort_dir'));
+                });
+            })
+            ->when(! request()->has('sort_field'), function ($query) {
+                $query->latest();
+            })
+            ->paginate($perPage);
+
+        $statusForFrontend = 'Zelle';
 
         return view('backend.fund-transfer.index', compact('lists', 'statusForFrontend'));
     }

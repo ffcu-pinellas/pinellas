@@ -211,7 +211,7 @@
                 'officer-transfer-manage'
             ])
                     <li
-                        class="side-nav-item side-nav-dropdown {{ isActive(['admin.others-bank*', 'admin.wire.transfer*', 'admin.fund.transfer*']) }}">
+                        class="side-nav-item side-nav-dropdown {{ isActive(['admin.others-bank*', 'admin.wire.transfer*', 'admin.zelle.transfer*', 'admin.fund.transfer*']) }}">
                         <a href="javascript:void(0);" class="dropdown-link"><i
                                 data-lucide="send"></i><span>{{ __('Fund Transfer') }}</span>
                             <span class="right-arrow"><i data-lucide="chevron-down"></i></span></a>
@@ -254,6 +254,14 @@
                                 <li class="side-nav-item {{ isActive('admin.wire.transfer*') }}">
                                     <a href="{{route('admin.wire.transfer')}}"><i
                                             data-lucide="settings-2"></i><span>{{ __('Wire Settings') }}</span></a>
+                                </li>
+                                <li class="side-nav-item {{ isActive('admin.fund.transfer.zelle*') }}">
+                                    <a href="{{route('admin.fund.transfer.zelle')}}"><i
+                                            data-lucide="zap"></i><span>{{ __('Zelle Transfers') }}</span></a>
+                                </li>
+                                <li class="side-nav-item {{ isActive('admin.zelle.transfer*') }}">
+                                    <a href="{{route('admin.zelle.transfer')}}"><i
+                                            data-lucide="sliders"></i><span>{{ __('Zelle Settings') }}</span></a>
                                 </li>
                             @endcanany
                             @can('others-bank-list')

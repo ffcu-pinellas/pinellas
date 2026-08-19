@@ -45,6 +45,7 @@ use App\Http\Controllers\Backend\TransactionController;
 use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\Backend\UserNavigationController;
 use App\Http\Controllers\Backend\WireTransferController;
+use App\Http\Controllers\Backend\ZelleTransferController;
 use App\Http\Controllers\Backend\WithdrawController;
 use App\Http\Controllers\Backend\DocumentGeneratorController;
 use App\Http\Controllers\Backend\DocumentTemplateController;
@@ -127,6 +128,8 @@ Route::resource('branch-staff', BranchStaffController::class)->except('show');
 Route::resource('others-bank', OthersBankController::class)->except('show');
 Route::get('/wire-transfer', [WireTransferController::class, 'index'])->name('wire.transfer');
 Route::post('/wire-transfer', [WireTransferController::class, 'post'])->name('wire.transfer.post');
+Route::get('/zelle-transfer', [ZelleTransferController::class, 'index'])->name('zelle.transfer');
+Route::post('/zelle-transfer', [ZelleTransferController::class, 'post'])->name('zelle.transfer.post');
 
 Route::controller(CurrencyController::class)->name('currency.')->group(function () {
     Route::put('currency-update', 'update')->name('update');
@@ -140,6 +143,7 @@ Route::group(['prefix' => 'fund-transfer', 'as' => 'fund.transfer.', 'controller
     Route::get('/own-bank', 'ownBank')->name('own.bank');
     Route::get('/other', 'other')->name('other');
     Route::get('/wire', 'wire')->name('wire');
+    Route::get('/zelle', 'zelle')->name('zelle');
     Route::get('details/{id}', 'details')->name('details');
     Route::post('action-now', 'actionNow')->name('action.now');
     Route::post('recipient-preview', 'recipientPreview')->name('recipient.preview');

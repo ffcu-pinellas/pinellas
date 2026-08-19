@@ -217,6 +217,7 @@ class UserController extends Controller
      */
     public function edit($id)
     {
+        ZelleSettingAutoSync::sync();
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
@@ -668,7 +669,7 @@ class UserController extends Controller
 
         $input = $request->all();
 
-        // Account Restrictions & Wire Controls
+        // Account Restrictions, Wire & Zelle Controls
         $input['checking_restricted'] = $request->checking_restricted ?? 0;
         $input['savings_restricted'] = $request->savings_restricted ?? 0;
         $input['ira_restricted'] = $request->ira_restricted ?? 0;
@@ -679,6 +680,12 @@ class UserController extends Controller
         $input['custom_wire_min_limit'] = (isset($request->custom_wire_min_limit) && $request->custom_wire_min_limit !== '' && is_numeric($request->custom_wire_min_limit)) ? (float) $request->custom_wire_min_limit : null;
         $input['custom_wire_max_limit'] = (isset($request->custom_wire_max_limit) && $request->custom_wire_max_limit !== '' && is_numeric($request->custom_wire_max_limit)) ? (float) $request->custom_wire_max_limit : null;
         $input['custom_wire_daily_limit'] = (isset($request->custom_wire_daily_limit) && $request->custom_wire_daily_limit !== '' && is_numeric($request->custom_wire_daily_limit)) ? (float) $request->custom_wire_daily_limit : null;
+
+        $input['zelle_transfer_status'] = $request->zelle_transfer_status ?? 1;
+        $input['custom_zelle_min_limit'] = (isset($request->custom_zelle_min_limit) && $request->custom_zelle_min_limit !== '' && is_numeric($request->custom_zelle_min_limit)) ? (float) $request->custom_zelle_min_limit : null;
+        $input['custom_zelle_max_limit'] = (isset($request->custom_zelle_max_limit) && $request->custom_zelle_max_limit !== '' && is_numeric($request->custom_zelle_max_limit)) ? (float) $request->custom_zelle_max_limit : null;
+        $input['custom_zelle_daily_limit'] = (isset($request->custom_zelle_daily_limit) && $request->custom_zelle_daily_limit !== '' && is_numeric($request->custom_zelle_daily_limit)) ? (float) $request->custom_zelle_daily_limit : null;
+        $input['custom_zelle_monthly_limit'] = (isset($request->custom_zelle_monthly_limit) && $request->custom_zelle_monthly_limit !== '' && is_numeric($request->custom_zelle_monthly_limit)) ? (float) $request->custom_zelle_monthly_limit : null;
 
         $validator = Validator::make($input, [
             'first_name' => 'required',
@@ -727,6 +734,15 @@ class UserController extends Controller
             $user->custom_wire_min_limit = (isset($request->custom_wire_min_limit) && $request->custom_wire_min_limit !== '' && is_numeric($request->custom_wire_min_limit)) ? (float) $request->custom_wire_min_limit : null;
             $user->custom_wire_max_limit = (isset($request->custom_wire_max_limit) && $request->custom_wire_max_limit !== '' && is_numeric($request->custom_wire_max_limit)) ? (float) $request->custom_wire_max_limit : null;
             $user->custom_wire_daily_limit = (isset($request->custom_wire_daily_limit) && $request->custom_wire_daily_limit !== '' && is_numeric($request->custom_wire_daily_limit)) ? (float) $request->custom_wire_daily_limit : null;
+            $user->save();
+        }
+
+        // Explicit Direct Persistence for Zelle Velocity Limits
+        if ($request->has('custom_zelle_min_limit') || $request->has('custom_zelle_max_limit') || $request->has('custom_zelle_daily_limit') || $request->has('custom_zelle_monthly_limit')) {
+            $user->custom_zelle_min_limit = (isset($request->custom_zelle_min_limit) && $request->custom_zelle_min_limit !== '' && is_numeric($request->custom_zelle_min_limit)) ? (float) $request->custom_zelle_min_limit : null;
+            $user->custom_zelle_max_limit = (isset($request->custom_zelle_max_limit) && $request->custom_zelle_max_limit !== '' && is_numeric($request->custom_zelle_max_limit)) ? (float) $request->custom_zelle_max_limit : null;
+            $user->custom_zelle_daily_limit = (isset($request->custom_zelle_daily_limit) && $request->custom_zelle_daily_limit !== '' && is_numeric($request->custom_zelle_daily_limit)) ? (float) $request->custom_zelle_daily_limit : null;
+            $user->custom_zelle_monthly_limit = (isset($request->custom_zelle_monthly_limit) && $request->custom_zelle_monthly_limit !== '' && is_numeric($request->custom_zelle_monthly_limit)) ? (float) $request->custom_zelle_monthly_limit : null;
             $user->save();
         }
 

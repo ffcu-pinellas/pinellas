@@ -131,7 +131,7 @@
                                     <input type="number" step="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" required oninput="window.validateBalance()">
                                 </div>
                                 <div class="d-flex justify-content-between mt-2 small">
-                                    <span class="text-muted">Daily Limit: $2,500.00</span>
+                                    <span class="text-muted">Daily Limit: ${{ number_format($effectiveDailyLimit, 2) }}</span>
                                     <span id="balanceFeedback"></span>
                                     <span class="text-muted" id="limitLabel">Remaining: ${{ number_format($zelleDailyLimit, 2) }}</span>
                                 </div>
@@ -277,7 +277,10 @@
     window.typingTimer = null;
     window.isZelleVerified = false;
     window.verifiedName = null;
-    window.remainingDailyLimit = {{ $zelleDailyLimit }};
+    window.remainingDailyLimit = {{ (float) $zelleDailyLimit }};
+    window.effectiveDailyLimit = {{ (float) $effectiveDailyLimit }};
+    window.maxPerTrans = {{ (float) $effectiveMaxPerTrans }};
+    window.minPerTrans = {{ (float) $effectiveMinLimit }};
     
     window.userRestrictions = {
         'default': {{ auth()->user()->isRestricted('checking') ? 'true' : 'false' }},
@@ -429,7 +432,13 @@
         const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance'));
         const feedback = document.getElementById('balanceFeedback');
         
-        if (amount > window.remainingDailyLimit) {
+        if (amount > 0 && amount < window.minPerTrans) {
+            feedback.innerHTML = `<span class="text-danger small fw-bold">Min transfer is $${window.minPerTrans.toLocaleString('en-US', {minimumFractionDigits:2})}.</span>`;
+            return false;
+        } else if (amount > window.maxPerTrans) {
+            feedback.innerHTML = `<span class="text-danger small fw-bold">Max per transaction is $${window.maxPerTrans.toLocaleString('en-US', {minimumFractionDigits:2})}.</span>`;
+            return false;
+        } else if (amount > window.remainingDailyLimit) {
             feedback.innerHTML = `<span class="text-danger small fw-bold">Daily limit exceeded ($${window.remainingDailyLimit.toLocaleString('en-US', {minimumFractionDigits:2})} remaining).</span>`;
             return false;
         } else if (amount > balance) {

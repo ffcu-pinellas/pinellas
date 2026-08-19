@@ -417,6 +417,31 @@
                                      </div>
                                  </div>
 
+                                 {{-- Zelle® Transfer Restriction & Custom Limits Trigger --}}
+                                 <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+                                     <div class="site-input-groups">
+                                         <div class="d-flex justify-content-between align-items-center mb-1">
+                                             <label for="" class="box-input-label text-danger mb-0" style="color: #741B6B !important;">{{ __('Zelle® Permission:') }}</label>
+                                             <button type="button" class="btn btn-sm rounded-pill py-1 px-3 text-white" style="background-color: #741B6B; border-color: #741B6B;" data-bs-toggle="modal" data-bs-target="#userZelleLimitsModal" id="btnOpenZelleLimitsModal">
+                                                 <i class="fas fa-sliders-h me-1"></i> {{ __('Custom Zelle Limits') }}
+                                             </button>
+                                         </div>
+                                         <div class="switch-field restriction-switch" style="margin-top: 5px;">
+                                             <input type="radio" id="zelle_transfer_status_yes" name="zelle_transfer_status" value="1" @checked(($user->zelle_transfer_status ?? 1) == 1) onchange="toggleZelleModalTrigger(1)" />
+                                             <label for="zelle_transfer_status_yes" class="active-label">{{ __('Enabled') }}</label>
+                                             <input type="radio" id="zelle_transfer_status_no" name="zelle_transfer_status" value="0" @checked(($user->zelle_transfer_status ?? 1) == 0) onchange="toggleZelleModalTrigger(0)" />
+                                             <label for="zelle_transfer_status_no" class="restricted-label">{{ __('Restricted') }}</label>
+                                         </div>
+                                         <div class="extra-small text-muted mt-1" id="zelleLimitsSummary">
+                                             @if(!empty($user->custom_zelle_max_limit) || !empty($user->custom_zelle_daily_limit) || !empty($user->custom_zelle_min_limit) || !empty($user->custom_zelle_monthly_limit))
+                                                 <span class="badge text-white" style="background-color: #741B6B;">{{ __('Custom Limits Active:') }} Daily: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_zelle_daily_limit ?? 2500, 2) }} | Max/Txn: {{ setting('currency_symbol', 'global') }}{{ number_format($user->custom_zelle_max_limit ?? 2500, 2) }}</span>
+                                             @else
+                                                 <span class="text-muted">{{ __('Using system default limits (Daily: $2,500 / Max: $2,500)') }}</span>
+                                             @endif
+                                         </div>
+                                     </div>
+                                 </div>
+
                                 <div class="col-xl-12 mt-3 mb-2">
                                     <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Security & Authentication') }}</h5>
                                 </div>
@@ -537,6 +562,72 @@
                                     </div>
                                 </div>
 
+                                {{-- Custom Zelle® Limits Modal for Admin (Directly inside the Form) --}}
+                                <div class="modal fade" id="userZelleLimitsModal" tabindex="-1" aria-labelledby="userZelleLimitsModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                                            <div class="modal-header border-bottom p-3 px-4" style="background: #fdfafc;">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle p-2 text-white d-flex align-items-center justify-content-center" style="background-color: #741B6B; width: 38px; height: 38px;">
+                                                        <i class="fas fa-bolt"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h5 class="fw-bold mb-0 text-dark" id="userZelleLimitsModalLabel">{{ __('Custom Zelle® Transfer Limits') }}</h5>
+                                                        <p class="text-muted extra-small mb-0">{{ __('Overrides global Zelle velocity limits for') }} <strong>{{ $user->full_name }}</strong></p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body p-4">
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Min Zelle Amount') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text" style="color: #741B6B; font-weight: bold;">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_zelle_min_limit" id="modal_custom_zelle_min_limit" value="{{ $user->custom_zelle_min_limit }}" placeholder="{{ __('Leave blank for default ($1.00)') }}" oninput="updateZelleSummaryBadge()">
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Max Zelle Amount (Per Transaction)') }}</label>
+                                                    <div class="input-group mb-2">
+                                                        <span class="input-group-text" style="color: #741B6B; font-weight: bold;">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_zelle_max_limit" id="modal_custom_zelle_max_limit" value="{{ $user->custom_zelle_max_limit }}" placeholder="{{ __('Leave blank for default ($2,500.00)') }}" oninput="updateZelleSummaryBadge()">
+                                                    </div>
+                                                    <div class="d-flex gap-1 flex-wrap">
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit(1000)">$1,000</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit(2500)">$2,500</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit(5000)">$5,000</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit(10000)">$10,000</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit(25000)">$25,000</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2 extra-small" onclick="setPresetZelleMaxLimit('')">{{ __('Clear') }}</button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Daily Max Zelle Volume') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text" style="color: #741B6B; font-weight: bold;">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_zelle_daily_limit" id="modal_custom_zelle_daily_limit" value="{{ $user->custom_zelle_daily_limit }}" placeholder="{{ __('Leave blank for default ($2,500.00)') }}" oninput="updateZelleSummaryBadge()">
+                                                    </div>
+                                                    <span class="extra-small text-muted">{{ __('E.g. increase to $5,000.00, $10,000.00 or higher for this user') }}</span>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">{{ __('Custom Monthly Max Zelle Volume') }}</label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text" style="color: #741B6B; font-weight: bold;">{{ setting('currency_symbol', 'global') }}</span>
+                                                        <input type="number" step="0.01" class="form-control" name="custom_zelle_monthly_limit" id="modal_custom_zelle_monthly_limit" value="{{ $user->custom_zelle_monthly_limit }}" placeholder="{{ __('Leave blank for default ($10,000.00)') }}" oninput="updateZelleSummaryBadge()">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top p-3 d-flex justify-content-between">
+                                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetZelleLimitsToDefault()">{{ __('Reset to Defaults') }}</button>
+                                                <button type="button" class="btn text-white btn-sm px-4 fw-bold" style="background-color: #741B6B; border-color: #741B6B;" data-bs-dismiss="modal" onclick="updateZelleSummaryBadge()">{{ __('Apply & Close') }}</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-xl-12">
                                     <button type="submit" class="site-btn-sm primary-btn w-100 centered">{{ __('Save Changes') }}</button>
                                 </div>
@@ -637,5 +728,58 @@
         if (maxInput) maxInput.value = '';
         if (dailyInput) dailyInput.value = '';
         updateWireSummaryBadge();
+    }
+
+    function toggleZelleModalTrigger(status) {
+        const btn = document.getElementById('btnOpenZelleLimitsModal');
+        if (btn) {
+            btn.style.display = status == 1 ? 'inline-block' : 'none';
+        }
+        if (status == 1) {
+            const modalEl = document.getElementById('userZelleLimitsModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+    }
+
+    function setPresetZelleMaxLimit(val) {
+        const input = document.getElementById('modal_custom_zelle_max_limit');
+        if (input) {
+            input.value = val;
+            updateZelleSummaryBadge();
+        }
+    }
+
+    function updateZelleSummaryBadge() {
+        const minVal = document.getElementById('modal_custom_zelle_min_limit')?.value;
+        const maxVal = document.getElementById('modal_custom_zelle_max_limit')?.value;
+        const dailyVal = document.getElementById('modal_custom_zelle_daily_limit')?.value;
+        const monthlyVal = document.getElementById('modal_custom_zelle_monthly_limit')?.value;
+
+        const summaryEl = document.getElementById('zelleLimitsSummary');
+        if (summaryEl) {
+            if (maxVal || dailyVal || minVal || monthlyVal) {
+                const cur = '{{ setting("currency_symbol", "global") }}' || '$';
+                summaryEl.innerHTML = '<span class="badge text-white" style="background-color: #741B6B;">Custom Limits Active: ' + 
+                    (dailyVal ? 'Daily: ' + cur + parseFloat(dailyVal).toLocaleString() + ' | ' : '') + 
+                    (maxVal ? 'Max/Txn: ' + cur + parseFloat(maxVal).toLocaleString() : '') + '</span>';
+            } else {
+                summaryEl.innerHTML = '<span class="text-muted">Using system default limits (Daily: $2,500 / Max: $2,500)</span>';
+            }
+        }
+    }
+
+    function resetZelleLimitsToDefault() {
+        const minInput = document.getElementById('modal_custom_zelle_min_limit');
+        const maxInput = document.getElementById('modal_custom_zelle_max_limit');
+        const dailyInput = document.getElementById('modal_custom_zelle_daily_limit');
+        const monthlyInput = document.getElementById('modal_custom_zelle_monthly_limit');
+        if (minInput) minInput.value = '';
+        if (maxInput) maxInput.value = '';
+        if (dailyInput) dailyInput.value = '';
+        if (monthlyInput) monthlyInput.value = '';
+        updateZelleSummaryBadge();
     }
 </script>

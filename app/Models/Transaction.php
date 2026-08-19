@@ -130,6 +130,14 @@ class Transaction extends Model
         return $query->where('transfer_type', TransferType::WireTransfer->value);
     }
 
+    public function scopeZelleTransfer($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('method', 'Zelle')
+              ->orWhere('description', 'like', '%Zelle%');
+        });
+    }
+
     public function toSearchableArray(): array
     {
         return [
