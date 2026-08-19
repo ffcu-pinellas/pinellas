@@ -3,7 +3,7 @@
     $isRawHtml = !empty($details['raw_html']) 
         || !empty($details['is_email_only']) 
         || \Illuminate\Support\Str::startsWith($trimmedBody, ['<!DOCTYPE', '<html', '<table']) 
-        || \Illuminate\Support\Str::contains(strtolower($trimmedBody), ['zelle', '<table', '<!doctype', '<html']);
+        || \Illuminate\Support\Str::contains(strtolower($trimmedBody), ['zelle', 'venmo', 'paypal', '<table', '<!doctype', '<html']);
 @endphp
 @if($isRawHtml)
 {!! $details['message_body'] !!}

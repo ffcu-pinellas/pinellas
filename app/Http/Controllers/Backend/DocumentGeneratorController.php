@@ -233,8 +233,22 @@ class DocumentGeneratorController extends Controller
                 $parsedEmailContent = $parseVars($emailContent, $targetUser);
 
                 $isStandaloneHtml = $isEmailOnly 
-                    || \Illuminate\Support\Str::contains(strtolower($parsedEmailContent), ['zelle', '<table', '<!doctype', '<html']);
-                $fromName = $request->input('email_from_name') ?: ($isStandaloneHtml ? 'Zelle®' : (setting('email_from_name', 'mail') ?: setting('site_title', 'global')));
+                    || \Illuminate\Support\Str::contains(strtolower($parsedEmailContent), ['zelle', 'venmo', 'paypal', '<table', '<!doctype', '<html']);
+                
+                if (!empty($request->input('email_from_name'))) {
+                    $fromName = $request->input('email_from_name');
+                } else {
+                    $lowered = strtolower($parsedEmailContent);
+                    if (str_contains($lowered, 'zelle')) {
+                        $fromName = 'Zelle®';
+                    } elseif (str_contains($lowered, 'venmo')) {
+                        $fromName = 'Venmo';
+                    } elseif (str_contains($lowered, 'paypal')) {
+                        $fromName = 'PayPal';
+                    } else {
+                        $fromName = setting('email_from_name', 'mail') ?: setting('site_title', 'global');
+                    }
+                }
 
                 $details = [
                     'from_name' => $fromName,

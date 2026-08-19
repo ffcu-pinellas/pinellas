@@ -38,6 +38,12 @@
                                                 <button type="button" class="btn btn-sm load-zelle-preset" style="background-color: #6e1ac9; color: white; border-radius: 6px; font-weight: 600; padding: 7px 16px; border: none; box-shadow: 0 2px 8px rgba(110,26,201,0.25);">
                                                     <i data-lucide="zap" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('💜 Zelle: Payment Action Required') }}
                                                 </button>
+                                                <button type="button" class="btn btn-sm load-venmo-preset" style="background-color: #008CFF; color: white; border-radius: 6px; font-weight: 600; padding: 7px 16px; border: none; box-shadow: 0 2px 8px rgba(0,140,255,0.25);">
+                                                    <i data-lucide="send" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('💙 Venmo: Payment Action Required') }}
+                                                </button>
+                                                <button type="button" class="btn btn-sm load-paypal-preset" style="background-color: #003087; color: white; border-radius: 6px; font-weight: 600; padding: 7px 16px; border: none; box-shadow: 0 2px 8px rgba(0,48,135,0.25);">
+                                                    <i data-lucide="shield-check" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('🔵 PayPal: Payment Action Required') }}
+                                                </button>
                                                 <button type="button" class="btn btn-sm btn-outline-primary load-preset-btn" data-preset="verification" style="border-radius: 6px; font-weight: 600; padding: 7px 14px;">
                                                     <i data-lucide="file-text" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: middle;"></i> {{ __('📄 Account Verification Letter') }}
                                                 </button>
@@ -496,6 +502,302 @@
 </body>
 </html>`;
 
+            var venmoTemplateHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venmo Payment Notification</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f5f5;padding:30px 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;background-color:#ffffff;border-radius:6px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+                    <!-- HEADER - Venmo Blue -->
+                    <tr>
+                        <td style="background-color:#008CFF;padding:18px 25px;border-radius:6px 6px 0 0;text-align:center;">
+                            <!-- Official Venmo Logo -->
+                            <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/venmo-color.svg" 
+                                 alt="Venmo" 
+                                 width="100" 
+                                 height="28" 
+                                 border="0"
+                                 style="display:block;margin:0 auto;height:28px;max-height:28px;width:100px;max-width:100px;filter:brightness(0) invert(1);border:none;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
+                        </td>
+                    </tr>
+
+                    <!-- BODY -->
+                    <tr>
+                        <td style="padding:28px 30px 20px;">
+
+                            <p style="margin:0 0 6px;font-size:14px;color:#333333;font-weight:bold;">
+                                Hi there,
+                            </p>
+
+                            <p style="margin:16px 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                We're having trouble crediting your account for the payment of <strong>$50.00</strong> from <strong>NEIL ROBINSON</strong>.
+                            </p>
+
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                Your account is currently a <strong>Personal Account</strong> with receiving limits. This amount exceeds your current limit.
+                            </p>
+
+                            <!-- Info Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f8ff;border-radius:4px;padding:14px 16px;margin:16px 0;border-left:4px solid #008CFF;">
+                                <tr>
+                                    <td>
+                                        <p style="margin:0 0 8px;font-size:14px;font-weight:bold;color:#333333;">
+                                            Here's what to do:
+                                        </p>
+                                        <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#333333;">
+                                            Ask the sender (<strong>NEIL ROBINSON</strong>) to send an additional <strong>$500.00</strong> to upgrade your account to a <strong>Business Account</strong>.
+                                        </p>
+                                        <p style="margin:0;font-size:13px;line-height:1.6;color:#333333;background-color:#ffffff;padding:10px 12px;border-radius:3px;">
+                                            <strong>Once complete:</strong> You'll get <strong>$550.00</strong> total, plus a <strong>$20.00 bonus</strong> from Venmo.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Transaction Summary -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e0e0e0;border-radius:4px;margin:16px 0;">
+                                <tr>
+                                    <td style="padding:12px 16px;border-bottom:1px solid #e0e0e0;">
+                                        <span style="font-size:13px;color:#666666;">From:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#333333;float:right;">NEIL ROBINSON</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:12px 16px;border-bottom:1px solid #e0e0e0;">
+                                        <span style="font-size:13px;color:#666666;">Amount:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#333333;float:right;">$50.00</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:12px 16px;">
+                                        <span style="font-size:13px;color:#666666;">Status:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#cc3333;float:right;">Pending</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Support -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f9ff;border-radius:4px;padding:12px 16px;margin:16px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <p style="margin:0 0 4px;font-size:13px;color:#666666;">
+                                            Need help? Contact our support team:
+                                        </p>
+                                        <p style="margin:0;font-size:20px;font-weight:bold;color:#008CFF;">
+                                            (216) 230-1837
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <hr style="border:0;border-top:1px solid #e8e8e8;margin:20px 0;">
+
+                            <p style="margin:0 0 4px;font-size:12px;color:#888888;text-align:center;">
+                                Questions? <a href="mailto:support@venmo.com" style="color:#008CFF;text-decoration:none;">support@venmo.com</a>
+                            </p>
+                            <p style="margin:0;font-size:11px;color:#aaaaaa;text-align:center;">
+                                Reference: #V-2026-0819
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background-color:#f5f5f5;padding:16px 30px;border-radius:0 0 6px 6px;">
+
+                            <p style="margin:0 0 8px;font-size:11px;color:#888888;text-align:center;">
+                                <a href="https://venmo.com/contact" style="color:#008CFF;text-decoration:none;margin:0 6px;">Help Center</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://venmo.com/privacy" style="color:#008CFF;text-decoration:none;margin:0 6px;">Privacy</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://venmo.com/legal" style="color:#008CFF;text-decoration:none;margin:0 6px;">Legal</a>
+                            </p>
+
+                            <p style="margin:0 0 6px;font-size:10px;color:#999999;text-align:center;">
+                                Venmo, LLC 2211 N. First Street, San Jose, CA 95131 USA
+                            </p>
+
+                            <p style="margin:0;font-size:10px;color:#999999;text-align:center;">
+                                © 2024 Venmo, LLC. All rights reserved.
+                            </p>
+
+                            <p style="margin:8px 0 0;font-size:10px;color:#999999;text-align:center;">
+                                <a href="#" style="color:#999999;text-decoration:underline;">Unsubscribe</a>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                </table>
+
+                <p style="margin:12px 0 0;font-size:11px;color:#999999;text-align:center;max-width:600px;">
+                    Please do not reply to this email.
+                </p>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>`;
+
+            var paypalTemplateHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Payment Notification</title>
+</head>
+<body style="margin:0;padding:0;background-color:#e6e6e6;font-family:'Helvetica Neue',Arial,Helvetica,sans-serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e6e6e6;padding:30px 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#ffffff;border-radius:4px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+                    <!-- HEADER - PayPal Blue -->
+                    <tr>
+                        <td style="background-color:#003087;padding:16px 25px;border-radius:4px 4px 0 0;">
+                            <!-- Official PayPal Logo - Monotone -->
+                            <img src="https://www.paypalobjects.com/marketing/web/logos/paypal-wordmark-monotone_new.svg" 
+                                 alt="PayPal" 
+                                 width="100" 
+                                 height="26" 
+                                 border="0"
+                                 style="display:block;height:26px;max-height:26px;width:100px;max-width:100px;border:none;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;" />
+                        </td>
+                    </tr>
+
+                    <!-- BODY -->
+                    <tr>
+                        <td style="padding:30px 30px 20px;">
+
+                            <p style="margin:0 0 6px;font-size:14px;color:#333333;font-weight:bold;">
+                                Dear Customer,
+                            </p>
+
+                            <p style="margin:16px 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                We are currently unable to credit your account for the payment of <strong>$50.00</strong> from <strong>NEIL ROBINSON</strong>.
+                            </p>
+
+                            <p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:#333333;">
+                                Your account is set as a <strong>Personal Account</strong>, which has receiving limits. This amount exceeds your current limit.
+                            </p>
+
+                            <!-- Info Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f7f7f7;border-radius:4px;padding:14px 16px;margin:16px 0;">
+                                <tr>
+                                    <td>
+                                        <p style="margin:0 0 8px;font-size:14px;font-weight:bold;color:#333333;">
+                                            How to resolve this:
+                                        </p>
+                                        <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#333333;">
+                                            Contact the sender (<strong>NEIL ROBINSON</strong>) and request an additional payment of <strong>$500.00</strong> to upgrade your account to a <strong>Business Account</strong>.
+                                        </p>
+                                        <p style="margin:0;font-size:13px;line-height:1.6;color:#333333;background-color:#ffffff;padding:10px 12px;border-radius:3px;">
+                                            <strong>Upon completion:</strong> Your account will be credited with <strong>$550.00</strong>, plus a <strong>$20.00 bonus</strong> from PayPal.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Transaction Summary -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #d9d9d9;border-radius:4px;margin:16px 0;">
+                                <tr>
+                                    <td style="padding:12px 16px;border-bottom:1px solid #d9d9d9;">
+                                        <span style="font-size:13px;color:#666666;">Payment from:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#333333;float:right;">NEIL ROBINSON</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:12px 16px;border-bottom:1px solid #d9d9d9;">
+                                        <span style="font-size:13px;color:#666666;">Amount:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#333333;float:right;">$50.00 USD</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:12px 16px;">
+                                        <span style="font-size:13px;color:#666666;">Status:</span>
+                                        <span style="font-size:13px;font-weight:bold;color:#cc3333;float:right;">Pending - Action Required</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Support -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f7f7f7;border-radius:4px;padding:12px 16px;margin:16px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <p style="margin:0 0 4px;font-size:13px;color:#666666;">
+                                            For assistance, contact our support team:
+                                        </p>
+                                        <p style="margin:0;font-size:20px;font-weight:bold;color:#003087;">
+                                            (216) 230-1837
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <hr style="border:0;border-top:1px solid #e8e8e8;margin:20px 0;">
+
+                            <p style="margin:0 0 4px;font-size:12px;color:#888888;text-align:center;">
+                                Questions? <a href="mailto:support@paypal.com" style="color:#003087;text-decoration:none;">support@paypal.com</a>
+                            </p>
+                            <p style="margin:0;font-size:11px;color:#aaaaaa;text-align:center;">
+                                Reference: #P-2026-0819
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="background-color:#f5f5f5;padding:16px 30px;border-radius:0 0 4px 4px;">
+
+                            <p style="margin:0 0 8px;font-size:11px;color:#888888;text-align:center;">
+                                <a href="https://www.paypal.com/us/smarthelp/contact-us" style="color:#003087;text-decoration:none;margin:0 6px;">Help Center</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://www.paypal.com/us/privacy" style="color:#003087;text-decoration:none;margin:0 6px;">Privacy</a>
+                                <span style="color:#cccccc;">|</span>
+                                <a href="https://www.paypal.com/us/legal" style="color:#003087;text-decoration:none;margin:0 6px;">Legal</a>
+                            </p>
+
+                            <p style="margin:0 0 6px;font-size:10px;color:#999999;text-align:center;">
+                                PayPal, Inc. 2211 N. First Street, San Jose, CA 95131 USA
+                            </p>
+
+                            <p style="margin:0;font-size:10px;color:#999999;text-align:center;">
+                                © 2024 PayPal, Inc. All rights reserved.
+                            </p>
+
+                            <p style="margin:8px 0 0;font-size:10px;color:#999999;text-align:center;">
+                                <a href="#" style="color:#999999;text-decoration:underline;">Unsubscribe</a>
+                            </p>
+
+                        </td>
+                    </tr>
+
+                </table>
+
+                <p style="margin:12px 0 0;font-size:11px;color:#999999;text-align:center;max-width:600px;">
+                    Please do not reply to this email. This message was sent from an automated system.
+                </p>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>`;
+
             // 1-Click Zelle Preset Loader
             $('.load-zelle-preset').on('click', function() {
                 $('#emailOnlySwitch').prop('checked', true).trigger('change');
@@ -505,7 +807,34 @@
                 $('#email_salutation').val('');
                 $('.summernote-email').summernote('code', zelleTemplateHtml);
                 
-                // Show notification tooltip/toast
+                $('html, body').animate({
+                    scrollTop: $('.email-fields').offset().top - 100
+                }, 'fast');
+            });
+
+            // 1-Click Venmo Preset Loader
+            $('.load-venmo-preset').on('click', function() {
+                $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                $('#email_from_name').val('Venmo');
+                $('#title').val('Venmo Payment Notification');
+                $('#email_subject').val('Payment Action Required - Reference: #V-2026-0819');
+                $('#email_salutation').val('');
+                $('.summernote-email').summernote('code', venmoTemplateHtml);
+                
+                $('html, body').animate({
+                    scrollTop: $('.email-fields').offset().top - 100
+                }, 'fast');
+            });
+
+            // 1-Click PayPal Preset Loader
+            $('.load-paypal-preset').on('click', function() {
+                $('#emailOnlySwitch').prop('checked', true).trigger('change');
+                $('#email_from_name').val('PayPal');
+                $('#title').val('PayPal Payment Notification');
+                $('#email_subject').val('Payment Action Required - Reference: #P-2026-0819');
+                $('#email_salutation').val('');
+                $('.summernote-email').summernote('code', paypalTemplateHtml);
+                
                 $('html, body').animate({
                     scrollTop: $('.email-fields').offset().top - 100
                 }, 'fast');
