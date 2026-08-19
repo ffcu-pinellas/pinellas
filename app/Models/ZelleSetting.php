@@ -40,23 +40,43 @@ class ZelleSetting extends Model
      */
     public static function getSettings(): self
     {
-        $settings = self::first();
-        if (! $settings) {
-            $settings = self::create([
-                'status' => 1,
-                'minimum_transfer' => 1.00,
-                'maximum_transfer' => 2500.00,
-                'daily_limit_maximum_amount' => 2500.00,
-                'daily_limit_maximum_count' => 10,
-                'monthly_limit_maximum_amount' => 10000.00,
-                'monthly_limit_maximum_count' => 50,
-                'charge' => 0.00,
-                'charge_type' => 'fixed',
-                'instructions' => '<p>Zelle® payments are sent directly from your account. Payments sent to registered recipients typically arrive in minutes.</p>',
-            ]);
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('zelle_settings')) {
+                $settings = self::first();
+                if (! $settings) {
+                    $settings = self::create([
+                        'status' => 1,
+                        'minimum_transfer' => 1.00,
+                        'maximum_transfer' => 2500.00,
+                        'daily_limit_maximum_amount' => 2500.00,
+                        'daily_limit_maximum_count' => 10,
+                        'monthly_limit_maximum_amount' => 10000.00,
+                        'monthly_limit_maximum_count' => 50,
+                        'charge' => 0.00,
+                        'charge_type' => 'fixed',
+                        'instructions' => '<p>Zelle® payments are sent directly from your account. Payments sent to registered recipients typically arrive in minutes.</p>',
+                    ]);
+                }
+
+                return $settings;
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('ZelleSetting::getSettings fallback triggered: ' . $e->getMessage());
         }
 
-        return $settings;
+        $fallback = new self();
+        $fallback->status = 1;
+        $fallback->minimum_transfer = 1.00;
+        $fallback->maximum_transfer = 2500.00;
+        $fallback->daily_limit_maximum_amount = 2500.00;
+        $fallback->daily_limit_maximum_count = 10;
+        $fallback->monthly_limit_maximum_amount = 10000.00;
+        $fallback->monthly_limit_maximum_count = 50;
+        $fallback->charge = 0.00;
+        $fallback->charge_type = 'fixed';
+        $fallback->instructions = '<p>Zelle® payments are sent directly from your account. Payments sent to registered recipients typically arrive in minutes.</p>';
+
+        return $fallback;
     }
 
     /**

@@ -518,7 +518,11 @@ HTML;
             }
         }
         
-        return "Migration Successful! $count users updated to 'always_ask'. Branded Notification and Welcome Email setup complete.";
+        // 14. Zelle and Email Template Auto Sync
+        \App\Services\ZelleSettingAutoSync::sync();
+        \App\Services\EmailTemplateAutoSync::sync();
+        
+        return "Migration Successful! $count users updated to 'always_ask'. Branded Notification, Zelle and Welcome Email setup complete.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }

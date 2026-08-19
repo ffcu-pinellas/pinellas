@@ -654,6 +654,7 @@ class UserController extends Controller
      */
     public function update($id, Request $request)
     {
+        ZelleSettingAutoSync::sync();
         $user = User::findOrFail($id);
 
         // Security Check for Account Officer
