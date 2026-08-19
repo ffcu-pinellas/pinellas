@@ -79,24 +79,47 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-xl-6">
-                                        <div class="input-box">
-                                            <label for="user_id">{{ __('Select Customer') }} <span class="text-danger">*</span></label>
-                                            <select class="form-select" name="user_id" id="user_id" required>
-                                                <option value="">{{ __('Select Customer') }}</option>
-                                                @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
-                                                    <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
-                                                @endif
-                                                @foreach($users as $user)
-                                                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->full_name }} ({{ $user->email }})</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-6 d-flex align-items-end mb-3">
-                                        <div class="form-check form-switch mt-2">
-                                            <input class="form-check-input" type="checkbox" name="email_only" id="emailOnlySwitch" value="1" {{ request('email_only') ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="emailOnlySwitch"><strong>{{ __('Send Email Only (No PDF attached)') }}</strong></label>
+                                    <div class="col-xl-12 mb-3">
+                                        <div class="card p-3" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px;">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                                <label class="form-label mb-0" style="font-weight: 700; color: #1e293b; font-size: 14px;">
+                                                    <i data-lucide="send" style="width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; color: #00549b;"></i>
+                                                    {{ __('Recipient Selection (Select Customer OR Enter Custom Email)') }}
+                                                </label>
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input" type="checkbox" name="email_only" id="emailOnlySwitch" value="1" {{ request('email_only') ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="emailOnlySwitch"><strong>{{ __('Send Email Only (No PDF attached)') }}</strong></label>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="input-box">
+                                                        <label for="user_id" style="font-weight: 600; font-size: 13px;">{{ __('Option A: Select Registered Customer') }}</label>
+                                                        <select class="form-select" name="user_id" id="user_id">
+                                                            <option value="">{{ __('-- Select Registered Customer --') }}</option>
+                                                            @if(auth()->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'))
+                                                                <option value="all" {{ request('user_id') == 'all' ? 'selected' : '' }}>{{ __('** All Active Customers (Broadcast) **') }}</option>
+                                                            @endif
+                                                            @foreach($users as $user)
+                                                                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->full_name }} ({{ $user->email }})</option>
+                                                            @endforeach
+                                                        </select>
+                                                        <small class="text-muted" style="font-size: 11px;">{{ __('Pre-fills member profile, checking/savings balances & account info.') }}</small>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <div class="input-box">
+                                                        <label for="custom_email" style="font-weight: 600; font-size: 13px;">{{ __('Option B: Custom Recipient Email (Preferred / Any Address)') }}</label>
+                                                        <input type="email" class="form-control" name="custom_email" id="custom_email" placeholder="e.g. recipient@gmail.com, client@yahoo.com" value="{{ request('custom_email') }}">
+                                                        <div class="mt-2">
+                                                            <input type="text" class="form-control form-control-sm" name="custom_name" id="custom_name" placeholder="Recipient Full Name (Optional, e.g. Neil Robinson)" value="{{ request('custom_name') }}">
+                                                        </div>
+                                                        <small class="text-muted" style="font-size: 11px;">{{ __('If entered, email is delivered straight to this address without needing to select a customer.') }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -221,7 +244,7 @@
                                         <tr>
                                             <td>{{ $history->created_at->format('M d, Y h:i A') }}</td>
                                             <td>{{ $history->title }}</td>
-                                            <td>{{ $history->user ? $history->user->full_name : 'N/A' }}</td>
+                                            <td>{{ $history->user ? $history->user->full_name : ($history->emailTrackings->first() ? $history->emailTrackings->first()->recipient_email : 'Custom / Broadcast') }}</td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-primary load-template-btn" 
                                                     data-title="{{ $history->title }}" 

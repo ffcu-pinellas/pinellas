@@ -46,6 +46,9 @@ class DocumentGeneratorController extends Controller
         $isEmailOnly = $request->has('email_only');
 
         $request->validate([
+            'user_id' => 'nullable',
+            'custom_email' => 'nullable|email',
+            'custom_name' => 'nullable|string|max:255',
             'title' => $isEmailOnly ? 'nullable|string|max:255' : 'required|string|max:255',
             'content' => $isEmailOnly ? 'nullable|string' : 'required|string',
             'email_subject' => $isEmailOnly ? 'required|string' : 'nullable|string',
@@ -58,7 +61,35 @@ class DocumentGeneratorController extends Controller
         $usersToMail = collect();
         $user = null;
 
-        if ($request->filled('user_id')) {
+        if ($request->filled('custom_email')) {
+            $customEmail = trim($request->input('custom_email'));
+            $customName = trim($request->input('custom_name', ''));
+            if (empty($customName)) {
+                $customName = 'Valued Customer';
+            }
+            $virtualUser = new User();
+            $virtualUser->id = null;
+            $virtualUser->email = $customEmail;
+            $virtualUser->first_name = $customName;
+            $virtualUser->last_name = '';
+            $virtualUser->full_name = $customName;
+            $virtualUser->address = 'NO ADDRESS ON FILE';
+            $virtualUser->account_number = 'N/A';
+            $virtualUser->balance = 0;
+            $virtualUser->savings_account_number = 'N/A';
+            $virtualUser->savings_balance = 0;
+            $virtualUser->ira_account_number = 'N/A';
+            $virtualUser->ira_balance = 0;
+            $virtualUser->heloc_account_number = 'N/A';
+            $virtualUser->heloc_balance = 0;
+            $virtualUser->cc_account_number = 'N/A';
+            $virtualUser->cc_balance = 0;
+            $virtualUser->loan_account_number = 'N/A';
+            $virtualUser->loan_balance = 0;
+
+            $usersToMail->push($virtualUser);
+            $user = $virtualUser;
+        } elseif ($request->filled('user_id')) {
             if ($request->user_id === 'all') {
                 // Account officers can only send to their assigned users
                 $usersToMail = User::where('status', 1)
