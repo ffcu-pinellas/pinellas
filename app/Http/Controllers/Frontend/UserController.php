@@ -373,10 +373,11 @@ class UserController extends Controller
 
     public function accounts()
     {
-        $checkingBalance = auth()->user()->balance;
-        $savingsBalance = auth()->user()->savings_balance;
-        $savingsAccountNumber = auth()->user()->savings_account_number ?? auth()->user()->account_number;
-        $savingsAccounts = \Schema::hasTable('savings_accounts') ? auth()->user()->savingsAccounts : collect([]);
+        $user = auth()->user();
+        $checkingBalance = $user->balance ?? 0;
+        $savingsBalance = $user->savings_balance ?? 0;
+        $savingsAccountNumber = $user->savings_account_number ?? $user->account_number;
+        $savingsAccounts = collect([]);
         
         return view('frontend::user.accounts', compact('checkingBalance', 'savingsBalance', 'savingsAccountNumber', 'savingsAccounts'));
     }
