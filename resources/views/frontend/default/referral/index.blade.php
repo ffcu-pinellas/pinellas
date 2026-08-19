@@ -63,39 +63,6 @@
                 </div>
             </div>
 
-            <!-- Modal for Share Buttons-->
-            <div class="modal fade" id="shareButtons" tabindex="-1"
-                aria-labelledby="shareButtonsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close">
-                                <i data-lucide="x"></i>
-                            </button>
-                            <div class="popup-body-text">
-                                <div class="title">{{ __('Share on Social Media') }}</div>
-                                <a href="http://www.facebook.com/sharer.php?u={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
-                                    <i data-lucide="facebook"></i>{{ __('Facebook') }}
-                                </a>
-                                <a href="http://twitter.com/share?url={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
-                                    <i data-lucide="twitter"></i>{{ __('Twitter') }}
-                                </a>
-                                <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
-                                    <i data-lucide="linkedin"></i>{{ __('LinkedIn') }}
-                                </a>
-
-                                <div class="action-btns">
-                                    <a href="" class="site-btn-sm polis-btn" data-bs-dismiss="modal" aria-label="Close">
-                                        <i data-lucide="check"></i>{{ __('Got it') }}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal for Share Buttons end-->
-
             <div class="site-card">
                 <div class="site-card-header">
                     <div class="title-small">{{ __('Referred Friends') }}</div>
@@ -151,6 +118,42 @@
         </div>
     </div>
 @endsection
+
+@push('modals')
+<!-- Modal for Share Buttons-->
+<div class="modal fade" id="shareButtons" tabindex="-1"
+    aria-labelledby="shareButtonsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold">{{ __('Share on Social Media') }}</div>
+                    <a href="http://www.facebook.com/sharer.php?u={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
+                        <i data-lucide="facebook"></i>{{ __('Facebook') }}
+                    </a>
+                    <a href="http://twitter.com/share?url={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
+                        <i data-lucide="twitter"></i>{{ __('Twitter') }}
+                    </a>
+                    <a href="http://www.linkedin.com/shareArticle?mini=true&url={{ $getReferral->link }}" target="_blank" class="site-btn primary-btn w-100 mb-3 centered">
+                        <i data-lucide="linkedin"></i>{{ __('LinkedIn') }}
+                    </a>
+
+                    <div class="action-btns">
+                        <a href="" class="site-btn-sm polis-btn" data-bs-dismiss="modal" aria-label="Close">
+                            <i data-lucide="check"></i>{{ __('Got it') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Share Buttons end-->
+@endpush
+
 @section('script')
     <script>
         function copyRef() {

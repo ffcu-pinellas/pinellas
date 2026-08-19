@@ -159,14 +159,16 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('modals')
 <!-- Modals -->
 <div class="modal fade" id="setupPinModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold text-dark pt-3 px-3">{{ auth()->user()->transaction_pin ? 'Update PIN' : 'Setup PIN' }}</h5>
-                <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('user.setting.update-pin') }}" method="POST">
                 @csrf
@@ -197,7 +199,7 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold text-dark pt-3 px-3">Change Username</h5>
-                <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('user.setting.profile-update') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
@@ -224,7 +226,7 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
                 <h5 class="fw-bold text-dark pt-3 px-3">Update Password</h5>
-                <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('user.new.password') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
@@ -250,8 +252,7 @@
         </div>
     </div>
 </div>
-
-@endsection
+@endpush
 
 @section('style')
 <style>

@@ -157,96 +157,97 @@
                         <!-- <div class="no-data-found">No Data Found</div> -->
                     </div>
                 </div>
-            </div>
-
-            {{-- DPS Increment --}}
-            <div class="modal fade" id="increment" tabindex="-1" aria-labelledby="incrementModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                                    data-lucide="x"></i></button>
-                            <div class="popup-body-text">
-                                <div class="title">{{ __('DPS Increase') }}</div>
-                                <form action="{{ route('user.dps.increment',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
-                                    @csrf
-                                    <div class="step-details-form">
-                                        <div class="alert alert-info">
-                                            <p class="mb-0">{{ __('Current Per Installment Fee') }}: <b>{{ $dps->per_installment }}</b> {{ $currency }}</p>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-xl-12 col-lg-12 col-md-12">
-                                                <div class="inputs">
-                                                    <label for="" class="input-label">{{ __('Increase Amount') }}<span class="required">*</span></label>
-                                                    <div class="input-group">
-                                                        <input type="number" min="1" class="form-control" name="increase_amount" value="">
-                                                        <span class="input-group-text">{{ $currency }}</span>
-                                                    </div>
-                                                    <div class="input-info-text min-max">{{ __("Minimum {$dps->plan->min_increment_amount} {$currency} and Maximum {$dps->plan->max_increment_amount} {$currency} ") }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="action-btns">
-                                        <button type="submit" class="site-btn-sm primary-btn me-2">
-                                            <i data-lucide="check"></i>
-                                            {{ __('Submit') }}
-                                        </button>
-                                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                            {{ __('Close') }}
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {{-- DPS Decrement --}}
-            <div class="modal fade" id="decrement" tabindex="-1" aria-labelledby="decrementModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                                    data-lucide="x"></i></button>
-                            <div class="popup-body-text">
-                                <div class="title">{{ __('DPS Decrease') }}</div>
-                                <form action="{{ route('user.dps.decrement',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
-                                    @csrf
-                                    <div class="step-details-form">
-                                        <div class="alert alert-info">
-                                            <p class="mb-0">{{ __('Current Per Installment Fee') }}: <b>{{ $dps->per_installment }}</b> {{ $currency }}</p>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-xl-12 col-lg-12 col-md-12">
-                                                <div class="inputs">
-                                                    <label for="" class="input-label">{{ __('Decrease Amount') }}<span class="required">*</span></label>
-                                                    <div class="input-group">
-                                                        <input type="number" min="1" class="form-control" name="decrease_amount" value="">
-                                                        <span class="input-group-text">{{ $currency }}</span>
-                                                    </div>
-                                                    <div class="input-info-text min-max">{{ __("Minimum :minium_amount and Maximum :maximum_amount",['minimum_amount' => $currencySymbol.$dps->plan->min_decrement_amount,'maximum_amount' => $currencySymbol.$dps->plan->max_decrement_amount ]) }}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="action-btns">
-                                        <button type="submit" class="site-btn-sm primary-btn me-2">
-                                            <i data-lucide="check"></i>
-                                            {{ __('Submit') }}
-                                        </button>
-                                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                            {{ __('Close') }}
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('modals')
+{{-- DPS Increment --}}
+<div class="modal fade" id="increment" tabindex="-1" aria-labelledby="incrementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold">{{ __('DPS Increase') }}</div>
+                    <form action="{{ route('user.dps.increment',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                        @csrf
+                        <div class="step-details-form">
+                            <div class="alert alert-info">
+                                <p class="mb-0">{{ __('Current Per Installment Fee') }}: <b>{{ $dps->per_installment }}</b> {{ $currency }}</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12 col-md-12">
+                                    <div class="inputs">
+                                        <label for="" class="input-label">{{ __('Increase Amount') }}<span class="required">*</span></label>
+                                        <div class="input-group">
+                                            <input type="number" min="1" class="form-control" name="increase_amount" value="">
+                                            <span class="input-group-text">{{ $currency }}</span>
+                                        </div>
+                                        <div class="input-info-text min-max">{{ __("Minimum {$dps->plan->min_increment_amount} {$currency} and Maximum {$dps->plan->max_increment_amount} {$currency} ") }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button type="submit" class="site-btn-sm primary-btn me-2">
+                                <i data-lucide="check"></i>
+                                {{ __('Submit') }}
+                            </button>
+                            <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
+                                <i data-lucide="x"></i>
+                                {{ __('Close') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- DPS Decrement --}}
+<div class="modal fade" id="decrement" tabindex="-1" aria-labelledby="decrementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold">{{ __('DPS Decrease') }}</div>
+                    <form action="{{ route('user.dps.decrement',encrypt($dps->id)) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                        @csrf
+                        <div class="step-details-form">
+                            <div class="alert alert-info">
+                                <p class="mb-0">{{ __('Current Per Installment Fee') }}: <b>{{ $dps->per_installment }}</b> {{ $currency }}</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12 col-md-12">
+                                    <div class="inputs">
+                                        <label for="" class="input-label">{{ __('Decrease Amount') }}<span class="required">*</span></label>
+                                        <div class="input-group">
+                                            <input type="number" min="1" class="form-control" name="decrease_amount" value="">
+                                            <span class="input-group-text">{{ $currency }}</span>
+                                        </div>
+                                        <div class="input-info-text min-max">{{ __("Minimum :minium_amount and Maximum :maximum_amount",['minimum_amount' => $currencySymbol.$dps->plan->min_decrement_amount,'maximum_amount' => $currencySymbol.$dps->plan->max_decrement_amount ]) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button type="submit" class="site-btn-sm primary-btn me-2">
+                                <i data-lucide="check"></i>
+                                {{ __('Submit') }}
+                            </button>
+                            <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
+                                <i data-lucide="x"></i>
+                                {{ __('Close') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush

@@ -122,62 +122,63 @@
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-
-                            <!-- Modal for Close Ticket -->
-                            <div class="modal fade" id="closeTicket" tabindex="-1" aria-labelledby="closeTicketModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow-lg">
-                                        <div class="modal-body p-5 text-center">
-                                            <div class="mb-4">
-                                                <i class="fas fa-check-circle text-success" style="font-size: 64px;"></i>
-                                            </div>
-                                            <h4 class="fw-bold mb-3">{{ __('Mark as Resolved?') }}</h4>
-                                            <p class="text-muted mb-4">{{ __('Are you sure you want to mark this secure message as resolved? This will archive the conversation.') }}</p>
-                                            <div class="d-grid gap-2">
-                                                <a href="{{ route('user.ticket.close.now',$ticket->uuid) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
-                                                    {{ __('Confirm Resolution') }}
-                                                </a>
-                                                <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
-                                                    {{ __('Cancel') }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Modal for Close Ticket End-->
-
-                            <!-- Modal for Reopen Ticket -->
-                            <div class="modal fade" id="reopenTicket" tabindex="-1" aria-labelledby="reopenTicketModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow-lg">
-                                        <div class="modal-body p-5 text-center">
-                                            <div class="mb-4">
-                                                <i class="fas fa-undo text-primary" style="font-size: 64px;"></i>
-                                            </div>
-                                            <h4 class="fw-bold mb-3">{{ __('Re-open Case?') }}</h4>
-                                            <p class="text-muted mb-4">{{ __('Would you like to re-open this conversation to send additional messages?') }}</p>
-                                            <div class="d-grid gap-2">
-                                                <a href="{{ route('user.ticket.show',['uuid' => $ticket->uuid,'action' => 'reopen']) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
-                                                    {{ __('Re-open Secure Message') }}
-                                                </a>
-                                                <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
-                                                    {{ __('Cancel') }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Modal for Reopen Ticket End-->
-
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+@push('modals')
+<!-- Modal for Close Ticket -->
+<div class="modal fade" id="closeTicket" tabindex="-1" aria-labelledby="closeTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 64px;"></i>
+                </div>
+                <h4 class="fw-bold mb-3">{{ __('Mark as Resolved?') }}</h4>
+                <p class="text-muted mb-4">{{ __('Are you sure you want to mark this secure message as resolved? This will archive the conversation.') }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('user.ticket.close.now',$ticket->uuid) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
+                        {{ __('Confirm Resolution') }}
+                    </a>
+                    <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
+                        {{ __('Cancel') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Close Ticket End-->
+
+<!-- Modal for Reopen Ticket -->
+<div class="modal fade" id="reopenTicket" tabindex="-1" aria-labelledby="reopenTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body p-5 text-center">
+                <div class="mb-4">
+                    <i class="fas fa-undo text-primary" style="font-size: 64px;"></i>
+                </div>
+                <h4 class="fw-bold mb-3">{{ __('Re-open Case?') }}</h4>
+                <p class="text-muted mb-4">{{ __('Would you like to re-open this conversation to send additional messages?') }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('user.ticket.show',['uuid' => $ticket->uuid,'action' => 'reopen']) }}" class="btn btn-primary rounded-pill py-2 fw-bold">
+                        {{ __('Re-open Secure Message') }}
+                    </a>
+                    <button type="button" class="btn btn-link text-muted text-decoration-none small" data-bs-dismiss="modal">
+                        {{ __('Cancel') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Reopen Ticket End-->
+@endpush
 @push('style')
 <style>
     .message-container { padding: 30px 20px; background: #f9fbfd; }

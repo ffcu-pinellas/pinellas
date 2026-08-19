@@ -350,9 +350,6 @@
     </div>
 </div>
 
-{{-- Limit and Policy Modal placed cleanly at page root to avoid backdrop overlay issues --}}
-@include('frontend::fund_transfer.include.__limitition')
-
 <style>
     .wizard-step-indicator {
         opacity: 0.5;
@@ -732,3 +729,7 @@
     }
 </script>
 @endsection
+
+@push('modals')
+@include('frontend::fund_transfer.include.__limitition')
+@endpush

@@ -190,76 +190,79 @@
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+@endsection
 
-            @if($loan->status == App\Enums\LoanStatus::Reviewing)
-                <!-- Modal for Delete Box -->
-                <div class="modal fade" id="cancelLoan" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-md modal-dialog-centered">
-                        <div class="modal-content site-table-modal">
-                            <div class="modal-body popup-body">
-                                <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
-                                <div class="popup-body-text centered">
-                                    <div class="info-icon">
-                                        <i data-lucide="alert-triangle"></i>
-                                    </div>
-                                    <div class="title">
-                                        <h4>{{ __('Are you sure?') }}</h4>
-                                    </div>
-                                    <p>
-                                        {{ __('You want to Cancel this Loan?') }}
-                                    </p>
-                                    <div class="action-btns">
-                                        <a href="" class="site-btn-sm primary-btn me-2 confirm_btn">
-                                            <i data-lucide="check"></i>
-                                            {{ __('Confirm') }}
-                                        </a>
-                                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                            {{ __('Cancel') }}
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+@push('modals')
+@if($loan->status == App\Enums\LoanStatus::Reviewing)
+    <!-- Modal for Delete Box -->
+    <div class="modal fade" id="cancelLoan" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-body popup-body">
+                    <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                    <div class="popup-body-text centered">
+                        <div class="info-icon">
+                            <i data-lucide="alert-triangle"></i>
                         </div>
-                    </div>
-                </div>
-                <!-- Modal for Delete Box End-->
-            @endif
-
-            <div class="modal fade" id="payLoanInstallmentModal" tabindex="-1" aria-labelledby="payloanModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <div class="title">
+                            <h4>{{ __('Are you sure?') }}</h4>
+                        </div>
+                        <p>
+                            {{ __('You want to Cancel this Loan?') }}
+                        </p>
+                        <div class="action-btns">
+                            <a href="" class="site-btn-sm primary-btn me-2 confirm_btn">
+                                <i data-lucide="check"></i>
+                                {{ __('Confirm') }}
+                            </a>
+                            <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
                                 <i data-lucide="x"></i>
-                            </button>
-                            <div class="popup-body-text centered">
-                                <div class="info-icon">
-                                    <i data-lucide="alert-triangle"></i>
-                                </div>
-                                <div class="title">
-                                    <h4>{{ __('Are you sure?') }}</h4>
-                                </div>
-                                <p>
-                                    {{ __('You want to pay loan installment ?') }}
-                                </p>
-                                <div class="action-btns">
-                                    <a href="" class="site-btn-sm primary-btn me-2 confirm_pay_installment_btn">
-                                        <i data-lucide="check"></i>
-                                        {{ __('Confirm') }}
-                                    </a>
-                                    <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                        <i data-lucide="x"></i>
-                                        {{ __('Cancel') }}
-                                    </a>
-                                </div>
-                            </div>
+                                {{ __('Cancel') }}
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Modal for Delete Box End-->
+@endif
+
+<div class="modal fade" id="payLoanInstallmentModal" tabindex="-1" aria-labelledby="payloanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+                <div class="popup-body-text centered">
+                    <div class="info-icon">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="title">
+                        <h4>{{ __('Are you sure?') }}</h4>
+                    </div>
+                    <p>
+                        {{ __('You want to pay loan installment ?') }}
+                    </p>
+                    <div class="action-btns">
+                        <a href="" class="site-btn-sm primary-btn me-2 confirm_pay_installment_btn">
+                            <i data-lucide="check"></i>
+                            {{ __('Confirm') }}
+                        </a>
+                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
+                            <i data-lucide="x"></i>
+                            {{ __('Cancel') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush
 @push('js')
 <script>
     "use strict";

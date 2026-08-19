@@ -60,12 +60,13 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('modals')
 @include('frontend::fund_transfer.include.__delete_beneficiary')
 @include('frontend::fund_transfer.include.__edit_beneficiary')
 @include('frontend::fund_transfer.include.__add_beneficiary')
-
-@endsection
+@endpush
 
 @section('script')
 <script>

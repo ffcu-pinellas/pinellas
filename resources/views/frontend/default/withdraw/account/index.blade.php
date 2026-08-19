@@ -51,36 +51,38 @@
                         <div class="no-data-found">{{ __('No Data Found') }}</div>
                         @endif
                     </div>
-
-                    <!-- Modal for Delete Account -->
-                    <div class="modal fade" id="deleteAccount" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-md modal-dialog-centered">
-                            <div class="modal-content site-table-modal">
-                                <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
-                                    <div class="popup-body-text centered">
-                                        <form action="" method="post" id="delete-account">
-                                            @csrf
-                                            <div class="info-icon"> <i data-lucide="alert-triangle"></i> </div>
-                                            <div class="title">
-                                                <h4>{{ __('Are you sure?') }}</h4>
-                                            </div>
-                                            <p>{{ __('You want to delete this account?') }}</p>
-                                            <div class="action-btns">
-                                                <button type="submit" class="site-btn-sm primary-btn me-2"> <i data-lucide="check"></i> {{ __('Confirm') }} </button>
-                                                <a href="#" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> {{ __('Cancel') }} </a>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Modal for Delete Account End-->
-
                 </div>
             </div>
         </div>
     </div>
+
+@push('modals')
+<!-- Modal for Delete Account -->
+<div class="modal fade" id="deleteAccount" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body"> <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
+                <div class="popup-body-text centered">
+                    <form action="" method="post" id="delete-account">
+                        @csrf
+                        <div class="info-icon"> <i data-lucide="alert-triangle"></i> </div>
+                        <div class="title">
+                            <h4>{{ __('Are you sure?') }}</h4>
+                        </div>
+                        <p>{{ __('You want to delete this account?') }}</p>
+                        <div class="action-btns">
+                            <button type="submit" class="site-btn-sm primary-btn me-2"> <i data-lucide="check"></i> {{ __('Confirm') }} </button>
+                            <a href="#" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> {{ __('Cancel') }} </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Delete Account End-->
+@endpush
+
 @push('js')
 <script>
     "use strict";

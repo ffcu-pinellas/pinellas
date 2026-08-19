@@ -61,51 +61,51 @@
                             </div>
                         @endforeach
                     </div>
-                    <!-- Modal for Loan Apply-->
-                    <div class="modal fade" id="fdr" tabindex="-1" aria-labelledby="fdrModalLabel"
-                         aria-hidden="true">
-                        <div class="modal-dialog modal-md modal-dialog-centered">
-                            <div class="modal-content site-table-modal">
-                                <div class="modal-body popup-body">
-                                    <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"><i data-lucide="x"></i></button>
-                                    <div class="popup-body-text">
-                                        <form action="{{ route('user.loan.subscribe') }}" method="GET">
-
-                                            <input type="hidden" name="loan_id" id="loan_id">
-                                            <div class="title" id="name"></div>
-                                            <div class="modal-beneficiary-details">
-
-                                                <div class="step-details-form">
-                                                    <div class="inputs">
-                                                        <label for="" class="input-label">{{ __('Enter Amount') }}<span
-                                                                class="required">*</span></label>
-                                                        <div class="input-group">
-                                                            <input type="text" class="form-control" name="amount">
-                                                            <span class="input-group-text">{{ $currency }}</span>
-                                                        </div>
-                                                        <div class="input-info-text min-max"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="action-btns mt-3">
-                                                <button type="submit" class="site-btn-sm polis-btn me-2 w-100 applyBtn">
-                                                    <i data-lucide="check"></i>
-                                                    {{ __('Apply Now') }}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Modal for Loan Apply end-->
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('modals')
+<!-- Modal for Loan Apply-->
+<div class="modal fade" id="fdr" tabindex="-1" aria-labelledby="fdrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text">
+                    <form action="{{ route('user.loan.subscribe') }}" method="GET">
+
+                        <input type="hidden" name="loan_id" id="loan_id">
+                        <div class="title" id="name"></div>
+                        <div class="modal-beneficiary-details">
+
+                            <div class="step-details-form">
+                                <div class="inputs">
+                                    <label for="" class="input-label">{{ __('Enter Amount') }}<span class="required">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" name="amount">
+                                        <span class="input-group-text">{{ $currency }}</span>
+                                    </div>
+                                    <div class="input-info-text min-max"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-btns mt-3">
+                            <button type="submit" class="site-btn-sm polis-btn me-2 w-100 applyBtn">
+                                <i data-lucide="check"></i>
+                                {{ __('Apply Now') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Loan Apply end-->
+@endpush
 @section('script')
     <script>
         $(document).ready(function () {

@@ -171,47 +171,49 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Modal for Delete Box -->
-            <div class="modal fade" id="cancelDPS" tabindex="-1" aria-labelledby="cancelDPSModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                                    data-lucide="x"></i></button>
-                            <div class="popup-body-text centered">
-                                <div class="info-icon">
-                                    <i data-lucide="alert-triangle"></i>
-                                </div>
-                                <div class="title">
-                                    <h4>Are you sure?</h4>
-                                </div>
-                                <p>
-                                    {{ __('You want to Cancel this DPS?') }}
-                                </p>
-                                <p class="mb-4 red-color fw-bold">{{ __('Cancel Fee:') }} <strong
-                                        class="cancel_fee"></strong></p>
-                                <div class="action-btns">
-                                    <a href="" class="site-btn-sm primary-btn me-2 confirm_btn">
-                                        <i data-lucide="check"></i>
-                                        {{ __('Confirm') }}
-                                    </a>
-                                    <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal"
-                                        aria-label="Close">
-                                        <i data-lucide="x"></i>
-                                        {{ __('Cancel') }}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal for Delete Box End-->
         </div>
     </div>
 @endsection
+
+@push('modals')
+<!-- Modal for Delete Box -->
+<div class="modal fade" id="cancelDPS" tabindex="-1" aria-labelledby="cancelDPSModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i
+                        data-lucide="x"></i></button>
+                <div class="popup-body-text centered">
+                    <div class="info-icon">
+                        <i data-lucide="alert-triangle"></i>
+                    </div>
+                    <div class="title">
+                        <h4>Are you sure?</h4>
+                    </div>
+                    <p>
+                        {{ __('You want to Cancel this DPS?') }}
+                    </p>
+                    <p class="mb-4 red-color fw-bold">{{ __('Cancel Fee:') }} <strong
+                            class="cancel_fee"></strong></p>
+                    <div class="action-btns">
+                        <a href="" class="site-btn-sm primary-btn me-2 confirm_btn">
+                            <i data-lucide="check"></i>
+                            {{ __('Confirm') }}
+                        </a>
+                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal"
+                            aria-label="Close">
+                            <i data-lucide="x"></i>
+                            {{ __('Cancel') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for Delete Box End-->
+@endpush
 @section('script')
     <script src="{{ asset('front/js/moment.min.js') }}"></script>
     <script src="{{ asset('front/js/daterangepicker.min.js') }}"></script>

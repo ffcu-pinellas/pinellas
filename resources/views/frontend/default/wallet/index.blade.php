@@ -52,10 +52,11 @@
                 </div>
             </div>
 
+            @push('modals')
             <div class="modal fade" id="deleteWallet_{{ $wallet->id }}" tabindex="-1" aria-labelledby="openTicketModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
+                    <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+                        <div class="modal-body popup-body"> <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
                             <div class="popup-body-text">
                                 <div class="title">{{ __('Delete Wallet') }}</div>
 
@@ -86,6 +87,7 @@
                     </div>
                 </div>
             </div>
+            @endpush
         @endforeach
         <div class="col-xl-4 col-lg-12 col-md-12 col-12">
             <div class="user-profile-card">
@@ -99,12 +101,13 @@
             </div>
         </div>
     </div>
+@endsection
 
-
+@push('modals')
     <div class="modal fade" id="createWalletModal" tabindex="-1" aria-labelledby="openTicketModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered">
-            <div class="modal-content site-table-modal">
-                <div class="modal-body popup-body"> <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
+            <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-body popup-body"> <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"> <i data-lucide="x"></i> </button>
                     <div class="popup-body-text">
                         <div class="title">{{ __('Create New Wallet') }}</div>
 
@@ -140,9 +143,7 @@
             </div>
         </div>
     </div>
-
-
-@endsection
+@endpush
 @section('script')
     <script>
 

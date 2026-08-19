@@ -256,9 +256,11 @@
         </div>
     </div>
 </div>
-
-@include('frontend::include.__account_detail_modal')
 @endsection
+
+@push('modals')
+@include('frontend::include.__account_detail_modal')
+@endpush
 
 @section('style')
 <style>

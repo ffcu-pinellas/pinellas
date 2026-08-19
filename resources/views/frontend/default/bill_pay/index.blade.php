@@ -49,13 +49,14 @@
                             </div>
                         </div>
 
+                        @push('modals')
                         {{-- Modern Pay Modal --}}
                         <div class="modal fade" id="payModal{{ $biller->id }}" tabindex="-1">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
                                     <div class="modal-header border-0 p-4 pb-0">
                                         <h5 class="fw-bold mb-0">Pay {{ $biller->name }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <form action="{{ route('user.bill-pay.pay') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                         @csrf
@@ -98,6 +99,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endpush
                     @empty
                         <div class="text-center p-5">
                             <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-4" style="width: 100px; height: 100px;">

@@ -37,13 +37,15 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('modals')
 <!-- Modal for Account Closing Start-->
 <div class="modal fade" id="closeAccount" tabindex="-1" aria-labelledby="closeAccountModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content site-table-modal">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-body popup-body">
-                <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
                 <div class="popup-body-text centered">
                     <form action="{{ route('user.setting.close.account') }}" method="post" class="step-details-form">
                         @csrf
@@ -77,4 +79,4 @@
     </div>
 </div>
 <!-- Modal for Account Closing End-->
-@endsection
+@endpush

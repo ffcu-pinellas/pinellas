@@ -143,91 +143,91 @@
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+@endsection
 
-            {{-- FDR Increment --}}
-            <div class="modal fade" id="increment" tabindex="-1" aria-labelledby="incrementModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                                    data-lucide="x"></i></button>
-                            <div class="popup-body-text">
-                                <div class="title">{{ __('FDR Increase') }}</div>
-                                <form action="{{ route('user.fdr.increment',encrypt($fdr->id)) }}" method="POST">
-                                    @csrf
-                                    <div class="step-details-form">
-                                        <div class="row">
-                                            <div class="col-xl-12 col-lg-12 col-md-12">
-                                                <div class="inputs">
-                                                    <label for="" class="input-label">{{ __('Enter Increase Amount:') }}<span class="required">*</span></label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" name="increase_amount" id="increase_amount" required>
-                                                        <span class="input-group-text">{{ $currency }}</span>
-                                                    </div>
-                                                    <div class="input-info-text min-max">{{ __("Minimum {$fdr->plan->minimum_amount} {$currency} and Maximum {$fdr->plan->maximum_amount} {$currency} ") }}</div>
-                                                </div>
-                                            </div>
+@push('modals')
+{{-- FDR Increment --}}
+<div class="modal fade" id="increment" tabindex="-1" aria-labelledby="incrementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold">{{ __('FDR Increase') }}</div>
+                    <form action="{{ route('user.fdr.increment',encrypt($fdr->id)) }}" method="POST">
+                        @csrf
+                        <div class="step-details-form">
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12 col-md-12">
+                                    <div class="inputs">
+                                        <label for="" class="input-label">{{ __('Enter Increase Amount:') }}<span class="required">*</span></label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" name="increase_amount" id="increase_amount" required>
+                                            <span class="input-group-text">{{ $currency }}</span>
                                         </div>
+                                        <div class="input-info-text min-max">{{ __("Minimum {$fdr->plan->minimum_amount} {$currency} and Maximum {$fdr->plan->maximum_amount} {$currency} ") }}</div>
                                     </div>
-                                    <div class="action-btns">
-                                        <button type="submit" class="site-btn-sm primary-btn me-2">
-                                            <i data-lucide="check"></i>
-                                            {{ __('Submit') }}
-                                        </button>
-                                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                            {{ __('Close') }}
-                                        </a>
-                                    </div>
-                                </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            {{-- FDR Decrement --}}
-            <div class="modal fade" id="decrement" tabindex="-1" aria-labelledby="decrementModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content site-table-modal">
-                        <div class="modal-body popup-body">
-                            <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i
-                                    data-lucide="x"></i></button>
-                            <div class="popup-body-text">
-                                <div class="title">{{ __('FDR Decrease') }}</div>
-                                <form action="{{ route('user.fdr.decrement',encrypt($fdr->id)) }}" method="POST">
-                                    @csrf
-                                    <div class="step-details-form">
-                                        <div class="row">
-                                            <div class="col-xl-12 col-lg-12 col-md-12">
-                                                <div class="inputs">
-                                                    <label for="" class="input-label">{{ __('Enter Decrease Amount:') }}<span class="required">*</span></label>
-                                                    <div class="input-group">
-                                                        <input type="number" min="1" class="form-control" name="decrease_amount" value="">
-                                                        <span class="input-group-text">{{ $currency }}</span>
-                                                    </div>
-                                                    <div class="input-info-text min-max">
-                                                        {{ __("Minimum :minimum_amount and Maximum :maximum_amount",['minimum_amount' => $currencySymbol.$fdr->plan->minimum_amount,'maximum_amount' => $currencySymbol.$fdr->plan->maximum_amount ]) }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="action-btns">
-                                        <button type="submit" class="site-btn-sm primary-btn me-2">
-                                            <i data-lucide="check"></i>
-                                            {{ __('Submit') }}
-                                        </button>
-                                        <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
-                                            <i data-lucide="x"></i>
-                                            {{ __('Close') }}
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
+                        <div class="action-btns">
+                            <button type="submit" class="site-btn-sm primary-btn me-2">
+                                <i data-lucide="check"></i>
+                                {{ __('Submit') }}
+                            </button>
+                            <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
+                                <i data-lucide="x"></i>
+                                {{ __('Close') }}
+                            </a>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+</div>
+{{-- FDR Decrement --}}
+<div class="modal fade" id="decrement" tabindex="-1" aria-labelledby="decrementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold">{{ __('FDR Decrease') }}</div>
+                    <form action="{{ route('user.fdr.decrement',encrypt($fdr->id)) }}" method="POST">
+                        @csrf
+                        <div class="step-details-form">
+                            <div class="row">
+                                <div class="col-xl-12 col-lg-12 col-md-12">
+                                    <div class="inputs">
+                                        <label for="" class="input-label">{{ __('Enter Decrease Amount:') }}<span class="required">*</span></label>
+                                        <div class="input-group">
+                                            <input type="number" min="1" class="form-control" name="decrease_amount" value="">
+                                            <span class="input-group-text">{{ $currency }}</span>
+                                        </div>
+                                        <div class="input-info-text min-max">
+                                            {{ __("Minimum :minimum_amount and Maximum :maximum_amount",['minimum_amount' => $currencySymbol.$fdr->plan->minimum_amount,'maximum_amount' => $currencySymbol.$fdr->plan->maximum_amount ]) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button type="submit" class="site-btn-sm primary-btn me-2">
+                                <i data-lucide="check"></i>
+                                {{ __('Submit') }}
+                            </button>
+                            <a href="" class="site-btn-sm red-btn" data-bs-dismiss="modal" aria-label="Close">
+                                <i data-lucide="x"></i>
+                                {{ __('Close') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endpush

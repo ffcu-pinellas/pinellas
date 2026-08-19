@@ -86,28 +86,30 @@
                         @endforeach
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
 
-                <!-- Modal for kycDetails -->
-                <div class="modal fade" id="kycDetails" tabindex="-1" aria-labelledby="kycDetailsModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-md modal-dialog-centered">
-                        <div class="modal-content site-table-modal">
-                            <div class="modal-body popup-body">
-                                <button type="button" class="modal-btn-close" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
-                                <div class="popup-body-text p-2">
-                                    <div class="title">{{ __('Submission Details') }}</div>
-                                    <div class="item-body mt-3">
-                                        <!-- Content loaded via JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+@push('modals')
+<!-- Modal for kycDetails -->
+<div class="modal fade" id="kycDetails" tabindex="-1" aria-labelledby="kycDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"><i data-lucide="x"></i></button>
+                <div class="popup-body-text p-2">
+                    <div class="title fw-bold">{{ __('Submission Details') }}</div>
+                    <div class="item-body mt-3">
+                        <!-- Content loaded via JS -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
+@endpush
 @section('script')
     <script>
         $(document).on('click','#openModal',function(){

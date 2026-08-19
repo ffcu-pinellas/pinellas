@@ -103,175 +103,177 @@
                             </div>
                         @endforeach
                     </div>
-                    <!-- Modal for dpsSubPreBox-->
-                    <form action="{{ route('user.fdr.subscribe') }}" method="POST">
-                        @csrf
-                        <div class="modal fade" id="dpsSubPreBox" tabindex="-1" aria-labelledby="dpsSubPreBoxModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-md modal-dialog-centered">
-                                <div class="modal-content site-table-modal">
-                                    <div class="modal-body popup-body">
-                                        <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"><i data-lucide="x"></i>
-                                        </button>
-                                        <div class="popup-body-text">
-                                            <input type="hidden" name="fdr_id" id="fdr_id">
-                                            <div class="title" id="name"></div>
-                                            <div class="step-details-form">
-                                                <div class="inputs">
-                                                    <label for="" class="input-label">{{ __('Enter Amount') }}<span
-                                                            class="required">*</span></label>
-                                                    <div class="input-group">
-                                                        <input type="text" class="form-control" name="amount">
-                                                        <span class="input-group-text">{{ $currency }}</span>
-                                                    </div>
-                                                    <div class="input-info-text min-max"></div>
-                                                </div>
-                                            </div>
-
-                                            <div class="action-btns mt-3">
-                                                <button
-                                                type="submit"
-                                                onclick="event.preventDefault(); SecurityGate.gate(this.form);"
-                                                class="site-btn-sm polis-btn me-2 w-100 applyBtn"
-                                                >
-                                                    <i data-lucide="check"></i>
-                                                    {{ __('Apply Now') }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-
-                    <!-- Modal for dpsSubPreBox end-->
-
-                    <!-- Modal for FDR Details-->
-                    <div class="modal fade" id="fdrDetails" tabindex="-1" aria-labelledby="fdrDetailsModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg modal-dialog-centered">
-                            <div class="modal-content site-table-modal">
-                                <div class="modal-body popup-body">
-                                    <button type="button" class="modal-btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"><i data-lucide="x"></i>
-                                    </button>
-                                    <div class="popup-body-text">
-                                        <div class="title" id="details-name"></div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="modal-beneficiary-details">
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Lock In Period') }}</div>
-                                                        <div class="value period-value"></div>
-                                                    </div>
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Get Profit Every') }}</div>
-                                                        <div class="value every-profit-value"></div>
-                                                    </div>
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Profit Rate') }}</div>
-                                                        <div class="value profit-rate-value"></div>
-                                                    </div>
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Minimum IRA') }}</div>
-                                                        <div class="value min-fdr-value"></div>
-                                                    </div>
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Maximum IRA') }}</div>
-                                                        <div class="value max-fdr-value"></div>
-                                                    </div>
-                                                    <div class="profile-text-data">
-                                                        <div class="attribute">{{ __('Compounding') }}</div>
-                                                        <div class="value compounding-value"></div>
-                                                    </div>
-                                                    <div class="cancel-in-area">
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Cancel In') }}</div>
-                                                            <div class="value cancel-in-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Cancel Fee') }}</div>
-                                                            <div class="value cancel-charge-value"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="profile-text-data maturity-area">
-                                                        <div class="attribute">{{ __('Maturity Fee') }}</div>
-                                                        <div class="value maturity-fee-value"></div>
-                                                    </div>
-
-                                                    <div class="increase-details-area">
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Increase') }}</div>
-                                                            <div class="value increase-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Increase Charge') }}</div>
-                                                            <div class="value increase-charge-value"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="modal-beneficiary-details">
-                                                    <div class="increase-details-area">
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Increase Limit') }}</div>
-                                                            <div class="value increase-limit-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Min Increase Amount') }}</div>
-                                                            <div class="value min-increase-amount-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Max Increase Amount') }}</div>
-                                                            <div class="value max-increase-amount-value"></div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="decrease-details-area">
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Decrease') }}</div>
-                                                            <div class="value decrease-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Decrease Charge') }}</div>
-                                                            <div class="value decrease-charge-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Decrease Limit') }}</div>
-                                                            <div class="value decrease-limit-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Min Decrease Amount') }}</div>
-                                                            <div class="value min-decrease-amount-value"></div>
-                                                        </div>
-                                                        <div class="profile-text-data">
-                                                            <div class="attribute">{{ __('Max Decrease Amount') }}</div>
-                                                            <div class="value max-decrease-amount-value"></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="action-btns mt-3">
-                                            <button type="button"  data-bs-dismiss="modal"
-                                            aria-label="Close" class="site-btn-sm polis-btn me-2 w-100 applyBtn">
-                                                <i data-lucide="check"></i>
-                                                {{ __('Got It') }}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Modal for FDR Details end-->
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('modals')
+<!-- Modal for dpsSubPreBox-->
+<form action="{{ route('user.fdr.subscribe') }}" method="POST">
+    @csrf
+    <div class="modal fade" id="dpsSubPreBox" tabindex="-1" aria-labelledby="dpsSubPreBoxModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-body popup-body">
+                    <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal"
+                            aria-label="Close"><i data-lucide="x"></i>
+                    </button>
+                    <div class="popup-body-text">
+                        <input type="hidden" name="fdr_id" id="fdr_id">
+                        <div class="title fw-bold" id="name"></div>
+                        <div class="step-details-form">
+                            <div class="inputs">
+                                <label for="" class="input-label">{{ __('Enter Amount') }}<span
+                                        class="required">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="amount">
+                                    <span class="input-group-text">{{ $currency }}</span>
+                                </div>
+                                <div class="input-info-text min-max"></div>
+                            </div>
+                        </div>
+
+                        <div class="action-btns mt-3">
+                            <button
+                            type="submit"
+                            onclick="event.preventDefault(); SecurityGate.gate(this.form);"
+                            class="site-btn-sm polis-btn me-2 w-100 applyBtn"
+                            >
+                                <i data-lucide="check"></i>
+                                {{ __('Apply Now') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- Modal for dpsSubPreBox end-->
+
+<!-- Modal for FDR Details-->
+<div class="modal fade" id="fdrDetails" tabindex="-1" aria-labelledby="fdrDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content site-table-modal border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body popup-body">
+                <button type="button" class="modal-btn-close shadow-none" data-bs-dismiss="modal"
+                        aria-label="Close"><i data-lucide="x"></i>
+                </button>
+                <div class="popup-body-text">
+                    <div class="title fw-bold" id="details-name"></div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="modal-beneficiary-details">
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Lock In Period') }}</div>
+                                    <div class="value period-value"></div>
+                                </div>
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Get Profit Every') }}</div>
+                                    <div class="value every-profit-value"></div>
+                                </div>
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Profit Rate') }}</div>
+                                    <div class="value profit-rate-value"></div>
+                                </div>
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Minimum IRA') }}</div>
+                                    <div class="value min-fdr-value"></div>
+                                </div>
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Maximum IRA') }}</div>
+                                    <div class="value max-fdr-value"></div>
+                                </div>
+                                <div class="profile-text-data">
+                                    <div class="attribute">{{ __('Compounding') }}</div>
+                                    <div class="value compounding-value"></div>
+                                </div>
+                                <div class="cancel-in-area">
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Cancel In') }}</div>
+                                        <div class="value cancel-in-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Cancel Fee') }}</div>
+                                        <div class="value cancel-charge-value"></div>
+                                    </div>
+                                </div>
+                                <div class="profile-text-data maturity-area">
+                                    <div class="attribute">{{ __('Maturity Fee') }}</div>
+                                    <div class="value maturity-fee-value"></div>
+                                </div>
+
+                                <div class="increase-details-area">
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Increase') }}</div>
+                                        <div class="value increase-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Increase Charge') }}</div>
+                                        <div class="value increase-charge-value"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="modal-beneficiary-details">
+                                <div class="increase-details-area">
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Increase Limit') }}</div>
+                                        <div class="value increase-limit-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Min Increase Amount') }}</div>
+                                        <div class="value min-increase-amount-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Max Increase Amount') }}</div>
+                                        <div class="value max-increase-amount-value"></div>
+                                    </div>
+                                </div>
+                                <div class="decrease-details-area">
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Decrease') }}</div>
+                                        <div class="value decrease-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Decrease Charge') }}</div>
+                                        <div class="value decrease-charge-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Decrease Limit') }}</div>
+                                        <div class="value decrease-limit-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Min Decrease Amount') }}</div>
+                                        <div class="value min-decrease-amount-value"></div>
+                                    </div>
+                                    <div class="profile-text-data">
+                                        <div class="attribute">{{ __('Max Decrease Amount') }}</div>
+                                        <div class="value max-decrease-amount-value"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-btns mt-3">
+                        <button type="button"  data-bs-dismiss="modal"
+                        aria-label="Close" class="site-btn-sm polis-btn me-2 w-100 applyBtn">
+                            <i data-lucide="check"></i>
+                            {{ __('Got It') }}
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal for FDR Details end-->
+@endpush
 @section('script')
     <script>
         $(document).ready(function () {
