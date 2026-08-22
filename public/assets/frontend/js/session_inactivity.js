@@ -7,7 +7,7 @@
         : 10;
     
     // Determine idle warning threshold (trigger popup 60s before timeout or at max 10 mins idle for security)
-    let idleWarningDelayMs = 10 * 60 * 1000; // 10 minutes default
+    let idleWarningDelayMs = 15 * 60 * 1000; // 10 minutes default
     
     if (sessionLifetimeMinutes <= 15) {
         idleWarningDelayMs = Math.max(0.5, sessionLifetimeMinutes - 1) * 60 * 1000;
