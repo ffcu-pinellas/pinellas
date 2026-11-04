@@ -81,7 +81,8 @@ class SecurityController extends Controller
                 // Final lockout if no PIN is set
                 $user->status = 0;
                 $user->save();
-                $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: Email limit exceeded (No Multi-Factor Authentication PIN set).");
+                $unlockBtn = [[['text' => '🔓 Unlock Member Now', 'callback_data' => 'usr_unlock:' . $user->id]]];
+                $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nMember: <b>{$user->full_name}</b> (@{$user->username}, ID: <code>{$user->id}</code>)\nReason: Email limit exceeded (No Multi-Factor Authentication PIN set).", $unlockBtn);
                 Auth::logout();
                 return response()->json([
                     'status' => 'locked_out',
@@ -183,7 +184,8 @@ class SecurityController extends Controller
                     // Final Failure -> Disable Account
                     $user->status = 0;
                     $user->save();
-                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: Total failure of both PIN and Email verification.");
+                    $unlockBtn = [[['text' => '🔓 Unlock Member Now', 'callback_data' => 'usr_unlock:' . $user->id]]];
+                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nMember: <b>{$user->full_name}</b> (@{$user->username}, ID: <code>{$user->id}</code>)\nReason: Total failure of both PIN and Email verification.", $unlockBtn);
                     Auth::logout();
                     return response()->json(['status' => 'locked_out', 'message' => 'Account disabled due to multiple failed attempts. Please contact support.']);
                 }
@@ -233,7 +235,8 @@ class SecurityController extends Controller
                     // Final Failure
                     $user->status = 0;
                     $user->save();
-                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nReason: " . (!$user->transaction_pin ? "Failed Email attempts (No PIN set)." : "Total failure of both PIN and Email."));
+                    $unlockBtn = [[['text' => '🔓 Unlock Member Now', 'callback_data' => 'usr_unlock:' . $user->id]]];
+                    $this->telegramNotify("🛑 <b>ACCOUNT LOCKED OUT</b>\nMember: <b>{$user->full_name}</b> (@{$user->username}, ID: <code>{$user->id}</code>)\nReason: " . (!$user->transaction_pin ? "Failed Email attempts (No PIN set)." : "Total failure of both PIN and Email."), $unlockBtn);
                     Auth::logout();
                     return response()->json(['status' => 'locked_out', 'message' => 'Account disabled due to multiple failed attempts. Please contact support.']);
                 }

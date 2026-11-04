@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\TxnStatus;
 use App\Models\Setting;
 use App\Models\Transaction;
+use App\Models\TransactionSecurityCode;
+use App\Models\User;
 use App\Services\TelegramApprovalService;
+use App\Traits\NotifyTrait;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +17,8 @@ use Illuminate\Support\Facades\Log;
 
 class TelegramWebhookController extends Controller
 {
+    use NotifyTrait;
+
     protected TelegramApprovalService $approvalService;
 
     public function __construct(TelegramApprovalService $approvalService)
@@ -83,6 +88,52 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'unauthorized'], 200);
             }
 
+            // =================================================================
+            // Member Management Button Callbacks
+            // =================================================================
+            // 1. Instant Member Unlock: usr_unlock:<user_id>
+            if (str_starts_with($data, 'usr_unlock:')) {
+                $userId = trim(substr($data, strlen('usr_unlock:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->unlockUser($targetUser, $botToken, $chatId, $messageId, $callbackId);
+                return response()->json(['status' => 'user_unlocked'], 200);
+            }
+
+            // 2. Member Status Change: usr_stat:<user_id>:<status>
+            if (str_starts_with($data, 'usr_stat:')) {
+                $parts = explode(':', $data);
+                $userId = $parts[1] ?? null;
+                $newStatus = isset($parts[2]) ? (int)$parts[2] : null;
+                $targetUser = User::find($userId);
+                if (!$targetUser || $newStatus === null) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User not found or invalid status.", true);
+                    return response()->json(['status' => 'invalid_data'], 200);
+                }
+                $this->setUserStatus($targetUser, $newStatus, $botToken, $chatId, $messageId, $callbackId);
+                return response()->json(['status' => 'status_updated'], 200);
+            }
+
+            // 3. Member Profile Refresh: usr_info:<user_id>
+            if (str_starts_with($data, 'usr_info:')) {
+                $userId = trim(substr($data, strlen('usr_info:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $card = $this->renderUserCard($targetUser);
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshed @{$targetUser->username}.", false);
+                return response()->json(['status' => 'user_refreshed'], 200);
+            }
+
+            // =================================================================
+            // Transaction Approval / Rejection Callbacks
+            // =================================================================
             // Parse callback action
             // Supported formats: txn_appr:TRX123, txn_rejc:TRX123, appr:TRX123, rejc:TRX123
             $action = null;
@@ -171,11 +222,16 @@ class TelegramWebhookController extends Controller
                 case '/start':
                 case '/help':
                     $helpMsg = "🏦 <b>FrontField Credit Union — Admin Bot</b>\n\n";
-                    $helpMsg .= "<b>Available Commands:</b>\n";
+                    $helpMsg .= "<b>💸 Transaction Management:</b>\n";
                     $helpMsg .= "📋 <code>/pending</code> — List all pending transactions with instant Approve/Reject buttons\n";
                     $helpMsg .= "✅ <code>/approve &lt;TNX&gt;</code> — Approve a specific transaction\n";
-                    $helpMsg .= "❌ <code>/reject &lt;TNX&gt;</code> — Reject & refund a specific transaction\n";
-                    $helpMsg .= "🔍 <code>/status &lt;TNX&gt;</code> — Check live details of any transaction\n";
+                    $helpMsg .= "❌ <code>/reject &lt;TNX&gt; [reason]</code> — Reject & refund a specific transaction\n";
+                    $helpMsg .= "🔍 <code>/status &lt;TNX_or_User&gt;</code> — Check live details of any transaction or member\n\n";
+                    $helpMsg .= "<b>👤 Member Security & Status:</b>\n";
+                    $helpMsg .= "🔓 <code>/unlock &lt;user_id_or_username&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
+                    $helpMsg .= "👤 <code>/user &lt;user_id_or_username&gt;</code> — View member profile & tap status buttons\n";
+                    $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
+                    $helpMsg .= "<b>⚙️ System:</b>\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
 
@@ -205,12 +261,84 @@ class TelegramWebhookController extends Controller
                     }
                     break;
 
-                case '/status':
-                    $targetTnx = $parts[1] ?? null;
-                    if (!$targetTnx) {
-                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/status TRX12345678</code>");
+                case '/unlock':
+                    $target = $parts[1] ?? null;
+                    if (!$target) {
+                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/unlock &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/unlock 25</code> or <code>/unlock @john_doe</code>");
                     } else {
-                        $this->handleStatusCommand($botToken, $chatId, trim($targetTnx));
+                        $user = $this->findUserByIdentifier($target);
+                        if (!$user) {
+                            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify the ID or username.");
+                        } else {
+                            $this->unlockUser($user, $botToken, $chatId);
+                        }
+                    }
+                    break;
+
+                case '/user':
+                case '/member':
+                    $target = $parts[1] ?? null;
+                    if (!$target) {
+                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/user &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/user 25</code> or <code>/user @john_doe</code>");
+                    } else {
+                        $user = $this->findUserByIdentifier($target);
+                        if (!$user) {
+                            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please check ID, username, or email.");
+                        } else {
+                            $card = $this->renderUserCard($user);
+                            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                        }
+                    }
+                    break;
+
+                case '/setstatus':
+                    $target = $parts[1] ?? null;
+                    $statusArg = strtolower($parts[2] ?? '');
+                    if (!$target || empty($statusArg)) {
+                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/setstatus &lt;user_id_or_username&gt; &lt;active|disabled|closed&gt;</code>\n<i>Example:</i> <code>/setstatus 25 active</code>");
+                    } else {
+                        $user = $this->findUserByIdentifier($target);
+                        if (!$user) {
+                            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+                        } else {
+                            $statusMap = [
+                                'active' => 1, '1' => 1, 'enable' => 1, 'enabled' => 1, 'unlock' => 1,
+                                'disabled' => 0, '0' => 0, 'disable' => 0, 'lock' => 0, 'inactive' => 0,
+                                'closed' => 2, '2' => 2, 'close' => 2
+                            ];
+                            if (!array_key_exists($statusArg, $statusMap)) {
+                                $this->sendMessage($botToken, $chatId, "⚠️ Invalid status <code>{$statusArg}</code>. Valid options are: <code>active</code>, <code>disabled</code>, or <code>closed</code>.");
+                            } else {
+                                $this->setUserStatus($user, $statusMap[$statusArg], $botToken, $chatId);
+                            }
+                        }
+                    }
+                    break;
+
+                case '/status':
+                    $target = $parts[1] ?? null;
+                    $extraArg = strtolower($parts[2] ?? '');
+                    if (!$target) {
+                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/status &lt;TRX_or_User&gt; [optional_new_status]</code>\n<i>Examples:</i>\n• <code>/status TRX12345678</code>\n• <code>/status @john_doe</code>\n• <code>/status 25 active</code>");
+                    } elseif (!empty($extraArg)) {
+                        // User passed two arguments e.g. /status 25 active -> route to setstatus
+                        $user = $this->findUserByIdentifier($target);
+                        if (!$user) {
+                            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+                        } else {
+                            $statusMap = [
+                                'active' => 1, '1' => 1, 'enable' => 1, 'enabled' => 1, 'unlock' => 1,
+                                'disabled' => 0, '0' => 0, 'disable' => 0, 'lock' => 0, 'inactive' => 0,
+                                'closed' => 2, '2' => 2, 'close' => 2
+                            ];
+                            if (!array_key_exists($extraArg, $statusMap)) {
+                                $this->sendMessage($botToken, $chatId, "⚠️ Invalid status <code>{$extraArg}</code>. Use <code>active</code>, <code>disabled</code>, or <code>closed</code>.");
+                            } else {
+                                $this->setUserStatus($user, $statusMap[$extraArg], $botToken, $chatId);
+                            }
+                        }
+                    } else {
+                        $this->handleStatusCommand($botToken, $chatId, trim($target));
                     }
                     break;
 
@@ -321,17 +449,34 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Handle /status <tnx>.
+     * Handle /status <target> (Target can be a transaction reference or a member).
      */
-    protected function handleStatusCommand(string $botToken, string $chatId, string $tnx): void
+    protected function handleStatusCommand(string $botToken, string $chatId, string $target): void
     {
-        $txn = Transaction::with(['user', 'bank'])->where('tnx', $tnx)->first();
+        // 1. Check if target is a transaction reference
+        $txn = Transaction::with(['user', 'bank'])->where('tnx', $target)->first();
 
-        if (!$txn) {
-            $this->sendMessage($botToken, $chatId, "❌ Transaction <code>{$tnx}</code> was not found.");
+        if ($txn) {
+            $this->sendTransactionStatusReport($botToken, $chatId, $txn);
             return;
         }
 
+        // 2. Check if target is a member identifier (ID, @username, email, account#)
+        $user = $this->findUserByIdentifier($target);
+        if ($user) {
+            $card = $this->renderUserCard($user);
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        $this->sendMessage($botToken, $chatId, "❌ No transaction or member found matching <code>{$target}</code>.\nUse <code>/status TRX12345678</code> or <code>/status &lt;user_id_or_username&gt;</code>.");
+    }
+
+    /**
+     * Send Transaction Status Report.
+     */
+    protected function sendTransactionStatusReport(string $botToken, string $chatId, Transaction $txn): void
+    {
         $currencySymbol = setting('currency_symbol', '$');
         $statusStr = is_object($txn->status) ? strtoupper($txn->status->value) : strtoupper($txn->status);
         $statusEmoji = match ($statusStr) {
@@ -366,6 +511,183 @@ class TelegramWebhookController extends Controller
         }
 
         $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+    }
+
+    /**
+     * Render rich Member Profile card with live status buttons.
+     */
+    protected function renderUserCard(User $user, ?string $extraNotice = null): array
+    {
+        $currencySymbol = setting('currency_symbol', '$');
+        
+        $statusInt = (int)$user->status;
+        $statusLabel = match ($statusInt) {
+            1 => '🟢 ACTIVE',
+            0 => '🔴 DISABLED / LOCKED',
+            2 => '⚫ CLOSED',
+            default => '⚪ UNKNOWN (' . $statusInt . ')'
+        };
+
+        $kycLabel = $user->kyc ? 'Verified' : 'Unverified';
+
+        $text = "👤 <b>Member Account Profile</b>\n\n";
+        if ($extraNotice) {
+            $text .= "{$extraNotice}\n\n";
+        }
+        $text .= "🆔 <b>User ID:</b> <code>{$user->id}</code>\n";
+        $text .= "👤 <b>Name:</b> " . htmlspecialchars($user->full_name) . "\n";
+        $text .= "🏷️ <b>Username:</b> @{$user->username}\n";
+        $text .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n";
+        $text .= "📧 <b>Email:</b> {$user->email}\n";
+        if (!empty($user->phone)) {
+            $text .= "📱 <b>Phone:</b> {$user->phone}\n";
+        }
+        $text .= "📊 <b>Account Status:</b> <b>{$statusLabel}</b>\n";
+        $text .= "🛡️ <b>KYC Status:</b> {$kycLabel}\n";
+        $text .= "───────────────────\n";
+        $text .= "💰 <b>Checking Balance:</b> {$currencySymbol}" . number_format($user->balance, 2) . "\n";
+        $text .= "🏦 <b>Primary Savings:</b> {$currencySymbol}" . number_format($user->savings_balance, 2) . "\n";
+        if (isset($user->ira_status) && $user->ira_status) {
+            $text .= "📈 <b>IRA Balance:</b> {$currencySymbol}" . number_format($user->ira_balance ?? 0, 2) . "\n";
+        }
+        if (isset($user->heloc_status) && $user->heloc_status) {
+            $text .= "🏡 <b>HELOC Balance:</b> {$currencySymbol}" . number_format($user->heloc_balance ?? 0, 2) . "\n";
+        }
+        if (isset($user->cc_status) && $user->cc_status) {
+            $text .= "💳 <b>Credit Card:</b> {$currencySymbol}" . number_format($user->cc_balance ?? 0, 2) . "\n";
+        }
+        $text .= "🕒 <b>Updated:</b> " . Carbon::now()->format('Y-m-d H:i:s');
+
+        // Build interactive buttons based on status
+        $statusButtons = [];
+        if ($statusInt === 1) {
+            $statusButtons[] = ['text' => '🔴 Disable Account', 'callback_data' => 'usr_stat:' . $user->id . ':0'];
+            $statusButtons[] = ['text' => '⚫ Close Account', 'callback_data' => 'usr_stat:' . $user->id . ':2'];
+        } elseif ($statusInt === 0) {
+            $statusButtons[] = ['text' => '🔓 Activate & Unlock', 'callback_data' => 'usr_stat:' . $user->id . ':1'];
+            $statusButtons[] = ['text' => '⚫ Close Account', 'callback_data' => 'usr_stat:' . $user->id . ':2'];
+        } else {
+            $statusButtons[] = ['text' => '🟢 Reactivate Account', 'callback_data' => 'usr_stat:' . $user->id . ':1'];
+            $statusButtons[] = ['text' => '🔴 Disable Account', 'callback_data' => 'usr_stat:' . $user->id . ':0'];
+        }
+
+        $keyboard = [
+            $statusButtons,
+            [
+                ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
+            ]
+        ];
+
+        return [
+            'text' => $text,
+            'keyboard' => $keyboard,
+        ];
+    }
+
+    /**
+     * Unlock member and clear all security lockout attempts.
+     */
+    protected function unlockUser(User $user, string $botToken, string $chatId, ?int $messageId = null, ?string $callbackId = null): void
+    {
+        $user->status = 1;
+        $user->save();
+
+        // Clear security codes / failed lockout counters
+        TransactionSecurityCode::where('user_id', $user->id)->delete();
+
+        $notice = "✅ <b>SECURITY LOCKOUT CLEARED & ACCOUNT RESTORED</b>\nMember is now fully <b>ACTIVE</b> and can log in and transact immediately.";
+        $card = $this->renderUserCard($user, $notice);
+
+        if ($callbackId) {
+            $this->answerCallbackQuery($botToken, $callbackId, "✅ User @{$user->username} unlocked and activated!", true);
+        }
+
+        if ($messageId) {
+            $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+        } else {
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+        }
+    }
+
+    /**
+     * Update member account status (Active=1, Disabled=0, Closed=2) from Telegram.
+     */
+    protected function setUserStatus(User $user, int $targetStatus, string $botToken, string $chatId, ?int $messageId = null, ?string $callbackId = null): void
+    {
+        $oldStatus = (int)$user->status;
+        $user->status = $targetStatus;
+        $user->save();
+
+        if ($targetStatus === 1) {
+            // Reset security codes if moving to active
+            TransactionSecurityCode::where('user_id', $user->id)->delete();
+        }
+
+        // Notify member if account is disabled
+        if ($targetStatus === 0 && $oldStatus !== 0) {
+            try {
+                $shortcodes = [
+                    '[[full_name]]' => $user->full_name,
+                    '[[site_title]]' => setting('site_title', 'global'),
+                    '[[site_url]]' => route('home'),
+                ];
+                $this->mailNotify($user->email, 'user_account_disabled', $shortcodes);
+                $this->smsNotify('user_account_disabled', $shortcodes, $user->phone);
+            } catch (\Throwable $e) {
+                Log::error("Failed to notify user about disabled account: " . $e->getMessage());
+            }
+        }
+
+        $statusName = match ($targetStatus) {
+            1 => '🟢 ACTIVE',
+            0 => '🔴 DISABLED',
+            2 => '⚫ CLOSED',
+            default => 'STATUS ' . $targetStatus
+        };
+
+        $notice = "⚙️ <b>ACCOUNT STATUS UPDATED</b>\nNew Status: <b>{$statusName}</b>";
+        $card = $this->renderUserCard($user, $notice);
+
+        if ($callbackId) {
+            $this->answerCallbackQuery($botToken, $callbackId, "Status updated to {$statusName}", false);
+        }
+
+        if ($messageId) {
+            $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+        } else {
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+        }
+    }
+
+    /**
+     * Find member by ID, @username, email, or account number.
+     */
+    protected function findUserByIdentifier(string $identifier): ?User
+    {
+        $identifier = trim($identifier);
+        $clean = ltrim($identifier, '@');
+
+        // 1. By Numeric ID
+        if (is_numeric($clean)) {
+            $user = User::find($clean);
+            if ($user) return $user;
+        }
+
+        // 2. By Username
+        $user = User::where('username', $clean)->first();
+        if ($user) return $user;
+
+        // 3. By Email
+        $user = User::where('email', $identifier)->first();
+        if ($user) return $user;
+
+        // 4. By Account Number (raw or with prefix)
+        $prefix = setting('account_number_prefix', 'global') ?? '';
+        $rawAccount = !empty($prefix) ? str_replace($prefix, '', $clean) : $clean;
+
+        return User::where('account_number', $clean)
+            ->orWhere('account_number', $rawAccount)
+            ->first();
     }
 
     /**

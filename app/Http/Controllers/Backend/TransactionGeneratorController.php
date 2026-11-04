@@ -956,4 +956,315 @@ class TransactionGeneratorController extends Controller
         $options = $themes[$themeKey][$direction] ?? $themes['standard'][$direction];
         return $options[array_rand($options)];
     }
+
+    /**
+     * 1-Click CSV / Excel Transaction Batch Importer
+     */
+    public function importCsv(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        // Security Check for Account Officer
+        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $validator = Validator::make($request->all(), [
+            'csv_file' => 'required|file|max:10240',
+            'default_wallet' => 'nullable|string',
+            'import_action' => 'required|in:preview,commit',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first(), 'Validation Error');
+            return redirect()->back();
+        }
+
+        $file = $request->file('csv_file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        $allowedExts = ['csv', 'txt', 'xlsx', 'xls', 'tsv'];
+        if (!in_array($ext, $allowedExts)) {
+            notify()->error(__('Please upload a valid spreadsheet file (.csv, .xlsx, .xls, .tsv).'), 'Invalid File');
+            return redirect()->back();
+        }
+
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, false);
+
+            if (empty($rows)) {
+                notify()->error(__('The uploaded file contains no data.'), 'Empty File');
+                return redirect()->back();
+            }
+
+            // 1. Locate header row (search first 5 rows)
+            $headerRowIdx = null;
+            $headerMap = [];
+            foreach (array_slice($rows, 0, 5, true) as $idx => $row) {
+                if (!is_array($row)) continue;
+                $normalizedRow = array_map(function($c) {
+                    return strtolower(trim(preg_replace('/[^a-zA-Z0-9]/', '', (string)$c)));
+                }, $row);
+
+                $hasDate = false;
+                $hasAmount = false;
+
+                foreach ($normalizedRow as $colIdx => $header) {
+                    if (in_array($header, ['date', 'txndate', 'transactiondate', 'timestamp', 'time', 'posted', 'postingdate'])) {
+                        $hasDate = true;
+                        $headerMap['date'] = $colIdx;
+                    } elseif (in_array($header, ['description', 'desc', 'narration', 'details', 'memo', 'payee', 'merchant', 'title', 'name'])) {
+                        $headerMap['description'] = $colIdx;
+                    } elseif (in_array($header, ['amount', 'total', 'value', 'sum', 'amt'])) {
+                        $hasAmount = true;
+                        $headerMap['amount'] = $colIdx;
+                    } elseif (in_array($header, ['debit', 'withdrawal', 'dr', 'withdraw'])) {
+                        $headerMap['debit'] = $colIdx;
+                    } elseif (in_array($header, ['credit', 'deposit', 'cr', 'dep'])) {
+                        $headerMap['credit'] = $colIdx;
+                    } elseif (in_array($header, ['type', 'direction', 'category', 'drcr', 'creditdebit', 'flow'])) {
+                        $headerMap['type'] = $colIdx;
+                    } elseif (in_array($header, ['account', 'wallet', 'accounttype', 'targetaccount', 'acct'])) {
+                        $headerMap['account'] = $colIdx;
+                    }
+                }
+
+                if ($hasDate && ($hasAmount || isset($headerMap['debit']) || isset($headerMap['credit']))) {
+                    $headerRowIdx = $idx;
+                    break;
+                }
+            }
+
+            // Fallback header map if no named headers were found (assume positional: Date, Desc, Amount, Type, Account)
+            if ($headerRowIdx === null) {
+                $headerRowIdx = -1;
+                $headerMap = [
+                    'date' => 0,
+                    'description' => 1,
+                    'amount' => 2,
+                    'type' => 3,
+                    'account' => 4,
+                ];
+            }
+
+            $defaultWallet = $request->input('default_wallet', 'default');
+            $dataRows = array_slice($rows, $headerRowIdx + 1);
+            $parsedTransactions = [];
+
+            foreach ($dataRows as $row) {
+                if (!is_array($row)) continue;
+
+                // Skip completely blank rows
+                $allEmpty = true;
+                foreach ($row as $cell) {
+                    if ($cell !== null && trim((string)$cell) !== '') {
+                        $allEmpty = false;
+                        break;
+                    }
+                }
+                if ($allEmpty) continue;
+
+                // 1. Date
+                $rawDate = $row[$headerMap['date'] ?? 0] ?? null;
+                $parsedDate = now();
+                if ($rawDate !== null && trim((string)$rawDate) !== '') {
+                    if (is_numeric($rawDate) && (float)$rawDate > 20000 && (float)$rawDate < 70000) {
+                        try {
+                            $parsedDate = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rawDate));
+                        } catch (\Throwable $e) {
+                            $parsedDate = now();
+                        }
+                    } else {
+                        try {
+                            $parsedDate = Carbon::parse(trim((string)$rawDate));
+                        } catch (\Throwable $e) {
+                            $parsedDate = now();
+                        }
+                    }
+                }
+
+                // 2. Description
+                $rawDesc = $row[$headerMap['description'] ?? 1] ?? null;
+                $description = trim((string)$rawDesc);
+                if (empty($description)) {
+                    $description = 'Banking Transaction';
+                }
+
+                // 3. Amount & Direction
+                $direction = null;
+                $amount = 0;
+
+                // Check separate debit / credit columns first
+                if (isset($headerMap['debit']) || isset($headerMap['credit'])) {
+                    $debitVal = isset($headerMap['debit']) ? $this->cleanAmount($row[$headerMap['debit']] ?? '') : 0;
+                    $creditVal = isset($headerMap['credit']) ? $this->cleanAmount($row[$headerMap['credit']] ?? '') : 0;
+
+                    if ($creditVal > 0) {
+                        $amount = $creditVal;
+                        $direction = 'income';
+                    } elseif ($debitVal > 0) {
+                        $amount = $debitVal;
+                        $direction = 'outcome';
+                    }
+                }
+
+                // Fallback to single amount column
+                if ($amount == 0 && isset($headerMap['amount'])) {
+                    $rawAmountStr = (string)($row[$headerMap['amount']] ?? '');
+                    $isNegative = str_contains($rawAmountStr, '-') || (str_starts_with(trim($rawAmountStr), '(') && str_ends_with(trim($rawAmountStr), ')'));
+                    $cleanVal = $this->cleanAmount($rawAmountStr);
+                    $amount = $cleanVal;
+
+                    if ($isNegative) {
+                        $direction = 'outcome';
+                    }
+                }
+
+                // Check Type / Direction column if direction not explicitly set by sign
+                if (isset($headerMap['type'])) {
+                    $typeStr = strtolower(trim((string)($row[$headerMap['type']] ?? '')));
+                    if (preg_match('/income|deposit|credit|cr|\+|in/', $typeStr)) {
+                        $direction = 'income';
+                    } elseif (preg_match('/outcome|withdrawal|debit|dr|-|out|subtract|expense/', $typeStr)) {
+                        $direction = 'outcome';
+                    }
+                }
+
+                if ($direction === null) {
+                    $direction = 'income';
+                }
+
+                if ($amount <= 0) {
+                    continue; // Skip zero/invalid amounts
+                }
+
+                // 4. Wallet / Account resolution
+                $walletType = $defaultWallet;
+                if (isset($headerMap['account'])) {
+                    $acctStr = strtolower(trim((string)($row[$headerMap['account']] ?? '')));
+                    if (!empty($acctStr)) {
+                        if (str_contains($acctStr, 'check') || str_contains($acctStr, 'default')) {
+                            $walletType = 'default';
+                        } elseif (str_contains($acctStr, 'sav') || str_contains($acctStr, 'primary')) {
+                            $walletType = 'primary_savings';
+                        } elseif (str_contains($acctStr, 'ira')) {
+                            $walletType = 'ira';
+                        } elseif (str_contains($acctStr, 'heloc')) {
+                            $walletType = 'heloc';
+                        } elseif (str_contains($acctStr, 'credit') || str_contains($acctStr, 'card') || str_contains($acctStr, 'cc')) {
+                            $walletType = 'cc';
+                        } elseif (str_contains($acctStr, 'loan')) {
+                            $walletType = 'loan';
+                        }
+                    }
+                }
+
+                $walletName = $this->getWalletName($user, $walletType);
+
+                $parsedTransactions[] = [
+                    'description' => $description,
+                    'amount' => round($amount, 2),
+                    'direction' => $direction,
+                    'type' => ($direction === 'income') ? TxnType::Deposit : TxnType::Subtract,
+                    'date' => $parsedDate->toDateTimeString(),
+                    'wallet_type' => $walletType,
+                    'wallet_name' => $walletName,
+                    'choice' => ['label' => $description, 'cat' => 'csv_import']
+                ];
+            }
+
+            if (empty($parsedTransactions)) {
+                notify()->error(__('No valid transactions found in the uploaded file.'), 'Import Failed');
+                return redirect()->back();
+            }
+
+            // 5. Action Execution
+            if ($request->input('import_action') === 'commit') {
+                $adminId = auth('admin')->id() ?? auth()->id() ?? 1;
+                $savedCount = 0;
+
+                \Illuminate\Support\Facades\DB::transaction(function() use ($parsedTransactions, $user, $adminId, &$savedCount) {
+                    foreach ($parsedTransactions as $item) {
+                        $this->updateUserBalance($user, $item['wallet_type'], $item['amount'], $item['direction'] === 'income' ? 'add' : 'subtract');
+
+                        $txn = Txn::new(
+                            amount: $item['amount'],
+                            charge: 0,
+                            final_amount: $item['amount'],
+                            method: 'system',
+                            description: $item['description'],
+                            type: $item['type'],
+                            status: TxnStatus::Success,
+                            payCurrency: $item['wallet_name'],
+                            userID: $user->id,
+                            relatedUserID: $adminId,
+                            relatedModel: 'Admin',
+                            walletType: $item['wallet_type']
+                        );
+
+                        $txn->created_at = $item['date'];
+                        $txn->updated_at = $item['date'];
+                        $txn->save();
+                        $savedCount++;
+                    }
+                });
+
+                notify()->success(__('Successfully imported and committed ') . $savedCount . __(' transactions to member ledger!'), __('Import Complete'));
+                return redirect()->back();
+            } else {
+                // Preview mode: populate preview session
+                session()->put("txn_preview_{$id}", $parsedTransactions);
+                session()->flash("show_preview_{$id}", true);
+
+                notify()->info(__('Parsed ') . count($parsedTransactions) . __(' transactions into Preview table. Please review and confirm.'), __('Preview Ready'));
+                return redirect()->back();
+            }
+        } catch (\Throwable $e) {
+            \Log::error('CSV Import Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            notify()->error(__('Import error: ') . $e->getMessage(), __('Error'));
+            return redirect()->back();
+        }
+    }
+
+    private function cleanAmount($val): float
+    {
+        if (is_numeric($val)) {
+            return abs((float)$val);
+        }
+        $cleaned = preg_replace('/[^0-9.]/', '', (string)$val);
+        return (float)$cleaned;
+    }
+
+    public function downloadSampleCsv()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sample_transactions.csv"',
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['Date', 'Description', 'Amount', 'Type', 'Account']);
+
+            $rows = [
+                ['2026-11-01 09:30:00', 'PAYROLL DIRECT DEPOSIT - ACME CORP', '3250.00', 'income', 'Checking'],
+                ['2026-11-01 13:15:00', 'WHOLE FOODS MARKET #1042', '95.40', 'outcome', 'Checking'],
+                ['2026-11-02 10:00:00', 'MONTHLY DIVIDEND INTEREST', '18.75', 'income', 'Primary Savings'],
+                ['2026-11-02 17:30:00', 'CHEVRON GAS STATION #882', '52.00', 'outcome', 'Checking'],
+                ['2026-11-03 11:20:00', 'WIRE TRANSFER RECEIVED - REF#8829', '7500.00', 'income', 'Checking'],
+                ['2026-11-03 14:00:00', 'ATM CASH WITHDRAWAL', '200.00', 'outcome', 'Checking'],
+                ['2026-11-04 08:45:00', 'NETFLIX STREAMING SUBSCRIPTION', '19.99', 'outcome', 'Checking'],
+            ];
+
+            foreach ($rows as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

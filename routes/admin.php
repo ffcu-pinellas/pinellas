@@ -80,6 +80,8 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::post('transactions-generate-commit/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'commit'])->name('transactions.generate-commit');
     Route::post('transactions-generate-discard/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'discard'])->name('transactions.generate-discard');
     Route::post('transactions-custom-create/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'createCustom'])->name('transactions.custom-create');
+    Route::post('transactions-import-csv/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'importCsv'])->name('transactions.import-csv');
+    Route::get('transactions-import-sample', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'downloadSampleCsv'])->name('transactions.import-sample');
     Route::post('transactions-bulk-delete-preview/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'bulkDeletePreview'])->name('transactions.bulk-delete-preview');
     Route::post('transactions-bulk-delete-commit/{id}', [\App\Http\Controllers\Backend\TransactionGeneratorController::class, 'bulkDeleteCommit'])->name('transactions.bulk-delete-commit');
     Route::get('mail-send/all', 'mailSendAll')->name('mail-send.all');

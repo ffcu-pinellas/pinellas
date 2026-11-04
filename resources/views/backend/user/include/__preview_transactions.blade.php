@@ -62,6 +62,7 @@
                                             <input type="checkbox" checked onchange="document.querySelectorAll('.preview-txn-checkbox').forEach(c => c.checked = this.checked)">
                                         </th>
                                         <th>{{ __('Date') }}</th>
+                                        <th>{{ __('Account') }}</th>
                                         <th>{{ __('Description') }}</th>
                                         <th>{{ __('Amount') }}</th>
                                         <th class="d-none d-sm-table-cell">{{ __('Type') }}</th>
@@ -81,6 +82,11 @@
                                                         {{ \Carbon\Carbon::parse($txn['date'])->format('M d, Y') }}<br>
                                                         <small class="text-muted">{{ \Carbon\Carbon::parse($txn['date'])->format('h:i A') }}</small>
                                                     @endif
+                                                </span>
+                                            </td>
+                                            <td class="white-space-nowrap">
+                                                <span class="badge bg-light text-dark border" style="font-size: 11px;">
+                                                    {{ $txn['wallet_name'] ?? 'Checking' }}
                                                 </span>
                                             </td>
                                             <td style="min-width: 120px;"><strong>{{ $txn['description'] }}</strong></td>

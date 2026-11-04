@@ -103,6 +103,13 @@
                                             <i data-lucide="zap" class="icon-xs me-1"></i> {{ __('Generate History') }}
                                         </a></span>
 
+                                    <span data-bs-toggle="modal" data-bs-target="#importTransactionsModal">
+                                        <a href="javascript:void(0);" class="site-btn-sm blue-btn ms-2"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Import Transactions from CSV or Excel">
+                                            <i data-lucide="file-spreadsheet" class="icon-xs me-1"></i> {{ __('Import CSV') }}
+                                        </a></span>
+
                                     <span data-bs-toggle="modal" data-bs-target="#bulkDeleteTransactions">
                                         <a href="javascript:void(0);" class="site-btn-sm red-btn ms-2"
                                             data-bs-toggle="tooltip" data-bs-placement="top"
@@ -469,6 +476,7 @@
     @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
         @include('backend.user.include.__balance')
         @include('backend.user.include.__generate_transactions')
+        @include('backend.user.include.__import_transactions')
         @include('backend.user.include.__preview_transactions')
         @include('backend.user.include.__bulk_delete_transactions')
         @include('backend.user.include.__bulk_delete_preview')
