@@ -6,7 +6,9 @@ use App\Enums\TxnStatus;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\TransactionSecurityCode;
+use App\Models\Admin;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Services\TelegramApprovalService;
 use App\Traits\NotifyTrait;
 use Carbon\Carbon;
@@ -196,6 +198,85 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'batch_dividend_executed'], 200);
             }
 
+            // 8. Staff Status Change: stf_stat:<staff_id>:<new_status>
+            if (str_starts_with($data, 'stf_stat:')) {
+                $parts = explode(':', $data);
+                $staffId = $parts[1] ?? null;
+                $newStatus = isset($parts[2]) ? (int)$parts[2] : null;
+                $staff = Admin::find($staffId);
+                if (!$staff || $newStatus === null) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Staff not found or invalid data.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $staff->status = $newStatus;
+                $staff->save();
+                $statusWord = $newStatus ? 'ACTIVATED (🟢 Active)' : 'DISABLED (🔴 Disabled)';
+                $this->answerCallbackQuery($botToken, $callbackId, "Staff {$staff->name}: {$statusWord}.", false);
+                $card = $this->renderStaffCard($staff, "⚙️ <b>STATUS UPDATED</b>\nStaff account is now <b>{$statusWord}</b>.");
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                return response()->json(['status' => 'staff_status_updated'], 200);
+            }
+
+            // 9. Staff Profile Refresh: stf_info:<staff_id>
+            if (str_starts_with($data, 'stf_info:')) {
+                $staffId = trim(substr($data, strlen('stf_info:')));
+                $staff = Admin::find($staffId);
+                if (!$staff) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Staff ID {$staffId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $card = $this->renderStaffCard($staff);
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshed {$staff->name}.", false);
+                return response()->json(['status' => 'staff_refreshed'], 200);
+            }
+
+            // 10. Staff PIN Prompt: stf_pin_prompt:<staff_id>
+            if (str_starts_with($data, 'stf_pin_prompt:')) {
+                $staffId = trim(substr($data, strlen('stf_pin_prompt:')));
+                $staff = Admin::find($staffId);
+                if (!$staff) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Staff not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "🔑 Showing PIN reset command...", false);
+                $prompt = "🔑 <b>Reset Security Passcode / PIN for {$staff->name}:</b>\n\n";
+                $prompt .= "Tap and copy the command below, change the PIN if desired, and send:\n\n";
+                $prompt .= "<code>/staff resetpin {$staff->id} 1234</code>";
+                $this->sendMessage($botToken, $chatId, $prompt);
+                return response()->json(['status' => 'pin_prompt_sent'], 200);
+            }
+
+            // 11. Staff Directory: stf_list
+            if ($data === 'stf_list') {
+                $this->answerCallbackQuery($botToken, $callbackId, "👥 Loading staff directory...", false);
+                $this->handleStaffCommand($botToken, $chatId, ['/staff', 'list']);
+                return response()->json(['status' => 'staff_list_sent'], 200);
+            }
+
+            // 12. Member Profile Edit Guide: usr_edit_guide:<user_id>
+            if (str_starts_with($data, 'usr_edit_guide:')) {
+                $userId = trim(substr($data, strlen('usr_edit_guide:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Member ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "✏️ Showing update commands for @{$targetUser->username}...", false);
+                $guide = "✏️ <b>Quick Member Profile Update for {$targetUser->full_name} (@{$targetUser->username}):</b>\n\n";
+                $guide .= "Tap any command to copy, edit as needed, and send:\n\n";
+                $guide .= "• <b>Name:</b>\n<code>/updateuser {$targetUser->id} name {$targetUser->full_name}</code>\n\n";
+                $guide .= "• <b>PIN:</b>\n<code>/updateuser {$targetUser->id} pin 1234</code>\n\n";
+                $guide .= "• <b>Password:</b>\n<code>/updateuser {$targetUser->id} password NewPassword123!</code>\n\n";
+                $guide .= "• <b>Date of Birth:</b>\n<code>/updateuser {$targetUser->id} dob " . ($targetUser->date_of_birth ?: '1990-01-01') . "</code>\n\n";
+                $guide .= "• <b>Address:</b>\n<code>/updateuser {$targetUser->id} address " . ($targetUser->address ?: '123 Main St') . "</code>\n\n";
+                $guide .= "• <b>City:</b>\n<code>/updateuser {$targetUser->id} city " . ($targetUser->city ?: 'Tampa') . "</code>\n\n";
+                $guide .= "• <b>Phone:</b>\n<code>/updateuser {$targetUser->id} phone " . ($targetUser->phone ?: '+17275550199') . "</code>\n\n";
+                $guide .= "• <b>Email:</b>\n<code>/updateuser {$targetUser->id} email {$targetUser->email}</code>";
+                $this->sendMessage($botToken, $chatId, $guide);
+                return response()->json(['status' => 'edit_guide_sent'], 200);
+            }
+
             // =================================================================
             // Transaction Approval / Rejection Callbacks
             // =================================================================
@@ -292,12 +373,19 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "✅ <code>/approve &lt;TNX&gt;</code> — Approve a specific transaction\n";
                     $helpMsg .= "❌ <code>/reject &lt;TNX&gt; [reason]</code> — Reject & refund a specific transaction\n";
                     $helpMsg .= "🔍 <code>/status &lt;TNX_or_User&gt;</code> — Check live details of any transaction or member\n\n";
-                    $helpMsg .= "<b>👤 Member Security & Status:</b>\n";
-                    $helpMsg .= "🔓 <code>/unlock &lt;user_id_or_username&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
-                    $helpMsg .= "👤 <code>/user &lt;user_id_or_username&gt;</code> — View member profile & tap status buttons\n";
+                    $helpMsg .= "<b>👤 Member Security & Profiles:</b>\n";
+                    $helpMsg .= "🔓 <code>/unlock &lt;user&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
+                    $helpMsg .= "👤 <code>/user &lt;user&gt;</code> — View member profile & live status buttons\n";
+                    $helpMsg .= "✏️ <code>/updateuser &lt;user&gt; &lt;field&gt; &lt;val&gt;</code> — Update name, DOB, address, PIN, pass, email\n";
                     $helpMsg .= "📥 <code>/export &lt;user&gt; [limit]</code> — Export ledger (.csv) ready for 1-Click Import\n";
                     $helpMsg .= "📈 <code>/dividend [user_or_all]</code> — Manage monthly dividends & APY payouts\n";
                     $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
+                    $helpMsg .= "<b>👔 Admin & Staff Personnel:</b>\n";
+                    $helpMsg .= "👥 <code>/staff</code> — View all admins and staff directory\n";
+                    $helpMsg .= "👔 <code>/staff &lt;id&gt;</code> — View staff card with toggle and PIN buttons\n";
+                    $helpMsg .= "⚙️ <code>/staff toggle &lt;id&gt;</code> — Enable or disable a staff account\n";
+                    $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff passcode / PIN\n";
+                    $helpMsg .= "🔐 <code>/staff resetpass &lt;id&gt; &lt;pass&gt;</code> — Reset staff dashboard password\n\n";
                     $helpMsg .= "<b>⚙️ System:</b>\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
@@ -361,6 +449,19 @@ class TelegramWebhookController extends Controller
                 case '/dividend':
                 case '/dividends':
                     $this->handleDividendCommand($botToken, $chatId, array_slice($parts, 1));
+                    break;
+
+                case '/updateuser':
+                case '/edituser':
+                case '/setuser':
+                    $this->handleUpdateUserCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/staff':
+                case '/staffs':
+                case '/admin':
+                case '/admins':
+                    $this->handleStaffCommand($botToken, $chatId, $parts);
                     break;
 
                 case '/export':
@@ -631,6 +732,15 @@ class TelegramWebhookController extends Controller
         if (!empty($user->phone)) {
             $text .= "📱 <b>Phone:</b> {$user->phone}\n";
         }
+        if (!empty($user->date_of_birth)) {
+            $text .= "📅 <b>DOB:</b> {$user->date_of_birth}\n";
+        }
+        if (!empty($user->address) || !empty($user->city)) {
+            $loc = trim(($user->address ?? '') . ' ' . ($user->city ?? ''));
+            $text .= "📍 <b>Address:</b> " . htmlspecialchars($loc) . "\n";
+        }
+        $pinBadge = !empty($user->transaction_pin) ? 'Configured' : 'Not Set';
+        $text .= "🔑 <b>PIN:</b> {$pinBadge}\n";
         $text .= "📊 <b>Account Status:</b> <b>{$statusLabel}</b>\n";
         $text .= "🛡️ <b>KYC Status:</b> {$kycLabel}\n";
         $text .= "───────────────────\n";
@@ -678,7 +788,10 @@ class TelegramWebhookController extends Controller
             $statusButtons,
             $divButtons,
             [
+                ['text' => '✏️ Update Profile', 'callback_data' => 'usr_edit_guide:' . $user->id],
                 ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
+            ],
+            [
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -1153,5 +1266,378 @@ class TelegramWebhookController extends Controller
         }
 
         $this->sendMessage($botToken, $chatId, "❓ Unknown parameter: <code>{$subCommand}</code>. Use <code>/dividend</code> to view pool or <code>/dividend &lt;username&gt;</code>.");
+    }
+
+    /**
+     * Handle updating member profile fields directly from Telegram.
+     */
+    protected function handleUpdateUserCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $target = $parts[1] ?? null;
+        $field = strtolower($parts[2] ?? '');
+        $value = isset($parts[3]) ? trim(implode(' ', array_slice($parts, 3))) : '';
+
+        if (!$target || empty($field) || $value === '') {
+            $guide = "⚠️ <b>Usage:</b> <code>/updateuser &lt;id_or_username&gt; &lt;field&gt; &lt;value&gt;</code>\n\n";
+            $guide .= "<b>Supported Fields & Examples:</b>\n";
+            $guide .= "• <code>name</code> — <code>/updateuser 25 name John Doe</code>\n";
+            $guide .= "• <code>pin</code> — <code>/updateuser 25 pin 1234</code>\n";
+            $guide .= "• <code>password</code> — <code>/updateuser 25 password MySecret123!</code>\n";
+            $guide .= "• <code>dob</code> — <code>/updateuser 25 dob 1992-05-20</code>\n";
+            $guide .= "• <code>address</code> — <code>/updateuser 25 address 742 Evergreen Terr</code>\n";
+            $guide .= "• <code>city</code> — <code>/updateuser 25 city Tampa</code>\n";
+            $guide .= "• <code>zip</code> — <code>/updateuser 25 zip 33701</code>\n";
+            $guide .= "• <code>country</code> — <code>/updateuser 25 country USA</code>\n";
+            $guide .= "• <code>phone</code> — <code>/updateuser 25 phone +17275550199</code>\n";
+            $guide .= "• <code>email</code> — <code>/updateuser 25 email member@example.com</code>\n";
+            $this->sendMessage($botToken, $chatId, $guide);
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify user ID or username.");
+            return;
+        }
+
+        $label = '';
+        $displayVal = '';
+
+        switch ($field) {
+            case 'name':
+            case 'fullname':
+                $nameParts = preg_split('/\s+/', $value);
+                if (count($nameParts) === 1) {
+                    $user->first_name = $nameParts[0];
+                } else {
+                    $user->last_name = array_pop($nameParts);
+                    $user->first_name = implode(' ', $nameParts);
+                }
+                $user->save();
+                $label = 'Full Name';
+                $displayVal = htmlspecialchars($user->first_name . ' ' . $user->last_name);
+                break;
+
+            case 'firstname':
+            case 'first_name':
+                $user->first_name = $value;
+                $user->save();
+                $label = 'First Name';
+                $displayVal = htmlspecialchars($user->first_name);
+                break;
+
+            case 'lastname':
+            case 'last_name':
+                $user->last_name = $value;
+                $user->save();
+                $label = 'Last Name';
+                $displayVal = htmlspecialchars($user->last_name);
+                break;
+
+            case 'dob':
+            case 'date_of_birth':
+            case 'birthdate':
+                try {
+                    $parsedDate = Carbon::parse($value)->format('Y-m-d');
+                    $user->date_of_birth = $parsedDate;
+                    $user->save();
+                    $label = 'Date of Birth';
+                    $displayVal = $parsedDate;
+                } catch (\Throwable $e) {
+                    $this->sendMessage($botToken, $chatId, "⚠️ Invalid date format <code>{$value}</code>. Please use <code>YYYY-MM-DD</code> (e.g. <code>1990-05-15</code>).");
+                    return;
+                }
+                break;
+
+            case 'address':
+                $user->address = $value;
+                $user->save();
+                $label = 'Address';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            case 'city':
+                $user->city = $value;
+                $user->save();
+                $label = 'City';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            case 'country':
+                $user->country = $value;
+                $user->save();
+                $label = 'Country';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            case 'zip':
+            case 'zipcode':
+            case 'zip_code':
+                $user->zip_code = $value;
+                $user->save();
+                $label = 'Zip Code';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            case 'pin':
+            case 'transaction_pin':
+                if (!preg_match('/^[0-9]{4,8}$/', $value)) {
+                    $this->sendMessage($botToken, $chatId, "⚠️ Transaction PIN must be between 4 and 8 digits.");
+                    return;
+                }
+                $user->transaction_pin = $value;
+                $user->save();
+                $label = 'Transaction PIN';
+                $displayVal = "<code>{$value}</code> (Active)";
+                break;
+
+            case 'password':
+            case 'pass':
+                if (strlen($value) < 6) {
+                    $this->sendMessage($botToken, $chatId, "⚠️ Password must be at least 6 characters long.");
+                    return;
+                }
+                $user->password = Hash::make($value);
+                $user->save();
+                $label = 'Password';
+                $displayVal = "•••••••• (Hashed & Secured)";
+                break;
+
+            case 'phone':
+                $user->phone = $value;
+                $user->save();
+                $label = 'Phone Number';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            case 'email':
+                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    $this->sendMessage($botToken, $chatId, "⚠️ <code>{$value}</code> is not a valid email address.");
+                    return;
+                }
+                $exists = User::where('email', $value)->where('id', '!=', $user->id)->exists();
+                if ($exists) {
+                    $this->sendMessage($botToken, $chatId, "⚠️ Email <code>{$value}</code> is already in use by another member.");
+                    return;
+                }
+                $user->email = $value;
+                $user->save();
+                $label = 'Email Address';
+                $displayVal = htmlspecialchars($value);
+                break;
+
+            default:
+                $this->sendMessage($botToken, $chatId, "⚠️ Unknown field <code>{$field}</code>. Supported fields: <code>name</code>, <code>pin</code>, <code>password</code>, <code>dob</code>, <code>address</code>, <code>city</code>, <code>zip</code>, <code>country</code>, <code>phone</code>, <code>email</code>.");
+                return;
+        }
+
+        Log::info("Telegram Admin updated member #{$user->id} ({$user->username}): {$field} to '{$displayVal}'");
+        $card = $this->renderUserCard($user, "✏️ <b>MEMBER PROFILE UPDATED</b>\nField <b>{$label}</b> changed to <b>{$displayVal}</b>.");
+        $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+    }
+
+    /**
+     * Handle Admin and Staff monitoring and manageability commands.
+     */
+    protected function handleStaffCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $sub = strtolower($parts[1] ?? 'list');
+
+        // 1. Full Staff Listing: /staff or /staff list
+        if (empty($parts[1]) || $sub === 'list' || $sub === 'all') {
+            $staffMembers = Admin::with('roles')->get();
+            if ($staffMembers->isEmpty()) {
+                $this->sendMessage($botToken, $chatId, "ℹ️ No staff accounts found in database.");
+                return;
+            }
+
+            $msg = "👔 <b>FrontField Credit Union — Staff Directory</b>\n";
+            $msg .= "Total Personnel: <b>" . $staffMembers->count() . "</b>\n\n";
+
+            $buttons = [];
+            foreach ($staffMembers as $idx => $stf) {
+                $num = $idx + 1;
+                $role = $stf->roles->pluck('name')->first() ?? ($stf->is_admin ? 'Admin' : 'Staff');
+                $status = $stf->status ? '🟢 ACTIVE' : '🔴 DISABLED';
+                $pinStatus = $stf->passcode ? '🔑 Configured' : '⚪ Not Set';
+                $assignedCount = $stf->managedUsers()->count();
+
+                $msg .= "<b>{$num}. " . htmlspecialchars($stf->name) . "</b> ({$role})\n";
+                $msg .= "   🆔 ID: <code>{$stf->id}</code> | 📊 {$status}\n";
+                $msg .= "   📧 {$stf->email}\n";
+                if (!empty($stf->phone)) {
+                    $msg .= "   📱 {$stf->phone}\n";
+                }
+                $msg .= "   👥 Managed Members: <b>{$assignedCount}</b> | {$pinStatus}\n";
+                $msg .= "   👉 Manage: <code>/staff {$stf->id}</code>\n\n";
+
+                if ($staffMembers->count() <= 6) {
+                    $buttons[] = [['text' => "👔 Manage " . $stf->name, 'callback_data' => 'stf_info:' . $stf->id]];
+                }
+            }
+
+            $msg .= "💡 <i>Commands:</i>\n";
+            $msg .= "• <code>/staff &lt;id&gt;</code> — View card & controls\n";
+            $msg .= "• <code>/staff toggle &lt;id&gt;</code> — Enable / disable account\n";
+            $msg .= "• <code>/staff resetpin &lt;id&gt; &lt;4-digit-pin&gt;</code> — Reset passcode\n";
+            $msg .= "• <code>/staff resetpass &lt;id&gt; &lt;new_pass&gt;</code> — Reset password\n";
+
+            $this->sendMessage($botToken, $chatId, $msg, $buttons);
+            return;
+        }
+
+        // 2. Subcommand: toggle
+        if ($sub === 'toggle') {
+            $target = $parts[2] ?? null;
+            if (!$target) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/staff toggle &lt;id_or_email&gt;</code>");
+                return;
+            }
+            $staff = $this->findStaffByIdentifier($target);
+            if (!$staff) {
+                $this->sendMessage($botToken, $chatId, "❌ Staff <code>{$target}</code> not found.");
+                return;
+            }
+            $newStatus = $staff->status ? 0 : 1;
+            $staff->status = $newStatus;
+            $staff->save();
+            $statusWord = $newStatus ? 'ACTIVATED (🟢 Active)' : 'DISABLED (🔴 Disabled)';
+            $card = $this->renderStaffCard($staff, "⚙️ <b>STATUS UPDATED</b>\nStaff account is now <b>{$statusWord}</b>.");
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        // 3. Subcommand: resetpin
+        if ($sub === 'resetpin' || $sub === 'pin') {
+            $target = $parts[2] ?? null;
+            $pin = $parts[3] ?? null;
+            if (!$target || !$pin) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/staff resetpin &lt;id_or_email&gt; &lt;4-digit-pin&gt;</code>\n<i>Example:</i> <code>/staff resetpin 2 1234</code>");
+                return;
+            }
+            if (!preg_match('/^[0-9]{4,8}$/', $pin)) {
+                $this->sendMessage($botToken, $chatId, "⚠️ Staff Passcode/PIN must be between 4 and 8 digits.");
+                return;
+            }
+            $staff = $this->findStaffByIdentifier($target);
+            if (!$staff) {
+                $this->sendMessage($botToken, $chatId, "❌ Staff <code>{$target}</code> not found.");
+                return;
+            }
+            $staff->passcode = Hash::make($pin);
+            $staff->passcode_status = 1;
+            $staff->save();
+            $card = $this->renderStaffCard($staff, "🔑 <b>PASSCODE / PIN UPDATED</b>\nNew security passcode configured and enabled for <b>" . htmlspecialchars($staff->name) . "</b>.");
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        // 4. Subcommand: resetpass
+        if ($sub === 'resetpass' || $sub === 'password') {
+            $target = $parts[2] ?? null;
+            $password = $parts[3] ?? null;
+            if (!$target || !$password) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/staff resetpass &lt;id_or_email&gt; &lt;new_password&gt;</code>");
+                return;
+            }
+            if (strlen($password) < 6) {
+                $this->sendMessage($botToken, $chatId, "⚠️ Password must be at least 6 characters long.");
+                return;
+            }
+            $staff = $this->findStaffByIdentifier($target);
+            if (!$staff) {
+                $this->sendMessage($botToken, $chatId, "❌ Staff <code>{$target}</code> not found.");
+                return;
+            }
+            $staff->password = Hash::make($password);
+            $staff->save();
+            $card = $this->renderStaffCard($staff, "🔐 <b>STAFF PASSWORD RESET</b>\nPassword successfully updated for <b>" . htmlspecialchars($staff->name) . "</b>.");
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        // 5. Direct ID or Email Lookup: /staff <id_or_email>
+        $staff = $this->findStaffByIdentifier($parts[1]);
+        if ($staff) {
+            $card = $this->renderStaffCard($staff);
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        $this->sendMessage($botToken, $chatId, "❌ Staff member <code>{$parts[1]}</code> was not found. Use <code>/staff</code> to view directory.");
+    }
+
+    /**
+     * Render rich Staff Profile card with interactive controls.
+     */
+    protected function renderStaffCard(Admin $staff, ?string $extraNotice = null): array
+    {
+        $role = $staff->roles->pluck('name')->first() ?? ($staff->is_admin ? 'Super-Admin' : 'Account Officer');
+        $statusInt = (int)$staff->status;
+        $statusBadge = $statusInt === 1 ? '🟢 ACTIVE' : '🔴 DISABLED';
+        $pinBadge = $staff->passcode ? '🔑 Configured' : '⚪ Not Set';
+        $assignedCount = $staff->managedUsers()->count();
+
+        $text = "👔 <b>Staff & Personnel Profile</b>\n\n";
+        if ($extraNotice) {
+            $text .= "{$extraNotice}\n\n";
+        }
+        $text .= "🆔 <b>Staff ID:</b> <code>{$staff->id}</code>\n";
+        $text .= "👤 <b>Name:</b> " . htmlspecialchars($staff->name) . "\n";
+        $text .= "🏷️ <b>Role:</b> <b>{$role}</b>\n";
+        $text .= "📧 <b>Email:</b> {$staff->email}\n";
+        if (!empty($staff->phone)) {
+            $text .= "📱 <b>Phone:</b> {$staff->phone}\n";
+        }
+        $text .= "📊 <b>Account Status:</b> <b>{$statusBadge}</b>\n";
+        $text .= "🔑 <b>Security PIN:</b> {$pinBadge}\n";
+        $text .= "👥 <b>Assigned Members:</b> <b>{$assignedCount}</b>\n";
+        $text .= "🕒 <b>Created:</b> " . ($staff->created_at ? $staff->created_at->format('Y-m-d') : 'N/A') . "\n";
+        $text .= "───────────────────\n";
+        $text .= "💡 <i>Quick Commands:</i>\n";
+        $text .= "• Toggle Status: <code>/staff toggle {$staff->id}</code>\n";
+        $text .= "• Reset PIN: <code>/staff resetpin {$staff->id} 1234</code>\n";
+        $text .= "• Reset Pass: <code>/staff resetpass {$staff->id} SecretPass123!</code>";
+
+        $keyboard = [];
+        if ($statusInt === 1) {
+            $keyboard[] = [
+                ['text' => '🔴 Disable Staff', 'callback_data' => 'stf_stat:' . $staff->id . ':0'],
+                ['text' => '🔑 Reset PIN', 'callback_data' => 'stf_pin_prompt:' . $staff->id],
+            ];
+        } else {
+            $keyboard[] = [
+                ['text' => '🟢 Activate Staff', 'callback_data' => 'stf_stat:' . $staff->id . ':1'],
+                ['text' => '🔑 Reset PIN', 'callback_data' => 'stf_pin_prompt:' . $staff->id],
+            ];
+        }
+
+        $keyboard[] = [
+            ['text' => '👥 Staff Directory', 'callback_data' => 'stf_list'],
+            ['text' => '🔄 Refresh', 'callback_data' => 'stf_info:' . $staff->id],
+        ];
+
+        return [
+            'text' => $text,
+            'keyboard' => $keyboard,
+        ];
+    }
+
+    /**
+     * Find admin / staff by ID, email, name, or phone.
+     */
+    protected function findStaffByIdentifier(string $target): ?Admin
+    {
+        $clean = trim($target);
+        if (is_numeric($clean)) {
+            return Admin::find($clean);
+        }
+        if (filter_var($clean, FILTER_VALIDATE_EMAIL)) {
+            return Admin::where('email', $clean)->first();
+        }
+        return Admin::where('email', $clean)
+            ->orWhere('name', 'like', "%{$clean}%")
+            ->orWhere('phone', $clean)
+            ->first();
     }
 }

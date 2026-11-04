@@ -22,15 +22,26 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info mb-3">
-                        <div class="d-flex align-items-center">
-                            <i data-lucide="eye" class="me-2 text-info"></i>
-                            <div>
-                                <strong>{{ __('Preview Mode:') }}</strong> {{ __('These transactions have not been saved yet. You can uncheck any transaction you wish to exclude.') }}<br>
-                                {{ __('Target Wallet:') }} <strong>{{ $previewData[0]['wallet_name'] ?? 'N/A' }}</strong><br>
-                                {{ __('Net Impact:') }}
-                                <span class="text-success ms-2">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</span>
-                                <span class="text-danger ms-2">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</span>
+                    @php $netImpact = $totalIncome - $totalOutcome; @endphp
+                    <div class="alert alert-info mb-3 p-3 rounded-3" style="background-color: #f0f7ff; border: 1px solid #c8e1ff;">
+                        <div class="d-flex align-items-start gap-3">
+                            <i data-lucide="calculator" class="text-primary mt-1 flex-shrink-0" style="width: 24px; height: 24px;"></i>
+                            <div class="flex-grow-1" style="font-size: 13px;">
+                                <div class="fw-bold text-dark mb-1">{{ __('Transaction Batch Calculation Breakdown') }}</div>
+                                <div class="d-flex flex-wrap gap-3 my-1">
+                                    <span>{{ __('Total Inflows:') }} <strong class="text-success">+{{ setting('currency_symbol','$') }}{{ number_format($totalIncome, 2) }}</strong></span>
+                                    <span>{{ __('Total Outflows:') }} <strong class="text-danger">-{{ setting('currency_symbol','$') }}{{ number_format($totalOutcome, 2) }}</strong></span>
+                                    <span>{{ __('Net Balance Impact:') }} 
+                                        @if($netImpact >= 0)
+                                            <strong class="text-success fw-bold">+{{ setting('currency_symbol','$') }}{{ number_format($netImpact, 2) }}</strong>
+                                        @else
+                                            <strong class="text-danger fw-bold">-{{ setting('currency_symbol','$') }}{{ number_format(abs($netImpact), 2) }}</strong>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="text-muted mt-1" style="font-size: 11px;">
+                                    {{ __('Uncheck any rows you wish to exclude. Target Account: ') }}<strong>{{ $previewData[0]['wallet_name'] ?? 'Primary Account' }}</strong>
+                                </div>
                             </div>
                         </div>
                     </div>

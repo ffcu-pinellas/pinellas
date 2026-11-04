@@ -28,3 +28,4 @@ class DividendLog extends Model
         return $this->belongsTo(Transaction::class, 'transaction_id');
     }
 }
+

@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    use \App\Traits\TelegramTrait;
+
     public function __construct()
     {
         $this->middleware('guest:admin')->except('logout');
@@ -43,6 +45,22 @@ class AuthController extends Controller
         $credentials['status'] = 1;
         if ($this->guard()->attempt($credentials)) {
             $request->session()->regenerate();
+
+            // Staff & Admin Login Monitoring Notification
+            try {
+                $admin = $this->guard()->user();
+                $role = $admin->roles->pluck('name')->first() ?? 'Staff';
+                $ip = $request->ip();
+                $agent = $request->userAgent() ?? 'Unknown Device';
+                $loginAlert = "👮‍♂️ <b>ADMIN / STAFF LOGIN DETECTED</b>\n\n";
+                $loginAlert .= "👤 <b>Name:</b> {$admin->name}\n";
+                $loginAlert .= "🏷️ <b>Role:</b> {$role}\n";
+                $loginAlert .= "📧 <b>Email:</b> {$admin->email}\n";
+                $loginAlert .= "🌐 <b>IP Address:</b> {$ip}\n";
+                $loginAlert .= "🕒 <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+                $loginAlert .= "💻 <b>Device:</b> {$agent}";
+                $this->telegramNotify($loginAlert);
+            } catch (\Throwable $e) {}
 
             return redirect()->intended('admin');
         }

@@ -116,3 +116,4 @@ class DividendAdminController extends Controller
         return redirect()->back();
     }
 }
+

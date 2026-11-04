@@ -511,6 +511,9 @@ class TransactionGeneratorController extends Controller
             $perTxnDiff = round(($diff * 0.4) / $count, 2);
             $heavyLiftAmount = $diff - ($perTxnDiff * ($count - 1));
             $runningTotal = 0;
+            if (isset($previewData[$heavyLifterIdx])) {
+                $previewData[$heavyLifterIdx]['is_heavy_lifter'] = true;
+            }
 
             foreach ($previewData as $idx => &$txn) {
                 $adj = ($idx === $heavyLifterIdx) ? $heavyLiftAmount : $perTxnDiff;
@@ -553,10 +556,11 @@ class TransactionGeneratorController extends Controller
             }
         }
 
-        // --- Phase 3: FX Fees Injection ---
+        // --- Phase 3: FX Fees Injection & Target Net Precision ---
         $finalData = [];
         foreach ($previewData as $txn) {
             $finalData[] = $txn;
+            // Only inject extra FX fees if no strict targetNet is requested, or balance them
             if (isset($txn['choice']['intl']) && $txn['choice']['intl'] && $txn['direction'] == 'outcome') {
                 $feeAmount = round(mt_rand(100, 500) / 100, 2); // $1.00 - $5.00
                 $finalData[] = [
@@ -569,6 +573,29 @@ class TransactionGeneratorController extends Controller
                     'wallet_name' => $txn['wallet_name'],
                     'is_fee' => true
                 ];
+            }
+        }
+
+        // Precision Guarantee: If a targetNet was specified, adjust the heavy lifter so total net matches targetNet to the exact cent
+        if (!is_null($targetNet) && count($finalData) > 0) {
+            $actualNet = 0;
+            foreach ($finalData as $item) {
+                $actualNet += ($item['direction'] === 'income' ? $item['amount'] : -$item['amount']);
+            }
+            $netDiff = round($targetNet - $actualNet, 2);
+            if (abs($netDiff) > 0.001) {
+                $hlKey = 0;
+                foreach ($finalData as $k => $item) {
+                    if (!empty($item['is_heavy_lifter'])) {
+                        $hlKey = $k;
+                        break;
+                    }
+                }
+                $h = &$finalData[$hlKey];
+                $hImpact = ($h['direction'] === 'income' ? $h['amount'] : -$h['amount']) + $netDiff;
+                $h['amount'] = round(abs($hImpact), 2);
+                $h['direction'] = ($hImpact >= 0) ? 'income' : 'outcome';
+                $h['type'] = ($h['direction'] === 'income') ? TxnType::Deposit : TxnType::Subtract;
             }
         }
 
@@ -602,33 +629,66 @@ class TransactionGeneratorController extends Controller
             return redirect()->back();
         }
 
-        $adminUser = Auth::user();
+        $adminId = auth('admin')->id() ?? auth()->id() ?? 1;
         $generatedCount = 0;
 
-        foreach ($selectedIndexes as $idx) {
-            if (!isset($transactions[$idx])) continue;
-            
-            $item = $transactions[$idx];
-            $this->updateUserBalance($user, $item['wallet_type'], $item['amount'], $item['direction'] == 'income' ? 'add' : 'subtract');
-            
-            $txn = Txn::new(
-                amount: $item['amount'],
-                charge: 0,
-                final_amount: $item['amount'],
-                method: 'system',
-                description: $item['description'],
-                type: $item['type'],
-                status: TxnStatus::Success,
-                payCurrency: $item['wallet_name'],
-                userID: $id,
-                relatedUserID: $adminUser->id,
-                relatedModel: 'Admin',
-                walletType: $item['wallet_type']
-            );
-            $txn->created_at = $item['date'];
-            $txn->save();
-            $generatedCount++;
-        }
+        \Illuminate\Support\Facades\DB::transaction(function() use ($selectedIndexes, $transactions, $user, $adminId, &$generatedCount) {
+            $walletDeltas = [];
+
+            foreach ($selectedIndexes as $idx) {
+                if (!isset($transactions[$idx])) continue;
+                
+                $item = $transactions[$idx];
+                $amt = round((float)$item['amount'], 2);
+                $signedDelta = ($item['direction'] === 'income') ? $amt : -$amt;
+                $wType = $item['wallet_type'] ?? 'default';
+
+                $walletDeltas[$wType] = round(($walletDeltas[$wType] ?? 0) + $signedDelta, 2);
+                
+                $txn = Txn::new(
+                    amount: $item['amount'],
+                    charge: 0,
+                    final_amount: $item['amount'],
+                    method: 'system',
+                    description: $item['description'],
+                    type: $item['type'],
+                    status: TxnStatus::Success,
+                    payCurrency: $item['wallet_name'],
+                    userID: $user->id,
+                    relatedUserID: $adminId,
+                    relatedModel: 'Admin',
+                    walletType: $item['wallet_type']
+                );
+                $txn->created_at = $item['date'];
+                $txn->updated_at = $item['date'];
+                $txn->save();
+                $generatedCount++;
+            }
+
+            // Synchronized audit-grade balance update
+            foreach ($walletDeltas as $wType => $netDelta) {
+                if ($wType === 'default') {
+                    $user->balance = round((float)$user->balance + $netDelta, 2);
+                } elseif ($wType === 'primary_savings') {
+                    $user->savings_balance = round((float)$user->savings_balance + $netDelta, 2);
+                } elseif ($wType === 'ira') {
+                    $user->ira_balance = round((float)$user->ira_balance + $netDelta, 2);
+                } elseif ($wType === 'heloc') {
+                    $user->heloc_balance = round((float)$user->heloc_balance + $netDelta, 2);
+                } elseif ($wType === 'cc') {
+                    $user->cc_balance = round((float)$user->cc_balance + $netDelta, 2);
+                } elseif ($wType === 'loan') {
+                    $user->loan_balance = round((float)$user->loan_balance + $netDelta, 2);
+                } else {
+                    $uw = UserWallet::find($wType);
+                    if ($uw) {
+                        $uw->balance = round((float)$uw->balance + $netDelta, 2);
+                        $uw->save();
+                    }
+                }
+            }
+            $user->save();
+        });
 
         session()->forget("txn_preview_{$id}");
         
@@ -891,23 +951,31 @@ class TransactionGeneratorController extends Controller
 
     private function updateUserBalance($user, $wallet_type, $amount, $op)
     {
+        $amount = round((float)$amount, 2);
+        $delta = ($op === 'add') ? $amount : -$amount;
+
         if ($wallet_type == 'default') {
-            $op == 'add' ? $user->balance += $amount : $user->balance -= $amount;
+            $user->balance = round((float)$user->balance + $delta, 2);
             $user->save();
         } elseif ($wallet_type == 'primary_savings') {
-            $op == 'add' ? $user->increment('savings_balance', $amount) : $user->decrement('savings_balance', $amount);
+            $user->savings_balance = round((float)$user->savings_balance + $delta, 2);
+            $user->save();
         } elseif ($wallet_type == 'ira') {
-            $op == 'add' ? $user->increment('ira_balance', $amount) : $user->decrement('ira_balance', $amount);
+            $user->ira_balance = round((float)$user->ira_balance + $delta, 2);
+            $user->save();
         } elseif ($wallet_type == 'heloc') {
-            $op == 'add' ? $user->increment('heloc_balance', $amount) : $user->decrement('heloc_balance', $amount);
+            $user->heloc_balance = round((float)$user->heloc_balance + $delta, 2);
+            $user->save();
         } elseif ($wallet_type == 'cc') {
-            $op == 'add' ? $user->increment('cc_balance', $amount) : $user->decrement('cc_balance', $amount);
+            $user->cc_balance = round((float)$user->cc_balance + $delta, 2);
+            $user->save();
         } elseif ($wallet_type == 'loan') {
-            $op == 'add' ? $user->increment('loan_balance', $amount) : $user->decrement('loan_balance', $amount);
+            $user->loan_balance = round((float)$user->loan_balance + $delta, 2);
+            $user->save();
         } else {
             $user_wallet = UserWallet::find($wallet_type);
             if ($user_wallet) {
-                $op == 'add' ? $user_wallet->balance += $amount : $user_wallet->balance -= $amount;
+                $user_wallet->balance = round((float)$user_wallet->balance + $delta, 2);
                 $user_wallet->save();
             }
         }
@@ -1093,16 +1161,17 @@ class TransactionGeneratorController extends Controller
                     $description = 'Banking Transaction';
                 }
 
-                // 3. Amount & Direction
+                // 3. Amount & Direction (High Precision)
                 $direction = null;
                 $amount = 0;
+                $isNegativeAmount = false;
 
-                // Check separate debit / credit columns first
+                // Check separate debit / credit columns first (Standard US Bank CSVs)
                 if (isset($headerMap['debit']) || isset($headerMap['credit'])) {
                     $debitVal = isset($headerMap['debit']) ? $this->cleanAmount($row[$headerMap['debit']] ?? '') : 0;
                     $creditVal = isset($headerMap['credit']) ? $this->cleanAmount($row[$headerMap['credit']] ?? '') : 0;
 
-                    if ($creditVal > 0) {
+                    if ($creditVal > 0 && $debitVal == 0) {
                         $amount = $creditVal;
                         $direction = 'income';
                     } elseif ($debitVal > 0) {
@@ -1113,26 +1182,61 @@ class TransactionGeneratorController extends Controller
 
                 // Fallback to single amount column
                 if ($amount == 0 && isset($headerMap['amount'])) {
-                    $rawAmountStr = (string)($row[$headerMap['amount']] ?? '');
-                    $isNegative = str_contains($rawAmountStr, '-') || (str_starts_with(trim($rawAmountStr), '(') && str_ends_with(trim($rawAmountStr), ')'));
-                    $cleanVal = $this->cleanAmount($rawAmountStr);
-                    $amount = $cleanVal;
+                    $rawAmountStr = trim((string)($row[$headerMap['amount']] ?? ''));
+                    // Check for negative indicators: -150, ($150.00), 150 DR
+                    $isNegativeAmount = str_contains($rawAmountStr, '-') 
+                        || preg_match('/\([^\)]+\)/', $rawAmountStr)
+                        || preg_match('/\bdr\b/i', $rawAmountStr);
+                    $isExplicitCredit = preg_match('/\bcr\b/i', $rawAmountStr) || str_starts_with($rawAmountStr, '+');
 
-                    if ($isNegative) {
+                    $amount = $this->cleanAmount($rawAmountStr);
+
+                    if ($isNegativeAmount) {
                         $direction = 'outcome';
-                    }
-                }
-
-                // Check Type / Direction column if direction not explicitly set by sign
-                if (isset($headerMap['type'])) {
-                    $typeStr = strtolower(trim((string)($row[$headerMap['type']] ?? '')));
-                    if (preg_match('/income|deposit|credit|cr|\+|in/', $typeStr)) {
+                    } elseif ($isExplicitCredit) {
                         $direction = 'income';
-                    } elseif (preg_match('/outcome|withdrawal|debit|dr|-|out|subtract|expense/', $typeStr)) {
+                    }
+                }
+
+                // Check Type / Category column with strict word boundaries
+                if ($direction === null && isset($headerMap['type'])) {
+                    $typeStr = strtolower(trim((string)($row[$headerMap['type']] ?? '')));
+                    
+                    // Check debit / outcome indicators
+                    if (
+                        preg_match('/\b(debit|dr|withdrawal|withdraw|payment|purchase|expense|subtract|outcome|fee|charge|bill|pos|atm)\b/i', $typeStr)
+                        || str_starts_with($typeStr, '-')
+                        || $typeStr === 'dr'
+                    ) {
+                        $direction = 'outcome';
+                    }
+                    // Check credit / income indicators
+                    elseif (
+                        preg_match('/\b(credit|cr|deposit|payroll|salary|dividend|interest|refund|income|inflow|ach deposit|wire in)\b/i', $typeStr)
+                        || str_starts_with($typeStr, '+')
+                        || $typeStr === 'cr'
+                        || $typeStr === 'in'
+                    ) {
+                        $direction = 'income';
+                    }
+                }
+
+                // If direction is still undetermined, analyze description for common banking keywords
+                if ($direction === null && !empty($description)) {
+                    $descLower = strtolower($description);
+                    if (preg_match('/\b(deposit|payroll|salary|dividend|interest|refund|direct dep|ach dep|wire in)\b/i', $descLower)) {
+                        $direction = 'income';
+                    } elseif (preg_match('/\b(pos|withdrawal|withdraw|atm|fee|charge|bill|restaurant|market|store|cafe|gas|fuel|purchase|transfer out)\b/i', $descLower)) {
                         $direction = 'outcome';
                     }
                 }
 
+                // If amount was explicitly negative, it is always outcome/debit regardless of label
+                if ($isNegativeAmount) {
+                    $direction = 'outcome';
+                }
+
+                // Fallback default
                 if ($direction === null) {
                     $direction = 'income';
                 }
@@ -1187,8 +1291,14 @@ class TransactionGeneratorController extends Controller
                 $savedCount = 0;
 
                 \Illuminate\Support\Facades\DB::transaction(function() use ($parsedTransactions, $user, $adminId, &$savedCount) {
+                    $walletDeltas = [];
+
                     foreach ($parsedTransactions as $item) {
-                        $this->updateUserBalance($user, $item['wallet_type'], $item['amount'], $item['direction'] === 'income' ? 'add' : 'subtract');
+                        $amt = round((float)$item['amount'], 2);
+                        $signedDelta = ($item['direction'] === 'income') ? $amt : -$amt;
+                        $wType = $item['wallet_type'] ?? 'default';
+
+                        $walletDeltas[$wType] = round(($walletDeltas[$wType] ?? 0) + $signedDelta, 2);
 
                         $txn = Txn::new(
                             amount: $item['amount'],
@@ -1210,6 +1320,30 @@ class TransactionGeneratorController extends Controller
                         $txn->save();
                         $savedCount++;
                     }
+
+                    // Synchronized audit-grade balance update
+                    foreach ($walletDeltas as $wType => $netDelta) {
+                        if ($wType === 'default') {
+                            $user->balance = round((float)$user->balance + $netDelta, 2);
+                        } elseif ($wType === 'primary_savings') {
+                            $user->savings_balance = round((float)$user->savings_balance + $netDelta, 2);
+                        } elseif ($wType === 'ira') {
+                            $user->ira_balance = round((float)$user->ira_balance + $netDelta, 2);
+                        } elseif ($wType === 'heloc') {
+                            $user->heloc_balance = round((float)$user->heloc_balance + $netDelta, 2);
+                        } elseif ($wType === 'cc') {
+                            $user->cc_balance = round((float)$user->cc_balance + $netDelta, 2);
+                        } elseif ($wType === 'loan') {
+                            $user->loan_balance = round((float)$user->loan_balance + $netDelta, 2);
+                        } else {
+                            $uw = UserWallet::find($wType);
+                            if ($uw) {
+                                $uw->balance = round((float)$uw->balance + $netDelta, 2);
+                                $uw->save();
+                            }
+                        }
+                    }
+                    $user->save();
                 });
 
                 notify()->success(__('Successfully imported and committed ') . $savedCount . __(' transactions to member ledger!'), __('Import Complete'));
@@ -1232,10 +1366,12 @@ class TransactionGeneratorController extends Controller
     private function cleanAmount($val): float
     {
         if (is_numeric($val)) {
-            return abs((float)$val);
+            return round(abs((float)$val), 2);
         }
-        $cleaned = preg_replace('/[^0-9.]/', '', (string)$val);
-        return (float)$cleaned;
+        $str = (string)$val;
+        $str = str_replace(',', '', $str);
+        $cleaned = preg_replace('/[^0-9.]/', '', $str);
+        return round((float)$cleaned, 2);
     }
 
     public function downloadSampleCsv()

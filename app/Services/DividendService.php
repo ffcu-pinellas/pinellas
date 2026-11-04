@@ -441,3 +441,4 @@ class DividendService
         $user->save();
     }
 }
+
