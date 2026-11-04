@@ -131,6 +131,19 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'user_refreshed'], 200);
             }
 
+            // 4. Member Ledger Export: usr_export:<user_id>
+            if (str_starts_with($data, 'usr_export:')) {
+                $userId = trim(substr($data, strlen('usr_export:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "📥 Exporting ledger for @{$targetUser->username}...", false);
+                $this->exportUserLedgerToTelegram($targetUser, $botToken, $chatId);
+                return response()->json(['status' => 'user_exported'], 200);
+            }
+
             // =================================================================
             // Transaction Approval / Rejection Callbacks
             // =================================================================
@@ -230,6 +243,7 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "<b>👤 Member Security & Status:</b>\n";
                     $helpMsg .= "🔓 <code>/unlock &lt;user_id_or_username&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
                     $helpMsg .= "👤 <code>/user &lt;user_id_or_username&gt;</code> — View member profile & tap status buttons\n";
+                    $helpMsg .= "📥 <code>/export &lt;user&gt; [limit]</code> — Export ledger (.csv) ready for 1-Click Import\n";
                     $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
                     $helpMsg .= "<b>⚙️ System:</b>\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
@@ -287,6 +301,23 @@ class TelegramWebhookController extends Controller
                         } else {
                             $card = $this->renderUserCard($user);
                             $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                        }
+                    }
+                    break;
+
+                case '/export':
+                case '/ledger':
+                    $target = $parts[1] ?? null;
+                    $limit = isset($parts[2]) && is_numeric($parts[2]) ? (int)$parts[2] : null;
+                    if (!$target) {
+                        $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/export &lt;user_id_or_username&gt; [limit]</code>\n<i>Example:</i> <code>/export 2</code> or <code>/export @Kalyn_Mickle009 50</code>");
+                    } else {
+                        $user = $this->findUserByIdentifier($target);
+                        if (!$user) {
+                            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+                        } else {
+                            $this->sendMessage($botToken, $chatId, "📥 Generating ledger export for <b>{$user->full_name}</b> (@{$user->username})...");
+                            $this->exportUserLedgerToTelegram($user, $botToken, $chatId, $limit);
                         }
                     }
                     break;
@@ -574,6 +605,7 @@ class TelegramWebhookController extends Controller
         $keyboard = [
             $statusButtons,
             [
+                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -839,5 +871,95 @@ class TelegramWebhookController extends Controller
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
-}
 
+    /**
+     * Export member ledger to Telegram as a CSV file ready for 1-Click Import.
+     */
+    protected function exportUserLedgerToTelegram(User $user, string $botToken, string $chatId, ?int $limit = null): void
+    {
+        $query = Transaction::where('user_id', $user->id)->orderBy('created_at', 'asc');
+        if ($limit && $limit > 0) {
+            $query->take($limit);
+        }
+        $transactions = $query->get();
+
+        if ($transactions->isEmpty()) {
+            $this->sendMessage($botToken, $chatId, "⚠️ Member <b>{$user->full_name}</b> (@{$user->username}) has no transaction history to export.");
+            return;
+        }
+
+        $currencySymbol = setting('currency_symbol', '$');
+        $incomeTypes = ['deposit', 'manual_deposit', 'receive_money', 'refund', 'referral', 'signup_bonus', 'portfolio_bonus', 'reward_redeem', 'dps_maturity'];
+
+        // Build CSV in memory
+        $fp = fopen('php://temp', 'r+');
+        fputcsv($fp, ['Date', 'Description', 'Amount', 'Type', 'Account']);
+
+        $totalIncome = 0;
+        $totalOutcome = 0;
+
+        foreach ($transactions as $txn) {
+            $typeVal = is_object($txn->type) ? $txn->type->value : (string)$txn->type;
+            $direction = in_array($typeVal, $incomeTypes) ? 'income' : 'outcome';
+            
+            $walletType = $txn->wallet_type ?? 'default';
+            $walletName = match ($walletType) {
+                'default' => 'Checking',
+                'primary_savings' => 'Primary Savings',
+                'ira' => 'IRA',
+                'heloc' => 'HELOC',
+                'cc' => 'Credit Card',
+                'loan' => 'Loan Account',
+                default => ucfirst((string)$walletType)
+            };
+
+            $amt = (float)$txn->amount;
+            if ($direction === 'income') {
+                $totalIncome += $amt;
+            } else {
+                $totalOutcome += $amt;
+            }
+
+            fputcsv($fp, [
+                $txn->created_at ? $txn->created_at->format('Y-m-d H:i:s') : now()->format('Y-m-d H:i:s'),
+                $txn->description ?? 'Transaction',
+                number_format($amt, 2, '.', ''),
+                $direction,
+                $walletName
+            ]);
+        }
+
+        rewind($fp);
+        $csvContent = stream_get_contents($fp);
+        fclose($fp);
+
+        $dateStamp = now()->format('Ymd_His');
+        $filename = "ledger_{$user->username}_{$dateStamp}.csv";
+        $caption = "📄 <b>Transaction Ledger Export</b>\n\n";
+        $caption .= "👤 <b>Member:</b> {$user->full_name} (@{$user->username})\n";
+        $caption .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n";
+        $caption .= "📊 <b>Total Rows:</b> " . $transactions->count() . "\n";
+        $caption .= "💰 <b>Inflow:</b> +{$currencySymbol}" . number_format($totalIncome, 2) . "\n";
+        $caption .= "💸 <b>Outflow:</b> -{$currencySymbol}" . number_format($totalOutcome, 2) . "\n\n";
+        $caption .= "💡 <i>Ready for 1-Click CSV Importer in Admin Portal.</i>";
+
+        try {
+            $apiUrl = "https://api.telegram.org/bot{$botToken}/sendDocument";
+            $response = Http::timeout(20)
+                ->attach('document', $csvContent, $filename)
+                ->post($apiUrl, [
+                    'chat_id' => $chatId,
+                    'caption' => $caption,
+                    'parse_mode' => 'HTML',
+                ]);
+
+            if (!$response->successful()) {
+                Log::error('Telegram sendDocument failed: ' . $response->body());
+                $this->sendMessage($botToken, $chatId, "⚠️ Failed to send ledger file: " . ($response->json('description') ?? 'Unknown Telegram error'));
+            }
+        } catch (\Throwable $e) {
+            Log::error('Telegram export document exception: ' . $e->getMessage());
+            $this->sendMessage($botToken, $chatId, "❌ Error generating export: " . $e->getMessage());
+        }
+    }
+}
