@@ -644,85 +644,91 @@ class TransactionGeneratorController extends Controller
 
     public function createCustom(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        try {
+            $user = User::findOrFail($id);
 
-        // Security Check for Account Officer
-        if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
-            if ($user->staff_id != auth('admin')->id()) {
-                abort(403, 'Unauthorized action.');
+            // Security Check for Account Officer
+            if (auth('admin')->user() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                if ($user->staff_id != auth('admin')->id()) {
+                    abort(403, 'Unauthorized action.');
+                }
             }
-        }
 
-        $validator = Validator::make($request->all(), [
-            'wallet_type' => 'required',
-            'direction' => 'required|in:income,outcome',
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'required|string|max:255',
-            'custom_date' => 'required|date',
-            'action_type' => 'nullable|in:immediate,preview',
-        ]);
+            $validator = Validator::make($request->all(), [
+                'wallet_type' => 'required',
+                'direction' => 'required|in:income,outcome',
+                'amount' => 'required|numeric|min:0.01',
+                'description' => 'required|string|max:255',
+                'custom_date' => 'required',
+                'action_type' => 'nullable|in:immediate,preview',
+            ]);
 
-        if ($validator->fails()) {
-            notify()->error($validator->errors()->first(), __('Validation Error'));
+            if ($validator->fails()) {
+                notify()->error($validator->errors()->first(), __('Validation Error'));
+                return redirect()->back();
+            }
+
+            $walletType = $request->wallet_type;
+            $direction = $request->direction;
+            $amount = round((float) $request->amount, 2);
+            $description = trim($request->description);
+            $customDate = Carbon::parse($request->custom_date);
+            $walletName = $this->getWalletName($user, $walletType);
+
+            if ($request->action_type === 'preview') {
+                $previewItem = [
+                    'description' => $description,
+                    'amount' => $amount,
+                    'direction' => $direction,
+                    'type' => ($direction === 'income') ? TxnType::Deposit : TxnType::Subtract,
+                    'date' => $customDate->toDateTimeString(),
+                    'wallet_type' => $walletType,
+                    'wallet_name' => $walletName,
+                    'choice' => ['label' => $description, 'cat' => 'custom']
+                ];
+
+                $existingPreview = session("txn_preview_{$id}", []);
+                $existingPreview[] = $previewItem;
+                session()->put("txn_preview_{$id}", $existingPreview);
+                session()->flash("show_preview_{$id}", true);
+
+                notify()->info(__('Custom transaction added to preview! Click Confirm & Save to apply.'), __('Added to Preview'));
+                return redirect()->back();
+            }
+
+            // Immediate post
+            $adminId = auth('admin')->id() ?? auth()->id() ?? 1;
+
+            // 1. Update User Balance
+            $this->updateUserBalance($user, $walletType, $amount, $direction === 'income' ? 'add' : 'subtract');
+
+            // 2. Create Transaction Record
+            $txn = Txn::new(
+                amount: $amount,
+                charge: 0,
+                final_amount: $amount,
+                method: 'system',
+                description: $description,
+                type: ($direction === 'income') ? TxnType::Deposit : TxnType::Subtract,
+                status: TxnStatus::Success,
+                payCurrency: $walletName,
+                userID: $id,
+                relatedUserID: $adminId,
+                relatedModel: 'Admin',
+                walletType: $walletType
+            );
+
+            $txn->created_at = $customDate;
+            $txn->updated_at = $customDate;
+            $txn->save();
+
+            notify()->success(__('Custom transaction of ') . setting('currency_symbol', '$') . number_format($amount, 2) . __(' created successfully!'), __('Success'));
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            \Log::error('Create Custom Transaction Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            notify()->error(__('Failed to create transaction: ') . $e->getMessage(), __('Error'));
             return redirect()->back();
         }
-
-        $walletType = $request->wallet_type;
-        $direction = $request->direction;
-        $amount = round((float) $request->amount, 2);
-        $description = trim($request->description);
-        $customDate = Carbon::parse($request->custom_date);
-        $walletName = $this->getWalletName($walletType);
-
-        if ($request->action_type === 'preview') {
-            $previewItem = [
-                'description' => $description,
-                'amount' => $amount,
-                'direction' => $direction,
-                'type' => ($direction === 'income') ? TxnType::Deposit : TxnType::Subtract,
-                'date' => $customDate->toDateTimeString(),
-                'wallet_type' => $walletType,
-                'wallet_name' => $walletName,
-                'choice' => ['label' => $description, 'cat' => 'custom']
-            ];
-
-            $existingPreview = session("txn_preview_{$id}", []);
-            $existingPreview[] = $previewItem;
-            session()->put("txn_preview_{$id}", $existingPreview);
-            session()->flash("show_preview_{$id}", true);
-
-            notify()->info(__('Custom transaction added to preview! Click Confirm & Save to apply.'), __('Added to Preview'));
-            return redirect()->back();
-        }
-
-        // Immediate post
-        $adminUser = Auth::user();
-
-        // 1. Update User Balance
-        $this->updateUserBalance($user, $walletType, $amount, $direction === 'income' ? 'add' : 'subtract');
-
-        // 2. Create Transaction Record
-        $txn = Txn::new(
-            amount: $amount,
-            charge: 0,
-            final_amount: $amount,
-            method: 'system',
-            description: $description,
-            type: ($direction === 'income') ? TxnType::Deposit : TxnType::Subtract,
-            status: TxnStatus::Success,
-            payCurrency: $walletName,
-            userID: $id,
-            relatedUserID: $adminUser?->id,
-            relatedModel: 'Admin',
-            walletType: $walletType
-        );
-
-        $txn->created_at = $customDate;
-        $txn->updated_at = $customDate;
-        $txn->save();
-
-        notify()->success(__('Custom transaction of ') . setting('currency_symbol', '$') . number_format($amount, 2) . __(' created successfully!'), __('Success'));
-        return redirect()->back();
     }
 
     public function bulkDeletePreview(Request $request, $id)
@@ -867,8 +873,11 @@ class TransactionGeneratorController extends Controller
         return round(rand($finalMin * 100, $finalMax * 100) / 100, 2);
     }
 
-    private function getWalletName($user, $wallet_type)
+    private function getWalletName($user, $wallet_type = null)
     {
+        if ($wallet_type === null) {
+            $wallet_type = $user;
+        }
         if ($wallet_type == 'default') return 'Checking Account';
         if ($wallet_type == 'primary_savings') return 'Primary Savings';
         if ($wallet_type == 'ira') return 'IRA';

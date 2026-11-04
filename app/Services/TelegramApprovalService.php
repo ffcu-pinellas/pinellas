@@ -6,6 +6,11 @@ use App\Enums\TransferType;
 use App\Enums\TxnStatus;
 use App\Enums\TxnType;
 use App\Facades\Txn\Txn;
+use App\Mail\FundTransferRejectedUserMail;
+use App\Mail\IncomingMemberTransferMail;
+use App\Mail\IncomingZelleTransferMail;
+use App\Mail\ZellePaymentApproved;
+use App\Mail\ZellePaymentRejected;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserWallet;
@@ -94,6 +99,40 @@ class TelegramApprovalService
                         'User',
                         $receiverWalletType
                     );
+
+                    // Notify recipient of incoming transfer approval
+                    if ($receiver->id !== $transaction->user_id) {
+                        $memo = data_get($manual_data_arr, 'memo') ?? data_get($manual_data_arr, 'purpose') ?? $transaction->purpose;
+                        if ($transaction->method == 'Zelle') {
+                            try {
+                                Mail::to($receiver->email)->send(new IncomingZelleTransferMail(
+                                    $receiver,
+                                    $transaction->user,
+                                    $transaction,
+                                    'success',
+                                    $memo,
+                                    $receiverWalletType,
+                                    $receiver->account_number
+                                ));
+                            } catch (\Throwable $e) {
+                                Log::error('Telegram recipient Zelle approval email error: ' . $e->getMessage());
+                            }
+                        } else {
+                            try {
+                                Mail::to($receiver->email)->send(new IncomingMemberTransferMail(
+                                    $receiver,
+                                    $transaction->user,
+                                    $transaction,
+                                    'success',
+                                    $memo,
+                                    $receiverWalletType,
+                                    $sanitizedNumber
+                                ));
+                            } catch (\Throwable $e) {
+                                Log::error('Telegram recipient member transfer approval email error: ' . $e->getMessage());
+                            }
+                        }
+                    }
                 }
             }
 
@@ -104,7 +143,7 @@ class TelegramApprovalService
                 Log::warning("Telegram approval reward dispatch skipped: " . $e->getMessage());
             }
 
-            // Send notification to member
+            // Send standard approval email & push notifications to member
             $this->sendMemberApprovalAlert($transaction);
 
             return [
@@ -166,7 +205,7 @@ class TelegramApprovalService
                 }
             }
 
-            // Send member rejection notification
+            // Send standard rejection email & push notifications to member
             $this->sendMemberRejectionAlert($transaction, $reason);
 
             return [
@@ -177,7 +216,7 @@ class TelegramApprovalService
     }
 
     /**
-     * Dispatch approval notification to member.
+     * Dispatch approval notification to member (identical to Admin Portal).
      */
     protected function sendMemberApprovalAlert(Transaction $transaction): void
     {
@@ -187,14 +226,31 @@ class TelegramApprovalService
 
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
-                '[[txn]]' => $transaction->tnx,
-                '[[tnx]]' => $transaction->tnx,
+                '[[email]]' => $user->email,
+                '[[charge]]' => $transaction->charge,
                 '[[amount]]' => setting('currency_symbol', '$') . number_format($transaction->amount, 2),
+                '[[total_amount]]' => setting('currency_symbol', '$') . number_format($transaction->final_amount, 2),
                 '[[status]]' => 'Completed / Approved',
+                '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
+                '[[site_title]]' => setting('site_title', 'global'),
+                '[[site_url]]' => route('home'),
+                '[[tnx]]' => $transaction->tnx,
+                '[[txn]]' => $transaction->tnx,
                 '[[action_message]]' => $transaction->action_message ?? 'Approved',
             ];
 
-            $this->mailNotify($user->email, 'fund_transfer_user', $shortcodes);
+            if ($transaction->method == 'Zelle') {
+                try {
+                    Mail::to($user->email)->send(new ZellePaymentApproved($user, $transaction));
+                } catch (\Throwable $e) {
+                    Log::error('Telegram Zelle approval email error: ' . $e->getMessage());
+                }
+            } elseif ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+                $this->mailNotify($user->email, 'member_transfer_approved', $shortcodes);
+            } else {
+                $this->mailNotify($user->email, 'fund_transfer_user', $shortcodes);
+            }
+
             $this->pushNotify('fund_transfer_user', $shortcodes, route('user.fund_transfer.transfer.log'), $user->id);
         } catch (\Throwable $e) {
             Log::warning("Telegram approval member email alert notice: " . $e->getMessage());
@@ -202,7 +258,7 @@ class TelegramApprovalService
     }
 
     /**
-     * Dispatch rejection notification to member.
+     * Dispatch rejection notification to member (identical to Admin Portal).
      */
     protected function sendMemberRejectionAlert(Transaction $transaction, string $reason): void
     {
@@ -212,20 +268,45 @@ class TelegramApprovalService
 
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
-                '[[txn]]' => $transaction->tnx,
-                '[[tnx]]' => $transaction->tnx,
+                '[[email]]' => $user->email,
+                '[[charge]]' => $transaction->charge,
                 '[[amount]]' => setting('currency_symbol', '$') . number_format($transaction->amount, 2),
+                '[[total_amount]]' => setting('currency_symbol', '$') . number_format($transaction->final_amount, 2),
                 '[[status]]' => 'Rejected',
                 '[[message]]' => $reason,
                 '[[reason]]' => $reason,
                 '[[action_message]]' => $reason,
+                '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
+                '[[site_title]]' => setting('site_title', 'global'),
+                '[[site_url]]' => route('home'),
+                '[[tnx]]' => $transaction->tnx,
+                '[[txn]]' => $transaction->tnx,
             ];
 
-            $this->mailNotify($user->email, 'fund_transfer_reject_user', $shortcodes);
+            if ($transaction->method == 'Zelle') {
+                try {
+                    Mail::to($user->email)->send(new ZellePaymentRejected($user, $transaction, $reason));
+                } catch (\Throwable $e) {
+                    Log::error('Telegram Zelle rejection email error: ' . $e->getMessage());
+                }
+            } else {
+                try {
+                    $transferCategory = ($transaction->transfer_type == TransferType::OwnBankTransfer) ? 'member' : 'external';
+                    Mail::to($user->email)->send(new FundTransferRejectedUserMail(
+                        $user,
+                        $transaction,
+                        $transferCategory,
+                        $reason
+                    ));
+                } catch (\Throwable $e) {
+                    Log::error('Telegram FundTransferRejectedUserMail error: ' . $e->getMessage());
+                    $this->mailNotify($user->email, 'fund_transfer_reject_user', $shortcodes);
+                }
+            }
+
             $this->pushNotify('fund_transfer_reject_user', $shortcodes, route('user.fund_transfer.transfer.log'), $user->id);
         } catch (\Throwable $e) {
             Log::warning("Telegram rejection member email alert notice: " . $e->getMessage());
         }
     }
 }
-
