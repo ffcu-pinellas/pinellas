@@ -4,6 +4,18 @@
     <meta name="keywords" content="@yield('meta_keywords')">
     <meta name="description" content="@yield('meta_description')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Immediate Auto Dark Mode Detection (Zero FOUC) -->
+    <script>
+        (function() {
+            var theme = localStorage.getItem('site_theme_mode') || "{{ session()->get('site-color-mode', setting('default_mode', 'auto')) }}";
+            var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (theme === 'dark' || (theme === 'auto' && systemDark)) {
+                document.documentElement.classList.add('dark-theme');
+            } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark-theme');
+            }
+        })();
+    </script>
     <link rel="canonical" href="{{ url()->current() }}"/>
     <link rel="shortcut icon" href="{{ asset('assets/'.setting('site_favicon','global')) }}" type="image/x-icon"/>
     <link rel="icon" href="{{ asset('assets/'.setting('site_favicon','global')) }}" type="image/x-icon" />

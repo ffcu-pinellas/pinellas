@@ -527,6 +527,60 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         return $this->hasMany(UserCard::class, 'user_id');
     }
 
+    public function getNotificationPreference(string $key, $default = null)
+    {
+        $prefs = $this->notifications_permission ?? [];
+        if (is_string($prefs)) {
+            $prefs = json_decode($prefs, true) ?? [];
+        }
+        return data_get($prefs, $key, $default);
+    }
+
+    public function largeTxnThreshold(): float
+    {
+        return (float) $this->getNotificationPreference('large_txn_threshold', 250.00);
+    }
+
+    public function lowBalanceThreshold(): float
+    {
+        return (float) $this->getNotificationPreference('low_balance_threshold', 100.00);
+    }
+
+    public function isLargeTxnAlertEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('large_txn_alert', true);
+    }
+
+    public function isLowBalanceAlertEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('low_balance_alert', true);
+    }
+
+    public function isDirectDepositAlertEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('direct_deposit_alert', true);
+    }
+
+    public function isCardChargeAlertEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('card_charge_alert', true);
+    }
+
+    public function isNewDeviceAlertEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('new_device_login_alert', true);
+    }
+
+    public function isEmailAlertsEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('email_alerts_enabled', true);
+    }
+
+    public function isPushAlertsEnabled(): bool
+    {
+        return (bool) $this->getNotificationPreference('push_alerts_enabled', true);
+    }
+
     protected static function booted(): void
     {
         static::created(function ($user) {

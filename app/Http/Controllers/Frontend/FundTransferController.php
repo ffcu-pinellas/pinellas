@@ -276,8 +276,21 @@ class FundTransferController extends Controller
             $type = ucfirst($data['transfer_type'] ?? 'External');
             $tgMsg = "💸 <b>{$type} Transfer Executed</b>\n";
             $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($data['amount'], 2) . "\n";
-            $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")";
-            $this->telegramNotify($tgMsg);
+            $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")\n";
+            if (!empty($responseData?->tnx)) {
+                $tgMsg .= "🔖 <b>Txn Ref:</b> " . $responseData->tnx . "\n";
+            }
+
+            $keyboard = null;
+            if (!empty($responseData?->tnx)) {
+                $keyboard = [
+                    [
+                        ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $responseData->tnx],
+                        ['text' => '❌ Reject Transfer', 'callback_data' => 'txn_rejc:' . $responseData->tnx],
+                    ]
+                ];
+            }
+            $this->telegramNotify($tgMsg, $keyboard);
 
             // Native Push Notification (User)
             $this->pushNotify('fund_transfer_request', [
@@ -812,7 +825,13 @@ class FundTransferController extends Controller
                 $tgMsg .= "📝 <b>Memo/Purpose:</b> {$request->purpose}\n";
             }
             $tgMsg .= "🔢 <b>TXN ID:</b> <code>{$tnx}</code>\n";
-            $this->telegramNotify($tgMsg);
+            $keyboard = [
+                [
+                    ['text' => '✅ Approve Zelle', 'callback_data' => 'txn_appr:' . $tnx],
+                    ['text' => '❌ Reject Zelle', 'callback_data' => 'txn_rejc:' . $tnx],
+                ]
+            ];
+            $this->telegramNotify($tgMsg, $keyboard);
         } catch (\Exception $e) {
             \Log::error('Zelle Telegram Notify Failed: ' . $e->getMessage());
         }

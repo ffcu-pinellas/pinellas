@@ -176,9 +176,19 @@
                     {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                 </div>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 200px; z-index: 1002;">
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px; z-index: 1002;">
                 <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
                 <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
+                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li class="px-3 py-1">
+                    <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
+                    <div class="btn-group w-100 btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="auto" title="System Theme"><i class="fas fa-adjust me-1"></i>Auto</button>
+                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="light" title="Light Mode"><i class="fas fa-sun me-1"></i>Light</button>
+                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
+                    </div>
+                </li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
             </ul>
@@ -243,6 +253,16 @@
                 <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
                     <li><a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-columns me-3 text-primary icon"></i><div>Organize dashboard</div></a></li>
                     <li><a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-user-circle me-3 text-primary icon"></i><div>Settings</div></a></li>
+                    <li><a href="{{ route('user.notification.all') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="far fa-bell me-3 text-primary icon"></i><div>Alerts & Notifications</div></a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li class="px-3 py-1">
+                        <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
+                        <div class="btn-group w-100 btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="auto" title="System Theme"><i class="fas fa-adjust me-1"></i>Auto</button>
+                            <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="light" title="Light Mode"><i class="fas fa-sun me-1"></i>Light</button>
+                            <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
+                        </div>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3 text-muted icon"></i><div>Sign out</div></a></li>
                 </ul>
@@ -261,9 +281,19 @@
                             {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                         </div>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 200px;">
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px;">
                         <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
                         <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li class="px-3 py-1">
+                            <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
+                            <div class="btn-group w-100 btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="auto" title="System Theme"><i class="fas fa-adjust me-1"></i>Auto</button>
+                                <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="light" title="Light Mode"><i class="fas fa-sun me-1"></i>Light</button>
+                                <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
+                            </div>
+                        </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
                     </ul>

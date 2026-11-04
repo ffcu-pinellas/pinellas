@@ -50,17 +50,30 @@ class HomeController extends Controller
         return redirect()->back();
     }
 
-    public function themeMode()
+    public function themeMode(Request $request)
     {
+        $requestedMode = $request->get('mode');
+
+        if (in_array($requestedMode, ['auto', 'dark', 'light'])) {
+            session()->put('site-color-mode', $requestedMode);
+            return response()->json(['status' => 'success', 'mode' => $requestedMode]);
+        }
 
         $oldTheme = session()->get('site-color-mode', setting('default_mode'));
 
         if ($oldTheme == 'dark') {
-            session()->put('site-color-mode', 'light');
+            $newTheme = 'light';
         } else {
-            session()->put('site-color-mode', 'dark');
+            $newTheme = 'dark';
         }
 
+        session()->put('site-color-mode', $newTheme);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['status' => 'success', 'mode' => $newTheme]);
+        }
+
+        return redirect()->back();
     }
 
     public function languageUpdate(Request $request)

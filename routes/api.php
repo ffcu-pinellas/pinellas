@@ -90,3 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Wire Transfer
     Route::post('wire-transfer', WireTransferController::class);
 });
+
+// Telegram Interactive Bot Webhook
+Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
+

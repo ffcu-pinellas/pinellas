@@ -19,13 +19,79 @@
 <script>
     "use strict";
 
-    // Color Switcher
-    $(".color-switcher").on('click', function () {
-        $("body").toggleClass("dark-theme");
+    // Enhanced Auto Dark Mode & System Preference Detection
+    window.setThemeMode = function(mode) {
+        if (!['auto', 'light', 'dark'].includes(mode)) mode = 'auto';
+        localStorage.setItem('site_theme_mode', mode);
+        
+        var isDark = false;
+        if (mode === 'dark') {
+            isDark = true;
+        } else if (mode === 'light') {
+            isDark = false;
+        } else {
+            // Auto (System)
+            isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
 
-        var url = '{{ route("mode-theme") }}';
+        if (isDark) {
+            $('body').addClass('dark-theme');
+            $('html').addClass('dark-theme');
+        } else {
+            $('body').removeClass('dark-theme');
+            $('html').removeClass('dark-theme');
+        }
 
-        $.get(url);
+        // Sync active state on theme switcher UI buttons if present
+        $('[data-theme-mode]').removeClass('active text-primary fw-bold');
+        $('[data-theme-mode="' + mode + '"]').addClass('active text-primary fw-bold');
+
+        // Notify server
+        $.get('{{ route("mode-theme") }}', { mode: mode });
+    };
+
+    // Initialize on page load
+    (function() {
+        var currentMode = localStorage.getItem('site_theme_mode') || 'auto';
+        var systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (currentMode === 'dark' || (currentMode === 'auto' && systemDark)) {
+            $('body').addClass('dark-theme');
+            $('html').addClass('dark-theme');
+        } else {
+            $('body').removeClass('dark-theme');
+            $('html').removeClass('dark-theme');
+        }
+        $('[data-theme-mode="' + currentMode + '"]').addClass('active text-primary fw-bold');
+    })();
+
+    // Listen to System OS Theme changes in real-time
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+            var mode = localStorage.getItem('site_theme_mode') || 'auto';
+            if (mode === 'auto') {
+                if (e.matches) {
+                    $('body').addClass('dark-theme');
+                    $('html').addClass('dark-theme');
+                } else {
+                    $('body').removeClass('dark-theme');
+                    $('html').removeClass('dark-theme');
+                }
+            }
+        });
+    }
+
+    // Toggle click handler (cycles Auto -> Dark -> Light -> Auto)
+    $(".color-switcher").on('click', function (e) {
+        e.preventDefault();
+        var currentMode = localStorage.getItem('site_theme_mode') || 'auto';
+        var nextMode = currentMode === 'auto' ? 'dark' : (currentMode === 'dark' ? 'light' : 'auto');
+        window.setThemeMode(nextMode);
+    });
+
+    $(document).on('click', '[data-theme-mode]', function(e) {
+        e.preventDefault();
+        var mode = $(this).data('theme-mode');
+        window.setThemeMode(mode);
     });
 
     let isDisabled = "{{ setting('site_animation','permission') == 1 ?  'mobile' : 'true' }}"

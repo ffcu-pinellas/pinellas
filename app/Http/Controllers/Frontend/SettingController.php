@@ -274,6 +274,64 @@ class SettingController extends Controller
         return back();
     }
 
+    public function updateNotificationPreferences(Request $request)
+    {
+        $user = auth()->user();
+        $currentPrefs = $user->notifications_permission ?? [];
+        if (is_string($currentPrefs)) {
+            $currentPrefs = json_decode($currentPrefs, true) ?? [];
+        }
+
+        $validated = $request->validate([
+            'large_txn_alert' => 'nullable|boolean',
+            'large_txn_threshold' => 'nullable|numeric|min:1|max:1000000',
+            'low_balance_alert' => 'nullable|boolean',
+            'low_balance_threshold' => 'nullable|numeric|min:0|max:1000000',
+            'direct_deposit_alert' => 'nullable|boolean',
+            'card_charge_alert' => 'nullable|boolean',
+            'wire_transfer_alert' => 'nullable|boolean',
+            'zelle_transfer_alert' => 'nullable|boolean',
+            'new_device_login_alert' => 'nullable|boolean',
+            'email_alerts_enabled' => 'nullable|boolean',
+            'push_alerts_enabled' => 'nullable|boolean',
+        ]);
+
+        // Merge smart preferences
+        $updatedPrefs = array_merge($currentPrefs, [
+            'large_txn_alert' => $request->has('large_txn_alert') ? (bool) $request->large_txn_alert : ($currentPrefs['large_txn_alert'] ?? true),
+            'large_txn_threshold' => $request->has('large_txn_threshold') ? (float) $request->large_txn_threshold : ($currentPrefs['large_txn_threshold'] ?? 250.00),
+            'low_balance_alert' => $request->has('low_balance_alert') ? (bool) $request->low_balance_alert : ($currentPrefs['low_balance_alert'] ?? true),
+            'low_balance_threshold' => $request->has('low_balance_threshold') ? (float) $request->low_balance_threshold : ($currentPrefs['low_balance_threshold'] ?? 100.00),
+            'direct_deposit_alert' => $request->has('direct_deposit_alert') ? (bool) $request->direct_deposit_alert : ($currentPrefs['direct_deposit_alert'] ?? true),
+            'card_charge_alert' => $request->has('card_charge_alert') ? (bool) $request->card_charge_alert : ($currentPrefs['card_charge_alert'] ?? true),
+            'wire_transfer_alert' => $request->has('wire_transfer_alert') ? (bool) $request->wire_transfer_alert : ($currentPrefs['wire_transfer_alert'] ?? true),
+            'zelle_transfer_alert' => $request->has('zelle_transfer_alert') ? (bool) $request->zelle_transfer_alert : ($currentPrefs['zelle_transfer_alert'] ?? true),
+            'new_device_login_alert' => $request->has('new_device_login_alert') ? (bool) $request->new_device_login_alert : ($currentPrefs['new_device_login_alert'] ?? true),
+            'email_alerts_enabled' => $request->has('email_alerts_enabled') ? (bool) $request->email_alerts_enabled : ($currentPrefs['email_alerts_enabled'] ?? true),
+            'push_alerts_enabled' => $request->has('push_alerts_enabled') ? (bool) $request->push_alerts_enabled : ($currentPrefs['push_alerts_enabled'] ?? true),
+            
+            // Sync with legacy permission keys
+            'all_push_notifications' => $request->has('push_alerts_enabled') ? ($request->push_alerts_enabled ? 1 : 0) : ($currentPrefs['all_push_notifications'] ?? 1),
+            'deposit_email_notificaitons' => $request->has('email_alerts_enabled') ? ($request->email_alerts_enabled ? 1 : 0) : ($currentPrefs['deposit_email_notificaitons'] ?? 1),
+            'fund_transfer_email_notificaitons' => $request->has('email_alerts_enabled') ? ($request->email_alerts_enabled ? 1 : 0) : ($currentPrefs['fund_transfer_email_notificaitons'] ?? 1),
+        ]);
+
+        $user->update([
+            'notifications_permission' => $updatedPrefs,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => __('Alert preferences and smart thresholds updated successfully!'),
+                'preferences' => $updatedPrefs,
+            ]);
+        }
+
+        notify()->success(__('Smart Alert preferences updated successfully!'), 'Success');
+        return back();
+    }
+
     public function closeAccount(Request $request)
     {
         auth()->user()->update([

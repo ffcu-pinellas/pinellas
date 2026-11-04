@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Controller;
 use App\Enums\TxnStatus;
 use App\Enums\TxnType;
 use App\Models\DepositMethod;

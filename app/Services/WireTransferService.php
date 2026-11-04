@@ -291,7 +291,14 @@ class WireTransferService
             }
             $tgMsg .= "🔖 <b>Txn Ref:</b> " . $txnInfo->tnx . "\n";
 
-            $this->telegramNotify($tgMsg);
+            $keyboard = [
+                [
+                    ['text' => '✅ Approve Wire', 'callback_data' => 'txn_appr:' . $txnInfo->tnx],
+                    ['text' => '❌ Reject Wire', 'callback_data' => 'txn_rejc:' . $txnInfo->tnx],
+                ]
+            ];
+
+            $this->telegramNotify($tgMsg, $keyboard);
         } catch (\Throwable $e) {
             Log::warning('Telegram Wire Notification Failed', ['error' => $e->getMessage()]);
         }

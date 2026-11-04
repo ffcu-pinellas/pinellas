@@ -241,6 +241,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         // Transaction MFA & PIN
         Route::post('update-pin', 'updatePin')->name('update-pin');
         Route::post('update-security-preference', 'updateSecurityPreference')->name('update-security-preference');
+        Route::post('update-notification-preferences', 'updateNotificationPreferences')->name('update-notification-preferences');
     });
 
     // Security Gate AJAX
@@ -281,6 +282,12 @@ Route::get('notification-tune', [AppController::class, 'notificationTune'])->nam
 // Site cron job
 Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.job');
 Route::get('cron/backup', [CronJobController::class, 'databaseTelegramBackup'])->name('cron.backup');
+
+// Telegram Webhook Registration & Diagnostics
+Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
+Route::get('telegram/setup-webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'setupWebhook'])->name('telegram.setup-webhook');
+Route::get('telegram/webhook-info', [\App\Http\Controllers\TelegramWebhookController::class, 'webhookInfo'])->name('telegram.webhook-info');
+
 
 
 

@@ -118,27 +118,70 @@
                          <a href="javascript:void(0)" onclick="$('#edit_profile_form').slideDown(); $('[name=address]').focus()" class="text-decoration-none small fw-bold">Edit address</a>
                     </div>
 
-                    <!-- Alerts Section -->
+                    <!-- Smart Alerts Section -->
                     <div class="mt-5 pt-4 border-top">
-                        <h6 class="fw-bold text-uppercase small text-muted mb-4 ls-1" style="font-size: 11px;">ALERTS</h6>
-                        <form action="{{ route('user.setting.newsletter.action') }}" method="POST">
-                            @csrf
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <div>
-                                    <div class="fs-6 text-dark fw-500">Push Notifications</div>
-                                    <div class="small text-muted">Receive alerts on your mobile device</div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold text-uppercase small text-muted mb-0 ls-1" style="font-size: 11px;">SMART ALERTS & NOTIFICATIONS</h6>
+                                <p class="small text-muted mb-0">Manage delivery channels and automated threshold triggers</p>
+                            </div>
+                            <a href="{{ route('user.notification.all') }}#preferences" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                                <i class="fas fa-sliders-h me-1"></i>Customize Rules
+                            </a>
+                        </div>
+
+                        <!-- Active Rules Quick Summary -->
+                        <div class="p-3 rounded-3 bg-light border mb-4">
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <div class="small d-flex align-items-center gap-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span class="text-dark fw-bold">Large Txn Alert:</span>
+                                        <span class="text-muted">${{ number_format($user->largeTxnThreshold(), 2) }}+</span>
+                                    </div>
                                 </div>
-                                <label class="banno-switch {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'active' : '' }}">
-                                    <input type="checkbox" name="all_push_notifications" {{ $user->notifications_permission['all_push_notifications'] ?? 0 ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                <div class="col-sm-6">
+                                    <div class="small d-flex align-items-center gap-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span class="text-dark fw-bold">Low Balance Warning:</span>
+                                        <span class="text-muted">${{ number_format($user->lowBalanceThreshold(), 2) }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="small d-flex align-items-center gap-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span class="text-dark fw-bold">Direct Deposit:</span>
+                                        <span class="text-muted">{{ $user->isDirectDepositAlertEnabled() ? 'Active' : 'Disabled' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="small d-flex align-items-center gap-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                        <span class="text-dark fw-bold">Card Activity:</span>
+                                        <span class="text-muted">{{ $user->isCardChargeAlertEnabled() ? 'Active' : 'Disabled' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('user.setting.update-notification-preferences') }}" method="POST">
+                            @csrf
+                            <div class="d-flex justify-content-between align-items-center mb-3 py-2 border-bottom">
+                                <div>
+                                    <div class="fs-6 text-dark fw-500">Push & In-App Alerts</div>
+                                    <div class="small text-muted">Receive live notifications on web & mobile</div>
+                                </div>
+                                <label class="banno-switch {{ $user->isPushAlertsEnabled() ? 'active' : '' }}">
+                                    <input type="checkbox" name="push_alerts_enabled" value="1" {{ $user->isPushAlertsEnabled() ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
                                 </label>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex justify-content-between align-items-center py-2">
                                 <div>
                                     <div class="fs-6 text-dark fw-500">Email Notifications</div>
-                                    <div class="small text-muted">Receive updates and alerts via email</div>
+                                    <div class="small text-muted">Receive updates, receipts, and security alerts via {{ $user->email }}</div>
                                 </div>
-                                <label class="banno-switch {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'active' : '' }}">
-                                    <input type="checkbox" name="email_notifications" {{ $user->notifications_permission['deposit_email_notificaitons'] ?? 0 ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
+                                <label class="banno-switch {{ $user->isEmailAlertsEnabled() ? 'active' : '' }}">
+                                    <input type="checkbox" name="email_alerts_enabled" value="1" {{ $user->isEmailAlertsEnabled() ? 'checked' : '' }} onchange="$(this).closest('.banno-switch').toggleClass('active'); this.form.submit()" style="opacity: 0; width: 0; height: 0;">
                                 </label>
                             </div>
                         </form>
