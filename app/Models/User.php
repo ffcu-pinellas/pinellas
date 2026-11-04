@@ -108,6 +108,10 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'custom_zelle_max_limit',
         'custom_zelle_daily_limit',
         'custom_zelle_monthly_limit',
+        'dividend_status',
+        'dividend_apy',
+        'dividend_wallet',
+        'last_dividend_at',
     ];
 
     public function staff()
@@ -148,11 +152,19 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'phone_verified' => 'boolean',
         'notifications_permission' => 'array',
         'dashboard_order' => 'array',
+        'dividend_status' => 'boolean',
+        'dividend_apy' => 'decimal:2',
+        'last_dividend_at' => 'datetime',
     ];
 
     /*
      * Scope Declaration
      * */
+
+    public function scopeDividendEligible($query)
+    {
+        return $query->where('dividend_status', 1)->where('status', 1);
+    }
 
     public function scopeSearch($query, $search)
     {

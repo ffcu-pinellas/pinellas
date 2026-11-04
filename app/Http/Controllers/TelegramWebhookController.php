@@ -144,6 +144,58 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'user_exported'], 200);
             }
 
+            // 5. Member Dividend Eligibility Toggle: usr_div_tog:<user_id>
+            if (str_starts_with($data, 'usr_div_tog:')) {
+                $userId = trim(substr($data, strlen('usr_div_tog:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $divService = new \App\Services\DividendService();
+                $newStatus = $divService->toggleUserEligibility($targetUser);
+                $statusWord = $newStatus ? 'ENABLED (ON)' : 'DISABLED (OFF)';
+                $this->answerCallbackQuery($botToken, $callbackId, "Dividends for @{$targetUser->username}: {$statusWord}.", false);
+                $card = $this->renderUserCard($targetUser, "⚙️ <b>DIVIDEND ACCRUAL UPDATED</b>\nStatus is now <b>{$statusWord}</b> for this member.");
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                return response()->json(['status' => 'dividend_toggled'], 200);
+            }
+
+            // 6. Member Dividend Payout Immediate: usr_div_pay:<user_id>
+            if (str_starts_with($data, 'usr_div_pay:')) {
+                $userId = trim(substr($data, strlen('usr_div_pay:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $divService = new \App\Services\DividendService();
+                $res = $divService->processSingleUser($targetUser, 'Telegram Direct Action');
+                if ($res['success']) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "✅ " . $res['message'], true);
+                    $targetUser->refresh();
+                    $card = $this->renderUserCard($targetUser, "🎉 <b>DIVIDEND CREDITED</b>\n" . $res['message']);
+                    $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                } else {
+                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $res['message'], true);
+                }
+                return response()->json(['status' => 'dividend_paid'], 200);
+            }
+
+            // 7. Batch Dividend Execution from Preview: div_exec_all
+            if ($data === 'div_exec_all') {
+                $divService = new \App\Services\DividendService();
+                $res = $divService->processBatch(null, 'Telegram One-Click Batch');
+                if ($res['success']) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "🎉 " . $res['message'], true);
+                    $updatedText = $originalText . "\n\n───────────────────\n✅ <b>BATCH EXECUTED SUCCESSFULLY</b>\n💰 Total Paid: " . setting('currency_symbol', '$') . number_format($res['total_amount'], 2) . "\n👥 Members: {$res['processed_count']}\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
+                } else {
+                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $res['message'], true);
+                }
+                return response()->json(['status' => 'batch_dividend_executed'], 200);
+            }
+
             // =================================================================
             // Transaction Approval / Rejection Callbacks
             // =================================================================
@@ -244,6 +296,7 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "🔓 <code>/unlock &lt;user_id_or_username&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
                     $helpMsg .= "👤 <code>/user &lt;user_id_or_username&gt;</code> — View member profile & tap status buttons\n";
                     $helpMsg .= "📥 <code>/export &lt;user&gt; [limit]</code> — Export ledger (.csv) ready for 1-Click Import\n";
+                    $helpMsg .= "📈 <code>/dividend [user_or_all]</code> — Manage monthly dividends & APY payouts\n";
                     $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
                     $helpMsg .= "<b>⚙️ System:</b>\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
@@ -303,6 +356,11 @@ class TelegramWebhookController extends Controller
                             $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
                         }
                     }
+                    break;
+
+                case '/dividend':
+                case '/dividends':
+                    $this->handleDividendCommand($botToken, $chatId, array_slice($parts, 1));
                     break;
 
                 case '/export':
@@ -587,6 +645,12 @@ class TelegramWebhookController extends Controller
         if (isset($user->cc_status) && $user->cc_status) {
             $text .= "💳 <b>Credit Card:</b> {$currencySymbol}" . number_format($user->cc_balance ?? 0, 2) . "\n";
         }
+        $isDivOn = (bool)($user->dividend_status ?? false);
+        $globalApy = (float)(\App\Models\Setting::get('savings_dividend_apy', 'dividend') ?? 3.25);
+        $effectiveApy = $user->dividend_apy ?: $globalApy;
+        $divBadge = $isDivOn ? "🟢 <b>ON</b> (" . number_format($effectiveApy, 2) . "% APY)" : "⚪ <b>OFF (Default)</b>";
+        $text .= "📈 <b>Share Dividends:</b> {$divBadge}\n";
+
         $text .= "🕒 <b>Updated:</b> " . Carbon::now()->format('Y-m-d H:i:s');
 
         // Build interactive buttons based on status
@@ -602,8 +666,17 @@ class TelegramWebhookController extends Controller
             $statusButtons[] = ['text' => '🔴 Disable Account', 'callback_data' => 'usr_stat:' . $user->id . ':0'];
         }
 
+        $divButtons = [];
+        if ($isDivOn) {
+            $divButtons[] = ['text' => '📉 Dividends: Turn OFF', 'callback_data' => 'usr_div_tog:' . $user->id];
+            $divButtons[] = ['text' => '💵 Credit Dividend Now', 'callback_data' => 'usr_div_pay:' . $user->id];
+        } else {
+            $divButtons[] = ['text' => '📈 Dividends: Turn ON', 'callback_data' => 'usr_div_tog:' . $user->id];
+        }
+
         $keyboard = [
             $statusButtons,
+            $divButtons,
             [
                 ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
@@ -961,5 +1034,124 @@ class TelegramWebhookController extends Controller
             Log::error('Telegram export document exception: ' . $e->getMessage());
             $this->sendMessage($botToken, $chatId, "❌ Error generating export: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Handle /dividend command in Telegram.
+     */
+    protected function handleDividendCommand(string $botToken, string $chatId, array $args): void
+    {
+        $divService = new \App\Services\DividendService();
+        $subCommand = strtolower($args[0] ?? '');
+        $currencySymbol = setting('currency_symbol', '$');
+
+        // 1. Preview / Status across all eligible members (Default)
+        if (empty($subCommand) || $subCommand === 'preview' || $subCommand === 'pool') {
+            $preview = $divService->previewBatch();
+            $global = $preview['global_settings'];
+
+            $msg = "📈 <b>Monthly Dividend & APY Pool Status</b>\n\n";
+            $msg .= "⚙️ <b>Default APY:</b> " . number_format($global['default_apy'], 2) . "%\n";
+            $msg .= "💰 <b>Min Balance:</b> {$currencySymbol}" . number_format($global['min_balance'], 2) . "\n";
+            $msg .= "👥 <b>Eligible Members:</b> {$preview['eligible_count']} (out of {$preview['total_users_checked']} enabled)\n";
+            $msg .= "💵 <b>Next Payout Pool:</b> <b>{$currencySymbol}" . number_format($preview['total_payout_amount'], 2) . "</b>\n";
+            $msg .= "───────────────────\n";
+            $msg .= "💡 <i>Dividends are OFF by default. Use /dividend &lt;username&gt; or tap [ 📈 Dividends: Turn ON ] on any /user card.</i>";
+
+            $keyboard = [];
+            if ($preview['eligible_count'] > 0) {
+                $keyboard = [
+                    [
+                        ['text' => '🚀 Execute Monthly Payout Now', 'callback_data' => 'div_exec_all']
+                    ]
+                ];
+            }
+
+            $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+            return;
+        }
+
+        // 2. Direct Batch Execution: /dividend run
+        if ($subCommand === 'run' || $subCommand === 'commit') {
+            $this->sendMessage($botToken, $chatId, "⏳ Processing monthly dividend distribution batch...");
+            $res = $divService->processBatch(null, 'Telegram /dividend run');
+            if ($res['success']) {
+                $this->sendMessage($botToken, $chatId, "🎉 <b>DIVIDENDS PROCESSED!</b>\n" . $res['message']);
+            } else {
+                $this->sendMessage($botToken, $chatId, "⚠️ " . $res['message']);
+            }
+            return;
+        }
+
+        // 3. Toggle Eligibility: /dividend toggle <user>
+        if ($subCommand === 'toggle') {
+            $target = $args[1] ?? null;
+            if (!$target) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/dividend toggle &lt;user_id_or_username&gt;</code>");
+                return;
+            }
+            $user = $this->findUserByIdentifier($target);
+            if (!$user) {
+                $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+                return;
+            }
+            $newStatus = $divService->toggleUserEligibility($user);
+            $word = $newStatus ? 'ENABLED (ON)' : 'DISABLED (OFF)';
+            $this->sendMessage($botToken, $chatId, "📈 Dividends for <b>{$user->full_name}</b> (@{$user->username}) are now <b>{$word}</b>.");
+            return;
+        }
+
+        // 4. Set Custom APY: /dividend setapy <user> <rate>
+        if ($subCommand === 'setapy' || $subCommand === 'apy') {
+            $target = $args[1] ?? null;
+            $rate = isset($args[2]) && is_numeric($args[2]) ? (float)$args[2] : null;
+            if (!$target || $rate === null) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/dividend setapy &lt;user&gt; &lt;rate_percentage&gt;</code>\n<i>Example:</i> <code>/dividend setapy 2 4.25</code>");
+                return;
+            }
+            $user = $this->findUserByIdentifier($target);
+            if (!$user) {
+                $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+                return;
+            }
+            $divService->setUserApy($user, $rate);
+            $this->sendMessage($botToken, $chatId, "✅ Custom APY for <b>{$user->full_name}</b> (@{$user->username}) updated to <b>{$rate}%</b>.");
+            return;
+        }
+
+        // 5. Individual Member Dividend Lookup / Credit: /dividend <user>
+        $user = $this->findUserByIdentifier($subCommand);
+        if ($user) {
+            $calc = $divService->calculateUserDividend($user);
+            if ($calc['eligible']) {
+                $msg = "📈 <b>Member Dividend Calculation</b>\n\n";
+                $msg .= "👤 <b>Member:</b> {$user->full_name} (@{$user->username})\n";
+                $msg .= "🏦 <b>Account:</b> {$calc['wallet_name']}\n";
+                $msg .= "💰 <b>Qualifying Balance:</b> {$currencySymbol}" . number_format($calc['balance'], 2) . "\n";
+                $msg .= "📊 <b>APY Rate:</b> " . number_format($calc['apy'], 2) . "%\n";
+                $msg .= "💵 <b>Calculated Dividend:</b> <b>+{$currencySymbol}" . number_format($calc['amount'], 2) . "</b>\n";
+                $msg .= "📝 <b>Ledger Note:</b> <i>{$calc['description']}</i>";
+
+                $keyboard = [
+                    [
+                        ['text' => '💵 Credit Dividend Now', 'callback_data' => 'usr_div_pay:' . $user->id]
+                    ]
+                ];
+                $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+            } else {
+                $msg = "ℹ️ <b>Dividend Status for {$user->full_name}</b> (@{$user->username})\n\n";
+                $msg .= "⚠️ <b>Not currently eligible:</b> {$calc['reason']}\n\n";
+                $msg .= "💡 <i>Tap below to turn dividends ON for this member.</i>";
+                $keyboard = [
+                    [
+                        ['text' => '📈 Turn Dividends ON', 'callback_data' => 'usr_div_tog:' . $user->id]
+                    ]
+                ];
+                $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+            }
+            return;
+        }
+
+        $this->sendMessage($botToken, $chatId, "❓ Unknown parameter: <code>{$subCommand}</code>. Use <code>/dividend</code> to view pool or <code>/dividend &lt;username&gt;</code>.");
     }
 }

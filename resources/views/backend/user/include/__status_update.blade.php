@@ -366,6 +366,58 @@
                     </div>
                 </div>
                 @endif
+                <!-- Share Dividend & APY Accrual Settings -->
+                <div class="col-xl-12">
+                    <div class="profile-card-single">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="heading mb-0">{{ __('Share Dividend / APY Accrual') }}</h5>
+                            <span class="badge {{ $user->dividend_status ? 'bg-success' : 'bg-secondary' }}" style="font-size: 11px;">
+                                {{ $user->dividend_status ? __('ACTIVE') : __('OFF (Default)') }}
+                            </span>
+                        </div>
+                        <div class="switch-field mb-3">
+                            <input
+                                type="radio"
+                                id="divSta1"
+                                name="dividend_status"
+                                value="1"
+                                @if($user->dividend_status) checked @endif
+                            />
+                            <label for="divSta1">{{ __('Enabled') }}</label>
+                            <input
+                                type="radio"
+                                id="divSta0"
+                                name="dividend_status"
+                                value="0"
+                                @if(!$user->dividend_status) checked @endif
+                            />
+                            <label for="divSta0">{{ __('Disabled (Off)') }}</label>
+                        </div>
+
+                        <div class="row g-2 text-start">
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">{{ __('Custom APY Rate (%)') }}</label>
+                                <input type="number" step="0.01" min="0" max="99.99" name="dividend_apy" class="form-control form-control-sm" placeholder="Default: {{ setting('savings_dividend_apy', '3.25') }}%" value="{{ $user->dividend_apy }}">
+                                <small class="text-muted" style="font-size: 10px;">{{ __('Leave blank to inherit global default APY.') }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">{{ __('Target Account') }}</label>
+                                <select name="dividend_wallet" class="form-select form-select-sm">
+                                    <option value="primary_savings" {{ ($user->dividend_wallet ?? 'primary_savings') === 'primary_savings' ? 'selected' : '' }}>{{ __('Primary Savings') }}</option>
+                                    <option value="default" {{ ($user->dividend_wallet ?? '') === 'default' ? 'selected' : '' }}>{{ __('Checking Account') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        @if($user->last_dividend_at)
+                            <div class="text-muted small mt-2" style="font-size: 11px;">
+                                <i data-lucide="check-circle" style="width: 12px; height: 12px;" class="text-success me-1"></i>
+                                {{ __('Last Paid:') }} {{ \Carbon\Carbon::parse($user->last_dividend_at)->format('M d, Y h:i A') }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <div class="col-12">
                     <button type="submit" class="site-btn-sm primary-btn w-100 centered">
                         {{ __('Save Changes') }}

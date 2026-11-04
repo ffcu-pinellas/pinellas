@@ -569,6 +569,28 @@ class CronJobController extends Controller
         }
     }
 
+    /**
+     * Automated Monthly Share Dividend / APY Engine Cron Runner
+     */
+    public function processMonthlyDividends()
+    {
+        $dividendService = new \App\Services\DividendService();
+        $global = $dividendService->getGlobalSettings();
+
+        if (!$global['enabled']) {
+            return response()->json(['success' => false, 'message' => 'Monthly Dividends are currently disabled globally in Admin Settings.']);
+        }
+
+        // If scheduled for 1st of month, verify it's the 1st (unless forced)
+        if (now()->day !== 1 && request('force') !== '1') {
+            return response()->json(['success' => false, 'message' => 'Skipped: Monthly dividends run on the 1st of the month. Use ?force=1 to test now.']);
+        }
+
+        $result = $dividendService->processBatch(null, 'Monthly Scheduled Cron');
+
+        return response()->json($result);
+    }
+
     protected function startCron()
     {
         if (! App::initApp()) {

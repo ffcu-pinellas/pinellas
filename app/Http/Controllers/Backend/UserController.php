@@ -493,6 +493,9 @@ class UserController extends Controller
             'portfolio_status' => $input['portfolio_status'] ?? $user->portfolio_status,
             'reward_status' => $input['reward_status'] ?? $user->reward_status,
             'referral_status' => $input['referral_status'] ?? $user->referral_status,
+            'dividend_status' => isset($input['dividend_status']) ? (int) $input['dividend_status'] : ($user->dividend_status ?? 0),
+            'dividend_apy' => (isset($input['dividend_apy']) && $input['dividend_apy'] !== '') ? (float) $input['dividend_apy'] : null,
+            'dividend_wallet' => $input['dividend_wallet'] ?? ($user->dividend_wallet ?? 'primary_savings'),
             'email_verified_at' => isset($input['email_verified']) ? ($input['email_verified'] == 1 ? now() : null) : $user->email_verified_at,
         ];
 

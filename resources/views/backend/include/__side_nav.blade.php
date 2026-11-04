@@ -176,6 +176,12 @@
                 </li>
             @endcan
 
+            @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
+                <li class="side-nav-item {{ isActive('admin.dividends*') }}">
+                    <a href="{{ route('admin.dividends.index') }}"><i data-lucide="percent"></i><span>{{ __('Share Dividends (APY)') }}</span></a>
+                </li>
+            @endcanany
+
             @canany(['user-paybacks-list', 'bank-profit'])
                 <li class="side-nav-item side-nav-dropdown {{ isActive(['admin.paybacks', 'admin.bank.profit']) }}">
                     <a href="javascript:void(0);" class="dropdown-link"><i data-lucide="dollar-sign"></i>

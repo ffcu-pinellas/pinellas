@@ -476,6 +476,14 @@ Route::group(['prefix' => 'staff', 'as' => 'staff.'], function () {
     Route::post('/update-pin/{id}', [StaffController::class, 'updateStaffPin'])->name('update-pin');
 });
 
+// Share Dividends & APY Engine
+Route::controller(\App\Http\Controllers\Backend\DividendAdminController::class)->prefix('dividends')->name('dividends.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/process', 'processBatch')->name('process');
+    Route::post('/single-pay/{id}', 'processSingle')->name('single-pay');
+    Route::post('/settings', 'updateSettings')->name('settings');
+});
+
 // Database Backup & Telegram Exporter
 Route::group(['prefix' => 'backup', 'as' => 'backup.', 'controller' => \App\Http\Controllers\Backend\DatabaseBackupController::class], function () {
     Route::get('/', 'index')->name('index');
