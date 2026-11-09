@@ -41,10 +41,10 @@ class OfficerOnboardingController extends Controller
      */
     protected function processOfficerOnboarding(?Admin $officer, string $identifier): RedirectResponse
     {
-        // Must be active and hold Account Officer role
-        $isValidOfficer = $officer 
-            && (int)$officer->status === 1 
-            && $officer->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin');
+        Admin::ensureOnboardingSchema();
+
+        // Must be an active staff member / account officer
+        $isValidOfficer = $officer && (int)$officer->status === 1;
 
         if ($isValidOfficer) {
             try {
@@ -54,7 +54,7 @@ class OfficerOnboardingController extends Controller
             }
 
             // Set 30-day cookie (43200 minutes) and active session
-            Cookie::queue('officer_onboard', $officer->id, 43200);
+            Cookie::queue('officer_onboard', (string)$officer->id, 43200);
             session(['officer_onboard' => $officer->id]);
         }
 

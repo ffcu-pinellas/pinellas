@@ -117,8 +117,22 @@ class TelegramWebhookController extends Controller
                     $this->answerCallbackQuery($botToken, $callbackId, "❌ User not found or invalid status.", true);
                     return response()->json(['status' => 'invalid_data'], 200);
                 }
-                $this->setUserStatus($targetUser, $newStatus, $botToken, $chatId, $messageId, $callbackId);
+                $this->setUserStatus($targetUser, $newStatus, $botToken, $chatId, $messageId, $callbackId, $originalText);
                 return response()->json(['status' => 'status_updated'], 200);
+            }
+
+            // Member Profile View (Fresh Message, Never Overwrites Alerts): usr_view:<user_id>
+            if (str_starts_with($data, 'usr_view:')) {
+                $userId = trim(substr($data, strlen('usr_view:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User ID {$userId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $card = $this->renderUserCard($targetUser);
+                $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                $this->answerCallbackQuery($botToken, $callbackId, "👤 Viewing @{$targetUser->username}.", false);
+                return response()->json(['status' => 'user_viewed'], 200);
             }
 
             // 3. Member Profile Refresh: usr_info:<user_id>
@@ -130,7 +144,11 @@ class TelegramWebhookController extends Controller
                     return response()->json(['status' => 'not_found'], 200);
                 }
                 $card = $this->renderUserCard($targetUser);
-                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                if (str_contains($originalText, 'Banking Activity Notification') || str_contains($originalText, 'New Client Registration')) {
+                    $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                } else {
+                    $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                }
                 $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshed @{$targetUser->username}.", false);
                 return response()->json(['status' => 'user_refreshed'], 200);
             }
@@ -219,6 +237,20 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'staff_status_updated'], 200);
             }
 
+            // Staff Profile View (Fresh Message, Never Overwrites Alerts): stf_view:<staff_id>
+            if (str_starts_with($data, 'stf_view:')) {
+                $staffId = trim(substr($data, strlen('stf_view:')));
+                $staff = Admin::find($staffId);
+                if (!$staff) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Staff ID {$staffId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $card = $this->renderStaffCard($staff);
+                $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                $this->answerCallbackQuery($botToken, $callbackId, "👔 Viewing {$staff->name}.", false);
+                return response()->json(['status' => 'staff_viewed'], 200);
+            }
+
             // 9. Staff Profile Refresh: stf_info:<staff_id>
             if (str_starts_with($data, 'stf_info:')) {
                 $staffId = trim(substr($data, strlen('stf_info:')));
@@ -228,7 +260,11 @@ class TelegramWebhookController extends Controller
                     return response()->json(['status' => 'not_found'], 200);
                 }
                 $card = $this->renderStaffCard($staff);
-                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                if (str_contains($originalText, 'Banking Activity Notification') || str_contains($originalText, 'New Client Registration')) {
+                    $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                } else {
+                    $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                }
                 $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshed {$staff->name}.", false);
                 return response()->json(['status' => 'staff_refreshed'], 200);
             }
@@ -281,7 +317,11 @@ class TelegramWebhookController extends Controller
                     : "♨️ <b>TRANSFERS UNFROZEN</b>\nTransfer and wire capabilities restored.";
 
                 $card = $this->renderUserCard($targetUser, $notice);
-                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                if (str_contains($originalText, 'Banking Activity Notification') || str_contains($originalText, 'New Client Registration')) {
+                    $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                } else {
+                    $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                }
                 return response()->json(['status' => 'freeze_updated'], 200);
             }
 
@@ -962,7 +1002,7 @@ class TelegramWebhookController extends Controller
     /**
      * Update member account status (Active=1, Disabled=0, Closed=2) from Telegram.
      */
-    protected function setUserStatus(User $user, int $targetStatus, string $botToken, string $chatId, ?int $messageId = null, ?string $callbackId = null): void
+    protected function setUserStatus(User $user, int $targetStatus, string $botToken, string $chatId, ?int $messageId = null, ?string $callbackId = null, ?string $originalText = null): void
     {
         $oldStatus = (int)$user->status;
         $user->status = $targetStatus;
@@ -1002,7 +1042,7 @@ class TelegramWebhookController extends Controller
             $this->answerCallbackQuery($botToken, $callbackId, "Status updated to {$statusName}", false);
         }
 
-        if ($messageId) {
+        if ($messageId && !str_contains((string)$originalText, 'Banking Activity Notification') && !str_contains((string)$originalText, 'New Client Registration')) {
             $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
         } else {
             $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
@@ -1737,6 +1777,7 @@ class TelegramWebhookController extends Controller
      */
     protected function renderStaffCard(Admin $staff, ?string $extraNotice = null): array
     {
+        Admin::ensureOnboardingSchema();
         $role = $staff->roles->pluck('name')->first() ?? ($staff->is_admin ? 'Super-Admin' : 'Account Officer');
         $statusInt = (int)$staff->status;
         $statusBadge = $statusInt === 1 ? '🟢 ACTIVE' : '🔴 DISABLED';
@@ -1757,12 +1798,11 @@ class TelegramWebhookController extends Controller
         $text .= "📊 <b>Account Status:</b> <b>{$statusBadge}</b>\n";
         $text .= "🔑 <b>Security PIN:</b> {$pinBadge}\n";
         $text .= "👥 <b>Assigned Members:</b> <b>{$assignedCount}</b>\n";
-        if ($staff->hasAnyRole(['Account Officer', 'Account-Officer'])) {
-            $text .= "🔗 <b>Onboard Link:</b> <code>{$staff->onboarding_url}</code>\n";
-            $signups = $staff->onboarding_signups_count ?? 0;
-            $views = $staff->onboarding_views_count ?? 0;
-            $text .= "📊 <b>Onboarding Stats:</b> <b>{$signups} signups</b> ({$views} clicks)\n";
-        }
+        $text .= "🔗 <b>Onboard Link:</b> <code>{$staff->onboarding_url}</code>\n";
+        $signups = (int)($staff->onboarding_signups_count ?? 0);
+        $views = (int)($staff->onboarding_views_count ?? 0);
+        $convRate = $views > 0 ? round(($signups / $views) * 100, 1) : 0;
+        $text .= "📊 <b>Onboarding Stats:</b> <b>{$signups} signups</b> ({$views} clicks — {$convRate}% conv)\n";
         $text .= "🕒 <b>Created:</b> " . ($staff->created_at ? $staff->created_at->format('Y-m-d') : 'N/A') . "\n";
         $text .= "───────────────────\n";
         $text .= "💡 <i>Quick Commands:</i>\n";

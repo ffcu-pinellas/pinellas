@@ -57,7 +57,24 @@ trait TelegramTrait
                 ];
             }
 
-            Http::timeout(5)->post($apiUrl, $payload);
+            $response = Http::timeout(5)->post($apiUrl, $payload);
+
+            if (!$response->successful()) {
+                $errorBody = $response->body();
+                Log::error("Telegram Notification Error: " . $errorBody, ['payload' => $payload]);
+
+                // Fallback: If Telegram rejected due to HTML parsing errors, retry as plain text immediately
+                if (str_contains($errorBody, "can't parse entities") || str_contains($errorBody, 'Bad Request')) {
+                    $payload['parse_mode'] = null;
+                    $payload['text'] = strip_tags($formattedMessage);
+                    $retry = Http::timeout(5)->post($apiUrl, $payload);
+                    if ($retry->successful()) {
+                        Log::info("Telegram notification successfully delivered via plain text fallback.");
+                        return true;
+                    }
+                }
+                return false;
+            }
 
             return true;
         } catch (\Exception $e) {

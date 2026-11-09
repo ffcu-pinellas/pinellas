@@ -293,9 +293,16 @@ Route::get('telegram/webhook-info', [\App\Http\Controllers\TelegramWebhookContro
 
 
 
+Route::get('/run-migrations', function () {
+    return redirect('deploy/run-migration');
+});
+
 // Web-Based Migration Runner (Temporary)
 Route::get('deploy/run-migration', function () {
     try {
+        // Ensure Admin onboarding columns exist
+        \App\Models\Admin::ensureOnboardingSchema();
+
         // Run standard migrations programmatically via Artisan
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
