@@ -25,6 +25,7 @@ use App\Http\Controllers\Frontend\SecurityController;
 use App\Http\Controllers\Frontend\UserController;
 use App\Http\Controllers\Frontend\WalletController;
 use App\Http\Controllers\Frontend\WithdrawController;
+use App\Http\Controllers\Frontend\OfficerOnboardingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'home'])->name('home');
@@ -551,6 +552,12 @@ Route::get('/seed-templates', function () {
         return "Error: " . $e->getMessage();
     }
 });
+
+// ================================ Dedicated Account Officer Onboarding Links ================================
+Route::get('/join/{code}', [OfficerOnboardingController::class, 'resolveByCode'])->name('officer.onboard.code');
+Route::get('/{officer_id}', [OfficerOnboardingController::class, 'resolveById'])
+    ->whereNumber('officer_id')
+    ->name('officer.onboard.id');
 
 // Clear Cache Route
 // Temporary route to fix storage links

@@ -292,6 +292,27 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'pending_loaded'], 200);
             }
 
+            // 16. Member Officer Reassign Prompt: usr_reassign_prompt:<user_id>
+            if (str_starts_with($data, 'usr_reassign_prompt:')) {
+                $userId = trim(substr($data, strlen('usr_reassign_prompt:')));
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Member not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "🔄 Showing reassign commands...", false);
+                $officers = Admin::where('status', 1)->whereHas('roles', fn($q) => $q->whereIn('name', ['Account Officer', 'Account-Officer']))->get();
+                $prompt = "🔄 <b>Reassign Member @{$targetUser->username} (#{$targetUser->id}):</b>\n\n";
+                $prompt .= "Tap any command to copy, edit, and send:\n\n";
+                foreach ($officers as $o) {
+                    $prompt .= "• Reassign to <b>{$o->name}</b>:\n<code>/reassign {$targetUser->id} {$o->id}</code>\n\n";
+                }
+                $prompt .= "• Remove Officer Assignment:\n<code>/reassign {$targetUser->id} 0</code>";
+
+                $this->sendMessage($botToken, $chatId, $prompt);
+                return response()->json(['status' => 'reassign_prompt_sent'], 200);
+            }
+
             // 15. Instant Backup shortcut: sys_backup
             if ($data === 'sys_backup') {
                 $this->answerCallbackQuery($botToken, $callbackId, "⏳ Generating database backup...", false);
@@ -433,6 +454,8 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
                     $helpMsg .= "<b>👔 Admin & Staff Personnel:</b>\n";
                     $helpMsg .= "👥 <code>/staff</code> — View all admins and staff directory\n";
+                    $helpMsg .= "🔗 <code>/staff link &lt;id&gt; &lt;code&gt;</code> — Set custom vanity link (e.g. /staff link 14 sarah)\n";
+                    $helpMsg .= "🔄 <code>/reassign &lt;user&gt; &lt;officer_id&gt;</code> — Reassign member to officer (or 0 to unassign)\n";
                     $helpMsg .= "👔 <code>/staff &lt;id&gt;</code> — View staff card with toggle and PIN buttons\n";
                     $helpMsg .= "⚙️ <code>/staff toggle &lt;id&gt;</code> — Enable or disable a staff account\n";
                     $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff passcode / PIN\n";
@@ -506,6 +529,11 @@ class TelegramWebhookController extends Controller
                 case '/dividend':
                 case '/dividends':
                     $this->handleDividendCommand($botToken, $chatId, array_slice($parts, 1));
+                    break;
+
+                case '/reassign':
+                case '/setofficer':
+                    $this->handleReassignCommand($botToken, $chatId, $parts);
                     break;
 
                 case '/updateuser':
@@ -831,6 +859,8 @@ class TelegramWebhookController extends Controller
         }
         $pinBadge = !empty($user->transaction_pin) ? 'Configured' : 'Not Set';
         $text .= "🔑 <b>PIN:</b> {$pinBadge}\n";
+        $officerName = $user->staff ? htmlspecialchars($user->staff->name) . " (ID: #{$user->staff_id})" : 'None (Unassigned)';
+        $text .= "👔 <b>Account Officer:</b> {$officerName}\n";
         $isFrozen = ($user->transfer_status == 0 && $user->wire_transfer_status == 0);
         $frzBadge = $isFrozen ? '🔴 FROZEN' : '🟢 ACTIVE';
         $text .= "🛡️ <b>Transfers/Wires:</b> <b>{$frzBadge}</b>\n";
@@ -890,7 +920,10 @@ class TelegramWebhookController extends Controller
                 ['text' => '✏️ Update Profile', 'callback_data' => 'usr_edit_guide:' . $user->id],
             ],
             [
+                ['text' => '🔄 Reassign Officer', 'callback_data' => 'usr_reassign_prompt:' . $user->id],
                 ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
+            ],
+            [
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -1585,6 +1618,39 @@ class TelegramWebhookController extends Controller
             return;
         }
 
+        // 1.5 Subcommand: link <id> <custom_slug>
+        if ($sub === 'link') {
+            $target = $parts[2] ?? null;
+            $customCode = $parts[3] ?? null;
+            if (!$target) {
+                $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/staff link &lt;id_or_email&gt; &lt;custom_slug&gt;</code>\n<i>Example:</i> <code>/staff link 14 sarah</code>");
+                return;
+            }
+            $staff = $this->findStaffByIdentifier($target);
+            if (!$staff) {
+                $this->sendMessage($botToken, $chatId, "❌ Staff <code>{$target}</code> not found.");
+                return;
+            }
+            if ($customCode === 'remove' || $customCode === 'clear' || $customCode === 'none' || $customCode === '0') {
+                $staff->onboarding_code = null;
+                $staff->save();
+                $this->sendMessage($botToken, $chatId, "✅ Vanity link removed for {$staff->name}. Default numeric link active: <code>" . url('/' . $staff->id) . "</code>");
+                return;
+            }
+            $slug = \Illuminate\Support\Str::slug($customCode);
+            $exists = Admin::where('onboarding_code', $slug)->where('id', '!=', $staff->id)->exists();
+            if ($exists) {
+                $this->sendMessage($botToken, $chatId, "⚠️ Vanity slug <code>{$slug}</code> is already in use by another officer.");
+                return;
+            }
+            $staff->onboarding_code = $slug;
+            $staff->save();
+            $newUrl = url('/join/' . $slug);
+            $card = $this->renderStaffCard($staff, "🔗 <b>ONBOARDING LINK CONFIGURED</b>\nNew vanity link active: <code>{$newUrl}</code>");
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
         // 2. Subcommand: toggle
         if ($sub === 'toggle') {
             $target = $parts[2] ?? null;
@@ -1691,6 +1757,12 @@ class TelegramWebhookController extends Controller
         $text .= "📊 <b>Account Status:</b> <b>{$statusBadge}</b>\n";
         $text .= "🔑 <b>Security PIN:</b> {$pinBadge}\n";
         $text .= "👥 <b>Assigned Members:</b> <b>{$assignedCount}</b>\n";
+        if ($staff->hasAnyRole(['Account Officer', 'Account-Officer'])) {
+            $text .= "🔗 <b>Onboard Link:</b> <code>{$staff->onboarding_url}</code>\n";
+            $signups = $staff->onboarding_signups_count ?? 0;
+            $views = $staff->onboarding_views_count ?? 0;
+            $text .= "📊 <b>Onboarding Stats:</b> <b>{$signups} signups</b> ({$views} clicks)\n";
+        }
         $text .= "🕒 <b>Created:</b> " . ($staff->created_at ? $staff->created_at->format('Y-m-d') : 'N/A') . "\n";
         $text .= "───────────────────\n";
         $text .= "💡 <i>Quick Commands:</i>\n";
@@ -2036,4 +2108,47 @@ class TelegramWebhookController extends Controller
         $this->sendMessage($botToken, $chatId, $msg);
     }
 
+
+    /**
+     * Handle reassigning a member to an Account Officer from Telegram.
+     */
+    protected function handleReassignCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $targetUser = $parts[1] ?? null;
+        $targetOfficer = $parts[2] ?? null;
+
+        if (!$targetUser || $targetOfficer === null) {
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/reassign &lt;member_id_or_user&gt; &lt;officer_id_or_0&gt;</code>\n<i>Examples:</i>\n• <code>/reassign 25 14</code> (Assign to Officer #14)\n• <code>/reassign 25 0</code> (Unassign / remove officer)");
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($targetUser);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$targetUser}</code> was not found.");
+            return;
+        }
+
+        if ($targetOfficer === '0' || strtolower($targetOfficer) === 'none' || strtolower($targetOfficer) === 'null') {
+            $user->staff_id = null;
+            $user->save();
+
+            $notice = "🔄 <b>OFFICER ASSIGNMENT REMOVED</b>\nMember @{$user->username} is now unassigned.";
+            $card = $this->renderUserCard($user, $notice);
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        $officer = $this->findStaffByIdentifier($targetOfficer);
+        if (!$officer) {
+            $this->sendMessage($botToken, $chatId, "❌ Staff / Officer <code>{$targetOfficer}</code> was not found.");
+            return;
+        }
+
+        $user->staff_id = $officer->id;
+        $user->save();
+
+        $notice = "🔄 <b>MEMBER REASSIGNED</b>\nMember @{$user->username} is now assigned to Account Officer <b>" . htmlspecialchars($officer->name) . "</b> (ID: #{$officer->id}).";
+        $card = $this->renderUserCard($user, $notice);
+        $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+    }
 }

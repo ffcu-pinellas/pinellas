@@ -34,6 +34,7 @@
                                         <th scope="col">{{ __('Name') }}</th>
                                         <th scope="col">{{ __('Email') }}</th>
                                         <th scope="col">{{ __('Role') }}</th>
+                                        <th scope="col">{{ __('Onboarding Link') }}</th>
                                         <th scope="col">{{ __('Security Gate') }}</th>
                                         <th scope="col">{{ __('Action') }}</th>
                                     </tr>
@@ -47,6 +48,23 @@
                                             <td>{{ $staff->email }}</td>
                                             <td><strong
                                                     class="site-badge primary">{{ $staff->getRoleNames()->first() }}</strong>
+                                            </td>
+                                            <td>
+                                                @if($staff->hasAnyRole(['Account Officer', 'Account-Officer']))
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">{{ $staff->onboarding_url }}</code>
+                                                        <button class="round-icon-btn blue-btn py-0 px-1" style="width: 26px; height: 26px;" type="button" 
+                                                                onclick="navigator.clipboard.writeText('{{ $staff->onboarding_url }}'); if (typeof notify !== 'undefined') { notify('Link copied!', 'success'); } else { alert('Copied!'); }" 
+                                                                data-bs-toggle="tooltip" title="{{ __('Copy Onboarding Link') }}">
+                                                            <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="text-muted mt-1" style="font-size: 10px;">
+                                                        <strong>{{ $staff->onboarding_signups_count ?? 0 }}</strong> signups ({{ $staff->onboarding_views_count ?? 0 }} clicks)
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted" style="font-size: 11px;">N/A (Admin)</span>
+                                                @endif
                                             </td>
                                             <td>
                                                 @if($staff->passcode_status)

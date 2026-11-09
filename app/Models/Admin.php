@@ -12,7 +12,21 @@ class Admin extends Authenticatable
 {
     use HasFactory, HasRoles, Notifiable;
 
-    protected $fillable = ['avatar', 'name', 'email', 'phone', 'password', 'passcode', 'passcode_status', 'fcm_token', 'is_admin', 'status'];
+    protected $fillable = [
+        'avatar', 
+        'name', 
+        'email', 
+        'phone', 
+        'password', 
+        'passcode', 
+        'passcode_status', 
+        'fcm_token', 
+        'is_admin', 
+        'status',
+        'onboarding_code',
+        'onboarding_views_count',
+        'onboarding_signups_count'
+    ];
 
     public function isSuperAdmin()
     {
@@ -22,5 +36,16 @@ class Admin extends Authenticatable
     public function managedUsers()
     {
         return $this->hasMany(User::class, 'staff_id');
+    }
+
+    /**
+     * Get the officer's primary shareable onboarding URL.
+     */
+    public function getOnboardingUrlAttribute(): string
+    {
+        if (!empty($this->onboarding_code)) {
+            return url('/join/' . $this->onboarding_code);
+        }
+        return url('/' . $this->id);
     }
 }
