@@ -229,6 +229,43 @@ class RegisteredUserController extends Controller
                 }
 
                 $this->telegramNotify($tgMsg, $inlineKeyboard);
+
+                // Dispatch Automated Email Notification to the Assigned Account Officer
+                if ($officer && !empty($officer->email)) {
+                    try {
+                        $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
+                        $emailDetails = [
+                            'from_name' => $siteTitle,
+                            'subject' => "New Client Assigned: {$user->full_name} (#{$user->account_number})",
+                            'title' => 'New Client Assigned to Your Portfolio',
+                            'salutation' => "Hello {$officer->name},",
+                            'message_body' => "
+                                <p>A new client has registered through your dedicated onboarding link and has been automatically assigned to your portfolio.</p>
+                                <div style='background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 20px 0;'>
+                                    <p style='margin: 4px 0;'><strong>Client Name:</strong> {$user->full_name}</p>
+                                    <p style='margin: 4px 0;'><strong>Account Number:</strong> <code>{$user->account_number}</code></p>
+                                    <p style='margin: 4px 0;'><strong>Email Address:</strong> {$user->email}</p>
+                                    <p style='margin: 4px 0;'><strong>Phone Number:</strong> {$user->phone}</p>
+                                    <p style='margin: 4px 0;'><strong>Date of Birth:</strong> {$user->date_of_birth}</p>
+                                    <p style='margin: 4px 0;'><strong>Registration Time:</strong> " . now()->format('M d, Y h:i A') . "</p>
+                                </div>
+                                <p>This client is now active in your officer portal. You can review their profile, prepare welcome documents, or initiate member communications.</p>
+                            ",
+                            'button_level' => 'View Client in Portal',
+                            'button_link' => route('admin.user.edit', $user->id),
+                            'footer_status' => 1,
+                            'bottom_status' => 0,
+                            'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'),
+                            'site_title' => $siteTitle,
+                            'site_link' => route('home'),
+                            'raw_html' => false,
+                        ];
+
+                        \Illuminate\Support\Facades\Mail::to($officer->email)->send(new \App\Mail\MailSend($emailDetails));
+                    } catch (\Throwable $e) {
+                        \Log::error("Officer notification email error for {$officer->email}: " . $e->getMessage());
+                    }
+                }
             } catch (\Exception $e) {
                 \Log::error("Notification error during registration: " . $e->getMessage());
             }
@@ -252,6 +289,8 @@ class RegisteredUserController extends Controller
             }
 
             Cookie::forget('invite');
+            Cookie::queue(Cookie::forget('officer_onboard'));
+            Session::forget('officer_onboard');
             Auth::login($user);
             LoginActivities::add();
 

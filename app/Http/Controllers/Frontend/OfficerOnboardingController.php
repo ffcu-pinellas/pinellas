@@ -62,3 +62,4 @@ class OfficerOnboardingController extends Controller
         return redirect()->route('register');
     }
 }
+
