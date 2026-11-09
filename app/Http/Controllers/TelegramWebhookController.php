@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TxnStatus;
+use App\Enums\TxnType;
+use Txn;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\TransactionSecurityCode;
@@ -254,6 +256,55 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'staff_list_sent'], 200);
             }
 
+            // 13. Member Freeze / Unfreeze: usr_frz:<user_id>:<status>
+            if (str_starts_with($data, 'usr_frz:')) {
+                $parts = explode(':', $data);
+                $userId = $parts[1] ?? null;
+                $freezeAction = isset($parts[2]) ? (int)$parts[2] : 1;
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ User not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $newVal = ($freezeAction === 1) ? 0 : 1;
+                $targetUser->transfer_status = $newVal;
+                $targetUser->wire_transfer_status = $newVal;
+                $targetUser->zelle_transfer_status = $newVal;
+                $targetUser->checking_restricted = ($freezeAction === 1) ? 1 : 0;
+                $targetUser->save();
+
+                $toast = ($freezeAction === 1) ? "❄️ Transfers FROZEN for @{$targetUser->username}" : "♨️ Transfers RESTORED for @{$targetUser->username}";
+                $this->answerCallbackQuery($botToken, $callbackId, $toast, false);
+
+                $notice = ($freezeAction === 1) 
+                    ? "❄️ <b>EMERGENCY FREEZE ACTIVATED</b>\nAll outgoing wires, internal transfers, and Zelle transactions are <b>BLOCKED</b> for this member."
+                    : "♨️ <b>TRANSFERS UNFROZEN</b>\nTransfer and wire capabilities restored.";
+
+                $card = $this->renderUserCard($targetUser, $notice);
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                return response()->json(['status' => 'freeze_updated'], 200);
+            }
+
+            // 14. Pending List shortcut: pend_list
+            if ($data === 'pend_list') {
+                $this->answerCallbackQuery($botToken, $callbackId, "📋 Loading pending transactions...", false);
+                $this->handlePendingCommand($botToken, $chatId);
+                return response()->json(['status' => 'pending_loaded'], 200);
+            }
+
+            // 15. Instant Backup shortcut: sys_backup
+            if ($data === 'sys_backup') {
+                $this->answerCallbackQuery($botToken, $callbackId, "⏳ Generating database backup...", false);
+                try {
+                    $backupService = new \App\Services\DatabaseBackupService();
+                    $result = $backupService->sendToTelegram(null, 'Backup triggered via Telegram health widget.');
+                    $this->sendMessage($botToken, $chatId, "💾 " . ($result['message'] ?? 'Backup complete.'));
+                } catch (\Throwable $e) {
+                    $this->sendMessage($botToken, $chatId, "❌ Backup failed: " . $e->getMessage());
+                }
+                return response()->json(['status' => 'backup_triggered'], 200);
+            }
+
             // 12. Member Profile Edit Guide: usr_edit_guide:<user_id>
             if (str_starts_with($data, 'usr_edit_guide:')) {
                 $userId = trim(substr($data, strlen('usr_edit_guide:')));
@@ -386,7 +437,13 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "⚙️ <code>/staff toggle &lt;id&gt;</code> — Enable or disable a staff account\n";
                     $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff passcode / PIN\n";
                     $helpMsg .= "🔐 <code>/staff resetpass &lt;id&gt; &lt;pass&gt;</code> — Reset staff dashboard password\n\n";
-                    $helpMsg .= "<b>⚙️ System:</b>\n";
+                    $helpMsg .= "<b>⚙️ System & Server Diagnostics:</b>\n";
+                    $helpMsg .= "🖥️ <code>/health</code> — Live server vitals (RAM, Disk, DB latency, PHP, Uptime)\n";
+                    $helpMsg .= "🔍 <code>/search &lt;query&gt;</code> — Search members by acct #, name, phone, email\n";
+                    $helpMsg .= "💰 <code>/balance &lt;user&gt; &lt;wallet&gt; &lt;+amt|-amt&gt; [reason]</code> — Balance adjust & ledger record\n";
+                    $helpMsg .= "❄️ <code>/freeze &lt;user&gt;</code> — Emergency freeze on wires, transfers, Zelle\n";
+                    $helpMsg .= "♨️ <code>/unfreeze &lt;user&gt;</code> — Restore transfer and wire capabilities\n";
+                    $helpMsg .= "🛡️ <code>/audit [limit]</code> — Live security feed of recent auth attempts & lockouts\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
 
@@ -530,6 +587,39 @@ class TelegramWebhookController extends Controller
                     } else {
                         $this->handleStatusCommand($botToken, $chatId, trim($target));
                     }
+                    break;
+
+                case '/health':
+                case '/system':
+                case '/vitals':
+                    $this->handleHealthCommand($botToken, $chatId);
+                    break;
+
+                case '/search':
+                case '/find':
+                    $this->handleSearchCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/balance':
+                case '/adjustbalance':
+                case '/setbalance':
+                    $this->handleBalanceCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/freeze':
+                case '/locktransfers':
+                    $this->handleFreezeCommand($botToken, $chatId, $parts, true);
+                    break;
+
+                case '/unfreeze':
+                case '/unlocktransfers':
+                    $this->handleFreezeCommand($botToken, $chatId, $parts, false);
+                    break;
+
+                case '/audit':
+                case '/security':
+                case '/logs':
+                    $this->handleAuditCommand($botToken, $chatId, $parts);
                     break;
 
                 case '/backup':
@@ -741,6 +831,9 @@ class TelegramWebhookController extends Controller
         }
         $pinBadge = !empty($user->transaction_pin) ? 'Configured' : 'Not Set';
         $text .= "🔑 <b>PIN:</b> {$pinBadge}\n";
+        $isFrozen = ($user->transfer_status == 0 && $user->wire_transfer_status == 0);
+        $frzBadge = $isFrozen ? '🔴 FROZEN' : '🟢 ACTIVE';
+        $text .= "🛡️ <b>Transfers/Wires:</b> <b>{$frzBadge}</b>\n";
         $text .= "📊 <b>Account Status:</b> <b>{$statusLabel}</b>\n";
         $text .= "🛡️ <b>KYC Status:</b> {$kycLabel}\n";
         $text .= "───────────────────\n";
@@ -784,14 +877,20 @@ class TelegramWebhookController extends Controller
             $divButtons[] = ['text' => '📈 Dividends: Turn ON', 'callback_data' => 'usr_div_tog:' . $user->id];
         }
 
+        $isFrozen = ($user->transfer_status == 0 && $user->wire_transfer_status == 0);
+        $freezeBtn = $isFrozen
+            ? ['text' => '♨️ Unfreeze Transfers', 'callback_data' => 'usr_frz:' . $user->id . ':0']
+            : ['text' => '❄️ Freeze Transfers', 'callback_data' => 'usr_frz:' . $user->id . ':1'];
+
         $keyboard = [
             $statusButtons,
             $divButtons,
             [
+                $freezeBtn,
                 ['text' => '✏️ Update Profile', 'callback_data' => 'usr_edit_guide:' . $user->id],
-                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
             ],
             [
+                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -1640,4 +1739,301 @@ class TelegramWebhookController extends Controller
             ->orWhere('phone', $clean)
             ->first();
     }
+
+    /**
+     * Handle /health or /system command: report live server vitals.
+     */
+    protected function handleHealthCommand(string $botToken, string $chatId): void
+    {
+        $phpVersion = PHP_VERSION;
+        $laravelVersion = app()->version();
+        $serverTime = now()->format('Y-m-d H:i:s T');
+        $memUsage = round(memory_get_usage(true) / 1024 / 1024, 2) . ' MB';
+        $memPeak = round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB';
+
+        // DB Latency check
+        $start = microtime(true);
+        try {
+            \DB::select('SELECT 1');
+            $dbLatency = round((microtime(true) - $start) * 1000, 2) . ' ms';
+            $dbStatus = '🟢 CONNECTED';
+        } catch (\Throwable $e) {
+            $dbStatus = '🔴 ERROR: ' . $e->getMessage();
+            $dbLatency = 'N/A';
+        }
+
+        // Disk space
+        $diskFree = @disk_free_space('.');
+        $diskTotal = @disk_total_space('.');
+        $diskInfo = ($diskFree && $diskTotal) 
+            ? round($diskFree / (1024 * 1024 * 1024), 2) . ' GB free / ' . round($diskTotal / (1024 * 1024 * 1024), 2) . ' GB'
+            : 'Available';
+
+        // Business vitals
+        $totalUsers = User::count();
+        $activeUsers = User::where('status', 1)->count();
+        $pendingTxns = Transaction::where('status', TxnStatus::Pending)->count();
+        $dividendEngine = Setting::get('savings_dividend_apy', 'dividend') ? '🟢 ACTIVE' : '⚪ OFF';
+
+        $msg = "🖥️ <b>FrontField Credit Union — Server & System Vitals</b>\n\n";
+        $msg .= "⚙️ <b>PHP Version:</b> <code>{$phpVersion}</code>\n";
+        $msg .= "🚀 <b>Laravel:</b> <code>v{$laravelVersion}</code>\n";
+        $msg .= "🕒 <b>Server Time:</b> <code>{$serverTime}</code>\n";
+        $msg .= "💾 <b>RAM Usage:</b> <code>{$memUsage}</code> (Peak: <code>{$memPeak}</code>)\n";
+        $msg .= "💽 <b>Disk Storage:</b> <code>{$diskInfo}</code>\n";
+        $msg .= "🗄️ <b>Database Status:</b> <b>{$dbStatus}</b> (Ping: <code>{$dbLatency}</code>)\n";
+        $msg .= "───────────────────\n";
+        $msg .= "👥 <b>Active Members:</b> <b>{$activeUsers}</b> / {$totalUsers} total\n";
+        $msg .= "📋 <b>Pending Transactions:</b> <b>{$pendingTxns}</b> waiting\n";
+        $msg .= "📈 <b>Monthly Dividend Engine:</b> {$dividendEngine}\n\n";
+        $msg .= "🕒 <i>Live System Snapshot</i>";
+
+        $keyboard = [
+            [
+                ['text' => '📋 View Pending Transactions', 'callback_data' => 'pend_list'],
+                ['text' => '👥 Staff Directory', 'callback_data' => 'stf_list'],
+            ],
+            [
+                ['text' => '💾 Trigger Instant Backup', 'callback_data' => 'sys_backup'],
+            ]
+        ];
+
+        $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+    }
+
+    /**
+     * Handle member search across name, username, acct#, email, phone.
+     */
+    protected function handleSearchCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $query = isset($parts[1]) ? trim(implode(' ', array_slice($parts, 1))) : '';
+        if (empty($query)) {
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/search &lt;query&gt;</code>\n<i>Examples:</i>\n• <code>/search 0212797369</code>\n• <code>/search Kalyn</code>\n• <code>/search user@example.com</code>");
+            return;
+        }
+
+        $clean = ltrim($query, '@');
+        $results = User::where('id', $clean)
+            ->orWhere('username', 'like', "%{$clean}%")
+            ->orWhere('account_number', 'like', "%{$clean}%")
+            ->orWhere('email', 'like', "%{$clean}%")
+            ->orWhere('phone', 'like', "%{$clean}%")
+            ->orWhere('first_name', 'like', "%{$clean}%")
+            ->orWhere('last_name', 'like', "%{$clean}%")
+            ->limit(6)
+            ->get();
+
+        if ($results->isEmpty()) {
+            $this->sendMessage($botToken, $chatId, "❌ No members found matching query: <code>{$query}</code>");
+            return;
+        }
+
+        if ($results->count() === 1) {
+            $card = $this->renderUserCard($results->first(), "🔍 <b>Search Result for:</b> <code>{$query}</code>");
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+            return;
+        }
+
+        $msg = "🔍 <b>Search Results for:</b> <code>{$query}</code> (" . $results->count() . " matches)\n\n";
+        $keyboard = [];
+        foreach ($results as $idx => $m) {
+            $num = $idx + 1;
+            $statusBadge = ((int)$m->status === 1) ? '🟢' : '🔴';
+            $msg .= "<b>{$num}. " . htmlspecialchars($m->full_name) . "</b> (@{$m->username})\n";
+            $msg .= "   💳 Acct: <code>{$m->account_number}</code> | {$statusBadge} Status\n";
+            $msg .= "   💰 Checking: " . setting('currency_symbol', '$') . number_format($m->balance, 2) . "\n";
+            $msg .= "   👉 View: <code>/user {$m->id}</code>\n\n";
+
+            $keyboard[] = [
+                ['text' => "👤 View {$m->first_name} (@{$m->username})", 'callback_data' => 'usr_info:' . $m->id]
+            ];
+        }
+
+        $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+    }
+
+    /**
+     * Handle balance adjustments with synchronized ledger records.
+     */
+    protected function handleBalanceCommand(string $botToken, string $chatId, array $parts): void
+    {
+        if (count($parts) < 4) {
+            $msg = "⚠️ <b>Usage:</b> <code>/balance &lt;user&gt; &lt;wallet&gt; &lt;+amount|-amount&gt; [reason]</code>\n\n";
+            $msg .= "<b>Supported Wallets:</b>\n";
+            $msg .= "• <code>checking</code> (Primary Checking)\n";
+            $msg .= "• <code>savings</code> (Primary Savings)\n";
+            $msg .= "• <code>ira</code> (IRA Account)\n";
+            $msg .= "• <code>heloc</code> (HELOC Line)\n";
+            $msg .= "• <code>cc</code> (Credit Card)\n";
+            $msg .= "• <code>loan</code> (Loan Account)\n\n";
+            $msg .= "<b>Examples:</b>\n";
+            $msg .= "• <code>/balance 25 checking +1500 Direct Payroll Deposit</code>\n";
+            $msg .= "• <code>/balance @kalyn savings -50 Fee Adjustment</code>";
+            $this->sendMessage($botToken, $chatId, $msg);
+            return;
+        }
+
+        $target = $parts[1];
+        $walletArg = strtolower($parts[2]);
+        $amountArg = $parts[3];
+        $reason = isset($parts[4]) ? trim(implode(' ', array_slice($parts, 4))) : 'Manual Balance Adjustment via Telegram';
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+            return;
+        }
+
+        $isAdd = str_starts_with($amountArg, '+') || (!str_starts_with($amountArg, '-') && (float)$amountArg > 0);
+        $cleanedStr = ltrim($amountArg, '+');
+        $amount = round(abs((float)str_replace(',', '', $cleanedStr)), 2);
+
+        if ($amount <= 0) {
+            $this->sendMessage($botToken, $chatId, "⚠️ Invalid adjustment amount: <code>{$amountArg}</code>.");
+            return;
+        }
+
+        $walletMap = [
+            'checking' => 'default', 'check' => 'default', 'default' => 'default',
+            'savings' => 'primary_savings', 'sav' => 'primary_savings', 'primary' => 'primary_savings',
+            'ira' => 'ira',
+            'heloc' => 'heloc',
+            'cc' => 'cc', 'credit' => 'cc', 'card' => 'cc',
+            'loan' => 'loan'
+        ];
+
+        if (!array_key_exists($walletArg, $walletMap)) {
+            $this->sendMessage($botToken, $chatId, "⚠️ Unknown wallet <code>{$walletArg}</code>. Use <code>checking</code>, <code>savings</code>, <code>ira</code>, <code>heloc</code>, <code>cc</code>, or <code>loan</code>.");
+            return;
+        }
+
+        $walletType = $walletMap[$walletArg];
+        $delta = $isAdd ? $amount : -$amount;
+        $walletLabel = ucfirst(str_replace('_', ' ', $walletType));
+        if ($walletType === 'default') $walletLabel = 'Checking';
+        if ($walletType === 'primary_savings') $walletLabel = 'Primary Savings';
+
+        // Atomic update in DB transaction
+        \DB::transaction(function() use ($user, $walletType, $walletLabel, $amount, $delta, $isAdd, $reason) {
+            if ($walletType === 'default') {
+                $user->balance = round((float)$user->balance + $delta, 2);
+            } elseif ($walletType === 'primary_savings') {
+                $user->savings_balance = round((float)$user->savings_balance + $delta, 2);
+            } elseif ($walletType === 'ira') {
+                $user->ira_balance = round((float)$user->ira_balance + $delta, 2);
+            } elseif ($walletType === 'heloc') {
+                $user->heloc_balance = round((float)$user->heloc_balance + $delta, 2);
+            } elseif ($walletType === 'cc') {
+                $user->cc_balance = round((float)$user->cc_balance + $delta, 2);
+            } elseif ($walletType === 'loan') {
+                $user->loan_balance = round((float)$user->loan_balance + $delta, 2);
+            }
+            $user->save();
+
+            $txn = Txn::new(
+                amount: $amount,
+                charge: 0,
+                final_amount: $amount,
+                method: 'system',
+                description: $reason,
+                type: $isAdd ? TxnType::Deposit : TxnType::Subtract,
+                status: TxnStatus::Success,
+                payCurrency: $walletLabel,
+                userID: $user->id,
+                relatedUserID: 1,
+                relatedModel: 'Admin',
+                walletType: $walletType
+            );
+            $txn->created_at = now();
+            $txn->updated_at = now();
+            $txn->save();
+        });
+
+        $user->refresh();
+        $cur = setting('currency_symbol', '$');
+        $sign = $isAdd ? '+' : '-';
+        $notice = "💰 <b>BALANCE ADJUSTED & LEDGER RECORDED</b>\n";
+        $notice .= "Account: <b>{$walletLabel}</b>\n";
+        $notice .= "Adjustment: <b>{$sign}{$cur}" . number_format($amount, 2) . "</b>\n";
+        $notice .= "Reason: <i>{$reason}</i>";
+
+        $card = $this->renderUserCard($user, $notice);
+        $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+    }
+
+    /**
+     * Handle freeze and unfreeze of member transfers.
+     */
+    protected function handleFreezeCommand(string $botToken, string $chatId, array $parts, bool $freeze): void
+    {
+        $target = $parts[1] ?? null;
+        if (!$target) {
+            $cmd = $freeze ? '/freeze' : '/unfreeze';
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>{$cmd} &lt;user_id_or_username&gt;</code>");
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
+            return;
+        }
+
+        $newVal = $freeze ? 0 : 1;
+        $user->transfer_status = $newVal;
+        $user->wire_transfer_status = $newVal;
+        $user->zelle_transfer_status = $newVal;
+        $user->checking_restricted = $freeze ? 1 : 0;
+        $user->save();
+
+        $notice = $freeze 
+            ? "❄️ <b>EMERGENCY FREEZE ACTIVATED</b>\nAll outgoing wires, internal transfers, and Zelle transactions for @{$user->username} are now <b>BLOCKED</b>."
+            : "♨️ <b>TRANSFERS UNFROZEN & RESTORED</b>\nTransfer and wire capabilities restored for @{$user->username}.";
+
+        $card = $this->renderUserCard($user, $notice);
+        $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+    }
+
+    /**
+     * Handle /audit command: show live security activity.
+     */
+    protected function handleAuditCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $limit = isset($parts[1]) && is_numeric($parts[1]) ? min((int)$parts[1], 15) : 8;
+
+        $securityCodes = TransactionSecurityCode::with('user')->latest()->limit($limit)->get();
+        $recentTxns = Transaction::with('user')->latest()->limit(5)->get();
+
+        $msg = "🛡️ <b>Live Security & Activity Audit Log</b>\n";
+        $msg .= "Recent security challenges & authentication attempts:\n\n";
+
+        if ($securityCodes->isEmpty()) {
+            $msg .= "✅ <i>No recent failed security challenge attempts or lockouts recorded.</i>\n\n";
+        } else {
+            foreach ($securityCodes as $idx => $sc) {
+                $num = $idx + 1;
+                $userLabel = $sc->user ? "@{$sc->user->username}" : "User #{$sc->user_id}";
+                $tries = $sc->tries ?? 1;
+                $codeType = strtoupper($sc->type ?? 'PIN/OTP');
+                $time = $sc->updated_at ? $sc->updated_at->diffForHumans() : 'Recently';
+
+                $statusIcon = ($tries >= 3) ? '🔴 LOCKED' : '⚠️ Active';
+                $msg .= "<b>{$num}. [{$codeType}] {$userLabel}</b>\n";
+                $msg .= "   Status: {$statusIcon} | Attempts: <b>{$tries}</b> | {$time}\n\n";
+            }
+        }
+
+        $msg .= "<b>💸 Latest Ledger Activity:</b>\n";
+        foreach ($recentTxns as $t) {
+            $uName = $t->user ? "@{$t->user->username}" : "User #{$t->user_id}";
+            $cur = setting('currency_symbol', '$');
+            $amt = number_format($t->amount, 2);
+            $st = is_object($t->status) ? $t->status->value : $t->status;
+            $sign = ($t->type === TxnType::Deposit || $t->type === 'deposit') ? '+' : '-';
+            $msg .= "• <code>{$t->tnx}</code>: {$uName} | <b>{$sign}{$cur}{$amt}</b> ({$st})\n";
+        }
+
+        $this->sendMessage($botToken, $chatId, $msg);
+    }
+
 }
