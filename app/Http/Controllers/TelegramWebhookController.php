@@ -366,6 +366,15 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'backup_triggered'], 200);
             }
 
+            // 16. Executive Briefing Refresh: sys_briefing
+            if ($data === 'sys_briefing') {
+                $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshing Sunday Executive Briefing...", false);
+                $briefingService = new \App\Services\ExecutiveBriefingService();
+                $briefing = $briefingService->renderBriefingMessage('Live Refreshed Digest');
+                $this->editMessageText($botToken, $chatId, $messageId, $briefing['text'], $briefing['keyboard']);
+                return response()->json(['status' => 'briefing_refreshed'], 200);
+            }
+
             // 12. Member Profile Edit Guide: usr_edit_guide:<user_id>
             if (str_starts_with($data, 'usr_edit_guide:')) {
                 $userId = trim(substr($data, strlen('usr_edit_guide:')));
@@ -508,6 +517,7 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "♨️ <code>/unfreeze &lt;user&gt;</code> — Restore transfer and wire capabilities\n";
                     $helpMsg .= "🛡️ <code>/audit [limit]</code> — Live security feed of recent auth attempts & lockouts\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
+                    $helpMsg .= "☀️ <code>/briefing</code> — Instant Executive Operations Digest & Vitals\n";
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
 
                     $this->sendMessage($botToken, $chatId, $helpMsg);
@@ -697,6 +707,17 @@ class TelegramWebhookController extends Controller
                         $this->sendMessage($botToken, $chatId, "💾 " . ($result['message'] ?? 'Backup operation complete.'));
                     } catch (\Throwable $e) {
                         $this->sendMessage($botToken, $chatId, "❌ Backup failed: " . $e->getMessage());
+                    }
+                    break;
+
+                case '/briefing':
+                case '/digest':
+                    try {
+                        $briefingService = new \App\Services\ExecutiveBriefingService();
+                        $briefing = $briefingService->renderBriefingMessage('Requested on-demand via Telegram');
+                        $this->sendMessage($botToken, $chatId, $briefing['text'], $briefing['keyboard']);
+                    } catch (\Throwable $e) {
+                        $this->sendMessage($botToken, $chatId, "❌ Failed to generate briefing: " . $e->getMessage());
                     }
                     break;
 

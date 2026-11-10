@@ -562,8 +562,16 @@ class CronJobController extends Controller
         $backupService = new \App\Services\DatabaseBackupService();
         $result = $backupService->sendToTelegram(null, 'Automated Scheduled Backup');
 
+        // Deliver Executive Sunday Briefing alongside weekly database backup
+        try {
+            $briefingService = new \App\Services\ExecutiveBriefingService();
+            $briefingService->sendToTelegram(null, null, 'Delivered alongside scheduled weekly database backup.');
+        } catch (\Throwable $be) {
+            \Log::error('Executive Sunday Briefing dispatch error: ' . $be->getMessage());
+        }
+
         if ($result['success']) {
-            return 'Database Backup sent to Telegram successfully!';
+            return 'Database Backup & Sunday Executive Briefing sent to Telegram successfully!';
         } else {
             throw new \Exception($result['message']);
         }
