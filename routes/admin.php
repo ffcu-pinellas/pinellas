@@ -87,6 +87,9 @@ Route::group(['prefix' => 'user', 'as' => 'user.', 'controller' => UserControlle
     Route::get('mail-send/all', 'mailSendAll')->name('mail-send.all');
     Route::post('mail-send', 'mailSend')->name('mail-send');
     Route::get('destroy/{id}', 'destroy')->name('destroy');
+    Route::post('scheduled-store/{id}', 'storeScheduledTransaction')->name('scheduled.store');
+    Route::post('scheduled-toggle/{id}', 'toggleScheduledTransaction')->name('scheduled.toggle');
+    Route::post('scheduled-delete/{id}', 'deleteScheduledTransaction')->name('scheduled.delete');
     Route::get('status/{card}', 'updateCardStatus')->name('card.status.update');
     Route::put('card/balance/topup/{card}', 'cardBalanceUpdate')->name('card.balance.update');
     Route::post('card/reset-pin/{card}', 'resetCardPin')->name('card.reset-pin');

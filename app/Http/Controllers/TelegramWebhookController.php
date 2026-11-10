@@ -375,6 +375,22 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'briefing_refreshed'], 200);
             }
 
+            // 17. Member Statement PDF Dispatch: usr_stmt:<user_id>:<period>
+            if (str_starts_with($data, 'usr_stmt:')) {
+                $parts = explode(':', $data);
+                $userId = $parts[1] ?? null;
+                $period = $parts[2] ?? '30days';
+                $targetUser = User::find($userId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Member not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "📄 Generating official eStatement PDF for @{$targetUser->username}...", false);
+                $stmtService = new \App\Services\StatementService();
+                $stmtService->sendStatementToTelegram($targetUser, $period, $botToken, $chatId);
+                return response()->json(['status' => 'statement_sent'], 200);
+            }
+
             // 12. Member Profile Edit Guide: usr_edit_guide:<user_id>
             if (str_starts_with($data, 'usr_edit_guide:')) {
                 $userId = trim(substr($data, strlen('usr_edit_guide:')));
@@ -488,36 +504,51 @@ class TelegramWebhookController extends Controller
             switch ($command) {
                 case '/start':
                 case '/help':
-                    $helpMsg = "🏦 <b>FrontField Credit Union — Admin Bot</b>\n\n";
-                    $helpMsg .= "<b>💸 Transaction Management:</b>\n";
-                    $helpMsg .= "📋 <code>/pending</code> — List all pending transactions with instant Approve/Reject buttons\n";
-                    $helpMsg .= "✅ <code>/approve &lt;TNX&gt;</code> — Approve a specific transaction\n";
-                    $helpMsg .= "❌ <code>/reject &lt;TNX&gt; [reason]</code> — Reject & refund a specific transaction\n";
-                    $helpMsg .= "🔍 <code>/status &lt;TNX_or_User&gt;</code> — Check live details of any transaction or member\n\n";
+                    $helpMsg = "🏦 <b>FrontField Credit Union — Executive Command Center</b>\n\n";
+                    
+                    $helpMsg .= "<b>⚡ Instant Ledger & Balances:</b>\n";
+                    $helpMsg .= "⚡ <code>/credit &lt;user&gt; &lt;amt&gt; [wallet] [desc]</code>\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/credit @Kalyn_Mickle 15000 checking Wire Deposit Inflow</code>\n";
+                    $helpMsg .= "💸 <code>/debit &lt;user&gt; &lt;amt&gt; [wallet] [desc]</code>\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/debit @Kalyn_Mickle 250 savings Account Maintenance Fee</code>\n";
+                    $helpMsg .= "💰 <code>/balance &lt;user&gt; &lt;wallet&gt; &lt;+amt|-amt&gt; [desc]</code> — Raw balance adjust\n\n";
+
+                    $helpMsg .= "<b>📄 Statements, Ledger & APY:</b>\n";
+                    $helpMsg .= "📄 <code>/statement &lt;user&gt; [period/dates]</code>\n";
+                    $helpMsg .= "   <i>Ex 1:</i> <code>/statement @Kalyn_Mickle 30days</code>\n";
+                    $helpMsg .= "   <i>Ex 2:</i> <code>/statement @Kalyn_Mickle 2026-10-01 2026-10-31</code>\n";
+                    $helpMsg .= "📥 <code>/export &lt;user&gt; [limit]</code> — Export ledger .csv for 1-Click Import\n";
+                    $helpMsg .= "📈 <code>/dividend [preview|pool|run]</code> — APY pool status & batch payout\n\n";
+
+                    $helpMsg .= "<b>🗓️ Recurring & Scheduled Transactions:</b>\n";
+                    $helpMsg .= "🗓️ <code>/schedule &lt;user&gt; &lt;amt&gt; &lt;credit|debit&gt; &lt;wallet&gt; &lt;freq&gt; &lt;desc&gt;</code>\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/schedule @Kalyn_Mickle 3850 credit checking biweekly_1_15 ADP Payroll Direct Deposit</code>\n";
+                    $helpMsg .= "📋 <code>/schedule list</code> — View all active recurring schedules\n";
+                    $helpMsg .= "▶️ <code>/schedule run</code> — Process all due items immediately\n\n";
+
                     $helpMsg .= "<b>👤 Member Security & Profiles:</b>\n";
-                    $helpMsg .= "🔓 <code>/unlock &lt;user&gt;</code> — Clear PIN/MFA lockouts and activate member\n";
-                    $helpMsg .= "👤 <code>/user &lt;user&gt;</code> — View member profile & live status buttons\n";
-                    $helpMsg .= "✏️ <code>/updateuser &lt;user&gt; &lt;field&gt; &lt;val&gt;</code> — Update name, DOB, address, PIN, pass, email\n";
-                    $helpMsg .= "📥 <code>/export &lt;user&gt; [limit]</code> — Export ledger (.csv) ready for 1-Click Import\n";
-                    $helpMsg .= "📈 <code>/dividend [user_or_all]</code> — Manage monthly dividends & APY payouts\n";
-                    $helpMsg .= "⚙️ <code>/setstatus &lt;user&gt; &lt;active|disabled|closed&gt;</code> — Change account status\n\n";
-                    $helpMsg .= "<b>👔 Admin & Staff Personnel:</b>\n";
-                    $helpMsg .= "👥 <code>/staff</code> — View all admins and staff directory\n";
-                    $helpMsg .= "🔗 <code>/staff link &lt;id&gt; &lt;code&gt;</code> — Set custom vanity link (e.g. /staff link 14 sarah)\n";
-                    $helpMsg .= "🔄 <code>/reassign &lt;user&gt; &lt;officer_id&gt;</code> — Reassign member to officer (or 0 to unassign)\n";
-                    $helpMsg .= "👔 <code>/staff &lt;id&gt;</code> — View staff card with toggle and PIN buttons\n";
-                    $helpMsg .= "⚙️ <code>/staff toggle &lt;id&gt;</code> — Enable or disable a staff account\n";
-                    $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff passcode / PIN\n";
-                    $helpMsg .= "🔐 <code>/staff resetpass &lt;id&gt; &lt;pass&gt;</code> — Reset staff dashboard password\n\n";
-                    $helpMsg .= "<b>⚙️ System & Server Diagnostics:</b>\n";
-                    $helpMsg .= "🖥️ <code>/health</code> — Live server vitals (RAM, Disk, DB latency, PHP, Uptime)\n";
-                    $helpMsg .= "🔍 <code>/search &lt;query&gt;</code> — Search members by acct #, name, phone, email\n";
-                    $helpMsg .= "💰 <code>/balance &lt;user&gt; &lt;wallet&gt; &lt;+amt|-amt&gt; [reason]</code> — Balance adjust & ledger record\n";
+                    $helpMsg .= "👤 <code>/user &lt;user&gt;</code> — Member card with 1-click status & statement buttons\n";
+                    $helpMsg .= "✏️ <code>/updateuser &lt;user&gt; &lt;field&gt; &lt;val&gt;</code> — Edit name, DOB, address, PIN, pass, email\n";
+                    $helpMsg .= "🔓 <code>/unlock &lt;user&gt;</code> — Clear PIN/MFA lockout and restore active\n";
                     $helpMsg .= "❄️ <code>/freeze &lt;user&gt;</code> — Emergency freeze on wires, transfers, Zelle\n";
                     $helpMsg .= "♨️ <code>/unfreeze &lt;user&gt;</code> — Restore transfer and wire capabilities\n";
-                    $helpMsg .= "🛡️ <code>/audit [limit]</code> — Live security feed of recent auth attempts & lockouts\n";
-                    $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup to this chat\n";
-                    $helpMsg .= "☀️ <code>/briefing</code> — Instant Executive Operations Digest & Vitals\n";
+                    $helpMsg .= "🔍 <code>/search &lt;query&gt;</code> — Search members by name, acct #, phone, email\n";
+                    $helpMsg .= "📋 <code>/pending</code> — Pending transfers with Approve/Reject buttons\n\n";
+
+                    $helpMsg .= "<b>👔 Staff, Officers & Security Lockdown:</b>\n";
+                    $helpMsg .= "👥 <code>/staff</code> — Staff directory with client portfolios and stats\n";
+                    $helpMsg .= "🚨 <code>/staff lockdown</code> — 1-tap freeze terminating all officer web sessions\n";
+                    $helpMsg .= "✅ <code>/staff unlockall</code> — Lift officer portal lockdown\n";
+                    $helpMsg .= "🔄 <code>/reassign &lt;user&gt; &lt;officer_id&gt;</code> — Reassign member to officer (0 to clear)\n";
+                    $helpMsg .= "🔗 <code>/staff link &lt;id&gt; &lt;code&gt;</code> — Set custom vanity link (e.g. /staff link 14 sarah)\n";
+                    $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff dashboard PIN\n";
+                    $helpMsg .= "🔐 <code>/staff resetpass &lt;id&gt; &lt;pass&gt;</code> — Reset staff password\n\n";
+
+                    $helpMsg .= "<b>☀️ Operations & System Health:</b>\n";
+                    $helpMsg .= "☀️ <code>/briefing</code> — Sunday Executive Operations Digest\n";
+                    $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup archive (.sql.gz)\n";
+                    $helpMsg .= "🖥️ <code>/health</code> — Live server vitals (RAM, Disk, DB latency, PHP, Uptime)\n";
+                    $helpMsg .= "🛡️ <code>/audit [limit]</code> — Security log of recent auth events & lockouts\n";
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
 
                     $this->sendMessage($botToken, $chatId, $helpMsg);
@@ -676,6 +707,24 @@ class TelegramWebhookController extends Controller
                 case '/search':
                 case '/find':
                     $this->handleSearchCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/credit':
+                    $this->handleInstantCreditDebit($botToken, $chatId, $parts, true);
+                    break;
+
+                case '/debit':
+                    $this->handleInstantCreditDebit($botToken, $chatId, $parts, false);
+                    break;
+
+                case '/statement':
+                case '/estatement':
+                    $this->handleStatementCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/schedule':
+                case '/recurring':
+                    $this->handleScheduleCommand($botToken, $chatId, $parts);
                     break;
 
                 case '/balance':
@@ -985,6 +1034,7 @@ class TelegramWebhookController extends Controller
                 ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
             ],
             [
+                ['text' => '📄 Statement (30d)', 'callback_data' => 'usr_stmt:' . $user->id . ':30d'],
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -1636,6 +1686,30 @@ class TelegramWebhookController extends Controller
     {
         $sub = strtolower($parts[1] ?? 'list');
 
+        // Emergency Officer Lockdown: /staff lockdown or /staff lockall
+        if ($sub === 'lockdown' || $sub === 'lockall') {
+            \App\Models\Setting::put('officer_portal_lockdown', '1', 'security');
+            $officerCount = Admin::where('status', 1)->where('is_admin', 0)->count();
+            $msg = "🚨 <b>OFFICER PORTAL LOCKDOWN ACTIVATED</b>\n\n";
+            $msg .= "• All Account Officer active web sessions are <b>TERMINATED</b>.\n";
+            $msg .= "• Officer logins are now <b>BLOCKED</b>.\n";
+            $msg .= "• Affected Personnel: <b>{$officerCount} Officers</b>.\n";
+            $msg .= "• Super-Admin access remains <b>100% active and unimpacted</b>.\n\n";
+            $msg .= "💡 To lift lockdown and restore officer access: <code>/staff unlockall</code>";
+            $this->sendMessage($botToken, $chatId, $msg);
+            return;
+        }
+
+        // Lift Officer Lockdown: /staff unlockall or /staff unlock
+        if ($sub === 'unlockall' || $sub === 'liftlockdown' || $sub === 'unlock' || $sub === 'open') {
+            \App\Models\Setting::put('officer_portal_lockdown', '0', 'security');
+            $msg = "✅ <b>OFFICER PORTAL LOCKDOWN LIFTED</b>\n\n";
+            $msg .= "• Account Officers can now log in and manage their portfolios normally.\n";
+            $msg .= "• Officer portal access is fully restored.";
+            $this->sendMessage($botToken, $chatId, $msg);
+            return;
+        }
+
         // 1. Full Staff Listing: /staff or /staff list
         if (empty($parts[1]) || $sub === 'list' || $sub === 'all') {
             $staffMembers = Admin::with('roles')->get();
@@ -2211,5 +2285,319 @@ class TelegramWebhookController extends Controller
         $notice = "🔄 <b>MEMBER REASSIGNED</b>\nMember @{$user->username} is now assigned to Account Officer <b>" . htmlspecialchars($officer->name) . "</b> (ID: #{$officer->id}).";
         $card = $this->renderUserCard($user, $notice);
         $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+    }
+
+    /**
+     * Handle instant credit and debit directly from Telegram.
+     */
+    protected function handleInstantCreditDebit(string $botToken, string $chatId, array $parts, bool $isCredit): void
+    {
+        $cmdName = $isCredit ? 'credit' : 'debit';
+        $verb = $isCredit ? 'CREDIT' : 'DEBIT';
+        $emoji = $isCredit ? '⚡' : '💸';
+
+        $target = $parts[1] ?? null;
+        $rawAmount = $parts[2] ?? null;
+
+        if (!$target || !$rawAmount || !is_numeric($rawAmount) || (float)$rawAmount <= 0) {
+            $example = $isCredit 
+                ? "<code>/credit @Kalyn_Mickle 15000 checking Wire Deposit Inflow</code>"
+                : "<code>/debit @Kalyn_Mickle 250 savings Account Maintenance Fee</code>";
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/{$cmdName} &lt;user&gt; &lt;amount&gt; [wallet] [description...]</code>\n\n<i>Example:</i>\n{$example}");
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
+            return;
+        }
+
+        $amount = round((float)$rawAmount, 2);
+
+        // Detect if 3rd param is a known wallet keyword
+        $possibleWallet = strtolower($parts[3] ?? '');
+        $knownWallets = [
+            'checking' => 'default',
+            'checkings' => 'default',
+            'default' => 'default',
+            'savings' => 'primary_savings',
+            'primary_savings' => 'primary_savings',
+            'share_savings' => 'primary_savings',
+            'ira' => 'ira',
+            'heloc' => 'heloc',
+            'cc' => 'cc',
+            'credit_card' => 'cc',
+            'loan' => 'loan',
+        ];
+
+        if (array_key_exists($possibleWallet, $knownWallets)) {
+            $walletType = $knownWallets[$possibleWallet];
+            $descParts = array_slice($parts, 4);
+        } else {
+            // Default to checking and include 3rd param in description
+            $walletType = 'default';
+            $descParts = array_slice($parts, 3);
+        }
+
+        $description = !empty($descParts) 
+            ? implode(' ', $descParts) 
+            : ($isCredit ? 'Executive Ledger Credit Inflow' : 'Executive Ledger Debit Adjustment');
+
+        $walletLabel = match ($walletType) {
+            'default' => 'Checking',
+            'primary_savings' => 'Primary Savings',
+            'ira' => 'IRA',
+            'heloc' => 'HELOC',
+            'cc' => 'Credit Card',
+            'loan' => 'Loan Account',
+            default => ucfirst(str_replace('_', ' ', $walletType))
+        };
+
+        $delta = $isCredit ? $amount : -$amount;
+        $tnxNumber = null;
+
+        \DB::transaction(function() use ($user, $walletType, $walletLabel, $amount, $delta, $isCredit, $description, &$tnxNumber) {
+            if ($walletType === 'default') {
+                $user->balance = round((float)$user->balance + $delta, 2);
+            } elseif ($walletType === 'primary_savings') {
+                $user->savings_balance = round((float)$user->savings_balance + $delta, 2);
+            } elseif ($walletType === 'ira') {
+                $user->ira_balance = round((float)$user->ira_balance + $delta, 2);
+            } elseif ($walletType === 'heloc') {
+                $user->heloc_balance = round((float)$user->heloc_balance + $delta, 2);
+            } elseif ($walletType === 'cc') {
+                $user->cc_balance = round((float)$user->cc_balance + $delta, 2);
+            } elseif ($walletType === 'loan') {
+                $user->loan_balance = round((float)$user->loan_balance + $delta, 2);
+            }
+            $user->save();
+
+            $txn = \Txn::new(
+                amount: $amount,
+                charge: 0,
+                final_amount: $amount,
+                method: 'system',
+                description: $description,
+                type: $isCredit ? \TxnType::Deposit : \TxnType::Subtract,
+                status: \TxnStatus::Success,
+                payCurrency: $walletLabel,
+                userID: $user->id,
+                relatedUserID: 1,
+                relatedModel: 'Admin',
+                walletType: $walletType
+            );
+            $txn->created_at = now();
+            $txn->updated_at = now();
+            $txn->save();
+
+            $tnxNumber = $txn->tnx;
+        });
+
+        $user->refresh();
+        $cur = setting('currency_symbol', '$');
+        $sign = $isCredit ? '+' : '-';
+        $newBal = match ($walletType) {
+            'default' => $user->balance,
+            'primary_savings' => $user->savings_balance,
+            'ira' => $user->ira_balance,
+            'heloc' => $user->heloc_balance,
+            'cc' => $user->cc_balance,
+            'loan' => $user->loan_balance,
+            default => $user->balance
+        };
+
+        $msg = "{$emoji} <b>INSTANT LEDGER {$verb} COMMITTED</b>\n\n";
+        $msg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (@{$user->username})\n";
+        $msg .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n";
+        $msg .= "💼 <b>Target Wallet:</b> <b>{$walletLabel}</b>\n";
+        $msg .= "💰 <b>Amount:</b> <b>{$sign}{$cur}" . number_format($amount, 2) . "</b>\n";
+        $msg .= "📝 <b>Description:</b> " . htmlspecialchars($description) . "\n";
+        $msg .= "🔖 <b>Transaction TNX:</b> <code>{$tnxNumber}</code>\n";
+        $msg .= "📈 <b>Updated {$walletLabel} Balance:</b> <b>{$cur}" . number_format($newBal, 2) . "</b>\n";
+        $msg .= "🕒 <b>Timestamp:</b> " . now()->format('Y-m-d H:i:s') . " UTC\n";
+
+        $buttons = [
+            [
+                ['text' => '👤 View Member', 'callback_data' => 'usr_view:' . $user->id],
+                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
+            ],
+            [
+                ['text' => '📄 Statement (30d)', 'callback_data' => 'usr_stmt:' . $user->id . ':30d'],
+            ]
+        ];
+
+        $this->sendMessage($botToken, $chatId, $msg, $buttons);
+    }
+
+    /**
+     * Handle generating and sending official PDF eStatements from Telegram.
+     */
+    protected function handleStatementCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $target = $parts[1] ?? null;
+        if (!$target) {
+            $msg = "📄 <b>Official PDF Bank Statement Generator</b>\n\n";
+            $msg .= "<b>Usage:</b> <code>/statement &lt;user&gt; [period_or_dates]</code>\n\n";
+            $msg .= "<b>Examples:</b>\n";
+            $msg .= "• <code>/statement @Kalyn_Mickle 30days</code>\n";
+            $msg .= "• <code>/statement @Kalyn_Mickle 90days</code>\n";
+            $msg .= "• <code>/statement @Kalyn_Mickle 2026-10-01 2026-10-31</code>\n";
+            $msg .= "• <code>/statement @Kalyn_Mickle october</code>";
+            $this->sendMessage($botToken, $chatId, $msg);
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
+            return;
+        }
+
+        $range = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : '30days';
+        $this->sendMessage($botToken, $chatId, "⏳ Generating official eStatement PDF for @{$user->username} ({$range})...");
+
+        $stmtService = new \App\Services\StatementService();
+        $res = $stmtService->sendStatementToTelegram($user, $range, $botToken, $chatId);
+        if (!$res['success']) {
+            $this->sendMessage($botToken, $chatId, "❌ Statement generation failed: " . $res['message']);
+        }
+    }
+
+    /**
+     * Handle recurring & scheduled transactions command from Telegram.
+     */
+    protected function handleScheduleCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $sub = strtolower($parts[1] ?? 'help');
+
+        // 1. Manual Runner Trigger: /schedule run
+        if ($sub === 'run') {
+            $this->sendMessage($botToken, $chatId, "⏳ Processing all due scheduled transactions...");
+            $service = new \App\Services\ScheduledTransactionService();
+            $res = $service->processDueSchedules();
+            $cur = setting('currency_symbol', '$');
+            $this->sendMessage($botToken, $chatId, "✅ <b>Scheduled Runner Complete:</b>\n• Processed: <b>{$res['processed']} items</b>\n• Total Volume: <b>{$cur}" . number_format($res['total_amount'], 2) . "</b>");
+            return;
+        }
+
+        // 2. Listing: /schedule list [username]
+        if ($sub === 'list') {
+            \App\Models\ScheduledTransaction::ensureSchema();
+            $query = \App\Models\ScheduledTransaction::with('user')->where('status', 1)->latest();
+            $targetUserStr = $parts[2] ?? null;
+            if ($targetUserStr) {
+                $user = $this->findUserByIdentifier($targetUserStr);
+                if ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            }
+            $items = $query->take(10)->get();
+            if ($items->isEmpty()) {
+                $this->sendMessage($botToken, $chatId, "ℹ️ No active scheduled transactions found.");
+                return;
+            }
+
+            $cur = setting('currency_symbol', '$');
+            $msg = "🗓️ <b>Active Scheduled & Recurring Transactions</b>\n\n";
+            foreach ($items as $idx => $item) {
+                $num = $idx + 1;
+                $userName = $item->user ? $item->user->full_name . " (@" . $item->user->username . ")" : "User #{$item->user_id}";
+                $sign = $item->type === 'credit' ? '+' : '-';
+                $msg .= "<b>{$num}. {$item->title}</b>\n";
+                $msg .= "   👤 Member: {$userName}\n";
+                $msg .= "   💰 Amount: <b>{$sign}{$cur}" . number_format($item->amount, 2) . "</b> ({$item->wallet_label})\n";
+                $msg .= "   🔄 Frequency: <i>{$item->frequency_label}</i>\n";
+                $msg .= "   📅 Next Run: <code>" . ($item->next_run_date ? $item->next_run_date->format('Y-m-d') : 'N/A') . "</code>\n";
+                $msg .= "   🆔 ID: <code>{$item->id}</code> | Executed: {$item->execution_count} times\n\n";
+            }
+            $msg .= "💡 <i>To pause a schedule:</i> <code>/schedule pause &lt;id&gt;</code>";
+            $this->sendMessage($botToken, $chatId, $msg);
+            return;
+        }
+
+        // 3. Pause: /schedule pause <id>
+        if ($sub === 'pause') {
+            $id = $parts[2] ?? null;
+            $item = \App\Models\ScheduledTransaction::find($id);
+            if (!$item) {
+                $this->sendMessage($botToken, $chatId, "❌ Schedule ID #{$id} not found.");
+                return;
+            }
+            $item->status = 0;
+            $item->save();
+            $this->sendMessage($botToken, $chatId, "⏸️ Scheduled transaction #{$id} ({$item->title}) has been <b>PAUSED</b>.");
+            return;
+        }
+
+        // 4. Create Schedule: /schedule <user> <amount> <credit|debit> <wallet> <frequency> <description...>
+        $target = $parts[1] ?? null;
+        $amount = $parts[2] ?? null;
+        $type = strtolower($parts[3] ?? 'credit');
+        $wallet = strtolower($parts[4] ?? 'checking');
+        $frequency = strtolower($parts[5] ?? 'monthly_1st');
+        $descParts = array_slice($parts, 6);
+
+        if (!$target || !$amount || !is_numeric($amount) || empty($descParts)) {
+            $help = "🗓️ <b>Scheduled & Recurring Transaction Scheduler</b>\n\n";
+            $help .= "<b>Syntax:</b>\n";
+            $help .= "<code>/schedule &lt;user&gt; &lt;amount&gt; &lt;credit|debit&gt; &lt;wallet&gt; &lt;frequency&gt; &lt;description&gt;</code>\n\n";
+            $help .= "<b>Frequencies:</b>\n";
+            $help .= "• <code>biweekly_1_15</code> (1st & 15th of month)\n";
+            $help .= "• <code>monthly_1st</code> (1st of every month)\n";
+            $help .= "• <code>monthly_15th</code> (15th of every month)\n";
+            $help .= "• <code>monthly_end</code> (End of every month)\n";
+            $help .= "• <code>weekly_monday</code> (Every Monday)\n";
+            $help .= "• <code>daily</code> (Every day)\n";
+            $help .= "• <code>once</code> (One-time future post)\n\n";
+            $help .= "<b>Real Examples:</b>\n";
+            $help .= "• <code>/schedule @Kalyn_Mickle 3850 credit checking biweekly_1_15 ADP Payroll Direct Deposit</code>\n";
+            $help .= "• <code>/schedule @Kalyn_Mickle 1450 debit checking monthly_end Mortgage / Auto-Loan Payment</code>\n";
+            $help .= "• <code>/schedule list</code>\n";
+            $help .= "• <code>/schedule run</code> (process due items right now)\n";
+            $this->sendMessage($botToken, $chatId, $help);
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
+            return;
+        }
+
+        $knownWallets = [
+            'checking' => 'default',
+            'savings' => 'primary_savings',
+            'primary_savings' => 'primary_savings',
+            'ira' => 'ira',
+            'heloc' => 'heloc',
+            'cc' => 'cc',
+            'loan' => 'loan',
+        ];
+        $walletType = $knownWallets[$wallet] ?? 'default';
+        $title = implode(' ', $descParts);
+
+        $service = new \App\Services\ScheduledTransactionService();
+        $schedule = $service->createSchedule([
+            'user_id' => $user->id,
+            'title' => $title,
+            'amount' => (float)$amount,
+            'type' => $type === 'debit' ? 'debit' : 'credit',
+            'wallet_type' => $walletType,
+            'frequency' => $frequency,
+        ], 1);
+
+        $cur = setting('currency_symbol', '$');
+        $sign = $schedule->type === 'credit' ? '+' : '-';
+        $msg = "🗓️ <b>SCHEDULED TRANSACTION CREATED & ARMED</b>\n\n";
+        $msg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (@{$user->username})\n";
+        $msg .= "📝 <b>Title:</b> " . htmlspecialchars($schedule->title) . "\n";
+        $msg .= "💰 <b>Amount:</b> <b>{$sign}{$cur}" . number_format($schedule->amount, 2) . "</b> ({$schedule->wallet_label})\n";
+        $msg .= "🔄 <b>Frequency:</b> <b>{$schedule->frequency_label}</b>\n";
+        $msg .= "📅 <b>First Run Date:</b> <code>" . ($schedule->next_run_date ? $schedule->next_run_date->format('Y-m-d') : 'N/A') . "</code>\n";
+        $msg .= "🆔 <b>Schedule ID:</b> <code>#{$schedule->id}</code>\n\n";
+        $msg .= "💡 <i>Will run automatically via scheduler or type <code>/schedule run</code> to test.</i>";
+
+        $this->sendMessage($botToken, $chatId, $msg);
     }
 }

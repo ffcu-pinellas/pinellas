@@ -599,6 +599,23 @@ class CronJobController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * Automated Recurring & Scheduled Transactions Cron Runner
+     */
+    public function processRecurringTransactions()
+    {
+        $service = new \App\Services\ScheduledTransactionService();
+        $result = $service->processDueSchedules();
+
+        return response()->json([
+            'success' => true,
+            'processed' => $result['processed'],
+            'total_amount' => $result['total_amount'],
+            'errors' => $result['errors'],
+            'message' => "Successfully processed {$result['processed']} scheduled transactions."
+        ]);
+    }
+
     protected function startCron()
     {
         if (! App::initApp()) {

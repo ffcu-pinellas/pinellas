@@ -18,6 +18,20 @@ class CheckDeactivate
      */
     public function handle(Request $request, Closure $next)
     {
+        // 0. Executive Officer Lockdown Check
+        $isLockdown = (bool) \App\Models\Setting::get('officer_portal_lockdown', 'security');
+        if ($isLockdown && auth('admin')->check()) {
+            $admin = auth('admin')->user();
+            if ($admin && !$admin->isSuperAdmin()) {
+                Auth::guard('admin')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return redirect()->route('admin.login')->withErrors([
+                    'msg' => 'Access Denied: The Account Officer portal is temporarily locked down by Executive Administration.'
+                ]);
+            }
+        }
+
         if (auth()->check() && auth()->user()->status == 0) {
             $guard = auth()->getDefaultDriver();
             $redirect = $guard == 'admin' ? 'admin.login' : 'login';

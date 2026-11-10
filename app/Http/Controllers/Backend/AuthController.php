@@ -45,6 +45,18 @@ class AuthController extends Controller
         $credentials['status'] = 1;
         if ($this->guard()->attempt($credentials)) {
             $request->session()->regenerate();
+            $admin = $this->guard()->user();
+
+            // Check if Officer Portal is currently in Executive Lockdown
+            $isLockdown = (bool) \App\Models\Setting::get('officer_portal_lockdown', 'security');
+            if ($isLockdown && $admin && !$admin->isSuperAdmin()) {
+                $this->guard()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return redirect()->route('admin.login')->withErrors([
+                    'msg' => 'Access Denied: The Account Officer portal is temporarily locked down by Executive Administration.'
+                ]);
+            }
 
             // Staff & Admin Login Monitoring Notification
             try {

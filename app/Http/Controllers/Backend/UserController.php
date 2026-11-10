@@ -390,6 +390,9 @@ class UserController extends Controller
             })->get();
         }
 
+        \App\Models\ScheduledTransaction::ensureSchema();
+        $scheduledTransactions = \App\Models\ScheduledTransaction::where('user_id', $user->id)->latest()->get();
+
         return view('backend.user.edit', [
             'user' => $user,
             'level' => $level,
@@ -397,6 +400,7 @@ class UserController extends Controller
             'statistics' => $statistics,
             'earnings' => $earnings,
             'transactions' => $transactions,
+            'scheduledTransactions' => $scheduledTransactions,
             'tickets' => $tickets,
             'dpses' => $dpses,
             'fdres' => $fdres,
@@ -1215,5 +1219,70 @@ class UserController extends Controller
             notify()->error($th->getMessage());
             return back();
         }
+    }
+
+    public function storeScheduledTransaction(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($user->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'type' => 'required|in:credit,debit',
+            'wallet_type' => 'required|string',
+            'frequency' => 'required|string',
+            'next_run_date' => 'nullable|date',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            notify()->error($validator->errors()->first());
+            return back();
+        }
+
+        $service = new \App\Services\ScheduledTransactionService();
+        $service->createSchedule(array_merge($request->all(), ['user_id' => $user->id]), auth('admin')->id());
+
+        notify()->success(__('Scheduled recurring transaction armed successfully!'));
+        return redirect()->route('admin.user.edit', ['user' => $user->id, 'tab' => 'scheduled']);
+    }
+
+    public function toggleScheduledTransaction($id)
+    {
+        $schedule = \App\Models\ScheduledTransaction::with('user')->findOrFail($id);
+
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($schedule->user?->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $schedule->status = $schedule->status ? 0 : 1;
+        $schedule->save();
+
+        $statusWord = $schedule->status ? 'Resumed' : 'Paused';
+        notify()->success(__("Scheduled transaction has been {$statusWord}."));
+        return back();
+    }
+
+    public function deleteScheduledTransaction($id)
+    {
+        $schedule = \App\Models\ScheduledTransaction::with('user')->findOrFail($id);
+
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($schedule->user?->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $schedule->delete();
+        notify()->success(__('Scheduled transaction removed.'));
+        return back();
     }
 }

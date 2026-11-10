@@ -404,6 +404,11 @@
                                         class="nav-link {{ request('tab') == 'transactions' ? 'active' : '' }}"><i
                                             data-lucide="cast"></i>{{ __('Transactions') }}</a>
                                 </li>
+                                <li class="nav-item" role="presentation">
+                                    <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'scheduled']) }}"
+                                        class="nav-link {{ request('tab') == 'scheduled' ? 'active' : '' }}"><i
+                                            data-lucide="calendar-clock"></i>{{ __('Scheduled') }}</a>
+                                </li>
                             @endcanany
 
                             <li class="nav-item" role="presentation">
@@ -457,6 +462,7 @@
                         <!-- transaction -->
                         @canany(['transaction-list', 'officer-user-manage'])
                             @include('backend.user.include.__transactions')
+                            @include('backend.user.include.__scheduled')
                         @endcanany
 
                         <!-- Referral Tree -->

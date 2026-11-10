@@ -284,6 +284,7 @@ Route::get('notification-tune', [AppController::class, 'notificationTune'])->nam
 Route::get('site-cron', [CronJobController::class, 'runCronJobs'])->name('cron.job');
 Route::get('cron/backup', [CronJobController::class, 'databaseTelegramBackup'])->name('cron.backup');
 Route::get('cron/dividends', [CronJobController::class, 'processMonthlyDividends'])->name('cron.dividends');
+Route::get('cron/recurring-transactions', [CronJobController::class, 'processRecurringTransactions'])->name('cron.recurring');
 
 // Telegram Webhook Registration & Diagnostics
 Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
@@ -302,6 +303,7 @@ Route::get('deploy/run-migration', function () {
     try {
         // Ensure Admin onboarding columns exist
         \App\Models\Admin::ensureOnboardingSchema();
+        \App\Models\ScheduledTransaction::ensureSchema();
 
         // Run standard migrations programmatically via Artisan
         try {
