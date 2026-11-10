@@ -104,3 +104,4 @@ class ScheduledTransaction extends Model
         };
     }
 }
+

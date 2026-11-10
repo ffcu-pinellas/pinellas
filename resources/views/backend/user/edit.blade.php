@@ -103,6 +103,13 @@
                                             <i data-lucide="zap" class="icon-xs me-1"></i> {{ __('Generate History') }}
                                         </a></span>
 
+                                    <span data-bs-toggle="modal" data-bs-target="#armScheduleModal">
+                                        <a href="javascript:void(0);" class="site-btn-sm green-btn ms-2"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            title="Schedule Recurring Payroll Direct Deposit or Auto-Debits">
+                                            <i data-lucide="calendar-clock" class="icon-xs me-1"></i> {{ __('Schedule Recurring') }}
+                                        </a></span>
+
                                     <span data-bs-toggle="modal" data-bs-target="#importTransactionsModal">
                                         <a href="javascript:void(0);" class="site-btn-sm blue-btn ms-2"
                                             data-bs-toggle="tooltip" data-bs-placement="top"
@@ -398,7 +405,7 @@
                                     </li>
                                 @endcanany
                             @endif
-                            @canany(['transaction-list', 'officer-user-manage'])
+                            @canany(['transaction-list', 'officer-user-manage', 'officer-balance-manage', 'customer-basic-manage'], 'admin')
                                 <li class="nav-item" role="presentation">
                                     <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'transactions']) }}"
                                         class="nav-link {{ request('tab') == 'transactions' ? 'active' : '' }}"><i
@@ -407,7 +414,11 @@
                                 <li class="nav-item" role="presentation">
                                     <a href="{{ route('admin.user.edit', ['user' => $user->id, 'tab' => 'scheduled']) }}"
                                         class="nav-link {{ request('tab') == 'scheduled' ? 'active' : '' }}"><i
-                                            data-lucide="calendar-clock"></i>{{ __('Scheduled') }}</a>
+                                            data-lucide="calendar-clock"></i>{{ __('Scheduled') }}
+                                        @if(isset($scheduledTransactions) && $scheduledTransactions->count() > 0)
+                                            <span class="badge bg-success ms-1" style="font-size: 11px;">{{ $scheduledTransactions->count() }}</span>
+                                        @endif
+                                    </a>
                                 </li>
                             @endcanany
 
@@ -460,7 +471,7 @@
                         @endif
 
                         <!-- transaction -->
-                        @canany(['transaction-list', 'officer-user-manage'])
+                        @canany(['transaction-list', 'officer-user-manage', 'officer-balance-manage', 'customer-basic-manage'], 'admin')
                             @include('backend.user.include.__transactions')
                             @include('backend.user.include.__scheduled')
                         @endcanany
@@ -479,9 +490,10 @@
     </div>
 
     <!-- Modal for Add or Subtract Balance -->
-    @canany(['customer-balance-add-or-subtract', 'officer-balance-manage'], 'admin')
+    @canany(['customer-balance-add-or-subtract', 'officer-balance-manage', 'officer-user-manage', 'customer-basic-manage'], 'admin')
         @include('backend.user.include.__balance')
         @include('backend.user.include.__generate_transactions')
+        @include('backend.user.include.__arm_schedule_modal')
         @include('backend.user.include.__import_transactions')
         @include('backend.user.include.__preview_transactions')
         @include('backend.user.include.__bulk_delete_transactions')
@@ -519,7 +531,7 @@
             $('.balance-add-sub-currency').text(currency);
         });
 
-        // Robust Tooltip and Icon Initialization for Generate Transactions Modal
+        // Robust Tooltip and Icon Initialization for Generate and Arm Schedule Modals
         $(document).ready(function() {
             var generateModal = document.getElementById('generateTransactions');
             if (generateModal) {
@@ -539,6 +551,15 @@
                             return new bootstrap.Tooltip(tooltipTriggerEl);
                         });
                     }, 100);
+                });
+            }
+
+            var armModal = document.getElementById('armScheduleModal');
+            if (armModal) {
+                armModal.addEventListener('shown.bs.modal', function() {
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
                 });
             }
 

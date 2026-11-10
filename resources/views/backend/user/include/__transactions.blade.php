@@ -8,7 +8,10 @@
                 <div class="site-card">
                     <div class="site-card-header">
                         <h4 class="title">{{ __('Transactions') }}</h4>
-                        <div class="card-header-actions d-flex gap-2">
+                        <div class="card-header-actions d-flex gap-2 flex-wrap">
+                            <button type="button" class="site-btn-sm green-btn" data-bs-toggle="modal" data-bs-target="#armScheduleModal">
+                                <i data-lucide="calendar-clock"></i> {{ __('Schedule Recurring') }}
+                            </button>
                             <button type="button" class="site-btn-sm primary-btn" data-bs-toggle="modal" data-bs-target="#generateTransactions">
                                 <i data-lucide="zap"></i> {{ __('Generate Activity') }}
                             </button>
