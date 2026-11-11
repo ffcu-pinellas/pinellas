@@ -108,6 +108,7 @@ Route::group(['prefix' => 'kyc', 'as' => 'kyc.', 'controller' => KycController::
 Route::group(['prefix' => 'document-generator', 'as' => 'document-generator.', 'controller' => DocumentGeneratorController::class], function () {
     Route::get('/', 'index')->name('index');
     Route::post('/generate', 'generate')->name('generate');
+    Route::get('/signature/{signatureId}/pdf', 'downloadSignedPdf')->name('signature-pdf');
 });
 
 // ===============================  Document Templates ==================================
@@ -384,6 +385,11 @@ Route::group(['prefix' => 'settings', 'as' => 'settings.', 'controller' => Setti
     Route::get('mail', 'mailSetting')->name('mail');
     Route::post('mail-connection-test', 'mailConnectionTest')->name('mail.connection.test');
     Route::post('update', 'update')->name('update');
+
+    // Audit & Ledger Reconciliation
+    Route::get('reconcile', [\App\Http\Controllers\Backend\ReconciliationController::class, 'index'])->name('reconcile.index');
+    Route::post('reconcile/sync/{userId}/{walletKey}', [\App\Http\Controllers\Backend\ReconciliationController::class, 'syncBalance'])->name('reconcile.sync');
+    Route::post('reconcile/balancing/{userId}/{walletKey}', [\App\Http\Controllers\Backend\ReconciliationController::class, 'insertBalancing'])->name('reconcile.balancing');
 
     Route::get('plugin/{name}', [PluginController::class, 'plugin'])->name('plugin');
     Route::get('plugin-data/{id}', [PluginController::class, 'pluginData'])->name('plugin.data');

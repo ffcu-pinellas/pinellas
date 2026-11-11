@@ -157,10 +157,23 @@
                                 </div>
 
                                 <div class="row mt-4">
-                                    <div class="col-xl-12">
+                                    <div class="col-xl-12 d-flex flex-wrap align-items-center gap-4">
                                         <div class="form-check form-switch pdf-fields">
                                             <input class="form-check-input" type="checkbox" id="sendEmailCheckbox" name="send_email" value="1" disabled>
                                             <label class="form-check-label" for="sendEmailCheckbox">{{ __('Also send document as email attachment') }}</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="requireSignatureCheckbox" name="require_signature" value="1" disabled>
+                                            <label class="form-check-label fw-bold text-primary" for="requireSignatureCheckbox">
+                                                ✍️ {{ __('Require Member E-Signature (ESIGN Portal)') }}
+                                            </label>
+                                        </div>
+                                        <div id="signatureExpiryWrapper" style="display: none;">
+                                            <select name="signature_expiry_days" class="form-select form-select-sm" style="width: auto;">
+                                                <option value="7">{{ __('Expires in 7 days') }}</option>
+                                                <option value="14" selected>{{ __('Expires in 14 days') }}</option>
+                                                <option value="30">{{ __('Expires in 30 days') }}</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -236,16 +249,41 @@
                                         <th>Date</th>
                                         <th>Title</th>
                                         <th>Sent To</th>
+                                        <th>E-Signature Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($histories as $history)
+                                        @php
+                                            $sigFirst = $history->signatures->first();
+                                            $signedTotal = $history->signatures->where('status', 'signed')->count();
+                                            $pendingTotal = $history->signatures->where('status', 'pending')->count();
+                                            $declinedTotal = $history->signatures->where('status', 'declined')->count();
+                                        @endphp
                                         <tr>
                                             <td>{{ $history->created_at->format('M d, Y h:i A') }}</td>
                                             <td>{{ $history->title }}</td>
                                             <td>{{ $history->user ? $history->user->full_name : ($history->emailTrackings->first() ? $history->emailTrackings->first()->recipient_email : 'Custom / Broadcast') }}</td>
                                             <td>
+                                                @if($history->signatures->isEmpty())
+                                                    <span class="badge bg-light text-muted border">Not Required</span>
+                                                @elseif($signedTotal > 0 && $pendingTotal === 0)
+                                                    <span class="badge bg-success">✍️ Signed ({{ $signedTotal }})</span>
+                                                @elseif($pendingTotal > 0)
+                                                    <span class="badge bg-warning text-dark">⏳ Awaiting E-Sign ({{ $pendingTotal }})</span>
+                                                @elseif($declinedTotal > 0)
+                                                    <span class="badge bg-danger">❌ Declined</span>
+                                                @else
+                                                    <span class="badge bg-secondary">{{ ucfirst($sigFirst->status ?? 'expired') }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="d-flex gap-1 flex-wrap">
+                                                @if($sigFirst && $sigFirst->status === 'signed')
+                                                    <a href="{{ route('admin.document-generator.signature-pdf', $sigFirst->id) }}" class="btn btn-sm btn-success">
+                                                        Signed PDF
+                                                    </a>
+                                                @endif
                                                 <button type="button" class="btn btn-sm btn-primary load-template-btn" 
                                                     data-title="{{ $history->title }}" 
                                                     data-content="{{ base64_encode($history->content) }}"
@@ -356,12 +394,26 @@
                 }
             });
 
+            $('#requireSignatureCheckbox').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#signatureExpiryWrapper').show();
+                    if (!$('#sendEmailCheckbox').is(':checked')) {
+                        $('#sendEmailCheckbox').prop('checked', true).trigger('change');
+                    }
+                } else {
+                    $('#signatureExpiryWrapper').hide();
+                }
+            });
+
             $('#user_id').on('change', function() {
                 if ($(this).val() == '') {
                     $('#sendEmailCheckbox').prop('checked', false).trigger('change');
                     $('#sendEmailCheckbox').prop('disabled', true);
+                    $('#requireSignatureCheckbox').prop('checked', false).trigger('change');
+                    $('#requireSignatureCheckbox').prop('disabled', true);
                 } else {
                     $('#sendEmailCheckbox').prop('disabled', false);
+                    $('#requireSignatureCheckbox').prop('disabled', false);
                 }
             });
             

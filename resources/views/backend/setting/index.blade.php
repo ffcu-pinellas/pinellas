@@ -26,6 +26,10 @@
                                     <a href="{{ route('admin.settings.site') }}"><i
                                             data-lucide="settings"></i>{{ __('Site Settings') }}</a>
                                 </li>
+                                <li class="{{ isActive('admin.settings.reconcile.*') }}">
+                                    <a href="{{ route('admin.settings.reconcile.index') }}"><i
+                                            data-lucide="scale"></i>{{ __('Audit & Reconcile') }}</a>
+                                </li>
                             @endcan
 
                             @can('email-setting')

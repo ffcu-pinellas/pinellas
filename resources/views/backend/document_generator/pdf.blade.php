@@ -172,6 +172,35 @@
         {!! $content !!}
     </div>
 
+    @if(isset($signature) && $signature && $signature->status === 'signed')
+    <div style="margin-top: 28px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 16px; background: #f8fafc; page-break-inside: avoid;">
+        <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: #00549b; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 10px;">
+            Executed Electronic Signature &amp; Cryptographic Verification Certificate
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 10px; color: #334155;">
+            <tr>
+                <td style="width: 48%; vertical-align: middle; padding-right: 12px;">
+                    @if(!empty($signature->signature_data))
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 10px; display: inline-block;">
+                            <img src="{{ $signature->signature_data }}" alt="Member Signature" style="max-height: 62px; max-width: 240px;">
+                        </div>
+                    @endif
+                    <div style="margin-top: 6px; font-weight: bold; color: #0f172a;">
+                        Signed By: {{ strtoupper($user->full_name ?? 'Member') }}
+                    </div>
+                </td>
+                <td style="width: 52%; vertical-align: top; line-height: 1.6;">
+                    <strong>Status:</strong> Executed ({{ strtoupper($signature->signature_type) }})<br>
+                    <strong>Timestamp (UTC):</strong> {{ data_get($signature->metadata, 'signed_at_utc') ?? optional($signature->signed_at)->format('Y-m-d H:i:s \U\T\C') }}<br>
+                    <strong>Signer IP Address:</strong> {{ $signature->ip_address ?? 'Recorded' }}<br>
+                    <strong>Certificate ID:</strong> #ESIGN-{{ str_pad((string) $signature->id, 6, '0', STR_PAD_LEFT) }}<br>
+                    <strong>SHA-256 Digest:</strong> <span style="font-family: monospace; font-size: 8.5px; word-break: break-all;">{{ data_get($signature->metadata, 'verification_hash') }}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    @endif
+
     <div class="footer-notice">
         This is an official document issued by {{ setting('site_title') ?? 'FrontField Credit Union' }}. For any inquiries or verification, please contact our support. <br>
         <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }} is Federally Insured by NCUA. Equal Housing Lender.</strong>

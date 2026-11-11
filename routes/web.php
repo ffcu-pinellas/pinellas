@@ -206,6 +206,15 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     // Portfolio
     Route::get('portfolio', [UserController::class, 'portfolio'])->name('portfolio');
 
+    // Member Documents & E-Signatures
+    Route::group(['prefix' => 'documents', 'as' => 'documents.', 'controller' => \App\Http\Controllers\Frontend\DocumentSignatureController::class], function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('sign/{token}', 'show')->name('sign.show');
+        Route::post('sign/{token}', 'submit')->name('sign.submit');
+        Route::post('decline/{token}', 'decline')->name('sign.decline');
+        Route::get('download/{token}', 'download')->name('download');
+    });
+
     // New FrontField Subpages
     Route::get('remote-deposit', [UserController::class, 'remoteDeposit'])->name('remote_deposit');
     Route::post('remote-deposit/store', [UserController::class, 'storeRemoteDeposit'])->name('remote_deposit.store');
@@ -304,6 +313,9 @@ Route::get('deploy/run-migration', function () {
         // Ensure Admin onboarding columns exist
         \App\Models\Admin::ensureOnboardingSchema();
         \App\Models\ScheduledTransaction::ensureSchema();
+        \App\Models\ActiveSession::ensureSchema();
+        \App\Models\DocumentSignature::ensureSchema();
+        \App\Models\Beneficiary::ensureSchema();
 
         // Run standard migrations programmatically via Artisan
         try {

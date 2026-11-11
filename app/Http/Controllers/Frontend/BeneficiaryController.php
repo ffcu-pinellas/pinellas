@@ -18,6 +18,7 @@ class BeneficiaryController extends Controller
 
     public function index()
     {
+        Beneficiary::ensureSchema();
         $beneficiary = Beneficiary::own()->latest()->get();
         $banks = OthersBank::active()->select('id', 'name')->get();
 
@@ -26,10 +27,12 @@ class BeneficiaryController extends Controller
 
     public function store(Request $request)
     {
+        Beneficiary::ensureSchema();
         $bank_id = $request->bank_id === 'null' ? null : $request->bank_id;
         
         $validator = Validator::make($request->all(), [
             'bank_id' => 'nullable',
+            'routing_number' => 'nullable|regex:/^\d{9}$/',
             'account_name' => 'required',
             'account_number' => 'required',
         ]);
@@ -39,8 +42,21 @@ class BeneficiaryController extends Controller
             return redirect()->back();
         }
 
+        $routingNumber = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
+        if ($routingNumber !== '') {
+            $aba = app(\App\Services\AbaRoutingService::class);
+            if (! $aba->isValidAbaChecksum($routingNumber)) {
+                notify()->error(__('Invalid 9-digit US ABA routing number checksum.'), 'Error');
+                return redirect()->back();
+            }
+            if (empty($bank_id) || $bank_id == '0' || $bank_id === 'auto') {
+                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber);
+                $bank_id = $resolvedBank->id;
+            }
+        }
+
         // If Own Bank (bank_id is null or 0)
-        if (empty($bank_id)) {
+        if (empty($bank_id) || $bank_id == 0) {
             $sanitizedNumber = sanitizeAccountNumber($request->account_number);
             if (!User::where('account_number', $sanitizedNumber)->first()) {
                 notify()->error(__('Receiver account not found!'), 'Error');
@@ -49,7 +65,8 @@ class BeneficiaryController extends Controller
         }
 
         $input = $request->all();
-        $input['bank_id'] = $bank_id == 0 ? null : $bank_id; 
+        $input['bank_id'] = ($bank_id == 0 || empty($bank_id)) ? null : $bank_id;
+        $input['routing_number'] = $routingNumber !== '' ? $routingNumber : null;
         $input['user_id'] = auth()->id();
 
         $this->beneficiaryService->store($input);
@@ -61,10 +78,12 @@ class BeneficiaryController extends Controller
 
     public function update(Request $request)
     {
+        Beneficiary::ensureSchema();
         $bank_id = $request->bank_id === 'null' ? null : $request->bank_id;
 
         $validator = Validator::make($request->all(), [
             'bank_id' => 'nullable',
+            'routing_number' => 'nullable|regex:/^\d{9}$/',
             'account_name' => 'required',
             'account_number' => 'required',
         ]);
@@ -74,8 +93,21 @@ class BeneficiaryController extends Controller
             return redirect()->back();
         }
 
+        $routingNumber = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
+        if ($routingNumber !== '') {
+            $aba = app(\App\Services\AbaRoutingService::class);
+            if (! $aba->isValidAbaChecksum($routingNumber)) {
+                notify()->error(__('Invalid 9-digit US ABA routing number checksum.'), 'Error');
+                return redirect()->back();
+            }
+            if (empty($bank_id) || $bank_id == '0' || $bank_id === 'auto') {
+                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber);
+                $bank_id = $resolvedBank->id;
+            }
+        }
+
         // If Own Bank
-        if (empty($bank_id)) {
+        if (empty($bank_id) || $bank_id == 0) {
             $sanitizedNumber = sanitizeAccountNumber($request->account_number);
             if (!User::where('account_number', $sanitizedNumber)->first()) {
                 notify()->error(__('Receiver account not found!'), 'Error');
@@ -84,7 +116,8 @@ class BeneficiaryController extends Controller
         }
 
         $input = $request->all();
-        $input['bank_id'] = $bank_id == 0 ? null : $bank_id;
+        $input['bank_id'] = ($bank_id == 0 || empty($bank_id)) ? null : $bank_id;
+        $input['routing_number'] = $routingNumber !== '' ? $routingNumber : null;
 
         $this->beneficiaryService->update($input['id'], $input);
 

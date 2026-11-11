@@ -273,10 +273,11 @@ class UserController extends Controller
         }
 
         $txnam = 'TRX' . strtoupper(str()->random(10));
+        $createdDeposit = null;
 
-        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber, $txnam) {
+        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber, $txnam, &$createdDeposit) {
             // 1. Create Remote Deposit Record
-            $deposit = $user->remoteDeposits()->create([
+            $createdDeposit = $user->remoteDeposits()->create([
                 'amount' => $amount,
                 'front_image' => $frontImage,
                 'back_image' => $backImage,
@@ -308,11 +309,10 @@ class UserController extends Controller
             $transaction->save();
         });
 
-        // Telegram Notification
-        $tgMsg = "📸 <b>Remote Deposit Submitted</b>\n";
-        $tgMsg .= "💰 <b>Amount:</b> $" . number_format($amount, 2) . "\n";
-        $tgMsg .= "🏦 <b>To:</b> {$accountName} (..." . substr($accountNumber, -4) . ")";
-        $this->telegramNotify($tgMsg);
+        // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
+        if ($createdDeposit) {
+            app(\App\Services\RemoteDepositReviewService::class)->sendRemoteDepositToTelegram($createdDeposit, $user);
+        }
 
         // Native Push Notification (User)
         $this->pushNotify('remote_deposit_submitted', [

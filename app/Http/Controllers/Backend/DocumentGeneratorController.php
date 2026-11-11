@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\DocumentHistory;
+use App\Models\DocumentSignature;
 use App\Models\EmailTracking;
+use App\Traits\TelegramTrait;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Stevebauman\Purify\Facades\Purify;
@@ -13,6 +15,8 @@ use Illuminate\Support\Str;
 
 class DocumentGeneratorController extends Controller
 {
+    use TelegramTrait;
+
     public function __construct()
     {
         $this->middleware('permission:document-generator-manage');
@@ -20,6 +24,8 @@ class DocumentGeneratorController extends Controller
 
     public function index(Request $request)
     {
+        DocumentSignature::ensureSchema();
+
         $users = User::where('status', 1)
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth('admin')->id());
@@ -29,7 +35,7 @@ class DocumentGeneratorController extends Controller
         \App\Services\EmailTemplateAutoSync::sync();
         $templates = \App\Models\DocumentTemplate::where('is_active', true)->orderBy('name', 'asc')->get();
 
-        $histories = DocumentHistory::with('user')
+        $histories = DocumentHistory::with(['user', 'signatures', 'emailTrackings'])
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
@@ -39,6 +45,43 @@ class DocumentGeneratorController extends Controller
             ->paginate(20);
         
         return view('backend.document_generator.index', compact('users', 'histories', 'templates'));
+    }
+
+    public function downloadSignedPdf(int $signatureId)
+    {
+        DocumentSignature::ensureSchema();
+        $signature = DocumentSignature::with(['documentHistory', 'user'])->findOrFail($signatureId);
+
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($signature->user?->staff_id != auth('admin')->id()) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $meta = $signature->metadata ?? [];
+        $docTitle = $meta['title'] ?? ($signature->documentHistory?->title ?? 'Signed Document');
+        $renderedHtml = $meta['rendered_html'] ?? ($signature->documentHistory?->content ?? '');
+
+        $logoBase64 = null;
+        try {
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && is_file($logoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            }
+        } catch (\Throwable $e) {
+        }
+
+        $pdf = Pdf::loadView('backend.document_generator.pdf', [
+            'title' => $docTitle,
+            'content' => $renderedHtml,
+            'user' => $signature->user,
+            'logoBase64' => $logoBase64,
+            'signature' => $signature,
+        ]);
+
+        $filename = 'Executed_' . Str::slug($docTitle) . '_' . ($signature->user?->username ?? 'member') . '.pdf';
+        return $pdf->download($filename);
     }
 
     public function generate(Request $request)
@@ -261,21 +304,74 @@ class DocumentGeneratorController extends Controller
             return $pdf->download($filename);
         }
 
-        // Action: Send Email
+        // Action: Send Email (and optional E-Signature issuance)
         if ($request->input('action') === 'send_email') {
             if ($usersToMail->isEmpty()) {
                 notify()->error('Please select a customer or All Customers to send an email.', 'Error');
                 return back();
             }
 
+            DocumentSignature::ensureSchema();
+            $requireSignature = $request->boolean('require_signature');
+            $expiryDays = max(1, min(90, (int) $request->input('signature_expiry_days', 14)));
+
+            // Persist DocumentHistory before looping so EmailTracking & DocumentSignature link directly
+            $documentHistory = DocumentHistory::create([
+                'user_id' => $request->user_id === 'all' ? null : ($user && $user->id ? $user->id : null),
+                'title' => $isEmailOnly ? "Email: " . $emailSubject : $title,
+                'content' => $content ?? '',
+                'email_subject' => $emailSubject,
+                'email_salutation' => $emailSalutation,
+                'email_content' => $emailContent,
+            ]);
+
             $sentCount = 0;
+            $signatureCount = 0;
             foreach ($usersToMail as $targetUser) {
                 $parsedSubject = $parseVars($emailSubject, $targetUser);
                 $parsedSalutation = $parseVars($emailSalutation, $targetUser);
                 $parsedEmailContent = $parseVars($emailContent, $targetUser);
+                $parsedContent = !$isEmailOnly ? $parseVars($content, $targetUser) : $parsedEmailContent;
+
+                // Create Member E-Signature record if requested for a registered member
+                $signingUrl = null;
+                if ($requireSignature && !empty($targetUser->id)) {
+                    $sigToken = Str::random(48);
+                    $docSig = DocumentSignature::create([
+                        'document_history_id' => $documentHistory->id,
+                        'user_id' => $targetUser->id,
+                        'signed_by' => auth('admin')->id(),
+                        'signature_type' => 'wet_ink',
+                        'signature_provider' => 'frontfield_portal',
+                        'external_signature_id' => $sigToken,
+                        'status' => 'pending',
+                        'expires_at' => now()->addDays($expiryDays),
+                        'metadata' => [
+                            'title' => $title ?: ($emailSubject ?: 'Member Agreement'),
+                            'rendered_html' => $parsedContent ?: $parsedEmailContent,
+                            'issuer_name' => auth('admin')->user()?->name ?? 'FrontField Staff',
+                            'issuer_id' => auth('admin')->id(),
+                        ],
+                    ]);
+                    $signingUrl = route('user.documents.sign.show', $docSig->external_signature_id);
+                    $signatureCount++;
+                }
 
                 $isStandaloneHtml = $isEmailOnly 
                     || \Illuminate\Support\Str::contains(strtolower($parsedEmailContent), ['zelle', 'venmo', 'paypal', '<table', '<!doctype', '<html']);
+
+                if ($signingUrl && !$isStandaloneHtml) {
+                    $parsedEmailContent .= '<div style="margin-top:18px;padding:14px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;">'
+                        . '<strong>Action Required — Electronic Signature Requested:</strong><br>'
+                        . 'Please review and sign this document online within ' . $expiryDays . ' days using the button below:<br>'
+                        . '<a href="' . e($signingUrl) . '" style="display:inline-block;margin-top:10px;padding:10px 18px;background:#00549b;color:#ffffff;text-decoration:none;border-radius:5px;font-weight:bold;">Review &amp; E-Sign Document</a>'
+                        . '</div>';
+                } elseif ($signingUrl && $isStandaloneHtml) {
+                    $parsedEmailContent .= '<div style="margin:20px auto;max-width:560px;padding:14px 16px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;text-align:center;font-family:Arial,sans-serif;">'
+                        . '<p style="margin:0 0 10px;font-size:14px;color:#1e3a8a;"><strong>Electronic Signature Requested</strong></p>'
+                        . '<a href="' . e($signingUrl) . '" style="display:inline-block;padding:10px 20px;background:#00549b;color:#ffffff;text-decoration:none;border-radius:5px;font-weight:bold;">Review &amp; Sign Now</a>'
+                        . '</div>';
+                }
                 
                 if (!empty($request->input('email_from_name'))) {
                     $fromName = $request->input('email_from_name');
@@ -294,12 +390,12 @@ class DocumentGeneratorController extends Controller
 
                 $details = [
                     'from_name' => $fromName,
-                    'subject' => $parsedSubject,
+                    'subject' => $parsedSubject ?: ($signingUrl ? "Signature Requested: " . ($title ?: 'Official Document') : 'Official Communication'),
                     'title' => $isStandaloneHtml ? null : $title,
                     'salutation' => $isStandaloneHtml ? null : (!empty($parsedSalutation) ? $parsedSalutation : null),
-                    'message_body' => $parsedEmailContent,
-                    'button_level' => $isStandaloneHtml ? null : 'Go to Dashboard',
-                    'button_link' => route('user.dashboard'),
+                    'message_body' => $parsedEmailContent ?: ($signingUrl ? 'Please review the attached document and submit your electronic signature inside your member portal.' : ''),
+                    'button_level' => $signingUrl ? 'Review & E-Sign Document' : ($isStandaloneHtml ? null : 'Go to Dashboard'),
+                    'button_link' => $signingUrl ?: route('user.dashboard'),
                     'footer_status' => $isStandaloneHtml ? 0 : 1,
                     'bottom_status' => 0,
                     'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'),
@@ -311,7 +407,6 @@ class DocumentGeneratorController extends Controller
 
                 // Generate PDF Attachment if NOT Email Only mode
                 if (!$isEmailOnly) {
-                    $parsedContent = $parseVars($content, $targetUser);
                     $logoBase64 = null;
                     try {
                         $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
@@ -337,9 +432,9 @@ class DocumentGeneratorController extends Controller
                     // Create email tracking record
                     $emailTracking = EmailTracking::create([
                         'user_id' => $targetUser->id,
-                        'document_history_id' => null, // Will be updated after history creation
+                        'document_history_id' => $documentHistory->id,
                         'recipient_email' => $targetUser->email,
-                        'subject' => $parsedSubject,
+                        'subject' => $details['subject'],
                         'status' => 'pending',
                         'tracking_token' => Str::random(32),
                     ]);
@@ -371,24 +466,16 @@ class DocumentGeneratorController extends Controller
                 }
             }
 
-            // Save to History (if generating or sending, not previewing)
-            $documentHistory = DocumentHistory::create([
-                'user_id' => $request->user_id === 'all' ? null : ($user ? $user->id : null),
-                'title' => $isEmailOnly ? "Email: " . $emailSubject : $title,
-                'content' => $content,
-                'email_subject' => $emailSubject,
-                'email_salutation' => $emailSalutation,
-                'email_content' => $emailContent,
-            ]);
-
-            // Update email tracking records with document history ID
-            if ($request->input('action') === 'send_email') {
-                EmailTracking::where('document_history_id', null)
-                    ->where('recipient_email', $usersToMail->pluck('email'))
-                    ->update(['document_history_id' => $documentHistory->id]);
+            if ($signatureCount > 0) {
+                $this->telegramNotify(
+                    "📝 <b>E-SIGNATURE REQUEST DISPATCHED</b>\n"
+                    . "📄 <b>Document:</b> " . htmlspecialchars($title ?: ($emailSubject ?: 'Document')) . "\n"
+                    . "👥 <b>Signers Queued:</b> {$signatureCount} member(s)\n"
+                    . "👔 <b>Issued By:</b> " . htmlspecialchars(auth('admin')->user()?->name ?? 'Admin')
+                );
             }
 
-            notify()->success("Successfully dispatched {$sentCount} emails.", 'Success');
+            notify()->success("Successfully dispatched {$sentCount} emails" . ($signatureCount > 0 ? " with {$signatureCount} e-signature request(s)." : "."), 'Success');
             return back();
         }
 

@@ -343,108 +343,59 @@ class FundTransferController extends Controller
             ]);
 
             $routingNumber = preg_replace('/\D/', '', (string) $request->routing_number);
+            $abaService = app(\App\Services\AbaRoutingService::class);
 
-            // 1. Check local OthersBank table
+            // 1. Validate Federal Reserve ABA mod-10 checksum first
+            if (! $abaService->isValidAbaChecksum($routingNumber)) {
+                return response()->json([
+                    'status' => 'invalid_checksum',
+                    'message' => __('Invalid ABA routing number checksum. Please verify the 9-digit routing number and try again.'),
+                ], 422);
+            }
+
+            $meta = $abaService->lookupDirectoryMeta($routingNumber);
+
+            // 2. Check local OthersBank table
             $bankFromCode = OthersBank::where('code', $routingNumber)->first();
             if ($bankFromCode) {
                 return response()->json([
                     'status' => 'verified',
                     'bank_id' => $bankFromCode->id,
                     'bank_name' => $bankFromCode->name,
+                    'city' => $meta['city'] ?? null,
+                    'state' => $meta['state'] ?? null,
+                    'location' => $meta['location'] ?? null,
                     'logo' => $bankFromCode->logo,
                     'charge_type' => $this->mapChargeTypeForFrontend($bankFromCode->charge_type),
                     'charge' => (float) $bankFromCode->charge,
                 ]);
             }
 
-            // 2. High-speed local Fedwire / ABA Routing Directory
-            $commonRoutingMap = [
-                '021000021' => 'JPMorgan Chase Bank, N.A.',
-                '026009593' => 'Bank of America, N.A.',
-                '121000358' => 'Bank of America, N.A.',
-                '011000138' => 'Bank of America, N.A.',
-                '121000248' => 'Wells Fargo Bank, N.A.',
-                '121140399' => 'Wells Fargo Bank, N.A.',
-                '021000089' => 'Citibank, N.A.',
-                '091000022' => 'U.S. Bank, N.A.',
-                '071921891' => 'PNC Bank, N.A.',
-                '043000096' => 'PNC Bank, N.A.',
-                '051405515' => 'Capital One, N.A.',
-                '056073573' => 'Capital One, N.A.',
-                '011103093' => 'TD Bank, N.A.',
-                '031101266' => 'TD Bank, N.A.',
-                '061000104' => 'Truist Bank',
-                '063100277' => 'Regions Bank',
-                '071000301' => 'BMO Harris Bank, N.A.',
-                '042000013' => 'Fifth Third Bank, N.A.',
-                '041000124' => 'KeyBank, N.A.',
-                '121202211' => 'Charles Schwab Bank, SSB',
-                '031000503' => 'Fidelity Investments (UMB Bank)',
-                '256074974' => 'Navy Federal Credit Union',
-                '255078009' => 'State Employees\' Credit Union',
-                '321171184' => 'Golden 1 Credit Union',
-                '021001208' => 'BNY Mellon, N.A.',
-                '124001545' => 'Goldman Sachs Bank USA',
-                '021214897' => 'Morgan Stanley Bank, N.A.',
-                '263182817' => 'Suncoast Credit Union',
-                '263177327' => 'VyStar Credit Union',
-                '263184048' => 'Achieva Credit Union',
-                '263179260' => 'MIDFLORIDA Credit Union',
-                '263182367' => 'Pinellas County Teachers CU',
-            ];
-
-            if (isset($commonRoutingMap[$routingNumber])) {
-                $bankName = $commonRoutingMap[$routingNumber];
-                $bank = $this->resolveOrCreateOtherBank($routingNumber, $bankName);
-                return response()->json([
-                    'status' => 'verified',
-                    'bank_id' => $bank->id,
-                    'bank_name' => $bank->name,
-                    'logo' => $bank->logo,
-                    'charge_type' => $this->mapChargeTypeForFrontend($bank->charge_type),
-                    'charge' => (float) $bank->charge,
-                ]);
-            }
-
-            // 3. External API Lookup with Cache
-            $cacheKey = 'routing_lookup_' . $routingNumber;
-            $lookup = Cache::remember($cacheKey, now()->addHours(24), function () use ($routingNumber) {
-                try {
-                    $response = Http::timeout(4)->acceptJson()->get("https://bankrouting.io/api/v1/aba/{$routingNumber}");
-                    if ($response->successful()) {
-                        $bankName = data_get($response->json(), 'data.bank_name');
-                        if ($bankName) return ['bank_name' => trim($bankName)];
-                    }
-                } catch (\Throwable $e) {}
-
-                try {
-                    $response2 = Http::timeout(4)->acceptJson()->get("https://routingnumbers.info/api/data.json?rn={$routingNumber}");
-                    if ($response2->successful()) {
-                        $bankName = data_get($response2->json(), 'customer_name');
-                        if ($bankName) return ['bank_name' => trim($bankName)];
-                    }
-                } catch (\Throwable $e) {}
-
-                return null;
-            });
-
-            if (! $lookup) {
+            if (! $meta || empty($meta['bank_name'])) {
                 return response()->json([
                     'status' => 'manual_required',
-                    'message' => __('We couldn\'t verify this routing number automatically. Enter the receiving institution\'s name as it appears on your records.'),
+                    'message' => __('Valid ABA checksum, but institution directory lookup timed out or is unlisted. Enter the receiving institution\'s name manually.'),
                 ]);
             }
 
-            $bank = $this->resolveOrCreateOtherBank($routingNumber, $lookup['bank_name']);
+            $bank = $abaService->resolveOrCreateOtherBank($routingNumber, $meta['bank_name']);
 
             return response()->json([
                 'status' => 'verified',
                 'bank_id' => $bank->id,
                 'bank_name' => $bank->name,
+                'city' => $meta['city'] ?? null,
+                'state' => $meta['state'] ?? null,
+                'location' => $meta['location'] ?? null,
                 'logo' => $bank->logo,
                 'charge_type' => $this->mapChargeTypeForFrontend($bank->charge_type),
                 'charge' => (float) $bank->charge,
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'invalid_checksum',
+                'message' => __('Please enter a valid 9-digit numeric ABA routing number.'),
+            ], 422);
         } catch (\Throwable $e) {
             \Log::error('lookupRouting exception', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
@@ -466,14 +417,7 @@ class FundTransferController extends Controller
 
     private function isValidAbaRoutingNumber(string $routingNumber): bool
     {
-        if (! preg_match('/^\d{9}$/', $routingNumber)) {
-            return false;
-        }
-        $digits = array_map('intval', str_split($routingNumber));
-        $checksum = (3 * ($digits[0] + $digits[3] + $digits[6]))
-            + (7 * ($digits[1] + $digits[4] + $digits[7]))
-            + (1 * ($digits[2] + $digits[5] + $digits[8]));
-        return $checksum % 10 === 0;
+        return app(\App\Services\AbaRoutingService::class)->isValidAbaChecksum($routingNumber);
     }
 
     private function normalizeBankName(string $name): string
@@ -485,64 +429,7 @@ class FundTransferController extends Controller
 
     private function resolveOrCreateOtherBank(string $routingNumber, ?string $providedBankName = null): OthersBank
     {
-        $routingNumber = preg_replace('/\D/', '', $routingNumber);
-        $providedBankName = trim((string) $providedBankName);
-
-        $byRouting = OthersBank::where('code', $routingNumber)->first();
-        if ($byRouting) {
-            return $byRouting;
-        }
-
-        $bankName = $providedBankName !== '' ? $providedBankName : 'External Bank';
-        // Fallback: search by name using SQL for better performance than O(N) PHP loop
-        $cleanName = strtolower(trim($providedBankName));
-        $byName = OthersBank::whereRaw('LOWER(name) = ?', [$cleanName])->first();
-
-        if ($byName) {
-            if (empty($byName->code)) {
-                $byName->code = $routingNumber;
-                $byName->save();
-            }
-            return $byName;
-        }
-
-        // If still not found, search using LIKE as a broader fallback
-        $byNameLike = OthersBank::where('name', 'LIKE', '%' . $providedBankName . '%')->first();
-        if ($byNameLike) {
-            if (empty($byNameLike->code)) {
-                $byNameLike->code = $routingNumber;
-                $byNameLike->save();
-            }
-            return $byNameLike;
-        }
-
-        $baseCode = $routingNumber !== '' ? $routingNumber : 'BANK-' . now()->timestamp;
-        $codeCandidate = $baseCode;
-        $suffix = 1;
-        while (OthersBank::where('code', $codeCandidate)->exists()) {
-            $codeCandidate = $baseCode . '-' . $suffix;
-            $suffix++;
-        }
-
-        $fee = $this->normalizedOthersBankChargeSettings();
-
-        return OthersBank::create([
-            'name' => $bankName,
-            'code' => $codeCandidate,
-            'processing_time' => '0',
-            'processing_type' => 'hours',
-            'charge' => $fee['charge'],
-            'charge_type' => $fee['charge_type'],
-            'minimum_transfer' => setting('min_fund_transfer', 'fee'),
-            'maximum_transfer' => setting('max_fund_transfer', 'fee'),
-            'daily_limit_maximum_amount' => 999999999,
-            'daily_limit_maximum_count' => 1000,
-            'monthly_limit_maximum_amount' => 999999999,
-            'monthly_limit_maximum_count' => 10000,
-            'field_options' => json_encode([]),
-            'details' => 'Auto-created from routing lookup',
-            'status' => 1,
-        ]);
+        return app(\App\Services\AbaRoutingService::class)->resolveOrCreateOtherBank($routingNumber, $providedBankName);
     }
 
     private function normalizedOthersBankChargeSettings(): array

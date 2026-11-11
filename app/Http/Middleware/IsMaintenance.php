@@ -37,8 +37,11 @@ class IsMaintenance
             }
         } else {
             if (setting('maintenance_mode', 'site_maintenance')) {
-                $artisan = 'down --render="errors.maintenance" --secret='.'"'.setting('secret_key', 'site_maintenance').'"';
-                Artisan::call($artisan);
+                $secret = setting('secret_key', 'site_maintenance') ?: 'frontfield-bypass';
+                Artisan::call('down', [
+                    '--render' => 'errors.maintenance',
+                    '--secret' => (string) $secret,
+                ]);
             }
         }
 

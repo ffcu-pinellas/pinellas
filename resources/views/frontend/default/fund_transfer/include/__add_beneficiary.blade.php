@@ -8,6 +8,12 @@
             <form action="{{ route('user.fund_transfer.beneficiary.store') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold mb-2 d-block">{{ __('US ABA Routing Number') }} <span class="text-muted fw-normal">(Optional — Auto-fills Bank)</span></label>
+                        <input type="text" inputmode="numeric" maxlength="9" class="form-control border-2 rounded-3 p-2 fw-600 aba-routing-lookup" id="add_routing_number" name="routing_number" data-select="#bank_name" data-status="#addRoutingStatus" placeholder="9 digits (e.g. 021000021)" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div id="addRoutingStatus" class="small mt-1"></div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="small text-muted text-uppercase fw-bold mb-2 d-block">{{ __('Financial Institution') }}</label>
                         <select class="form-select border-2 rounded-3 p-2 fw-600" name="bank_id" id="bank_name" required>

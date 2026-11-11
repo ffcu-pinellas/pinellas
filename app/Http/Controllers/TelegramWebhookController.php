@@ -72,6 +72,16 @@ class TelegramWebhookController extends Controller
             return response()->json(['status' => 'bot_token_missing'], 200);
         }
 
+        // Feature L: Cryptographic Webhook Secret Verification (X-Telegram-Bot-Api-Secret-Token)
+        $expectedSecret = $this->getWebhookSecret(false);
+        if ($expectedSecret !== '') {
+            $incomingSecret = (string) $request->header('X-Telegram-Bot-Api-Secret-Token', '');
+            if (!hash_equals($expectedSecret, $incomingSecret)) {
+                Log::warning('Telegram webhook request rejected: invalid secret token.', ['ip' => $request->ip()]);
+                return response()->json(['status' => 'forbidden', 'message' => 'Invalid webhook secret token.'], 403);
+            }
+        }
+
         // =====================================================================
         // 1. HANDLE INLINE KEYBOARD CALLBACK QUERIES (BUTTON CLICKS)
         // =====================================================================
@@ -167,6 +177,142 @@ class TelegramWebhookController extends Controller
             }
 
             // 5. Member Dividend Eligibility Toggle: usr_div_tog:<user_id>
+            // =================================================================
+            // Remote Check Deposit Review Callbacks (Feature A)
+            // =================================================================
+            if (str_starts_with($data, 'rdep_clear:')) {
+                $depId = (int) trim(substr($data, strlen('rdep_clear:')));
+                $res = app(\App\Services\RemoteDepositReviewService::class)->clearFullCheck($depId);
+                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "✅ Cleared in full!" : ("⚠️ " . $res['message']), true);
+                if ($res['success']) {
+                    $updated = $originalText . "\n\n───────────────────\n✅ <b>CLEARED IN FULL</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                }
+                return response()->json(['status' => 'rdep_cleared'], 200);
+            }
+
+            if (str_starts_with($data, 'rdep_regcc:')) {
+                $depId = (int) trim(substr($data, strlen('rdep_regcc:')));
+                $res = app(\App\Services\RemoteDepositReviewService::class)->clearWithRegCcHold($depId, 225.00, 2);
+                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⏳ Reg CC Hold Applied!" : ("⚠️ " . $res['message']), true);
+                if ($res['success']) {
+                    $updated = $originalText . "\n\n───────────────────\n⏳ <b>CLEARED WITH REG CC HOLD</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                }
+                return response()->json(['status' => 'rdep_regcc'], 200);
+            }
+
+            if (str_starts_with($data, 'rdep_rej_blur:') || str_starts_with($data, 'rdep_rej_endorse:')) {
+                $isEndorse = str_starts_with($data, 'rdep_rej_endorse:');
+                $depId = (int) trim(substr($data, strlen($isEndorse ? 'rdep_rej_endorse:' : 'rdep_rej_blur:')));
+                $res = app(\App\Services\RemoteDepositReviewService::class)->rejectForRetake($depId, $isEndorse ? 'endorsement' : 'blurry');
+                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "❌ Check voided — retake emailed." : ("⚠️ " . $res['message']), true);
+                if ($res['success']) {
+                    $updated = $originalText . "\n\n───────────────────\n❌ <b>REJECTED ({$res['reason_label']})</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                }
+                return response()->json(['status' => 'rdep_rejected'], 200);
+            }
+
+            // =================================================================
+            // Ledger Reconciliation Callbacks (Feature B)
+            // =================================================================
+            if (str_starts_with($data, 'rec_sync:')) {
+                $parts = explode(':', $data);
+                $uId = (int) ($parts[1] ?? 0);
+                $walletKey = $parts[2] ?? 'default';
+                $res = app(\App\Services\ReconciliationService::class)->syncWalletToLedger($uId, $walletKey);
+                if ($res['success']) {
+                    $cur = setting('currency_symbol', 'global') ?: '$';
+                    $msg = "🔧 Synced {$res['wallet_label']}: {$cur}" . number_format($res['old_balance'], 2) . " → {$cur}" . number_format($res['new_balance'], 2);
+                    $this->answerCallbackQuery($botToken, $callbackId, $msg, true);
+                    $updated = $originalText . "\n\n───────────────────\n✅ <b>AUTO-HEALED (SYNCED BALANCE)</b>\n{$msg}";
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                } else {
+                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $res['message'], true);
+                }
+                return response()->json(['status' => 'rec_synced'], 200);
+            }
+
+            if (str_starts_with($data, 'rec_adj:')) {
+                $parts = explode(':', $data);
+                $uId = (int) ($parts[1] ?? 0);
+                $walletKey = $parts[2] ?? 'default';
+                $res = app(\App\Services\ReconciliationService::class)->insertBalancingEntry($uId, $walletKey, 1);
+                if ($res['success']) {
+                    $cur = setting('currency_symbol', 'global') ?: '$';
+                    $msg = "➕ Inserted {$res['entry_type']} {$cur}" . number_format($res['amount'], 2) . " ({$res['tnx']}) on {$res['wallet_label']}.";
+                    $this->answerCallbackQuery($botToken, $callbackId, $msg, true);
+                    $updated = $originalText . "\n\n───────────────────\n✅ <b>AUTO-HEALED (BALANCING ENTRY)</b>\n{$msg}";
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                } else {
+                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $res['message'], true);
+                }
+                return response()->json(['status' => 'rec_adjusted'], 200);
+            }
+
+            // =================================================================
+            // Live Session Radar & Instant Kill Callbacks (Feature C)
+            // =================================================================
+            if (str_starts_with($data, 'usr_kick:')) {
+                $uId = (int) trim(substr($data, strlen('usr_kick:')));
+                $targetUser = User::find($uId);
+                if (!$targetUser) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Member #{$uId} not found.", true);
+                    return response()->json(['status' => 'not_found'], 200);
+                }
+                $res = app(\App\Services\SessionRadarService::class)->kickMember($targetUser);
+                $this->answerCallbackQuery(
+                    $botToken,
+                    $callbackId,
+                    "🚪 Force logout complete for @{$targetUser->username} ({$res['terminated_sessions']} web, {$res['revoked_tokens']} app tokens).",
+                    true
+                );
+                $card = $this->renderUserCard($targetUser, "🚪 <b>SESSIONS TERMINATED</b>\nKilled {$res['terminated_sessions']} web session(s) & revoked {$res['revoked_tokens']} Sanctum API token(s).");
+                $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                return response()->json(['status' => 'user_kicked'], 200);
+            }
+
+            if (str_starts_with($data, 'sess_kick:')) {
+                $sessId = (int) trim(substr($data, strlen('sess_kick:')));
+                $kicked = app(\App\Services\SessionRadarService::class)->kickSessionById($sessId);
+                if ($kicked) {
+                    $this->answerCallbackQuery($botToken, $callbackId, "🚪 Terminated session for {$kicked->username}.", false);
+                    $rendered = $this->buildSessionsRadarPayload();
+                    $this->editMessageText($botToken, $chatId, $messageId, $rendered['text'], $rendered['keyboard']);
+                } else {
+                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ Session already ended or not found.", true);
+                }
+                return response()->json(['status' => 'session_kicked'], 200);
+            }
+
+            if ($data === 'sess_list') {
+                $rendered = $this->buildSessionsRadarPayload();
+                $this->editMessageText($botToken, $chatId, $messageId, $rendered['text'], $rendered['keyboard']);
+                $this->answerCallbackQuery($botToken, $callbackId, "🔄 Radar refreshed.", false);
+                return response()->json(['status' => 'sessions_refreshed'], 200);
+            }
+
+            // =================================================================
+            // Maintenance Gate Callbacks (Feature D)
+            // =================================================================
+            if ($data === 'maint_on' || $data === 'maint_off' || $data === 'maint_status') {
+                if ($data === 'maint_on') {
+                    $res = $this->applyMaintenanceState(true, null, null);
+                    $this->answerCallbackQuery($botToken, $callbackId, "🔒 Maintenance Mode ENABLED.", true);
+                    $this->editMessageText($botToken, $chatId, $messageId, $res['text'], $res['keyboard']);
+                } elseif ($data === 'maint_off') {
+                    $res = $this->applyMaintenanceState(false, null, null);
+                    $this->answerCallbackQuery($botToken, $callbackId, "🟢 Site is now LIVE.", true);
+                    $this->editMessageText($botToken, $chatId, $messageId, $res['text'], $res['keyboard']);
+                } else {
+                    $res = $this->renderMaintenanceStatusCard();
+                    $this->answerCallbackQuery($botToken, $callbackId, "🔄 Refreshed.", false);
+                    $this->editMessageText($botToken, $chatId, $messageId, $res['text'], $res['keyboard']);
+                }
+                return response()->json(['status' => 'maintenance_toggled'], 200);
+            }
+
             if (str_starts_with($data, 'usr_div_tog:')) {
                 $userId = trim(substr($data, strlen('usr_div_tog:')));
                 $targetUser = User::find($userId);
@@ -544,7 +690,15 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "🔑 <code>/staff resetpin &lt;id&gt; &lt;pin&gt;</code> — Reset staff dashboard PIN\n";
                     $helpMsg .= "🔐 <code>/staff resetpass &lt;id&gt; &lt;pass&gt;</code> — Reset staff password\n\n";
 
-                    $helpMsg .= "<b>☀️ Operations & System Health:</b>\n";
+                    $helpMsg .= "<b>☀️ Operations &amp; System Health:</b>\n";
+                    $helpMsg .= "⚖️ <code>/reconcile [user|all]</code> — Audit wallet balances vs settled ledger &amp; auto-heal\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/reconcile @Kalyn_Mickle</code> or <code>/reconcile all</code>\n";
+                    $helpMsg .= "🛰️ <code>/sessions</code> — Live radar of active online members &amp; staff\n";
+                    $helpMsg .= "🚪 <code>/kick &lt;user|staff:id&gt;</code> — Instant force-logout (web sessions + mobile tokens)\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/kick @Kalyn_Mickle</code>\n";
+                    $helpMsg .= "🔧 <code>/maintenance &lt;on|off|status|allowip&gt; [ETA | message]</code>\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/maintenance on 30 mins | Upgrading Wire Engine</code>\n";
+                    $helpMsg .= "📸 <i>Check Deposits:</i> Photos &amp; Reg CC Hold (\$225 now / rest 2d) arrive with 1-tap buttons\n";
                     $helpMsg .= "☀️ <code>/briefing</code> — Sunday Executive Operations Digest\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup archive (.sql.gz)\n";
                     $helpMsg .= "🖥️ <code>/health</code> — Live server vitals (RAM, Disk, DB latency, PHP, Uptime)\n";
@@ -757,6 +911,27 @@ class TelegramWebhookController extends Controller
                     } catch (\Throwable $e) {
                         $this->sendMessage($botToken, $chatId, "❌ Backup failed: " . $e->getMessage());
                     }
+                    break;
+
+                case '/reconcile':
+                case '/auditbalance':
+                    $this->handleReconcileCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/sessions':
+                case '/radar':
+                case '/online':
+                    $this->handleSessionsCommand($botToken, $chatId);
+                    break;
+
+                case '/kick':
+                case '/forcelogout':
+                    $this->handleKickCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/maintenance':
+                case '/maint':
+                    $this->handleMaintenanceCommand($botToken, $chatId, $parts);
                     break;
 
                 case '/briefing':
@@ -1027,14 +1202,17 @@ class TelegramWebhookController extends Controller
             $divButtons,
             [
                 $freezeBtn,
+                ['text' => '🚪 Force Logout', 'callback_data' => 'usr_kick:' . $user->id],
+            ],
+            [
                 ['text' => '✏️ Update Profile', 'callback_data' => 'usr_edit_guide:' . $user->id],
-            ],
-            [
                 ['text' => '🔄 Reassign Officer', 'callback_data' => 'usr_reassign_prompt:' . $user->id],
-                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
             ],
             [
+                ['text' => '📥 Export Ledger (.csv)', 'callback_data' => 'usr_export:' . $user->id],
                 ['text' => '📄 Statement (30d)', 'callback_data' => 'usr_stmt:' . $user->id . ':30d'],
+            ],
+            [
                 ['text' => '🔄 Refresh Info', 'callback_data' => 'usr_info:' . $user->id],
             ]
         ];
@@ -1249,9 +1427,30 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * One-click helper endpoint to register webhook with Telegram API.
+     * Retrieve or generate the cryptographic Telegram webhook secret token.
      */
-    public function setupWebhook(): JsonResponse
+    protected function getWebhookSecret(bool $generateIfMissing = false, bool $forceRegenerate = false): string
+    {
+        if (! $forceRegenerate) {
+            $stored = (string) (Setting::get('telegram_webhook_secret', 'telegram') ?: env('TELEGRAM_WEBHOOK_SECRET', ''));
+            if ($stored !== '') {
+                return $stored;
+            }
+        }
+
+        if (! $generateIfMissing && ! $forceRegenerate) {
+            return '';
+        }
+
+        $secret = bin2hex(random_bytes(32));
+        Setting::add('telegram_webhook_secret', $secret, 'string');
+        return $secret;
+    }
+
+    /**
+     * One-click helper endpoint to register webhook with Telegram API + secret token.
+     */
+    public function setupWebhook(Request $request): JsonResponse
     {
         [$botToken, $chatId] = $this->getCredentials();
 
@@ -1260,10 +1459,12 @@ class TelegramWebhookController extends Controller
         }
 
         $webhookUrl = url('api/telegram/webhook');
+        $secretToken = $this->getWebhookSecret(true, $request->boolean('regenerate'));
 
         try {
             $response = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
+                'secret_token' => $secretToken,
                 'allowed_updates' => ['message', 'callback_query'],
                 'drop_pending_updates' => false,
             ]);
@@ -1271,6 +1472,8 @@ class TelegramWebhookController extends Controller
             return response()->json([
                 'success' => $response->successful(),
                 'webhook_url' => $webhookUrl,
+                'secret_token_configured' => true,
+                'secret_fingerprint' => substr(hash('sha256', $secretToken), 0, 12),
                 'telegram_response' => $response->json(),
             ]);
         } catch (\Throwable $e) {
@@ -1289,11 +1492,15 @@ class TelegramWebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured.'], 400);
         }
 
+        $secret = $this->getWebhookSecret(false);
+
         try {
             $response = Http::timeout(10)->get("https://api.telegram.org/bot{$botToken}/getWebhookInfo");
 
             return response()->json([
                 'success' => $response->successful(),
+                'secret_token_configured' => $secret !== '',
+                'secret_fingerprint' => $secret !== '' ? substr(hash('sha256', $secret), 0, 12) : null,
                 'telegram_info' => $response->json(),
             ]);
         } catch (\Throwable $e) {
@@ -2599,5 +2806,345 @@ class TelegramWebhookController extends Controller
         $msg .= "💡 <i>Will run automatically via scheduler or type <code>/schedule run</code> to test.</i>";
 
         $this->sendMessage($botToken, $chatId, $msg);
+    }
+
+    /**
+     * Feature B: /reconcile [@username|all] — Audit wallet balances vs transaction ledger & auto-heal.
+     */
+    protected function handleReconcileCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $target = trim((string) ($parts[1] ?? 'all'));
+        $reconcileService = app(\App\Services\ReconciliationService::class);
+        $cur = setting('currency_symbol', 'global') ?: '$';
+
+        if (strtolower($target) === 'all' || $target === '') {
+            $report = $reconcileService->auditAll(true);
+            if ($report['discrepancy_users'] === 0) {
+                $msg = "⚖️ <b>LEDGER INTEGRITY VERIFIED</b>\n\n";
+                $msg .= "✅ Scanned <b>{$report['total_users_scanned']}</b> member profiles across Checking, Savings & IRA.\n";
+                $msg .= "📊 <b>Discrepancies Found:</b> <code>0</code>\n";
+                $msg .= "💵 <b>Total Variance:</b> <code>{$cur}0.00</code>\n\n";
+                $msg .= "<i>All stored wallet balances match settled transaction sums down to the cent.</i>";
+                $this->sendMessage($botToken, $chatId, $msg);
+                return;
+            }
+
+            $msg = "⚠️ <b>LEDGER DISCREPANCY AUDIT REPORT</b>\n\n";
+            $msg .= "👥 <b>Scanned:</b> {$report['total_users_scanned']} members\n";
+            $msg .= "🚨 <b>Flagged Profiles:</b> {$report['discrepancy_users']}\n";
+            $msg .= "💵 <b>Cumulative Drift:</b> {$cur}" . number_format($report['total_absolute_drift'], 2) . "\n\n";
+
+            $keyboard = [];
+            $shown = 0;
+            foreach ($report['audits'] as $audit) {
+                if ($shown >= 12) {
+                    break;
+                }
+                $u = $audit['user'];
+                foreach ($audit['wallets'] as $w) {
+                    if ($w['is_match']) {
+                        continue;
+                    }
+                    $sign = $w['delta'] > 0 ? '+' : '-';
+                    $msg .= "👤 <b>" . htmlspecialchars($u->full_name) . "</b> (<code>@{$u->username}</code>) — {$w['label']}\n";
+                    $msg .= "   Stored: <b>{$cur}" . number_format($w['stored'], 2) . "</b> | Ledger: <b>{$cur}" . number_format($w['computed'], 2) . "</b> | Drift: <code>{$sign}{$cur}" . number_format($w['abs_delta'], 2) . "</code>\n";
+
+                    if (count($keyboard) < 6) {
+                        $keyboard[] = [
+                            ['text' => "🔧 Sync @{$u->username} ({$w['wallet_key']})", 'callback_data' => "rec_sync:{$u->id}:{$w['wallet_key']}"],
+                            ['text' => "➕ Balancing Entry", 'callback_data' => "rec_adj:{$u->id}:{$w['wallet_key']}"],
+                        ];
+                    }
+                    $shown++;
+                }
+            }
+
+            $msg .= "\n💡 <i>Use <code>/reconcile @username</code> for dedicated wallet controls or visit Admin → Settings → Audit & Reconcile.</i>";
+            $this->sendMessage($botToken, $chatId, $msg, $keyboard ?: null);
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
+            return;
+        }
+
+        $audit = $reconcileService->auditUser($user);
+        $msg = "⚖️ <b>MEMBER LEDGER RECONCILIATION</b>\n\n";
+        $msg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (<code>@{$user->username}</code>)\n";
+        $msg .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n\n";
+
+        $keyboard = [];
+        foreach ($audit['wallets'] as $w) {
+            $badge = $w['is_match'] ? '✅ BALANCED' : '🚨 MISMATCH';
+            $sign = $w['delta'] > 0 ? '+' : '-';
+            $msg .= "🏦 <b>{$w['label']}</b> [{$badge}]\n";
+            $msg .= "   • Stored Wallet: <code>{$cur}" . number_format($w['stored'], 2) . "</code>\n";
+            $msg .= "   • Ledger Net ({$w['txn_count']} txns): <code>{$cur}" . number_format($w['computed'], 2) . "</code>\n";
+            $msg .= "   • Variance: <code>" . ($w['is_match'] ? "{$cur}0.00" : "{$sign}{$cur}" . number_format($w['abs_delta'], 2)) . "</code>\n\n";
+
+            if (!$w['is_match']) {
+                $keyboard[] = [
+                    ['text' => "🔧 Sync {$w['label']}", 'callback_data' => "rec_sync:{$user->id}:{$w['wallet_key']}"],
+                    ['text' => "➕ Insert Balancing Entry", 'callback_data' => "rec_adj:{$user->id}:{$w['wallet_key']}"],
+                ];
+            }
+        }
+
+        if (empty($keyboard)) {
+            $msg .= "✅ <i>Every active wallet matches its settled transaction ledger.</i>";
+        } else {
+            $msg .= "⚠️ <i>Choose an auto-heal option below: <b>Sync</b> updates stored wallet to match ledger sum; <b>Balancing Entry</b> inserts an official RECON transaction.</i>";
+        }
+
+        $this->sendMessage($botToken, $chatId, $msg, $keyboard ?: null);
+    }
+
+    /**
+     * Feature C: /sessions — Live Active Sessions Radar.
+     */
+    protected function handleSessionsCommand(string $botToken, string $chatId): void
+    {
+        $rendered = $this->buildSessionsRadarPayload();
+        $this->sendMessage($botToken, $chatId, $rendered['text'], $rendered['keyboard']);
+    }
+
+    protected function buildSessionsRadarPayload(): array
+    {
+        $radar = app(\App\Services\SessionRadarService::class);
+        $sessions = $radar->getActiveSessions(30);
+
+        $msg = "🛰️ <b>LIVE ACTIVE SESSIONS RADAR (Last 30m)</b>\n\n";
+
+        if ($sessions->isEmpty()) {
+            $msg .= "No active web or mobile sessions recorded in the past 30 minutes.";
+            return [
+                'text' => $msg,
+                'keyboard' => [[['text' => '🔄 Refresh Radar', 'callback_data' => 'sess_list']]],
+            ];
+        }
+
+        $msg .= "📊 <b>Total Active Sessions:</b> " . $sessions->count() . "\n\n";
+
+        $keyboard = [];
+        foreach ($sessions->take(15) as $idx => $s) {
+            $icon = $s->guard === 'admin' ? '👔' : ($s->guard === 'sanctum' ? '📱' : '👤');
+            $ago = $s->last_activity_at ? $s->last_activity_at->diffForHumans(null, true) . ' ago' : 'just now';
+            $city = $s->city ?: 'Unknown Location';
+            $device = $s->device_summary ?: 'Unknown Device';
+            $userTag = $s->guard === 'admin' ? "<code>staff:{$s->authenticatable_id}</code>" : "<code>@{$s->username}</code>";
+
+            $msg .= ($idx + 1) . ". {$icon} <b>" . htmlspecialchars((string) $s->display_name) . "</b> ({$userTag} • {$s->role_label})\n";
+            $msg .= "   🌐 <code>{$s->ip_address}</code> ({$city}) • {$device}\n";
+            $msg .= "   🕒 Active: {$ago} • Path: <code>" . htmlspecialchars((string) $s->current_url) . "</code>\n\n";
+
+            if (count($keyboard) < 6) {
+                $shortName = mb_strimwidth((string) ($s->username ?: $s->display_name), 0, 18, '…');
+                $keyboard[] = [
+                    ['text' => "🚪 Kick {$shortName} ({$s->guard})", 'callback_data' => "sess_kick:{$s->id}"],
+                ];
+            }
+        }
+
+        $keyboard[] = [['text' => '🔄 Refresh Radar', 'callback_data' => 'sess_list']];
+        $msg .= "💡 <i>Kill all web + app sessions immediately with <code>/kick @username</code> or tap a button below.</i>";
+
+        return ['text' => $msg, 'keyboard' => $keyboard];
+    }
+
+    /**
+     * Feature C: /kick <@username|staff:id> — Instant session & Sanctum token termination.
+     */
+    protected function handleKickCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $target = trim((string) ($parts[1] ?? ''));
+        if ($target === '') {
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b>\n<code>/kick @Kalyn_Mickle</code>\n<code>/kick staff:14</code>");
+            return;
+        }
+
+        $radar = app(\App\Services\SessionRadarService::class);
+
+        if (str_starts_with(strtolower($target), 'staff:')) {
+            $adminId = (int) substr($target, 6);
+            $admin = Admin::find($adminId);
+            if (!$admin) {
+                $this->sendMessage($botToken, $chatId, "❌ Staff ID <code>{$adminId}</code> not found.");
+                return;
+            }
+            $res = $radar->kickAdmin($admin);
+            $this->sendMessage(
+                $botToken,
+                $chatId,
+                "🚪 <b>STAFF SESSION TERMINATED</b>\n\n👔 <b>Officer/Admin:</b> " . htmlspecialchars($admin->name) . " (ID #{$admin->id})\n🔒 <b>Killed Web Sessions:</b> {$res['terminated_sessions']}"
+            );
+            return;
+        }
+
+        $user = $this->findUserByIdentifier($target);
+        if (!$user) {
+            $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
+            return;
+        }
+
+        $res = $radar->kickMember($user);
+        $this->sendMessage(
+            $botToken,
+            $chatId,
+            "🚪 <b>MEMBER FORCE LOGOUT EXECUTED</b>\n\n"
+            . "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (<code>@{$user->username}</code>)\n"
+            . "🌐 <b>Terminated Web Sessions:</b> {$res['terminated_sessions']}\n"
+            . "📱 <b>Revoked Mobile/Sanctum Tokens:</b> {$res['revoked_tokens']}\n\n"
+            . "<i>Member must re-authenticate on their next request.</i>"
+        );
+    }
+
+    /**
+     * Feature D: /maintenance <on|off|status|allowip> [ETA | message] — Remote Maintenance Gate.
+     */
+    protected function handleMaintenanceCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $sub = strtolower(trim((string) ($parts[1] ?? 'status')));
+
+        if ($sub === 'allowip' || $sub === 'whitelist') {
+            $ip = trim((string) ($parts[2] ?? ''));
+            if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+                $this->sendMessage($botToken, $chatId, "⚠️ Provide a valid IP address: <code>/maintenance allowip 203.0.113.45</code>");
+                return;
+            }
+            app(\App\Services\SessionRadarService::class)->rememberSuperAdminIp($ip);
+            $this->sendMessage($botToken, $chatId, "✅ Whitelisted IP <code>{$ip}</code> for automatic Super-Admin maintenance bypass.");
+            return;
+        }
+
+        if ($sub === 'on' || $sub === 'enable') {
+            $rawNote = trim(implode(' ', array_slice($parts, 2)));
+            $eta = null;
+            $reason = null;
+
+            if ($rawNote !== '') {
+                if (str_contains($rawNote, '|')) {
+                    [$etaPart, $reasonPart] = array_map('trim', explode('|', $rawNote, 2));
+                    $eta = $etaPart ?: null;
+                    $reason = $reasonPart ?: null;
+                } else {
+                    $eta = $rawNote;
+                }
+            }
+
+            $res = $this->applyMaintenanceState(true, $eta, $reason);
+            $this->sendMessage($botToken, $chatId, $res['text'], $res['keyboard']);
+            return;
+        }
+
+        if ($sub === 'off' || $sub === 'disable') {
+            $res = $this->applyMaintenanceState(false, null, null);
+            $this->sendMessage($botToken, $chatId, $res['text'], $res['keyboard']);
+            return;
+        }
+
+        $res = $this->renderMaintenanceStatusCard();
+        $this->sendMessage($botToken, $chatId, $res['text'], $res['keyboard']);
+    }
+
+    protected function applyMaintenanceState(bool $enable, ?string $eta, ?string $reason): array
+    {
+        $secret = setting('secret_key', 'site_maintenance') ?: ('ffcu-' . substr(bin2hex(random_bytes(4)), 0, 8));
+        Setting::add('secret_key', $secret, 'string');
+
+        if ($enable) {
+            Setting::add('maintenance_mode', '1', 'boolean');
+            Setting::add('maintenance_title', 'Scheduled System Upgrade', 'string');
+            if ($reason !== null && $reason !== '') {
+                Setting::add('maintenance_text', $reason, 'string');
+            } else {
+                $existingText = setting('maintenance_text', 'site_maintenance');
+                if (!$existingText || str_contains(strtolower($existingText), 'sorry for interrupt')) {
+                    Setting::add('maintenance_text', 'FrontField Credit Union is performing a scheduled core banking upgrade. Online banking & mobile access will resume shortly.', 'string');
+                }
+            }
+            if ($eta !== null && $eta !== '') {
+                Setting::add('maintenance_eta', $eta, 'string');
+            }
+
+            try {
+                \Illuminate\Support\Facades\Artisan::call('down', [
+                    '--render' => 'errors.maintenance',
+                    '--secret' => (string) $secret,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Artisan down notice: ' . $e->getMessage());
+            }
+
+            $bypassUrl = url('/' . ltrim((string) $secret, '/'));
+            $msg = "🔒 <b>MAINTENANCE GATE: ACTIVE (PUBLIC PAUSED)</b>\n\n";
+            $msg .= "🏷️ <b>Banner:</b> Scheduled System Upgrade\n";
+            if ($eta) {
+                $msg .= "⏱️ <b>ETA:</b> " . htmlspecialchars($eta) . "\n";
+            }
+            $msg .= "🛡️ <b>Super-Admin IP Bypass:</b> Active\n";
+            $msg .= "🔑 <b>Instant Bypass Cookie Link:</b>\n{$bypassUrl}\n\n";
+            $msg .= "<i>Telegram webhook &amp; Admin Panel remain 100% accessible.</i>";
+
+            return [
+                'text' => $msg,
+                'keyboard' => [
+                    [['text' => '🟢 Disable Maintenance (Go Live)', 'callback_data' => 'maint_off']],
+                ],
+            ];
+        }
+
+        Setting::add('maintenance_mode', '0', 'boolean');
+        Setting::add('maintenance_eta', '', 'string');
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('up');
+        } catch (\Throwable $e) {
+            Log::warning('Artisan up notice: ' . $e->getMessage());
+        }
+
+        $downFile = storage_path('framework/down');
+        if (is_file($downFile)) {
+            @unlink($downFile);
+        }
+
+        $msg = "🟢 <b>MAINTENANCE GATE: DISABLED (SITE LIVE)</b>\n\n";
+        $msg .= "Public member portal, mobile APIs, and transfers are now online.";
+
+        return [
+            'text' => $msg,
+            'keyboard' => [
+                [['text' => '🔒 Enable Maintenance Gate', 'callback_data' => 'maint_on']],
+            ],
+        ];
+    }
+
+    protected function renderMaintenanceStatusCard(): array
+    {
+        $isDown = app()->isDownForMaintenance() || (bool) setting('maintenance_mode', 'site_maintenance');
+        $eta = setting('maintenance_eta', 'site_maintenance', '');
+        $secret = setting('secret_key', 'site_maintenance') ?: 'secret';
+        $ipsRaw = Setting::get('maintenance_superadmin_ips', null, '[]');
+        $ips = is_string($ipsRaw) ? json_decode($ipsRaw, true) : $ipsRaw;
+        $ipCount = is_array($ips) ? count($ips) : 0;
+
+        $msg = "🔧 <b>REMOTE MAINTENANCE GATE STATUS</b>\n\n";
+        $msg .= "📡 <b>Current State:</b> " . ($isDown ? '🔒 ENABLED (Maintenance Mode)' : '🟢 LIVE (Public Accessible)') . "\n";
+        if ($eta !== '') {
+            $msg .= "⏱️ <b>Configured ETA:</b> " . htmlspecialchars((string) $eta) . "\n";
+        }
+        $msg .= "🛡️ <b>Whitelisted Super-Admin IPs:</b> {$ipCount} recorded\n";
+        $msg .= "🔑 <b>Bypass URL:</b> " . url('/' . ltrim((string) $secret, '/')) . "\n\n";
+        $msg .= "<i>Ex:</i> <code>/maintenance on 30 mins | Upgrading Core Ledger</code>";
+
+        $btn = $isDown
+            ? ['text' => '🟢 Go Live (/maintenance off)', 'callback_data' => 'maint_off']
+            : ['text' => '🔒 Enable Maintenance Gate', 'callback_data' => 'maint_on'];
+
+        return [
+            'text' => $msg,
+            'keyboard' => [[$btn, ['text' => '🔄 Refresh', 'callback_data' => 'maint_status']]],
+        ];
     }
 }

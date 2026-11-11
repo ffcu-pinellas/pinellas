@@ -168,6 +168,15 @@ class WireTransferService
         if ($validator->fails()) {
             throw ValidationException::withMessages(['error' => $validator->errors()->first()]);
         }
+
+        if (! $isInternational) {
+            $routing = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
+            if (! app(AbaRoutingService::class)->isValidAbaChecksum($routing)) {
+                throw ValidationException::withMessages([
+                    'error' => __('Invalid US ABA routing number checksum. Please double-check the 9-digit routing number.')
+                ]);
+            }
+        }
     }
 
     public function process(Request $request)

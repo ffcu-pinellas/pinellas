@@ -9,6 +9,12 @@
                 @csrf
                 <input type="hidden" name="id" id="edit_id">
                 <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="small text-muted text-uppercase fw-bold mb-2 d-block">{{ __('US ABA Routing Number') }} <span class="text-muted fw-normal">(Optional — Auto-fills Bank)</span></label>
+                        <input type="text" inputmode="numeric" maxlength="9" class="form-control border-2 rounded-3 p-2 fw-600 aba-routing-lookup" id="edit_routing_number" name="routing_number" data-select="#edit_bank_name" data-status="#editRoutingStatus" placeholder="9 digits (e.g. 021000021)" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div id="editRoutingStatus" class="small mt-1"></div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="small text-muted text-uppercase fw-bold mb-2 d-block">{{ __('Financial Institution') }}</label>
                         <select class="form-select border-2 rounded-3 p-2 fw-600" name="bank_id" id="edit_bank_name" required>

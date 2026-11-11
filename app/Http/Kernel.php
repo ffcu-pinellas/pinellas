@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\StoreReferralCode::class,
             \App\Http\Middleware\IsMaintenance::class,
             \App\Http\Middleware\LoginMfa::class,
+            \App\Http\Middleware\TrackActiveSession::class,
         ],
 
         'api' => [
@@ -48,6 +49,7 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\StartSession::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\TrackActiveSession::class,
         ],
     ];
 

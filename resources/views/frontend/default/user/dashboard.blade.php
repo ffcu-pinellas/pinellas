@@ -5,6 +5,54 @@
 @endsection
 
 @section('content')
+@php
+    $pendingDocSignatures = collect();
+    try {
+        \App\Models\DocumentSignature::ensureSchema();
+        $pendingDocSignatures = \App\Models\DocumentSignature::with('documentHistory')
+            ->where('user_id', auth()->id())
+            ->where('status', 'pending')
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->latest()
+            ->get();
+    } catch (\Throwable $e) {
+    }
+@endphp
+@if($pendingDocSignatures->isNotEmpty())
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-warning border-0 shadow-sm d-flex flex-wrap justify-content-between align-items-center gap-3 mb-0 rounded-3" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #d97706 !important;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; flex-shrink: 0;">
+                    <i class="fas fa-file-signature fa-lg"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark">
+                        {{ $pendingDocSignatures->count() }} {{ $pendingDocSignatures->count() === 1 ? __('Document Awaiting Your Electronic Signature') : __('Documents Awaiting Your Electronic Signature') }}
+                    </div>
+                    <div class="small text-muted">
+                        @php $firstSig = $pendingDocSignatures->first(); @endphp
+                        {{ data_get($firstSig->metadata, 'title') ?? ($firstSig->documentHistory?->title ?? 'Official Member Agreement') }}
+                        @if($firstSig->expires_at)
+                            • {{ __('Due by') }} {{ $firstSig->expires_at->format('M d, Y') }}
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('user.documents.sign.show', $firstSig->external_signature_id) }}" class="btn btn-sm btn-primary fw-bold px-3">
+                    <i class="fas fa-pen-nib me-1"></i> {{ __('Review & Sign Now') }}
+                </a>
+                <a href="{{ route('user.documents.index') }}" class="btn btn-sm btn-outline-dark">
+                    {{ __('View All') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 <div class="row mb-4">
     <div class="col-12">
         <div class="welcome-section p-4 rounded-3 text-white position-relative" style="background-color: var(--navigation-bar-color); background-image: url('{{ asset('assets/images/background-landscape.png') }}'); background-size: cover; background-position: center; min-height: 240px;">
@@ -204,7 +252,7 @@
                         <i class="fas fa-university"></i>
                         <span>Member Transfers</span>
                     </a>
-                    <a href="#" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
+                    <a href="{{ route('user.documents.index') }}" class="banno-action-btn flex-shrink-0" style="min-width: 80px;">
                         <i class="fas fa-file-alt"></i>
                         <span>Documents</span>
                     </a>

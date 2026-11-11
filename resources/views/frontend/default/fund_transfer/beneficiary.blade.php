@@ -38,6 +38,7 @@
                                 <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 editBtn" 
                                     data-id="{{ $item->id }}"
                                     data-bank-id="{{ $item->bank_id ?? '0' }}"
+                                    data-routing="{{ $item->routing_number }}"
                                     data-number="{{ $item->account_number }}"
                                     data-account="{{ $item->account_name }}"
                                     data-branch="{{ $item->branch_name }}"
@@ -82,6 +83,7 @@
         $(document).on('click', '.editBtn', function() {
             let id = $(this).data('id');
             let bank_id = $(this).data('bank-id');
+            let routing = $(this).data('routing') || '';
             let number = $(this).data('number');
             let account = $(this).data('account');
             let branch = $(this).data('branch');
@@ -89,10 +91,68 @@
 
             $("#edit_id").val(id);
             $("#edit_bank_name").val(bank_id).change();
+            $("#edit_routing_number").val(routing);
+            $("#editRoutingStatus").html('');
             $("#edit_account_number").val(number);
             $("#edit_account_name").val(account);
             $("#edit_branch_name").val(branch);
             $("#edit_nick_name").val(nickname);
+        });
+
+        // Live US ABA Routing Lookup + Checksum Validator in Add & Edit Recipient Modals
+        function isValidAbaMod10(val) {
+            if (!/^\d{9}$/.test(val)) return false;
+            const d = val.split('').map(Number);
+            const sum = (3 * (d[0] + d[3] + d[6])) + (7 * (d[1] + d[4] + d[7])) + (d[2] + d[5] + d[8]);
+            return sum % 10 === 0;
+        }
+
+        $(document).on('input', '.aba-routing-lookup', function() {
+            const $input = $(this);
+            const val = ($input.val() || '').replace(/\D/g, '');
+            const $select = $($input.data('select'));
+            const $status = $($input.data('status'));
+
+            $status.html('');
+            if (val.length !== 9) return;
+
+            if (!isValidAbaMod10(val)) {
+                $status.html('<span class="text-danger fw-semibold"><i class="fas fa-times-circle me-1"></i> Invalid ABA routing checksum.</span>');
+                return;
+            }
+
+            $status.html('<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i> Looking up bank...</span>');
+            fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ routing_number: val })
+            })
+            .then(async res => ({ ok: res.ok, body: await res.json().catch(() => ({})) }))
+            .then(({ ok, body }) => {
+                if (ok && body.status === 'verified') {
+                    const loc = body.location ? ` (${body.location})` : '';
+                    $status.html(`<span class="text-success fw-semibold"><i class="fas fa-university me-1"></i> ${body.bank_name}${loc}</span>`);
+                    if (body.bank_id && $select.length) {
+                        if ($select.find(`option[value="${body.bank_id}"]`).length === 0) {
+                            $select.append(new Option(body.bank_name, body.bank_id));
+                        }
+                        $select.val(String(body.bank_id)).trigger('change');
+                        if ($.fn.niceSelect) $select.niceSelect('update');
+                    }
+                } else if (body.status === 'invalid_checksum') {
+                    $status.html(`<span class="text-danger fw-semibold">${body.message || 'Invalid ABA checksum.'}</span>`);
+                } else {
+                    $status.html(`<span class="text-warning">${body.message || 'Valid ABA checksum — select institution manually.'}</span>`);
+                }
+            })
+            .catch(() => {
+                $status.html('<span class="text-muted">Valid ABA checksum format.</span>');
+            });
         });
     });
 </script>
