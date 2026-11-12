@@ -96,12 +96,6 @@
                 <h1 class="h3 fw-bold mb-0">Activity</h1>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('user.disputes.index') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
-                    <i class="fas fa-shield-alt"></i> Dispute Center
-                    @if(($activeDisputeCount ?? 0) > 0)
-                        <span class="badge bg-danger rounded-pill ms-1">{{ $activeDisputeCount }}</span>
-                    @endif
-                </a>
                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#eStatementModal">
                     <i class="fas fa-file-pdf me-1"></i> eStatement
                 </button>
