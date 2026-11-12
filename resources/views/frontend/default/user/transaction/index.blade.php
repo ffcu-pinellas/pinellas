@@ -199,8 +199,8 @@
                             <div class="text-muted small">
                                 {{ $transaction->created_at->format('M d') }} • {{ $transaction->tnx }}
                                 @if($existingDispute)
-                                    <span class="badge bg-warning text-dark ms-1 rounded-pill" style="font-size: 10px;">
-                                        Disputed • #{{ $existingDispute->claim_number }}
+                                    <span class="badge ms-1 rounded-pill" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.18); font-size: 10px; font-weight: 600;">
+                                        {{ $existingDispute->status_label }} • #{{ $existingDispute->claim_number }}
                                     </span>
                                 @endif
                             </div>
@@ -395,11 +395,11 @@
                 <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
                     <i class="fas fa-file-pdf"></i> Download Receipt
                 </a>
-                <a href="#" id="btnDisputeTxn" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold d-none align-items-center justify-content-center gap-2">
-                    <i class="fas fa-exclamation-triangle"></i> Dispute This Transaction (Reg E)
+                <a href="#" id="btnDisputeTxn" class="btn w-100 rounded-pill py-2 fw-semibold d-none align-items-center justify-content-center gap-2" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;">
+                    <i class="fas fa-flag text-muted"></i> Dispute this transaction
                 </a>
-                <a href="#" id="btnViewDisputeClaim" class="btn btn-outline-warning text-dark w-100 rounded-pill py-2 fw-bold d-none align-items-center justify-content-center gap-2">
-                    <i class="fas fa-shield-alt"></i> <span>View Dispute Claim</span>
+                <a href="#" id="btnViewDisputeClaim" class="btn w-100 rounded-pill py-2 fw-semibold d-none align-items-center justify-content-center gap-2" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.22);">
+                    <i class="fas fa-file-alt"></i> <span>View Dispute Claim</span>
                 </a>
                 <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-2 fw-bold" data-bs-dismiss="modal">Close</button>
             </div>

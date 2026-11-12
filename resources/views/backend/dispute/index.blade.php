@@ -9,8 +9,8 @@
                 <div class="row">
                     <div class="col">
                         <div class="title-content d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h2 class="title mb-0">{{ __('Regulation E Dispute Resolution Queue') }}</h2>
-                            <span class="site-badge primary">{{ __('Reconciliation Synced') }}</span>
+                            <h2 class="title mb-0">{{ __('Transaction Disputes (Reg E)') }}</h2>
+                            <span class="site-badge primary">{{ __('Ledger Synced') }}</span>
                         </div>
                     </div>
                 </div>
@@ -24,37 +24,37 @@
                         <div class="site-card h-100 {{ $status === 'all' ? 'border border-primary' : '' }}">
                             <div class="site-card-body">
                                 <div class="text-muted small">{{ __('All Claims') }}</div>
-                                <h3 class="mb-0 fw-bold mt-1">{{ $stats['all'] }}</h3>
+                                <h3 class="mb-0 fw-bold mt-1 text-dark">{{ $stats['all'] }}</h3>
                             </div>
                         </div>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
                     <a href="{{ route('admin.disputes.index', ['status' => 'open']) }}" class="text-decoration-none">
-                        <div class="site-card h-100 {{ $status === 'open' ? 'border border-warning' : '' }}">
+                        <div class="site-card h-100 {{ $status === 'open' ? 'border border-primary' : '' }}">
                             <div class="site-card-body">
-                                <div class="text-muted small">{{ __('Open — Needs Review') }}</div>
-                                <h3 class="mb-0 fw-bold mt-1 text-warning">{{ $stats['open'] }}</h3>
+                                <div class="text-muted small">{{ __('Open — Pending Review') }}</div>
+                                <h3 class="mb-0 fw-bold mt-1 text-dark">{{ $stats['open'] }}</h3>
                             </div>
                         </div>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
                     <a href="{{ route('admin.disputes.index', ['status' => 'provisional_credited']) }}" class="text-decoration-none">
-                        <div class="site-card h-100 {{ $status === 'provisional_credited' ? 'border border-info' : '' }}">
+                        <div class="site-card h-100 {{ $status === 'provisional_credited' ? 'border border-primary' : '' }}">
                             <div class="site-card-body">
                                 <div class="text-muted small">{{ __('Provisional Credit Active') }}</div>
-                                <h3 class="mb-0 fw-bold mt-1 text-info">{{ $stats['provisional_credited'] }}</h3>
+                                <h3 class="mb-0 fw-bold mt-1 text-primary">{{ $stats['provisional_credited'] }}</h3>
                             </div>
                         </div>
                     </a>
                 </div>
                 <div class="col-md-3 mb-3">
                     <a href="{{ route('admin.disputes.index', ['status' => 'resolved_fraud']) }}" class="text-decoration-none">
-                        <div class="site-card h-100">
+                        <div class="site-card h-100 {{ $status === 'resolved_fraud' ? 'border border-primary' : '' }}">
                             <div class="site-card-body">
-                                <div class="text-muted small">{{ __('Finalized (Won / Denied)') }}</div>
-                                <h3 class="mb-0 fw-bold mt-1 text-success">{{ $stats['resolved'] }}</h3>
+                                <div class="text-muted small">{{ __('Finalized Claims') }}</div>
+                                <h3 class="mb-0 fw-bold mt-1 text-dark">{{ $stats['resolved'] }}</h3>
                             </div>
                         </div>
                     </a>
@@ -106,11 +106,11 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <code>{{ $dispute->tnx }}</code>
+                                        <span class="fw-semibold">{{ $dispute->tnx }}</span>
                                         <div class="text-muted small">{{ \Illuminate\Support\Str::limit($dispute->merchant_name ?: ($dispute->transaction?->description ?? ''), 35) }}</div>
                                     </td>
                                     <td class="small">{{ $dispute->category_label }}</td>
-                                    <td class="fw-bold">${{ number_format((float) $dispute->disputed_amount, 2) }}</td>
+                                    <td class="fw-bold text-dark">${{ number_format((float) $dispute->disputed_amount, 2) }}</td>
                                     <td><span class="site-badge {{ $badge }}">{{ $dispute->status_label }}</span></td>
                                     <td class="small text-muted">{{ $dispute->created_at?->format('M d, Y') }}</td>
                                     <td>
@@ -134,4 +134,3 @@
         </div>
     </div>
 @endsection
-

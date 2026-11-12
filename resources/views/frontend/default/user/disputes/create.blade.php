@@ -8,17 +8,20 @@
 <style>
     #securityGateModal { z-index: 2060 !important; }
     .dispute-reason-card {
-        border: 1.5px solid #e2e8f0;
-        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         padding: 14px 16px;
         cursor: pointer;
-        transition: all 0.18s ease;
+        background: #ffffff;
+        transition: border-color 0.15s ease, background-color 0.15s ease;
     }
-    .dispute-reason-card:hover { border-color: #00549b; background: rgba(0, 84, 155, 0.03); }
+    .dispute-reason-card:hover {
+        border-color: #00549b;
+        background: #f8fafc;
+    }
     .btn-check:checked + .dispute-reason-card {
         border-color: #00549b;
-        background: rgba(0, 84, 155, 0.07);
-        box-shadow: 0 4px 12px rgba(0, 84, 155, 0.12);
+        background: #eef6fb;
     }
 </style>
 @endpush
@@ -32,19 +35,19 @@
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
-                    <h1 class="h3 fw-bold mb-0">{{ __('File Regulation E Transaction Dispute') }}</h1>
-                    <p class="text-muted small mb-0">{{ __('Report unauthorized account activity, duplicate billing, or an error on your statement.') }}</p>
+                    <h1 class="h4 fw-bold mb-0 text-dark">{{ __('Dispute Transaction') }}</h1>
+                    <p class="text-muted small mb-0">{{ __('Submit a Regulation E inquiry for an unauthorized debit, duplicate charge, or billing error.') }}</p>
                 </div>
             </div>
 
             <!-- Disputed Transaction Summary -->
-            <div class="site-card p-4 mb-4 border-start border-4 border-primary">
+            <div class="banno-card p-4 mb-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div>
-                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 mb-2">{{ $walletLabel }}</span>
-                        <h5 class="fw-bold mb-1">{{ $txn->description }}</h5>
+                        <span class="badge rounded-pill px-3 py-1 mb-2" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.18); font-weight: 600;">{{ $walletLabel }}</span>
+                        <h5 class="fw-bold mb-1 text-dark">{{ $txn->description }}</h5>
                         <div class="text-muted small">
-                            <span>Ref: <code>{{ $txn->tnx }}</code></span>
+                            <span>{{ __('Transaction ID:') }} <span class="fw-semibold text-dark">{{ $txn->tnx }}</span></span>
                             <span class="mx-2">•</span>
                             <span>{{ $txn->created_at?->format('M d, Y h:i A') }}</span>
                             <span class="mx-2">•</span>
@@ -52,15 +55,15 @@
                         </div>
                     </div>
                     <div class="text-end">
-                        <div class="text-muted small text-uppercase fw-bold">{{ __('Total Debited') }}</div>
-                        <div class="h3 fw-bold text-danger mb-0">-${{ number_format($maxAmount, 2) }}</div>
+                        <div class="text-muted small text-uppercase fw-semibold">{{ __('Transaction Amount') }}</div>
+                        <div class="h4 fw-bold text-dark mb-0">-${{ number_format($maxAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
 
-            <div class="site-card p-4">
+            <div class="banno-card p-4">
                 @if ($errors->any())
-                    <div class="alert alert-danger rounded-3">
+                    <div class="alert border mb-4" style="background: #fef2f2; border-color: #fecaca !important; color: #991b1b; border-radius: 12px;">
                         <ul class="mb-0 ps-3 small">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -77,13 +80,13 @@
                     @csrf
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted mb-2">{{ __('1. Select Regulation E Dispute Reason') }} <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold small text-uppercase text-muted mb-2">{{ __('Reason for Dispute') }} <span class="text-dark">*</span></label>
                         <div class="row g-2">
                             @php
                                 $descriptions = [
                                     'unauthorized_charge' => 'I did not authorize this transfer, payment, or debit.',
                                     'duplicate_billing' => 'My account was debited more than once for the same transaction.',
-                                    'not_received' => 'I paid for goods or services that were never delivered or cancelled.',
+                                    'not_received' => 'I paid for goods or services that were never delivered or were cancelled.',
                                     'incorrect_amount' => 'The amount debited differs from my authorized receipt or instruction.',
                                     'other' => 'Another billing error, recurring subscription issue, or claim reason.',
                                 ];
@@ -93,15 +96,15 @@
                                     <input type="radio" class="btn-check dispute-category-radio" name="category" id="cat_{{ $key }}" value="{{ $key }}"
                                            {{ old('category', 'unauthorized_charge') === $key ? 'checked' : '' }} required>
                                     <label class="dispute-reason-card w-100 h-100" for="cat_{{ $key }}">
-                                        <div class="fw-bold text-dark small">{{ $label }}</div>
-                                        <div class="text-muted" style="font-size: 12px;">{{ $descriptions[$key] ?? '' }}</div>
+                                        <div class="fw-semibold text-dark small mb-1">{{ $label }}</div>
+                                        <div class="text-muted" style="font-size: 12px; line-height: 1.4;">{{ $descriptions[$key] ?? '' }}</div>
                                     </label>
                                 </div>
                             @endforeach
                         </div>
 
                         <div id="otherReasonGroup" class="mt-3 {{ old('category') === 'other' ? '' : 'd-none' }}">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{{ __('Specify Your Reason') }} <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small text-uppercase text-muted">{{ __('Specify Your Reason') }} <span class="text-dark">*</span></label>
                             <input type="text" name="other_reason" id="otherReasonInput" class="form-control"
                                    value="{{ old('other_reason') }}"
                                    maxlength="200"
@@ -112,17 +115,17 @@
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{{ __('2. Payee / Merchant Name') }}</label>
+                            <label class="form-label fw-semibold small text-uppercase text-muted">{{ __('Payee / Merchant Name') }}</label>
                             <input type="text" name="merchant_name" class="form-control"
                                    value="{{ old('merchant_name', $txn->description) }}"
-                                   placeholder="Payee or merchant shown on receipt">
+                                   placeholder="Payee or merchant shown on statement">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-uppercase text-muted">{{ __('3. Disputed Amount (USD)') }} <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small text-uppercase text-muted">{{ __('Disputed Amount (USD)') }} <span class="text-dark">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text fw-bold">$</span>
+                                <span class="input-group-text bg-light fw-semibold">$</span>
                                 <input type="number" step="0.01" min="0.01" max="{{ $maxAmount }}"
-                                       name="disputed_amount" class="form-control fw-bold"
+                                       name="disputed_amount" class="form-control fw-semibold"
                                        value="{{ old('disputed_amount', number_format($maxAmount, 2, '.', '')) }}" required>
                             </div>
                             <div class="form-text">{{ __('Maximum eligible claim amount:') }} ${{ number_format($maxAmount, 2) }}</div>
@@ -130,31 +133,31 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{{ __('4. Detailed Explanation') }} <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold small text-uppercase text-muted">{{ __('Details of Claim') }} <span class="text-dark">*</span></label>
                         <textarea name="description" rows="4" class="form-control" required minlength="15" maxlength="2000"
-                                  placeholder="Explain what happened, when you noticed the error, and whether you contacted the merchant/recipient...">{{ old('description') }}</textarea>
+                                  placeholder="Explain what occurred, when you noticed the error, and whether you contacted the merchant or recipient...">{{ old('description') }}</textarea>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">{{ __('5. Supporting Evidence (Optional)') }}</label>
+                        <label class="form-label fw-semibold small text-uppercase text-muted">{{ __('Supporting Documentation (Optional)') }}</label>
                         <input type="file" name="evidence" class="form-control" accept=".jpg,.jpeg,.png,.webp,.pdf">
-                        <div class="form-text">{{ __('Upload a receipt, screenshot, or cancellation email (JPG, PNG, WEBP, or PDF, max 5MB).') }}</div>
+                        <div class="form-text">{{ __('Attach a receipt, screenshot, or correspondence (JPG, PNG, WEBP, or PDF up to 5MB).') }}</div>
                     </div>
 
-                    <div class="alert alert-light border rounded-3 mb-4">
+                    <div class="p-3 rounded-3 mb-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="1" id="attestationCheck" name="attestation" {{ old('attestation') ? 'checked' : '' }} required>
-                            <label class="form-check-label small" for="attestationCheck">
-                                <strong>{{ __('Regulation E Good-Faith Declaration:') }}</strong>
-                                {{ __('I affirm under penalty of perjury that the information above is true and accurate. I understand FrontField Credit Union may issue a temporary provisional credit during investigation, and may reverse that credit if the transaction is proven authorized or valid.') }}
+                            <label class="form-check-label small text-dark" for="attestationCheck">
+                                <strong>{{ __('Regulation E Declaration:') }}</strong>
+                                {{ __('I affirm the information provided above is true and accurate. I understand FrontField Credit Union may issue a provisional credit during investigation and may reverse that credit if the transaction is determined authorized or valid.') }}
                             </label>
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end">
-                        <a href="{{ route('user.transactions') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">{{ __('Cancel') }}</a>
-                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                            <i class="fas fa-shield-alt me-2"></i> {{ __('Verify & Submit Claim') }}
+                        <a href="{{ route('user.transactions') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">{{ __('Cancel') }}</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-semibold">
+                            {{ __('Verify & Submit Dispute') }}
                         </button>
                     </div>
                 </form>
