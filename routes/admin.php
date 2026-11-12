@@ -237,6 +237,16 @@ Route::prefix('transactions')->name('transactions')->group(function () {
     Route::get('export/csv', [TransactionController::class, 'transactionExportCSV'])->name('.export.csv');
 });
 
+// ===============================  Reg E Transaction Disputes ==================================
+Route::group(['prefix' => 'disputes', 'as' => 'disputes.', 'controller' => \App\Http\Controllers\Backend\DisputeController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/{id}', 'show')->name('show');
+    Route::post('/{id}/provisional-credit', 'provisionalCredit')->name('provisional-credit');
+    Route::post('/{id}/resolve-fraud', 'resolveFraud')->name('resolve-fraud');
+    Route::post('/{id}/deny', 'deny')->name('deny');
+    Route::post('/{id}/note', 'addNote')->name('note');
+});
+
 Route::get('wallets', [TransactionController::class, 'wallets'])->name('wallets');
 Route::get('paybacks', [ProfitController::class, 'userPaybacks'])->name('paybacks');
 Route::get('bank-profits', [ProfitController::class, 'bankProfit'])->name('bank.profit');

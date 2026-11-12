@@ -96,6 +96,12 @@
                 <h1 class="h3 fw-bold mb-0">Activity</h1>
             </div>
             <div class="d-flex gap-2">
+                <a href="{{ route('user.disputes.index') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
+                    <i class="fas fa-shield-alt"></i> Dispute Center
+                    @if(($activeDisputeCount ?? 0) > 0)
+                        <span class="badge bg-danger rounded-pill ms-1">{{ $activeDisputeCount }}</span>
+                    @endif
+                </a>
                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#eStatementModal">
                     <i class="fas fa-file-pdf me-1"></i> eStatement
                 </button>
@@ -157,6 +163,18 @@
         <div class="site-card overflow-hidden">
             <div class="transaction-list">
                 @forelse ($transactions as $transaction)
+                @php
+                    $existingDispute = isset($disputeMap) ? $disputeMap->get($transaction->id) : null;
+                    $txnTypeVal = $transaction->type->value;
+                    $walletNorm = strtolower((string) ($transaction->wallet_type ?: 'default'));
+                    $isEligibleDispute = ! $existingDispute
+                        && $transaction->status->value === 'success'
+                        && in_array($txnTypeVal, \App\Services\DisputeService::DEBIT_DISPUTABLE_TYPES, true)
+                        && in_array($walletNorm, ['default', 'checking', 'primary_savings', 'savings', 'savings_primary', 'ira'], true)
+                        && ! str_starts_with(strtoupper((string) $transaction->tnx), 'RECON-')
+                        && $transaction->target_type !== \App\Models\TransactionDispute::class
+                        && (! $transaction->created_at || $transaction->created_at->gte(now()->subDays(\App\Services\DisputeService::REG_E_WINDOW_DAYS)));
+                @endphp
                 <div class="activity-row d-flex align-items-center justify-content-between py-3 px-4 border-bottom border-light" 
                      data-bs-toggle="modal" data-bs-target="#trxViewDetailsBox"
                      data-title="{{ $transaction->description }}"
@@ -164,7 +182,11 @@
                      data-amount="{{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}"
                      data-date="{{ $transaction->created_at->format('M d, Y h:i A') }}"
                      data-status="{{ $transaction->status->value }}"
-                     data-method="{{ $transaction->method ?: 'System' }}">
+                     data-method="{{ $transaction->method ?: 'System' }}"
+                     data-dispute-url="{{ $isEligibleDispute ? route('user.disputes.create', $transaction->tnx) : '' }}"
+                     data-dispute-claim="{{ $existingDispute?->claim_number ?? '' }}"
+                     data-dispute-status="{{ $existingDispute?->status_label ?? '' }}"
+                     data-dispute-view-url="{{ $existingDispute ? route('user.disputes.show', $existingDispute->claim_number) : '' }}">
                     
                     <div class="d-flex align-items-center gap-3">
                         <div class="activity-icon">
@@ -182,6 +204,11 @@
                             <div class="fw-bold text-dark">{{ $transaction->description }}</div>
                             <div class="text-muted small">
                                 {{ $transaction->created_at->format('M d') }} • {{ $transaction->tnx }}
+                                @if($existingDispute)
+                                    <span class="badge bg-warning text-dark ms-1 rounded-pill" style="font-size: 10px;">
+                                        Disputed • #{{ $existingDispute->claim_number }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -374,6 +401,12 @@
                 <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
                     <i class="fas fa-file-pdf"></i> Download Receipt
                 </a>
+                <a href="#" id="btnDisputeTxn" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold d-none align-items-center justify-content-center gap-2">
+                    <i class="fas fa-exclamation-triangle"></i> Dispute This Transaction (Reg E)
+                </a>
+                <a href="#" id="btnViewDisputeClaim" class="btn btn-outline-warning text-dark w-100 rounded-pill py-2 fw-bold d-none align-items-center justify-content-center gap-2">
+                    <i class="fas fa-shield-alt"></i> <span>View Dispute Claim</span>
+                </a>
                 <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-2 fw-bold" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -448,6 +481,29 @@
                 // Set Download Receipt Link (Universal Download Support)
                 var receiptUrl = "{{ route('user.transactions.receipt', ':tnx') }}".replace(':tnx', button.data('trx'));
                 modal.find('#btnDownloadReceipt').attr('href', receiptUrl);
+
+                // Toggle Dispute Transaction vs View Claim button cleanly
+                var disputeUrl = button.attr('data-dispute-url') || '';
+                var claimNum = button.attr('data-dispute-claim') || '';
+                var claimStatus = button.attr('data-dispute-status') || '';
+                var claimViewUrl = button.attr('data-dispute-view-url') || '';
+
+                var $btnDispute = modal.find('#btnDisputeTxn');
+                var $btnViewClaim = modal.find('#btnViewDisputeClaim');
+
+                if (claimNum && claimViewUrl) {
+                    $btnDispute.addClass('d-none').removeClass('d-flex');
+                    $btnViewClaim.attr('href', claimViewUrl)
+                        .removeClass('d-none').addClass('d-flex')
+                        .find('span').text('Claim #' + claimNum + ' (' + claimStatus + ')');
+                } else if (disputeUrl) {
+                    $btnViewClaim.addClass('d-none').removeClass('d-flex');
+                    $btnDispute.attr('href', disputeUrl)
+                        .removeClass('d-none').addClass('d-flex');
+                } else {
+                    $btnDispute.addClass('d-none').removeClass('d-flex');
+                    $btnViewClaim.addClass('d-none').removeClass('d-flex');
+                }
             });
         });
     </script>

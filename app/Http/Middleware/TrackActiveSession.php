@@ -86,3 +86,4 @@ class TrackActiveSession
         return $response;
     }
 }
+

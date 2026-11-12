@@ -14,10 +14,15 @@ class TransactionController extends Controller
 {
     public function transactions(Request $request)
     {
+        \App\Models\TransactionDispute::ensureSchema();
         $transactions = $this->getTransactionData();
         $queries = $request->query();
+        $disputeMap = \App\Models\TransactionDispute::where('user_id', auth()->id())
+            ->get()
+            ->keyBy('transaction_id');
+        $activeDisputeCount = $disputeMap->whereIn('status', ['open', 'provisional_credited'])->count();
 
-        return view('frontend::user.transaction.index', compact('transactions', 'queries'));
+        return view('frontend::user.transaction.index', compact('transactions', 'queries', 'disputeMap', 'activeDisputeCount'));
     }
 
     public function getTransactionData($export = false)

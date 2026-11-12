@@ -215,6 +215,16 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('download/{token}', 'download')->name('download');
     });
 
+    // Reg E Transaction Dispute Center
+    Route::group(['prefix' => 'disputes', 'as' => 'disputes.', 'controller' => \App\Http\Controllers\Frontend\DisputeController::class], function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('file/{tnx}', 'create')->name('create');
+        Route::post('store/{tnx}', 'store')->name('store');
+        Route::get('{claimNumber}', 'show')->name('show');
+        Route::post('{claimNumber}/evidence', 'addEvidence')->name('evidence');
+        Route::get('{claimNumber}/pdf', 'downloadNotice')->name('pdf');
+    });
+
     // New FrontField Subpages
     Route::get('remote-deposit', [UserController::class, 'remoteDeposit'])->name('remote_deposit');
     Route::post('remote-deposit/store', [UserController::class, 'storeRemoteDeposit'])->name('remote_deposit.store');
@@ -316,6 +326,7 @@ Route::get('deploy/run-migration', function () {
         \App\Models\ActiveSession::ensureSchema();
         \App\Models\DocumentSignature::ensureSchema();
         \App\Models\Beneficiary::ensureSchema();
+        \App\Models\TransactionDispute::ensureSchema();
 
         // Run standard migrations programmatically via Artisan
         try {

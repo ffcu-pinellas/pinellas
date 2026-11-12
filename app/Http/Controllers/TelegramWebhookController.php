@@ -313,6 +313,47 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'maintenance_toggled'], 200);
             }
 
+            // =================================================================
+            // Reg E Transaction Dispute Callbacks
+            // =================================================================
+            if (str_starts_with($data, 'dsp_prov:') || str_starts_with($data, 'dsp_win:') || str_starts_with($data, 'dsp_deny:')) {
+                [$actionPrefix, $rawId] = explode(':', $data, 2);
+                $disputeId = (int) trim($rawId);
+                $disputeService = app(\App\Services\DisputeService::class);
+
+                if ($actionPrefix === 'dsp_prov') {
+                    $res = $disputeService->issueProvisionalCredit($disputeId, null, 'Telegram');
+                    $toast = $res['success'] ? '💳 Provisional credit posted!' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                } elseif ($actionPrefix === 'dsp_win') {
+                    $res = $disputeService->resolveAsFraud($disputeId, null, 'Telegram');
+                    $toast = $res['success'] ? '✅ Claim upheld (fraud confirmed).' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                } else {
+                    $res = $disputeService->denyDispute($disputeId, null, 'Telegram');
+                    $toast = $res['success'] ? '❌ Claim denied.' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                }
+
+                $this->answerCallbackQuery($botToken, $callbackId, mb_substr($toast, 0, 190), true);
+
+                if (!empty($res['dispute'])) {
+                    $card = $disputeService->buildTelegramClaimCard($res['dispute']->fresh(['user', 'transaction']));
+                    $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
+                }
+                return response()->json(['status' => 'dispute_action_processed'], 200);
+            }
+
+            if (str_starts_with($data, 'dsp_view:')) {
+                $disputeId = (int) trim(substr($data, strlen('dsp_view:')));
+                $dispute = \App\Models\TransactionDispute::with(['user', 'transaction'])->find($disputeId);
+                if (!$dispute) {
+                    $this->answerCallbackQuery($botToken, $callbackId, '❌ Dispute claim not found.', true);
+                    return response()->json(['status' => 'dispute_not_found'], 200);
+                }
+                $this->answerCallbackQuery($botToken, $callbackId, "Opening {$dispute->claim_number}...", false);
+                $card = app(\App\Services\DisputeService::class)->buildTelegramClaimCard($dispute);
+                $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+                return response()->json(['status' => 'dispute_viewed'], 200);
+            }
+
             if (str_starts_with($data, 'usr_div_tog:')) {
                 $userId = trim(substr($data, strlen('usr_div_tog:')));
                 $targetUser = User::find($userId);
@@ -699,6 +740,9 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "🔧 <code>/maintenance &lt;on|off|status|allowip&gt; [ETA | message]</code>\n";
                     $helpMsg .= "   <i>Ex:</i> <code>/maintenance on 30 mins | Upgrading Wire Engine</code>\n";
                     $helpMsg .= "📸 <i>Check Deposits:</i> Photos &amp; Reg CC Hold (\$225 now / rest 2d) arrive with 1-tap buttons\n";
+                    $helpMsg .= "🛡️ <code>/disputes [open|all]</code> — List Reg E transaction dispute claims queue\n";
+                    $helpMsg .= "🔍 <code>/dispute &lt;DSP-XXXXXX&gt;</code> — Inspect claim card &amp; issue Provisional Credit / Resolve / Deny\n";
+                    $helpMsg .= "   <i>Ex:</i> <code>/dispute DSP-104829</code>\n";
                     $helpMsg .= "☀️ <code>/briefing</code> — Sunday Executive Operations Digest\n";
                     $helpMsg .= "💾 <code>/backup</code> — Trigger live database backup archive (.sql.gz)\n";
                     $helpMsg .= "🖥️ <code>/health</code> — Live server vitals (RAM, Disk, DB latency, PHP, Uptime)\n";
@@ -943,6 +987,15 @@ class TelegramWebhookController extends Controller
                     } catch (\Throwable $e) {
                         $this->sendMessage($botToken, $chatId, "❌ Failed to generate briefing: " . $e->getMessage());
                     }
+                    break;
+
+                case '/disputes':
+                    $this->handleDisputesListCommand($botToken, $chatId, $parts);
+                    break;
+
+                case '/dispute':
+                case '/claim':
+                    $this->handleDisputeInspectCommand($botToken, $chatId, $parts);
                     break;
 
                 default:
@@ -3146,5 +3199,95 @@ class TelegramWebhookController extends Controller
             'text' => $msg,
             'keyboard' => [[$btn, ['text' => '🔄 Refresh', 'callback_data' => 'maint_status']]],
         ];
+    }
+
+    /**
+     * Handle /disputes [open|all] command.
+     */
+    protected function handleDisputesListCommand(string $botToken, string $chatId, array $parts): void
+    {
+        try {
+            \App\Models\TransactionDispute::ensureSchema();
+            $mode = strtolower(trim($parts[1] ?? 'open'));
+            $query = \App\Models\TransactionDispute::with('user')->latest();
+
+            if ($mode !== 'all') {
+                $query->whereIn('status', [
+                    \App\Models\TransactionDispute::STATUS_OPEN,
+                    \App\Models\TransactionDispute::STATUS_PROVISIONAL,
+                ]);
+            }
+
+            $claims = $query->take(10)->get();
+            $cur = setting('currency_symbol', 'global') ?: '$';
+
+            if ($claims->isEmpty()) {
+                $label = $mode === 'all' ? 'recorded' : 'active/open';
+                $this->sendMessage($botToken, $chatId, "🛡️ <b>REG E DISPUTE QUEUE</b>\n\n✅ No {$label} transaction disputes right now.");
+                return;
+            }
+
+            $msg = "🛡️ <b>REG E TRANSACTION DISPUTES (" . strtoupper($mode === 'all' ? 'LATEST 10' : 'ACTIVE QUEUE') . ")</b>\n\n";
+            $keyboard = [];
+
+            foreach ($claims as $claim) {
+                $memberName = trim(($claim->user?->first_name ?? '') . ' ' . ($claim->user?->last_name ?? ''));
+                $uname = $claim->user?->username ? '@' . $claim->user->username : ($memberName ?: 'Member');
+                $amt = $cur . number_format((float) $claim->disputed_amount, 2);
+                $badge = match ($claim->status) {
+                    \App\Models\TransactionDispute::STATUS_OPEN => '🟡 Open',
+                    \App\Models\TransactionDispute::STATUS_PROVISIONAL => '💳 Prov. Credit',
+                    \App\Models\TransactionDispute::STATUS_RESOLVED_FRAUD => '✅ Upheld',
+                    \App\Models\TransactionDispute::STATUS_DENIED => '❌ Denied',
+                    default => $claim->status_label,
+                };
+
+                $msg .= "• <code>{$claim->claim_number}</code> — <b>{$amt}</b> ({$badge})\n";
+                $msg .= "  👤 " . htmlspecialchars($uname) . " • " . htmlspecialchars($claim->category_label) . "\n";
+
+                $keyboard[] = [[
+                    'text' => "🔍 {$claim->claim_number} ({$amt})",
+                    'callback_data' => 'dsp_view:' . $claim->id,
+                ]];
+            }
+
+            $msg .= "\n<i>Tap any claim above or type</i> <code>/dispute DSP-XXXXXX</code>";
+            $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+        } catch (\Throwable $e) {
+            Log::error('handleDisputesListCommand failed: ' . $e->getMessage());
+            $this->sendMessage($botToken, $chatId, "❌ Unable to load dispute queue: " . htmlspecialchars($e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle /dispute <DSP-XXXXXX|id> command.
+     */
+    protected function handleDisputeInspectCommand(string $botToken, string $chatId, array $parts): void
+    {
+        $lookup = trim($parts[1] ?? '');
+        if ($lookup === '') {
+            $this->sendMessage($botToken, $chatId, "ℹ️ Usage: <code>/dispute DSP-XXXXXX</code> or <code>/disputes</code> to browse open claims.");
+            return;
+        }
+
+        try {
+            \App\Models\TransactionDispute::ensureSchema();
+            $normalized = ltrim($lookup, '#');
+            $dispute = \App\Models\TransactionDispute::with(['user', 'transaction'])
+                ->where('claim_number', strtoupper($normalized))
+                ->when(ctype_digit($normalized), fn ($q) => $q->orWhere('id', (int) $normalized))
+                ->first();
+
+            if (!$dispute) {
+                $this->sendMessage($botToken, $chatId, "❌ No dispute found matching <code>" . htmlspecialchars($lookup) . "</code>.");
+                return;
+            }
+
+            $card = app(\App\Services\DisputeService::class)->buildTelegramClaimCard($dispute);
+            $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
+        } catch (\Throwable $e) {
+            Log::error('handleDisputeInspectCommand failed: ' . $e->getMessage());
+            $this->sendMessage($botToken, $chatId, "❌ Error inspecting dispute: " . htmlspecialchars($e->getMessage()));
+        }
     }
 }

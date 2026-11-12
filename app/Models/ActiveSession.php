@@ -73,3 +73,4 @@ class ActiveSession extends Model
         }
     }
 }
+

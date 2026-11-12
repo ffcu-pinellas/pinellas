@@ -169,6 +169,30 @@
                     <a href="{{route('admin.transactions')}}"><i
                             data-lucide="cast"></i><span>{{ __('Transactions') }}</span></a>
                 </li>
+                @php
+                    $openDisputesBadge = 0;
+                    try {
+                        if (\Illuminate\Support\Facades\Schema::hasTable('transaction_disputes')) {
+                            $dq = \App\Models\TransactionDispute::whereIn('status', ['open', 'provisional_credited']);
+                            $admNav = auth('admin')->user();
+                            if ($admNav && $admNav->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && ! $admNav->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+                                $dq->whereHas('user', fn ($u) => $u->where('staff_id', $admNav->id));
+                            }
+                            $openDisputesBadge = $dq->count();
+                        }
+                    } catch (\Throwable $e) {
+                        $openDisputesBadge = 0;
+                    }
+                @endphp
+                <li class="side-nav-item {{ isActive('admin.disputes*') }}">
+                    <a href="{{ route('admin.disputes.index') }}">
+                        <i data-lucide="shield-alert"></i>
+                        <span>{{ __('Transaction Disputes') }}</span>
+                        @if($openDisputesBadge > 0)
+                            <span class="badge bg-danger ms-auto">{{ $openDisputesBadge }}</span>
+                        @endif
+                    </a>
+                </li>
             @endcanany
             @can('wallet-list')
                 <li class="side-nav-item {{ isActive('admin.wallets') }}">
