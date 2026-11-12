@@ -164,12 +164,13 @@ class DisputeController extends Controller
         ]);
 
         $path = $this->storeEvidenceFile($request->file('evidence'));
+        $note = trim((string) $request->input('evidence_note'));
         $timeline = $dispute->timeline ?? [];
         $timeline[] = [
             'event' => 'Supporting Evidence Uploaded',
             'actor' => auth()->user()->full_name . ' (Member)',
             'at' => now('UTC')->format('M d, Y H:i \U\T\C'),
-            'note' => trim((string) $request->input('evidence_note')) ?: 'Member uploaded supporting documentation (' . basename($path) . ').',
+            'note' => $note ?: 'Member uploaded supporting documentation (' . basename($path) . ').',
         ];
 
         $dispute->update([
@@ -177,8 +178,31 @@ class DisputeController extends Controller
             'timeline' => $timeline,
         ]);
 
+        $this->disputeService->notifyAdditionalEvidence(
+            $dispute->fresh(),
+            auth()->user(),
+            $path,
+            $note !== '' ? $note : null
+        );
+
         notify()->success(__('Supporting evidence attached to Claim #' . $claimNumber . '.'));
         return redirect()->route('user.disputes.show', $claimNumber);
+    }
+
+    public function viewAttachment(string $claimNumber)
+    {
+        TransactionDispute::ensureSchema();
+
+        $dispute = TransactionDispute::where('user_id', auth()->id())
+            ->where('claim_number', $claimNumber)
+            ->firstOrFail();
+
+        $absPath = $this->disputeService->resolveEvidenceFilePath($dispute->evidence_path);
+        if (! $absPath) {
+            abort(404, 'Supporting documentation file could not be located.');
+        }
+
+        return response()->file($absPath);
     }
 
     public function downloadNotice(string $claimNumber)
@@ -201,7 +225,10 @@ class DisputeController extends Controller
         $ext = strtolower($file->getClientOriginalExtension() ?: 'png');
         $filename = 'DSP_' . Str::random(18) . '.' . $ext;
         $relativeDir = 'assets/global/images/disputes';
-        $targetDir = public_path($relativeDir);
+        // Write to root assets/ when present (Hostinger public root), else Laravel public_path
+        $targetDir = File::isDirectory(base_path('assets'))
+            ? base_path($relativeDir)
+            : public_path($relativeDir);
 
         if (! File::isDirectory($targetDir)) {
             File::makeDirectory($targetDir, 0755, true);

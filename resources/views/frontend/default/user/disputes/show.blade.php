@@ -149,7 +149,7 @@
                                     <i class="fas {{ $isPdf ? 'fa-file-pdf' : 'fa-paperclip' }} text-primary me-2"></i>
                                     <span class="small fw-semibold text-dark">{{ basename($dispute->evidence_path) }}</span>
                                 </div>
-                                <a href="{{ asset($dispute->evidence_path) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <a href="{{ route('user.disputes.attachment', $dispute->claim_number) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                     {{ __('View File') }}
                                 </a>
                             </div>
@@ -182,12 +182,19 @@
                     <div class="banno-card p-4 h-100">
                         <h5 class="fw-bold mb-3 text-dark">{{ __('Claim History') }}</h5>
                         @forelse(array_reverse($dispute->timeline ?? []) as $item)
+                            @php
+                                $cleanActor = str_ireplace(
+                                    ['Executive Operations (Telegram)', '(Telegram)', 'Telegram'],
+                                    ['Member Protection & Dispute Operations', '(Dispute Resolution Team)', 'Dispute Resolution Team'],
+                                    (string) ($item['actor'] ?? 'System')
+                                );
+                            @endphp
                             <div class="pb-3 mb-3 border-bottom">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
                                     <span class="fw-semibold small text-dark">{{ $item['event'] ?? 'Update' }}</span>
                                     <span class="text-muted" style="font-size: 11px; white-space: nowrap;">{{ $item['at'] ?? '' }}</span>
                                 </div>
-                                <div class="small fw-semibold mb-1" style="color: #00549b;">{{ $item['actor'] ?? 'System' }}</div>
+                                <div class="small fw-semibold mb-1" style="color: #00549b;">{{ $cleanActor }}</div>
                                 @if(!empty($item['note']))
                                     <div class="text-muted small">{{ $item['note'] }}</div>
                                 @endif

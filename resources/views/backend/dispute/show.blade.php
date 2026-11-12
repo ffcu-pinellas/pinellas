@@ -80,12 +80,12 @@
                             <div class="p-3 border rounded mb-3">
                                 <div class="small text-muted fw-bold mb-2">{{ __('UPLOADED SUPPORTING EVIDENCE') }}</div>
                                 @if(\Illuminate\Support\Str::endsWith(strtolower($dispute->evidence_path), '.pdf'))
-                                    <a href="{{ asset($dispute->evidence_path) }}" target="_blank" class="site-btn-sm primary-btn">
+                                    <a href="{{ route('admin.disputes.attachment', $dispute->id) }}" target="_blank" class="site-btn-sm primary-btn">
                                         <i data-lucide="file-text"></i> {{ __('View Uploaded PDF') }}
                                     </a>
                                 @else
-                                    <a href="{{ asset($dispute->evidence_path) }}" target="_blank">
-                                        <img src="{{ asset($dispute->evidence_path) }}" alt="Dispute Evidence" class="img-fluid rounded border" style="max-height: 280px;">
+                                    <a href="{{ route('admin.disputes.attachment', $dispute->id) }}" target="_blank">
+                                        <img src="{{ route('admin.disputes.attachment', $dispute->id) }}" alt="Dispute Evidence" class="img-fluid rounded border" style="max-height: 280px;">
                                     </a>
                                 @endif
                             </div>

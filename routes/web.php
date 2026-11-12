@@ -222,6 +222,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('store/{tnx}', 'store')->name('store');
         Route::get('{claimNumber}', 'show')->name('show');
         Route::post('{claimNumber}/evidence', 'addEvidence')->name('evidence');
+        Route::get('{claimNumber}/attachment', 'viewAttachment')->name('attachment');
         Route::get('{claimNumber}/pdf', 'downloadNotice')->name('pdf');
     });
 

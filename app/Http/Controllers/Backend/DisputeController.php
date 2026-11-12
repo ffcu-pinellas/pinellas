@@ -97,6 +97,21 @@ class DisputeController extends Controller
         return view('backend.dispute.show', compact('dispute', 'walletLabel'));
     }
 
+    public function viewAttachment($id)
+    {
+        TransactionDispute::ensureSchema();
+
+        $dispute = TransactionDispute::with('user')->findOrFail($id);
+        $this->authorizeDisputeScope($dispute, false);
+
+        $absPath = $this->disputeService->resolveEvidenceFilePath($dispute->evidence_path);
+        if (! $absPath) {
+            abort(404, 'Uploaded dispute attachment could not be located on disk.');
+        }
+
+        return response()->file($absPath);
+    }
+
     public function provisionalCredit(Request $request, $id)
     {
         $dispute = TransactionDispute::with('user')->findOrFail($id);

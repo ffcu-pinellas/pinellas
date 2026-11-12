@@ -58,8 +58,15 @@
 
     <h4 style="margin-bottom: 6px; color: #00549b;">Case Audit Timeline</h4>
     @foreach(($dispute->timeline ?? []) as $event)
+        @php
+            $cleanEventActor = str_ireplace(
+                ['Executive Operations (Telegram)', '(Telegram)', 'Telegram'],
+                ['Member Protection & Dispute Operations', '(Dispute Resolution Team)', 'Dispute Resolution Team'],
+                (string) ($event['actor'] ?? 'System')
+            );
+        @endphp
         <div class="timeline-item">
-            <strong>{{ $event['event'] ?? 'Update' }}</strong> — {{ $event['at'] ?? '' }} ({{ $event['actor'] ?? 'System' }})<br>
+            <strong>{{ $event['event'] ?? 'Update' }}</strong> — {{ $event['at'] ?? '' }} ({{ $cleanEventActor }})<br>
             <span style="color: #475569;">{{ $event['note'] ?? '' }}</span>
         </div>
     @endforeach

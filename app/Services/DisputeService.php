@@ -4,13 +4,15 @@ namespace App\Services;
 
 use App\Enums\TxnStatus;
 use App\Enums\TxnType;
+use App\Events\NotificationEvent;
 use App\Models\Admin;
 use App\Models\Notification;
 use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\TransactionDispute;
 use App\Models\User;
-use App\Traits\TelegramTrait;
+use App\Support\MailAsset;
+use App\Traits\NotifyTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -20,7 +22,7 @@ use Illuminate\Support\Str;
 
 class DisputeService
 {
-    use TelegramTrait;
+    use NotifyTrait;
 
     public const DEBIT_DISPUTABLE_TYPES = [
         'fund_transfer',
@@ -611,23 +613,33 @@ class DisputeService
 
     protected function resolveActorLabel(?int $adminId, string $via): string
     {
+        $publicChannel = stripos($via, 'telegram') !== false
+            ? 'Dispute Resolution Team'
+            : 'Member Protection Desk';
+
         if ($adminId) {
             $admin = Admin::find($adminId);
             if ($admin) {
-                return $admin->name . " ({$via})";
+                return "{$admin->name} ({$publicChannel})";
             }
         }
 
-        return "Executive Operations ({$via})";
+        return 'Member Protection & Dispute Operations';
     }
 
-    protected function resolveEvidenceFilePath(?string $path): ?string
+    public function resolveEvidenceFilePath(?string $path): ?string
     {
         if (empty($path)) {
             return null;
         }
         $clean = ltrim($path, '/');
-        foreach ([base_path($clean), public_path($clean), $clean] as $candidate) {
+        foreach ([
+            base_path($clean),
+            public_path($clean),
+            storage_path($clean),
+            storage_path('app/' . $clean),
+            $clean,
+        ] as $candidate) {
             if (is_file($candidate)) {
                 return $candidate;
             }
@@ -636,37 +648,105 @@ class DisputeService
         return null;
     }
 
-    protected function notifyClaimFiled(TransactionDispute $dispute, User $user, Transaction $txn): void
-    {
-        // 1. Dispatch uploaded evidence photo (if image) + interactive decision card to Telegram
+    /**
+     * Dispatch image or PDF/document dispute attachment directly to Telegram.
+     */
+    protected function dispatchEvidenceToTelegram(
+        TransactionDispute $dispute,
+        User $user,
+        ?string $relativePath,
+        string $caption
+    ): void {
+        if (empty($relativePath)) {
+            return;
+        }
+
         $botToken = Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN');
         $chatId = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
+        if (! $botToken || ! $chatId) {
+            return;
+        }
 
-        if ($botToken && $chatId && $dispute->evidence_path) {
-            $filePath = $this->resolveEvidenceFilePath($dispute->evidence_path);
-            $ext = strtolower((string) pathinfo($dispute->evidence_path, PATHINFO_EXTENSION));
-            if ($filePath && in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
-                try {
-                    Http::timeout(20)
-                        ->attach('photo', file_get_contents($filePath), basename($filePath))
-                        ->post("https://api.telegram.org/bot{$botToken}/sendPhoto", [
-                            'chat_id' => $chatId,
-                            'caption' => "📎 Supporting Evidence — Claim #{$dispute->claim_number} (@{$user->username})",
-                        ]);
-                } catch (\Throwable $e) {
-                    Log::warning('DisputeService evidence photo dispatch failed: ' . $e->getMessage());
-                }
+        $filePath = $this->resolveEvidenceFilePath($relativePath);
+        if (! $filePath || ! is_readable($filePath)) {
+            Log::warning("DisputeService evidence file not found on disk: {$relativePath}");
+            return;
+        }
+
+        $ext = strtolower((string) pathinfo($filePath, PATHINFO_EXTENSION));
+        $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
+        $endpoint = $isImage ? 'sendPhoto' : 'sendDocument';
+        $field = $isImage ? 'photo' : 'document';
+
+        try {
+            Http::timeout(25)
+                ->attach($field, file_get_contents($filePath), basename($filePath))
+                ->post("https://api.telegram.org/bot{$botToken}/{$endpoint}", [
+                    'chat_id' => $chatId,
+                    'caption' => mb_substr($caption, 0, 1000),
+                ]);
+        } catch (\Throwable $e) {
+            Log::warning("DisputeService {$endpoint} dispatch failed: " . $e->getMessage());
+        }
+    }
+
+    public function notifyAdditionalEvidence(
+        TransactionDispute $dispute,
+        User $user,
+        string $relativePath,
+        ?string $note = null
+    ): void {
+        $caption = "📎 Additional Documentation — Claim #{$dispute->claim_number} (@{$user->username})";
+        if ($note) {
+            $caption .= "\n💬 " . $note;
+        }
+
+        $this->dispatchEvidenceToTelegram($dispute, $user, $relativePath, $caption);
+
+        $card = $this->buildTelegramClaimCard($dispute->fresh(['user', 'transaction']));
+        $headerMsg = "🆕 <b>ADDITIONAL EVIDENCE ATTACHED</b>\nClaim: <code>#{$dispute->claim_number}</code> • File: <code>" . basename($relativePath) . "</code>\n"
+            . ($note ? ("💬 Note: " . htmlspecialchars($note) . "\n") : '')
+            . "\n" . $card['text'];
+        $this->telegramNotify($headerMsg, $card['keyboard']);
+
+        if ($user->staff_id) {
+            $officer = Admin::find($user->staff_id);
+            if ($officer && $officer->email) {
+                $this->sendBrandedDisputeMail(
+                    $officer->email,
+                    "Additional Evidence Uploaded: {$user->full_name} — Claim #{$dispute->claim_number}",
+                    'New Supporting Documentation Attached',
+                    "Hello {$officer->name},",
+                    "Member <strong>" . e($user->full_name) . "</strong> uploaded additional supporting documentation for Claim <code>#{$dispute->claim_number}</code>.<br><br>"
+                    . "<strong>File:</strong> " . e(basename($relativePath))
+                    . ($note ? ("<br><strong>Member Note:</strong> " . e($note)) : ''),
+                    'Inspect Claim & Attachment',
+                    route('admin.disputes.show', $dispute->id)
+                );
             }
+        }
+    }
+
+    protected function notifyClaimFiled(TransactionDispute $dispute, User $user, Transaction $txn): void
+    {
+        // 1. Dispatch uploaded evidence file (photo OR PDF document) + interactive decision card to Telegram
+        if ($dispute->evidence_path) {
+            $this->dispatchEvidenceToTelegram(
+                $dispute,
+                $user,
+                $dispute->evidence_path,
+                "📎 Supporting Evidence — Claim #{$dispute->claim_number} (@{$user->username})"
+            );
         }
 
         $card = $this->buildTelegramClaimCard($dispute);
         $this->telegramNotify($card['text'], $card['keyboard']);
 
-        // 2. Member in-app bell notification
+        // 2. Member in-app bell + push notification
         $this->createMemberBellNotification(
             $user->id,
             "Dispute Claim #{$dispute->claim_number} Received",
-            "We have received your Reg E dispute for {$txn->tnx} ($" . number_format((float) $dispute->disputed_amount, 2) . "). Track investigation progress anytime in Dispute Center.",
+            "We have received your Reg E dispute for {$txn->tnx} ($" . number_format((float) $dispute->disputed_amount, 2) . "). Track investigation progress anytime from Activity.",
             route('user.disputes.show', $dispute->claim_number)
         );
 
@@ -713,19 +793,19 @@ class DisputeService
         $amt = $cur . number_format((float) $dispute->disputed_amount, 2);
 
         if ($stage === 'provisional_credited') {
-            $title = "Provisional Credit Issued ({$amt}) — #{$dispute->claim_number}";
-            $body = "A provisional credit of <strong>{$amt}</strong> (Ref: <code>{$dispute->provisional_credit_tnx}</code>) has been posted to your "
+            $title = "Provisional Credit Posted ({$amt}) — Claim #{$dispute->claim_number}";
+            $body = "A temporary provisional credit of <strong>{$amt}</strong> (Ref: <code>{$dispute->provisional_credit_tnx}</code>) has been posted to your "
                 . (self::WALLET_LABELS[$this->normalizeWalletKey($dispute->wallet_type)] ?? 'Checking')
-                . " account while we complete our Regulation E investigation.<br><br>"
+                . " account while our Member Protection & Dispute Operations team completes its Regulation E investigation.<br><br>"
                 . "<strong>Important Reg E Notice:</strong> Please note that if our final investigation determines the disputed transaction was authorized or valid, this provisional credit may be reversed in accordance with Regulation E.";
-            $noticeTitle = 'Provisional Credit Issued';
-            $shortMsg = "Provisional credit of {$amt} posted to your account for Claim #{$dispute->claim_number}.";
+            $noticeTitle = "Provisional Credit Posted ({$amt})";
+            $shortMsg = "A {$amt} provisional credit (Ref {$dispute->provisional_credit_tnx}) was posted for Claim #{$dispute->claim_number}.";
         } elseif ($stage === 'resolved_fraud') {
             $title = "Dispute Resolved In Your Favor — Claim #{$dispute->claim_number}";
             $body = "Our Regulation E investigation for <strong>Claim #{$dispute->claim_number}</strong> (Transaction <code>{$dispute->tnx}</code>, {$amt}) is complete and resolved in your favor.<br><br>"
-                . "Your refund/credit (Ref: <code>{$dispute->provisional_credit_tnx}</code>) is now <strong>final and permanent</strong>."
-                . ($dispute->resolution_notes ? "<br><br><strong>Investigator Notes:</strong> " . e($dispute->resolution_notes) : '');
-            $noticeTitle = 'Dispute Resolved — In Your Favor';
+                . "Your credit (Ref: <code>{$dispute->provisional_credit_tnx}</code>) is now <strong>final and permanent</strong>."
+                . ($dispute->resolution_notes ? "<br><br><strong>Findings:</strong> " . e($dispute->resolution_notes) : '');
+            $noticeTitle = "Dispute Upheld ({$amt}) — Claim #{$dispute->claim_number}";
             $shortMsg = "Claim #{$dispute->claim_number} ({$amt}) has been permanently resolved in your favor.";
         } else {
             $clawNote = $dispute->clawback_tnx
@@ -736,8 +816,8 @@ class DisputeService
                 . "<strong>Findings:</strong> " . e($dispute->resolution_notes ?? 'Verified transaction record.')
                 . $clawNote
                 . "<br><br>You may request copies of documentation relied upon in reaching this decision via Member Support.";
-            $noticeTitle = 'Dispute Claim Closed — Valid Charge';
-            $shortMsg = "Claim #{$dispute->claim_number} ({$amt}) was denied after investigation.";
+            $noticeTitle = "Dispute Claim Closed — Claim #{$dispute->claim_number}";
+            $shortMsg = "Claim #{$dispute->claim_number} ({$amt}) was closed as a valid/authorized charge.";
         }
 
         $this->createMemberBellNotification(
@@ -753,7 +833,7 @@ class DisputeService
             $noticeTitle,
             "Dear {$user->full_name},",
             $body,
-            'Open Dispute Center',
+            'View Claim & Timeline',
             route('user.disputes.show', $dispute->claim_number)
         );
     }
@@ -761,7 +841,7 @@ class DisputeService
     protected function createMemberBellNotification(int $userId, string $title, string $notice, string $actionUrl): void
     {
         try {
-            Notification::create([
+            $data = [
                 'icon' => 'shield-alert',
                 'user_id' => $userId,
                 'for' => 'user',
@@ -769,9 +849,25 @@ class DisputeService
                 'notice' => $notice,
                 'action_url' => $actionUrl,
                 'read' => 0,
-            ]);
+            ];
+
+            Notification::create($data);
+
+            try {
+                $pusherCredentials = config('broadcasting.connections.pusher');
+                if ($pusherCredentials && ! empty($pusherCredentials['key'])) {
+                    event(new NotificationEvent('User', $data, $userId));
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Dispute Pusher broadcast skip: ' . $e->getMessage());
+            }
+
+            $user = User::find($userId);
+            if ($user && ! empty($user->fcm_token)) {
+                $this->sendFcmPush($user->fcm_token, $title, $notice, $actionUrl);
+            }
         } catch (\Throwable $e) {
-            Log::warning('Dispute bell notification skip: ' . $e->getMessage());
+            Log::warning('Dispute bell/push notification skip: ' . $e->getMessage());
         }
     }
 
@@ -787,7 +883,13 @@ class DisputeService
         try {
             $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
             $logoSetting = setting('site_logo', 'global');
-            $siteLogo = $logoSetting ? asset('assets/' . ltrim($logoSetting, '/')) : asset('assets/external/images/logo.png');
+            $logoRel = $logoSetting
+                ? (Str::startsWith($logoSetting, ['assets/', 'storage/']) ? $logoSetting : 'assets/' . ltrim($logoSetting, '/'))
+                : 'assets/external/images/logo.png';
+            if (Str::contains($logoRel, 'fav')) {
+                $logoRel = 'assets/external/images/logo.png';
+            }
+            $logoPath = $this->resolveEvidenceFilePath($logoRel);
 
             Mail::to($toEmail)->send(new \App\Mail\MailSend([
                 'from_name' => $siteTitle . ' Member Protection',
@@ -798,13 +900,18 @@ class DisputeService
                 'button_level' => $buttonLabel,
                 'button_link' => $buttonLink,
                 'footer_status' => 1,
+                'footer_body' => $siteTitle,
+                'banner' => null,
                 'bottom_status' => 0,
-                'site_logo' => $siteLogo,
+                'bottom_title' => '',
+                'bottom_body' => '',
+                'site_logo' => MailAsset::absolute($logoRel),
+                'site_logo_path' => $logoPath,
                 'site_title' => $siteTitle,
                 'site_link' => route('home'),
             ]));
         } catch (\Throwable $e) {
-            Log::warning('Dispute email delivery warning: ' . $e->getMessage());
+            Log::error("Dispute email delivery failed for {$toEmail}: " . $e->getMessage());
         }
     }
 }

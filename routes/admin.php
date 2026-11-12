@@ -241,6 +241,7 @@ Route::prefix('transactions')->name('transactions')->group(function () {
 Route::group(['prefix' => 'disputes', 'as' => 'disputes.', 'controller' => \App\Http\Controllers\Backend\DisputeController::class], function () {
     Route::get('/', 'index')->name('index');
     Route::get('/{id}', 'show')->name('show');
+    Route::get('/{id}/attachment', 'viewAttachment')->name('attachment');
     Route::post('/{id}/provisional-credit', 'provisionalCredit')->name('provisional-credit');
     Route::post('/{id}/resolve-fraud', 'resolveFraud')->name('resolve-fraud');
     Route::post('/{id}/deny', 'deny')->name('deny');
