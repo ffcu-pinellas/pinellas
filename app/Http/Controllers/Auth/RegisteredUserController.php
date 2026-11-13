@@ -88,38 +88,43 @@ class RegisteredUserController extends Controller
         $isPhone = (bool) getPageSetting('phone_validation');
         $isReferralCode = (bool) getPageSetting('referral_code_validation');
 
-        // On secondary institutions (e.g. Cleveland State Bank), referral code is never required
+        // On secondary institutions (e.g. Cleveland State Bank), referral code is NEVER validated.
         $isInstitution = app()->bound('institution') && !app('institution')->is_default;
-        if ($isInstitution || ! $request->filled('invite')) {
-            $request->request->remove('invite');
-        }
 
-        $inviteRules = ['nullable'];
-        if (! $isInstitution && $isReferralCode) {
-            $inviteRules = ['required', 'exists:referral_links,code'];
-        } elseif ($request->filled('invite')) {
-            $inviteRules = ['nullable', 'exists:referral_links,code'];
-        }
+        // Completely purge any invite value so it cannot interfere
+        $request->request->remove('invite');
+        $request->merge(['invite' => null]);
 
-        $request->validate([
+        // Build validation rules — institution registrations never include invite
+        $validationRules = [
             'country' => [Rule::requiredIf($isCountry), 'string', 'max:255'],
-            'phone' => [Rule::requiredIf($isPhone), 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', Rules\Password::defaults()],
+            'phone'   => [Rule::requiredIf($isPhone), 'string', 'max:255'],
+            'email'   => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'      => ['required', Rules\Password::defaults()],
             'date_of_birth' => ['required', 'date'],
-            'ssn' => ['required', 'string', 'max:20'],
-            'invite' => $inviteRules,
-        ], [
+            'ssn'           => ['required', 'string', 'max:20'],
+        ];
+
+        if (! $isInstitution) {
+            if ($isReferralCode) {
+                $validationRules['invite'] = ['required', 'exists:referral_links,code'];
+            } elseif ($request->input('invite')) {
+                $validationRules['invite'] = ['nullable', 'exists:referral_links,code'];
+            }
+        }
+        // For institutions: 'invite' key is intentionally absent from rules
+
+        $request->validate($validationRules, [
             'invite.required' => __('Referral code field is required.'),
-            'invite.exists' => __('Referral code is invalid.'),
-            'email.unique' => __('This email address is already registered.'),
-            'password.min' => __('Password must be at least 8 characters long.'),
-            'date_of_birth.date' => __('Please enter a valid date of birth (MM/DD/YYYY).'),
+            'invite.exists'   => __('Referral code is invalid.'),
+            'email.unique'    => __('This email address is already registered.'),
+            'password.min'    => __('Password must be at least 8 characters long.'),
+            'date_of_birth.date'     => __('Please enter a valid date of birth (MM/DD/YYYY).'),
             'date_of_birth.required' => __('Date of birth is required.'),
-            'ssn.required' => __('SSN / Tax ID is required.'),
+            'ssn.required'   => __('SSN / Tax ID is required.'),
             'phone.required' => __('Phone number is required.'),
             'email.required' => __('Email address is required.'),
-            'email.email' => __('Please enter a valid email address.'),
+            'email.email'    => __('Please enter a valid email address.'),
         ]);
 
         $input = $request->all();
