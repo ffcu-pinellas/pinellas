@@ -22,6 +22,14 @@ class PasswordResetLinkController extends Controller
      */
     public function create()
     {
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_forgot_password';
+            if (view()->exists($customView)) {
+                return view($customView, compact('currentInstitution'));
+            }
+        }
+
         $page = Page::where('code', 'forgetpassword')->first();
         $data = json_decode($page->data, true);
 

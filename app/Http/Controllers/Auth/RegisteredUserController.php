@@ -34,6 +34,18 @@ class RegisteredUserController extends Controller
         if (! setting('account_creation', 'permission')) {
             abort('403', 'User registration is closed now');
         }
+
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_register';
+            if (view()->exists($customView)) {
+                $location = getLocation();
+                $referralCode = ReferralLink::find(request()->cookie('invite'))?->code;
+                $googleReCaptcha = plugin_active('Google reCaptcha');
+                return view($customView, compact('currentInstitution', 'location', 'referralCode', 'googleReCaptcha'));
+            }
+        }
+
         $page = Page::where('code', 'registration')->where('locale', app()->getLocale())->first();
 
         if (! $page) {

@@ -22,6 +22,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function create()
     {
+        // ── Secondary Institution Dedicated Login View ───────────────────────
+        if (app()->bound('institution')) {
+            $institution = app('institution');
+            if (! $institution->is_default) {
+                $customView = 'frontend::institution.' . $institution->slug . '_login';
+                if (view()->exists($customView)) {
+                    $googleReCaptcha = plugin_active('Google reCaptcha');
+                    return view($customView, compact('institution', 'googleReCaptcha'));
+                }
+            }
+        }
+        // ── FrontField Default Login (100% untouched) ────────────────────────
+
         $page = Page::where('code', 'login')->where('locale', app()->getLocale())->first();
         if (! $page) {
             $page = Page::where('code', 'login')->where('locale', defaultLocale())->first();
