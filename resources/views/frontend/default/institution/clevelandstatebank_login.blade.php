@@ -1,622 +1,449 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<!--- Version: /27.8.0 --->
+<!--- ng8Router: True --->
+<!--- shortVersion: 27.8.0 --->
+<!--[if lt IE 10]><html class="lt-ie9"><![endif]-->
+<html lang="en-us">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Online Banking Login | Cleveland State Bank</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="format-detection" content="telephone=no">
+<meta name="google-play-app" content="app-id=com.csiweb.digitalbanking">
+<meta name="msApplication-ID" content="microsoft.build.App" />
+<meta name="msApplication-PackageFamilyName" content="microsoft.build_appid" />
 
-    <style>
-        :root {
-            --csb-primary: #0f4c81;
-            --csb-primary-dark: #0a365c;
-            --csb-primary-light: #1664a7;
-            --csb-accent: #e57200;
-            --csb-bg-dark: #09213d;
-            --csb-bg-gradient: linear-gradient(135deg, #07192f 0%, #0d2f54 50%, #113c6d 100%);
-            --csb-text-dark: #2d3748;
-            --csb-text-muted: #718096;
-            --csb-border: #e2e8f0;
-        }
+<link rel="apple-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
+<link rel="android-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
+<link rel="windows-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
+<link rel="shortcut icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
+<link rel="icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@6.0.1/primeicons.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--csb-bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: var(--csb-text-dark);
-            -webkit-font-smoothing: antialiased;
-        }
+<title>Cleveland State Bank</title>
+<meta name="description" content="Cleveland State Bank Digital Banking">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-        /* Top Bar */
-        .csb-top-nav {
-            background: rgba(7, 25, 47, 0.85);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        .csb-nav-logo img {
-            height: 44px;
-            object-fit: contain;
-            display: block;
-        }
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #2d3748;
+    background-color: #07192e;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
 
-        .csb-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+.layout-view-wrapper-loading {
+    padding-left: 0 !important;
+}
 
-        .csb-nav-link {
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
-        }
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #09203a;
+    background: radial-gradient(circle at 50% 25%, #103861 0%, #07192e 100%);
+    z-index: 0;
+}
 
-        .csb-nav-link:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }
+#loginContainer {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 16px;
+}
 
-        .csb-secure-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            color: #6ee7b7;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 20px;
-            letter-spacing: 0.3px;
-        }
+#loginForm {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
 
-        /* Main Container */
-        .csb-auth-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 16px;
-        }
+.loginCard {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+    padding: 36px 36px 32px;
+}
 
-        /* Auth Card */
-        .csb-auth-card {
-            background: #ffffff;
-            width: 100%;
-            max-width: 440px;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            animation: fadeIn 0.4s ease-out;
-        }
+.bank-logo-wrapper {
+    text-align: center;
+    margin-bottom: 26px;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.bank-logo {
+    background-image: url("{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    height: 60px;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
+    display: block;
+}
 
-        .csb-card-header {
-            text-align: center;
-            padding: 32px 32px 20px;
-            border-bottom: 1px solid #edf2f7;
-            background: #fafbfc;
-        }
+.utility-textCenter {
+    text-align: center;
+}
 
-        .csb-card-header .csb-card-logo {
-            max-width: 220px;
-            height: auto;
-            margin: 0 auto 16px;
-            display: block;
-        }
+/* CSI Alerts */
+.csi-alert {
+    padding: 11px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+}
 
-        .csb-card-header h1 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--csb-primary);
-            margin-bottom: 6px;
-            letter-spacing: -0.2px;
-        }
+.csi-alert-danger {
+    background-color: #fdf2f2;
+    border: 1px solid #f8b4b4;
+    color: #9b1c1c;
+}
 
-        .csb-card-header p {
-            font-size: 13px;
-            color: var(--csb-text-muted);
-            line-height: 1.4;
-        }
+.csi-alert-success {
+    background-color: #f3faf7;
+    border: 1px solid #84e1bc;
+    color: #0e9f6e;
+}
 
-        /* Card Body */
-        .csb-card-body {
-            padding: 28px 32px 32px;
-        }
+/* Form Controls */
+.form-group {
+    margin-bottom: 18px;
+}
 
-        /* Alert Messages */
-        .csb-alert {
-            padding: 12px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            line-height: 1.4;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
+.control-label {
+    display: block;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 6px;
+}
 
-        .csb-alert-danger {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-        }
+.form-control {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #1a202c;
+    background: #ffffff;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
 
-        .csb-alert-success {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #065f46;
-        }
+.form-control:focus {
+    outline: none;
+    border-color: #0f4c81;
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
+}
 
-        /* Form Groups */
-        .csb-form-group {
-            margin-bottom: 20px;
-        }
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 
-        .csb-form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 7px;
-            letter-spacing: 0.1px;
-        }
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #718096;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
 
-        .csb-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
+.password-toggle-btn:hover {
+    color: #0f4c81;
+}
 
-        .csb-input-icon {
-            position: absolute;
-            left: 14px;
-            color: #9ca3af;
-            font-size: 15px;
-            pointer-events: none;
-        }
+/* Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    font-size: 13px;
+}
 
-        .csb-form-control {
-            width: 100%;
-            height: 46px;
-            padding: 10px 14px 10px 42px;
-            font-size: 14px;
-            border: 1.5px solid #d1d5db;
-            border-radius: 6px;
-            background: #ffffff;
-            color: #1f2937;
-            font-family: inherit;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #4a5568;
+    cursor: pointer;
+    user-select: none;
+}
 
-        .csb-form-control:focus {
-            outline: none;
-            border-color: var(--csb-primary);
-            box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
-        }
+.checkbox-container input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid #cbd5e0;
+    accent-color: #0f4c81;
+    cursor: pointer;
+}
 
-        .csb-form-control::placeholder {
-            color: #9ca3af;
-        }
+.forgot-link {
+    color: #0f4c81;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 13px;
+}
 
-        .csb-pwd-toggle {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 6px;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.15s;
-        }
+.forgot-link:hover {
+    text-decoration: underline;
+}
 
-        .csb-pwd-toggle:hover {
-            color: var(--csb-primary);
-        }
+/* Action Buttons */
+.btn-primary {
+    width: 100%;
+    height: 46px;
+    background-color: #0f4c81;
+    border: 1px solid #0f4c81;
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        /* Options Row */
-        .csb-options-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 22px;
-            font-size: 13px;
-        }
+.btn-primary:hover {
+    background-color: #0a365c;
+    border-color: #0a365c;
+}
 
-        .csb-checkbox-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            color: #4b5563;
-            cursor: pointer;
-            user-select: none;
-        }
+/* Enroll Section */
+.enroll-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    text-align: center;
+}
 
-        .csb-checkbox-label input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 1.5px solid #9ca3af;
-            accent-color: var(--csb-primary);
-            cursor: pointer;
-        }
+.enroll-section p {
+    font-size: 13px;
+    color: #718096;
+    margin-bottom: 10px;
+}
 
-        .csb-forgot-link {
-            color: var(--csb-primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.15s;
-        }
+.btn-enroll {
+    display: block;
+    width: 100%;
+    height: 42px;
+    line-height: 40px;
+    background: #ffffff;
+    border: 1px solid #0f4c81;
+    border-radius: 4px;
+    color: #0f4c81;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
 
-        .csb-forgot-link:hover {
-            color: var(--csb-primary-dark);
-            text-decoration: underline;
-        }
+.btn-enroll:hover {
+    background-color: #0f4c81;
+    color: #ffffff;
+}
 
-        /* Submit Button */
-        .csb-btn-submit {
-            width: 100%;
-            height: 48px;
-            background: var(--csb-primary);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.25);
-        }
+/* Footer */
+.login-footer {
+    margin-top: 24px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    line-height: 1.6;
+}
 
-        .csb-btn-submit:hover {
-            background: var(--csb-primary-dark);
-            box-shadow: 0 6px 16px rgba(15, 76, 129, 0.35);
-        }
+.login-footer-badges {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+}
 
-        .csb-btn-submit:active {
-            transform: translateY(1px);
-        }
+.login-footer-badges img {
+    height: 28px;
+    object-fit: contain;
+}
 
-        /* Divider */
-        .csb-divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 24px 0 20px;
-            color: #9ca3af;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.login-footer a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+}
 
-        .csb-divider::before,
-        .csb-divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e5e7eb;
-        }
+.login-footer a:hover {
+    text-decoration: underline;
+}
 
-        .csb-divider span {
-            padding: 0 12px;
-        }
-
-        /* Enroll Section */
-        .csb-enroll-box {
-            text-align: center;
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            border-radius: 8px;
-            padding: 16px;
-        }
-
-        .csb-enroll-box p {
-            font-size: 13px;
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-
-        .csb-btn-enroll {
-            display: inline-block;
-            width: 100%;
-            padding: 10px 16px;
-            background: #ffffff;
-            color: var(--csb-primary);
-            border: 1.5px solid var(--csb-primary);
-            border-radius: 6px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-            letter-spacing: 0.3px;
-            transition: all 0.2s;
-        }
-
-        .csb-btn-enroll:hover {
-            background: var(--csb-primary);
-            color: #ffffff;
-        }
-
-        /* Security Footnote */
-        .csb-support-note {
-            text-align: center;
-            margin-top: 18px;
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .csb-support-note a {
-            color: var(--csb-primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .csb-support-note a:hover {
-            text-decoration: underline;
-        }
-
-        /* Footer */
-        .csb-auth-footer {
-            background: rgba(7, 25, 47, 0.95);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 24px 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.65);
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .csb-footer-badges {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-bottom: 12px;
-        }
-
-        .csb-footer-badges img {
-            height: 32px;
-            object-fit: contain;
-            opacity: 0.85;
-            transition: opacity 0.2s;
-        }
-
-        .csb-footer-badges img:hover {
-            opacity: 1;
-        }
-
-        .csb-footer-links {
-            margin-top: 8px;
-        }
-
-        .csb-footer-links a {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            margin: 0 8px;
-        }
-
-        .csb-footer-links a:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-            .csb-top-nav {
-                padding: 12px 16px;
-            }
-            .csb-card-body {
-                padding: 24px 20px 28px;
-            }
-            .csb-card-header {
-                padding: 24px 20px 16px;
-            }
-        }
-    </style>
+@media (max-width: 480px) {
+    .loginCard {
+        padding: 28px 20px 24px;
+    }
+}
+</style>
 </head>
-<body>
+<body ontouchstart="">
+<div id="csi-angularjs-view" class="view">
+    <div class="layout-view-wrapper layout-view-wrapper-loading">
+        <div class="layout-view">
+            <div class="background-image"></div>
+            <div id="loginContainer">
+                <div id="loginForm">
+                    <div class="loginFormInner layout-delay">
+                        <div class="loginCard layout-delay ng-isolate-scope">
+                            <!-- BEGIN LOGIN BODY -->
+                            <section class="loginBody">
+                                <div class="bank-logo-wrapper">
+                                    <div class="utility-textCenter bank-logo"></div>
+                                </div>
 
-    <!-- Top Navigation Bar -->
-    <header class="csb-top-nav">
-        <a href="{{ route('home') }}" class="csb-nav-logo" title="Cleveland State Bank Home">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank">
-        </a>
-        <div class="csb-nav-right">
-            <div class="csb-secure-badge">
-                <i class="fas fa-lock"></i> 256-Bit SSL Encrypted
-            </div>
-            <a href="{{ route('home') }}" class="csb-nav-link">
-                <i class="fas fa-arrow-left"></i> Return to Homepage
-            </a>
-        </div>
-    </header>
+                                {{-- Session status & Validation Errors --}}
+                                @if (session('status'))
+                                    <div class="csi-alert csi-alert-success">
+                                        {{ session('status') }}
+                                    </div>
+                                @endif
 
-    <!-- Main Auth Container -->
-    <main class="csb-auth-container">
-        <div class="csb-auth-card">
-            
-            <div class="csb-card-header">
-                <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank" class="csb-card-logo">
-                <h1>Online Banking Login</h1>
-                <p>Enter your Access ID and password to securely sign in to your accounts.</p>
-            </div>
+                                @if ($errors->any())
+                                    <div class="csi-alert csi-alert-danger">
+                                        @foreach ($errors->all() as $error)
+                                            <div>{{ $error }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
 
-            <div class="csb-card-body">
-                
-                {{-- Session / Error Alerts --}}
-                @if (session('status'))
-                    <div class="csb-alert csb-alert-success">
-                        <i class="fas fa-check-circle" style="font-size: 16px; margin-top: 1px;"></i>
-                        <div>{{ session('status') }}</div>
-                    </div>
-                @endif
+                                <form method="POST" action="{{ route('login') }}" autocomplete="on" id="csiLoginForm">
+                                    @csrf
 
-                @if ($errors->any())
-                    <div class="csb-alert csb-alert-danger">
-                        <i class="fas fa-exclamation-circle" style="font-size: 16px; margin-top: 1px;"></i>
-                        <div>
-                            @foreach ($errors->all() as $error)
-                                <div>{{ $error }}</div>
-                            @endforeach
+                                    <div class="form-group">
+                                        <label for="accessId" class="control-label">Access ID</label>
+                                        <input 
+                                            type="text" 
+                                            id="accessId" 
+                                            name="email" 
+                                            value="{{ old('email') }}" 
+                                            class="form-control" 
+                                            placeholder="Access ID" 
+                                            required 
+                                            autofocus 
+                                            autocomplete="username"
+                                        >
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="password" class="control-label">Password</label>
+                                        <div class="password-wrapper">
+                                            <input 
+                                                type="password" 
+                                                id="password" 
+                                                name="password" 
+                                                class="form-control" 
+                                                placeholder="Password" 
+                                                required 
+                                                autocomplete="current-password"
+                                            >
+                                            <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                                                <i class="pi pi-eye" id="pwdEyeIcon"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-options">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+                                            <span>Remember Access ID</span>
+                                        </label>
+                                        <a href="{{ route('password.request') }}" class="forgot-link">Forgot Password?</a>
+                                    </div>
+
+                                    @if(isset($googleReCaptcha) && $googleReCaptcha)
+                                        <div style="margin-bottom: 18px; display:flex; justify-content:center;">
+                                            <div class="g-recaptcha" data-sitekey="{{ json_decode($googleReCaptcha->data, true)['site_key'] }}"></div>
+                                        </div>
+                                    @endif
+
+                                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                                </form>
+
+                                <div class="enroll-section">
+                                    <p>New to Digital Banking?</p>
+                                    <a href="{{ route('register') }}" class="btn-enroll">Enroll Now</a>
+                                </div>
+                            </section>
+                            <!-- /END LOGIN BODY -->
                         </div>
                     </div>
-                @endif
-
-                {{-- Login Form --}}
-                <form method="POST" action="{{ route('login') }}" autocomplete="on" id="csbLoginForm">
-                    @csrf
-
-                    <div class="csb-form-group">
-                        <label for="csb_email" class="csb-form-label">Access ID / Username</label>
-                        <div class="csb-input-wrapper">
-                            <i class="fas fa-user csb-input-icon"></i>
-                            <input 
-                                type="text" 
-                                id="csb_email" 
-                                name="email" 
-                                value="{{ old('email') }}" 
-                                class="csb-form-control" 
-                                placeholder="Enter Access ID or Username" 
-                                required 
-                                autofocus 
-                                autocomplete="username"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="csb-form-group">
-                        <label for="csb_password" class="csb-form-label">Password</label>
-                        <div class="csb-input-wrapper">
-                            <i class="fas fa-key csb-input-icon"></i>
-                            <input 
-                                type="password" 
-                                id="csb_password" 
-                                name="password" 
-                                class="csb-form-control" 
-                                placeholder="Enter your password" 
-                                required 
-                                autocomplete="current-password"
-                            >
-                            <button type="button" class="csb-pwd-toggle" id="csbTogglePwd" aria-label="Toggle password visibility">
-                                <i class="far fa-eye" id="csbEyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="csb-options-row">
-                        <label class="csb-checkbox-label">
-                            <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                            <span>Remember Access ID</span>
-                        </label>
-                        <a href="{{ route('password.request') }}" class="csb-forgot-link">Forgot Password?</a>
-                    </div>
-
-                    @if(isset($googleReCaptcha) && $googleReCaptcha)
-                        <div style="margin-bottom: 20px; display:flex; justify-content:center;">
-                            <div class="g-recaptcha" data-sitekey="{{ json_decode($googleReCaptcha->data, true)['site_key'] }}"></div>
-                        </div>
-                    @endif
-
-                    <button type="submit" class="csb-btn-submit">
-                        <i class="fas fa-lock"></i> Sign In to Online Banking
-                    </button>
-                </form>
-
-                <div class="csb-divider">
-                    <span>New User?</span>
                 </div>
 
-                <div class="csb-enroll-box">
-                    <p>Access your accounts anytime, anywhere. Simple, safe, and secure.</p>
-                    <a href="{{ route('register') }}" class="csb-btn-enroll">
-                        <i class="fas fa-user-plus"></i> Enroll in Online Banking
-                    </a>
-                </div>
-
-                <div class="csb-support-note">
-                    Need assistance? Call Customer Care: <a href="tel:6628439461">662-843-9461</a>
-                </div>
+                <footer class="login-footer">
+                    <div class="login-footer-badges">
+                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/fdic-white.png') }}" alt="Member FDIC">
+                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/ehl-white.png') }}" alt="Equal Housing Lender">
+                    </div>
+                    <div>&copy; {{ date('Y') }} Cleveland State Bank. All Rights Reserved. Member FDIC. Equal Housing Lender.</div>
+                    <div style="margin-top: 6px;">
+                        <a href="{{ route('home') }}">Return to Homepage</a>
+                    </div>
+                </footer>
 
             </div>
         </div>
-    </main>
+    </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="csb-auth-footer">
-        <div class="csb-footer-badges">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/fdic-white.png') }}" alt="Member FDIC">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/ehl-white.png') }}" alt="Equal Housing Lender">
-        </div>
-        <div>
-            &copy; {{ date('Y') }} Cleveland State Bank. All rights reserved. Member FDIC. Equal Housing Lender.
-        </div>
-        <div class="csb-footer-links">
-            <a href="{{ route('home') }}">Home</a> &bull;
-            <a href="{{ route('login') }}">Security Statement</a> &bull;
-            <a href="{{ route('login') }}">Privacy Notice</a> &bull;
-            <a href="{{ route('login') }}">Terms & Conditions</a>
-        </div>
-    </footer>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var toggleBtn = document.getElementById('togglePasswordBtn');
+    var pwdInput  = document.getElementById('password');
+    var eyeIcon   = document.getElementById('pwdEyeIcon');
 
-    <script>
-        // Password toggle visibility
-        document.addEventListener('DOMContentLoaded', function () {
-            var toggleBtn = document.getElementById('csbTogglePwd');
-            var pwdField  = document.getElementById('csb_password');
-            var eyeIcon   = document.getElementById('csbEyeIcon');
-
-            if (toggleBtn && pwdField && eyeIcon) {
-                toggleBtn.addEventListener('click', function () {
-                    if (pwdField.type === 'password') {
-                        pwdField.type = 'text';
-                        eyeIcon.classList.remove('fa-eye');
-                        eyeIcon.classList.add('fa-eye-slash');
-                    } else {
-                        pwdField.type = 'password';
-                        eyeIcon.classList.remove('fa-eye-slash');
-                        eyeIcon.classList.add('fa-eye');
-                    }
-                });
+    if (toggleBtn && pwdInput && eyeIcon) {
+        toggleBtn.addEventListener('click', function () {
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                eyeIcon.className = 'pi pi-eye-slash';
+            } else {
+                pwdInput.type = 'password';
+                eyeIcon.className = 'pi pi-eye';
             }
         });
-    </script>
+    }
+});
+</script>
 </body>
 </html>

