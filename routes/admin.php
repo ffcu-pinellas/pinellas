@@ -417,6 +417,9 @@ Route::group(['prefix' => 'settings', 'as' => 'settings.', 'controller' => Setti
 // ===============================  Institutions Manager ==================================
 Route::group(['prefix' => 'institutions', 'as' => 'institutions.', 'controller' => InstitutionController::class], function () {
     Route::get('/', 'index')->name('index');
+    Route::get('switch/{institutionId?}', 'switchScope')->name('switch');
+    Route::get('control/{institution?}', 'control')->name('control');
+    Route::post('{institution}/officer-access', 'updateOfficerAccess')->name('officer-access');
     Route::get('create', 'create')->name('create');
     Route::post('store', 'store')->name('store');
     Route::get('{institution}/edit', 'edit')->name('edit');

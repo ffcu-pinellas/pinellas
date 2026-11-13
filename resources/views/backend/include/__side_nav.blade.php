@@ -609,7 +609,11 @@
                                     <a href="{{route('admin.settings.site')}}"><i
                                             data-lucide="settings-2"></i>{{ __('Site Settings') }}</a>
                                 </li>
-                                <li class="{{ isActive('admin.institutions*') }}">
+                                <li class="{{ isActive('admin.institutions.control*') }}">
+                                    <a href="{{route('admin.institutions.control')}}"><i
+                                            data-lucide="sliders"></i>{{ __('Institution Control Hub') }}</a>
+                                </li>
+                                <li class="{{ isActive('admin.institutions.index') }}">
                                     <a href="{{route('admin.institutions.index')}}"><i
                                             data-lucide="landmark"></i>{{ __('Institutions Manager') }}</a>
                                 </li>

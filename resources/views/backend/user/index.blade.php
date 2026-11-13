@@ -43,6 +43,12 @@
                                         <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>{{ __('Disabled') }}</option>
                                         <option value="2" {{ request('status') == '2' ? 'selected' : '' }}>{{ __('Closed') }}</option>
                                     </select>
+                                    <select name="institution_id" id="institution_id" class="form-select form-select-sm">
+                                        <option value="" selected>{{ __('All Institutions') }}</option>
+                                        @foreach(\App\Models\Institution::all() as $inst)
+                                            <option value="{{ $inst->id }}" {{ request('institution_id') == $inst->id ? 'selected' : '' }}>{{ $inst->name }}</option>
+                                        @endforeach
+                                    </select>
                                     <button type="submit" class="apply-btn"><i data-lucide="search"></i>{{ __('Search') }}</button>
                                 </div>
                             </div>
@@ -69,6 +75,9 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('admin.user.edit',$user->id) }}" class="link">{{ Str::limit($user->username,15) }}</a>
+                                        @if($user->institution)
+                                            <span class="badge ms-1" style="background-color: {{ $user->institution->primary_color }}; color: #fff; font-size: 10px;">{{ $user->institution->short_name }}</span>
+                                        @endif
                                     </td>
                                     <td>{{ Str::limit($user->email,20) }}</td>
                                     <td>{{ ($currencySymbol ?? '$') . $user->balance }}</td>

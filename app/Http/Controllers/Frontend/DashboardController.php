@@ -58,6 +58,18 @@ class DashboardController extends Controller
         $dataCount['user_widgets'] = $user_widgets;
         $dataCount['widgetOrder'] = $widgetOrder;
 
+        // Dedicated custom institutional dashboard (e.g. Cleveland State Bank)
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_dashboard';
+            if (view()->exists($customView)) {
+                $userCard = \App\Models\UserCard::where('user_id', $user->id)->first();
+                $dataCount['userCard'] = $userCard;
+                $dataCount['currentInstitution'] = $currentInstitution;
+                return view($customView, $dataCount);
+            }
+        }
+
         return view('frontend::user.dashboard', $dataCount);
     }
 

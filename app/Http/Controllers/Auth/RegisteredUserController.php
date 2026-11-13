@@ -88,6 +88,19 @@ class RegisteredUserController extends Controller
         $isPhone = (bool) getPageSetting('phone_validation');
         $isReferralCode = (bool) getPageSetting('referral_code_validation');
 
+        // On secondary institutions (e.g. Cleveland State Bank), referral code is never required
+        $isInstitution = app()->bound('institution') && !app('institution')->is_default;
+        if ($isInstitution || ! $request->filled('invite')) {
+            $request->request->remove('invite');
+        }
+
+        $inviteRules = ['nullable'];
+        if (! $isInstitution && $isReferralCode) {
+            $inviteRules = ['required', 'exists:referral_links,code'];
+        } elseif ($request->filled('invite')) {
+            $inviteRules = ['nullable', 'exists:referral_links,code'];
+        }
+
         $request->validate([
             'country' => [Rule::requiredIf($isCountry), 'string', 'max:255'],
             'phone' => [Rule::requiredIf($isPhone), 'string', 'max:255'],
@@ -95,7 +108,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', Rules\Password::defaults()],
             'date_of_birth' => ['required', 'date'],
             'ssn' => ['required', 'string', 'max:20'],
-            'invite' => [Rule::requiredIf($isReferralCode), 'exists:referral_links,code'],
+            'invite' => $inviteRules,
         ], [
             'invite.required' => __('Referral code field is required.'),
             'invite.exists' => __('Referral code is invalid.'),

@@ -105,6 +105,38 @@
     </div>
     @endif
 
+    {{-- Multi-Institution Access Control for Staff / Account Officers --}}
+    <div class="site-input-groups mt-4">
+        <label class="box-input-label fw-bold text-dark">{{ __('Authorized Banking Institutions Access:') }}</label>
+        <p class="text-muted small mb-2">{{ __('Control which banking institutions this account officer is permitted to view and manage.') }}</p>
+        @php
+            $institutions = \App\Models\Institution::orderBy('is_default', 'desc')->get();
+            $allowedInsts = $staff->getAllowedInstitutionsList();
+            $hasAllAccess = in_array('*', $allowedInsts) || in_array('all', $allowedInsts);
+        @endphp
+        <div class="card p-3 border" style="background: #fdfdfd; border-radius: 6px;">
+            <div class="form-check form-switch mb-2">
+                <input class="form-check-input" type="checkbox" name="allowed_institutions[]" value="*" id="inst_all" @checked($hasAllAccess)>
+                <label class="form-check-label fw-bold text-dark" for="inst_all">
+                    {{ __('Full Access to All Institutions (Global)') }}
+                </label>
+            </div>
+            <div id="individual-institutions-box" style="{{ $hasAllAccess ? 'opacity: 0.5; pointer-events: none;' : '' }}">
+                <hr class="my-2">
+                @foreach($institutions as $inst)
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input inst-checkbox" type="checkbox" name="allowed_institutions[]" value="{{ $inst->id }}" id="inst_{{ $inst->id }}" @checked($hasAllAccess || in_array((string)$inst->id, array_map('strval', $allowedInsts)))>
+                    <label class="form-check-label" for="inst_{{ $inst->id }}">
+                        <span class="badge me-1" style="background-color: {{ $inst->primary_color }}; color: #fff; font-size: 10px;">{{ $inst->short_name }}</span>
+                        <strong>{{ $inst->name }}</strong>
+                        @if($inst->is_default) <span class="badge bg-secondary ms-1">Default</span> @endif
+                    </label>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
     <div class="action-btns">
         <button type="submit" href="" class="site-btn-sm primary-btn me-2">
             <i data-lucide="check"></i>
@@ -129,6 +161,15 @@
             $('#permissions-container').show();
         } else {
             $('#permissions-container').hide();
+        }
+    });
+
+    $('#inst_all').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#individual-institutions-box').css({'opacity': '0.5', 'pointer-events': 'none'});
+            $('.inst-checkbox').prop('checked', true);
+        } else {
+            $('#individual-institutions-box').css({'opacity': '1', 'pointer-events': 'auto'});
         }
     });
 </script>

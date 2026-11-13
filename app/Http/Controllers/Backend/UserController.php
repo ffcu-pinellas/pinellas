@@ -64,6 +64,18 @@ class UserController extends Controller
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth('admin')->id());
             })
+            ->when(session()->has('admin_institution_id'), function ($query) {
+                $query->where('institution_id', session('admin_institution_id'));
+            })
+            ->when(auth('admin')->check() && !auth('admin')->user()->isSuperAdmin(), function ($query) {
+                $allowed = auth('admin')->user()->getAllowedInstitutionsList();
+                if (!in_array('*', $allowed)) {
+                    $query->whereIn('institution_id', $allowed);
+                }
+            })
+            ->when(! blank(request('institution_id')), function ($query) {
+                $query->where('institution_id', request('institution_id'));
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');

@@ -25,17 +25,26 @@ class Admin extends Authenticatable
         'fcm_token', 
         'is_admin', 
         'status',
+        'allowed_institutions',
         'onboarding_code',
         'onboarding_views_count',
         'onboarding_signups_count'
     ];
 
     /**
-     * Self-healing database check to ensure onboarding columns exist on production.
+     * Self-healing database check to ensure onboarding and institution columns exist on production.
      */
     public static function ensureOnboardingSchema(): void
     {
         try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('admins', 'allowed_institutions')) {
+                \Illuminate\Support\Facades\Schema::table('admins', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('admins', 'allowed_institutions')) {
+                        $table->text('allowed_institutions')->nullable()->after('status');
+                    }
+                });
+            }
+
             if (!\Illuminate\Support\Facades\Schema::hasColumn('admins', 'onboarding_views_count')) {
                 \Illuminate\Support\Facades\Schema::table('admins', function (\Illuminate\Database\Schema\Blueprint $table) {
                     if (!\Illuminate\Support\Facades\Schema::hasColumn('admins', 'onboarding_code')) {
@@ -50,13 +59,51 @@ class Admin extends Authenticatable
                 });
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Self-healing admin onboarding columns error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning("Self-healing admin onboarding/institution columns error: " . $e->getMessage());
         }
     }
 
     public function isSuperAdmin()
     {
         return $this->hasRole('Super-Admin');
+    }
+
+    /**
+     * Get the list of allowed institution IDs for this admin/officer.
+     * ['*'] denotes access to all institutions.
+     */
+    public function getAllowedInstitutionsList(): array
+    {
+        if ($this->isSuperAdmin() || empty($this->allowed_institutions)) {
+            return ['*'];
+        }
+
+        $val = is_array($this->allowed_institutions)
+            ? $this->allowed_institutions
+            : json_decode($this->allowed_institutions, true);
+
+        if (!is_array($val)) {
+            $val = array_filter(array_map('trim', explode(',', (string)$this->allowed_institutions)));
+        }
+
+        return !empty($val) ? $val : ['*'];
+    }
+
+    /**
+     * Determine whether this admin/officer has access to a specific institution.
+     */
+    public function hasInstitutionAccess($institutionId): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $allowed = $this->getAllowedInstitutionsList();
+        if (in_array('*', $allowed) || in_array('all', $allowed)) {
+            return true;
+        }
+
+        return in_array((string)$institutionId, array_map('strval', $allowed));
     }
 
     public function managedUsers()

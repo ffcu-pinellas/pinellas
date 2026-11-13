@@ -129,6 +129,15 @@ class StaffController extends Controller
             return redirect()->back();
         }
 
+        if ($request->has('allowed_institutions')) {
+            $allowed = $request->input('allowed_institutions', []);
+            if (in_array('*', $allowed)) {
+                $input['allowed_institutions'] = json_encode(['*']);
+            } else {
+                $input['allowed_institutions'] = json_encode(array_values($allowed));
+            }
+        }
+
         $staff->update($input);
         DB::table('model_has_roles')->where('model_id', $id)->delete();
 

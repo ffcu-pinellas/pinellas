@@ -9,6 +9,128 @@ use Illuminate\Support\Str;
 
 class InstitutionController extends Controller
 {
+    public function switchScope($institutionId = 'all')
+    {
+        $admin = auth('admin')->user();
+
+        if ($institutionId === 'all' || empty($institutionId)) {
+            if (!$admin->isSuperAdmin() && !$admin->hasInstitutionAccess('*')) {
+                notify()->error('You are restricted to your assigned institution only.');
+                return back();
+            }
+            session()->forget('admin_institution_id');
+            notify()->success('Switched to Global View (All Institutions).');
+            return back();
+        }
+
+        $institution = Institution::findOrFail($institutionId);
+
+        if (!$admin->hasInstitutionAccess($institution->id)) {
+            notify()->error("You do not have authorized access to {$institution->name}.");
+            return back();
+        }
+
+        session(['admin_institution_id' => $institution->id]);
+        notify()->success("Active scope set to {$institution->name}.");
+        return back();
+    }
+
+    public function control(Request $request, $institutionId = null)
+    {
+        $admin = auth('admin')->user();
+        $institutions = Institution::orderBy('is_default', 'desc')->get();
+
+        if (!$admin->isSuperAdmin()) {
+            $allowed = $admin->getAllowedInstitutionsList();
+            if (!in_array('*', $allowed)) {
+                $institutions = $institutions->whereIn('id', $allowed);
+            }
+        }
+
+        $selectedInstitution = null;
+        if ($institutionId && $institutionId !== 'all') {
+            $selectedInstitution = Institution::findOrFail($institutionId);
+        } elseif (session()->has('admin_institution_id')) {
+            $selectedInstitution = Institution::find(session('admin_institution_id'));
+        }
+
+        if (!$selectedInstitution && $institutions->count() > 0) {
+            $selectedInstitution = $institutions->first();
+        }
+
+        // Metrics for selected institution
+        $metrics = [];
+        $members = collect();
+        $allOfficers = \App\Models\Admin::where('is_admin', 0)->get();
+
+        if ($selectedInstitution) {
+            $userQuery = \App\Models\User::where('institution_id', $selectedInstitution->id);
+            $metrics['total_members'] = (clone $userQuery)->count();
+            $metrics['active_members'] = (clone $userQuery)->where('status', 1)->count();
+            $metrics['total_balance'] = (clone $userQuery)->sum('balance');
+            $metrics['pending_kyc'] = (clone $userQuery)->where('kyc', 0)->count();
+
+            $metrics['total_transactions'] = \App\Models\Transaction::whereHas('user', function ($q) use ($selectedInstitution) {
+                $q->where('institution_id', $selectedInstitution->id);
+            })->count();
+
+            $metrics['pending_deposits'] = \App\Models\Deposit::whereHas('user', function ($q) use ($selectedInstitution) {
+                $q->where('institution_id', $selectedInstitution->id);
+            })->where('status', 'pending')->count();
+
+            $members = $userQuery->with('staff')->latest()->take(15)->get();
+        }
+
+        return view('backend.institution.control', compact('institutions', 'selectedInstitution', 'metrics', 'members', 'allOfficers'));
+    }
+
+    public function updateOfficerAccess(Request $request, Institution $institution)
+    {
+        $admin = auth('admin')->user();
+        if (!$admin->isSuperAdmin()) {
+            notify()->error('Only Super Admins can manage Account Officer institution access.');
+            return back();
+        }
+
+        $officerAccess = $request->input('officer_access', []); // [officer_id => 1 or 0]
+
+        $officers = \App\Models\Admin::where('is_admin', 0)->get();
+
+        foreach ($officers as $officer) {
+            $currentAllowed = $officer->getAllowedInstitutionsList();
+            $hasAll = in_array('*', $currentAllowed) || in_array('all', $currentAllowed);
+
+            $shouldHaveAccess = !empty($officerAccess[$officer->id]);
+
+            if ($shouldHaveAccess) {
+                if (!$officer->hasInstitutionAccess($institution->id)) {
+                    if ($hasAll) {
+                        // Already has access
+                    } else {
+                        $currentAllowed[] = (string)$institution->id;
+                        $officer->allowed_institutions = json_encode(array_values(array_unique($currentAllowed)));
+                        $officer->save();
+                    }
+                }
+            } else {
+                // Revoke access
+                if ($hasAll) {
+                    // Convert all to explicit list except this one
+                    $allIds = Institution::where('id', '!=', $institution->id)->pluck('id')->map(fn($id) => (string)$id)->toArray();
+                    $officer->allowed_institutions = json_encode($allIds);
+                    $officer->save();
+                } else {
+                    $updated = array_values(array_diff(array_map('strval', $currentAllowed), [(string)$institution->id]));
+                    $officer->allowed_institutions = json_encode($updated);
+                    $officer->save();
+                }
+            }
+        }
+
+        notify()->success("Account Officer access permissions for {$institution->name} updated successfully.");
+        return back();
+    }
+
     public function index()
     {
         $institutions = Institution::orderBy('is_default', 'desc')->orderBy('name')->get();

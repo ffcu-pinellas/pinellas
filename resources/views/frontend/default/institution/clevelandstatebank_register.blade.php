@@ -493,7 +493,6 @@ body {
 
                     {{-- Hidden defaults to pass validation requirements --}}
                     <input type="hidden" name="country" value="{{ ($location->name ?? 'United States') . ':' . ($location->dial_code ?? '1') }}">
-                    <input type="hidden" name="invite" value="{{ $referralCode ?? '' }}">
 
                     <!-- Personal Information -->
                     <div class="section-heading">PERSONAL INFORMATION</div>
