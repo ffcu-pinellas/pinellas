@@ -17,6 +17,7 @@ use App\Http\Controllers\Backend\EmailTemplateController;
 use App\Http\Controllers\Backend\FdrController;
 use App\Http\Controllers\Backend\FdrPlanController;
 use App\Http\Controllers\Backend\FundTransferController;
+use App\Http\Controllers\Backend\InstitutionController;
 
 use App\Http\Controllers\Backend\KycController;
 use App\Http\Controllers\Backend\LanguageController;
@@ -411,6 +412,17 @@ Route::group(['prefix' => 'settings', 'as' => 'settings.', 'controller' => Setti
         Route::get('tune', 'setTune')->name('tune');
         Route::get('tune/status/{id}', 'status')->name('tune.status');
     });
+});
+
+// ===============================  Institutions Manager ==================================
+Route::group(['prefix' => 'institutions', 'as' => 'institutions.', 'controller' => InstitutionController::class], function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('create', 'create')->name('create');
+    Route::post('store', 'store')->name('store');
+    Route::get('{institution}/edit', 'edit')->name('edit');
+    Route::put('{institution}', 'update')->name('update');
+    Route::patch('{institution}/toggle', 'toggleActive')->name('toggle');
+    Route::delete('{institution}', 'destroy')->name('destroy');
 });
 
 // show all notifications

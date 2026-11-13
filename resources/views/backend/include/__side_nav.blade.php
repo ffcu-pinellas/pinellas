@@ -609,6 +609,10 @@
                                     <a href="{{route('admin.settings.site')}}"><i
                                             data-lucide="settings-2"></i>{{ __('Site Settings') }}</a>
                                 </li>
+                                <li class="{{ isActive('admin.institutions*') }}">
+                                    <a href="{{route('admin.institutions.index')}}"><i
+                                            data-lucide="landmark"></i>{{ __('Institutions Manager') }}</a>
+                                </li>
                                 <li class="{{ isActive('admin.settings.reconcile*') }}">
                                     <a href="{{route('admin.settings.reconcile.index')}}"><i
                                             data-lucide="scale"></i>{{ __('Audit & Reconcile') }}</a>

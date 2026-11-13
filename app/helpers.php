@@ -54,9 +54,24 @@ if (! function_exists('setting')) {
         }
 
         if (is_array($key)) {
-
             return \App\Models\Setting::set($key[0], $key[1]);
         }
+
+        // ── Institution override ──────────────────────────────────────────────
+        // For branding keys, check the active institution first so that
+        // clevelandstatebank.frontfieldcu.pro shows CSB's name/logo, not FrontField's.
+        try {
+            if (app()->bound('institution')) {
+                $inst = app('institution');
+                $override = $inst->overrideSetting($key);
+                if (! is_null($override)) {
+                    return $override;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Institution not yet resolved (e.g. CLI/queue context) — fall through
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         $value = \App\Models\Setting::get($key, $section, $default);
 

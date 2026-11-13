@@ -34,4 +34,31 @@
     <style>
         {{ \App\Models\CustomCss::first()->css }}
     </style>
+    @if(!empty($currentInstitution) && !$currentInstitution->is_default)
+    {{-- ── Institution Theme Override ───────────────────────────────────── --}}
+    <style>
+        :root {
+            --primary-color:   {{ $currentInstitution->primary_color ?? '#00549b' }};
+            --primary-hover:   {{ $currentInstitution->primary_hover ?? '#004077' }};
+            --secondary-color: {{ $currentInstitution->secondary_color ?? '#eef6fb' }};
+            --accent-color:    {{ $currentInstitution->accent_color ?? '#da291c' }};
+        }
+        .btn-primary, .btn.btn-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover) !important;
+            border-color: var(--primary-hover) !important;
+        }
+        .cta { background: var(--accent-color) !important; }
+        .cta:hover { background: var(--primary-color) !important; }
+        .hbtitle, .hb input[type=submit]:hover { color: var(--primary-color) !important; }
+        .hb input[type=submit] { background: var(--accent-color) !important; }
+        section.home article h1 { color: var(--primary-color) !important; }
+        @if(!empty($currentInstitution->custom_css))
+        {!! $currentInstitution->custom_css !!}
+        @endif
+    </style>
+    @endif
     <title>{{ setting('site_title', 'global') }} - @yield('title')</title>

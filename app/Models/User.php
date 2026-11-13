@@ -112,7 +112,29 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'dividend_apy',
         'dividend_wallet',
         'last_dividend_at',
+        'institution_id',
     ];
+
+    // ─── Institution Relationship ─────────────────────────────────────────────
+
+    public function institution()
+    {
+        return $this->belongsTo(\App\Models\Institution::class);
+    }
+
+    /**
+     * Return the user's institution, falling back to the default if not set.
+     */
+    public function getInstitutionAttribute(): \App\Models\Institution
+    {
+        return $this->institution()->first()
+            ?? \App\Models\Institution::getDefault()
+            ?? new \App\Models\Institution([
+                'name'          => 'FrontField Credit Union',
+                'short_name'    => 'FFCU',
+                'primary_color' => '#00549b',
+            ]);
+    }
 
     public function staff()
     {

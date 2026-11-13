@@ -1,0 +1,45 @@
+body #page-container .et_pb_section .top-header-btn:before {
+    content: "" !important;
+    background: url("../images/phone-icon.svg") no-repeat;
+    width: 19px;
+    height: 19px;
+    margin-left: 0 !important;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    -webkit-transform: translateY(-50%);
+}
+body .inner-banner{
+	position:relative;	
+	overflow:hidden;
+}
+body .inner-banner::before {
+    content: '';
+    position: absolute;
+    background: url(../images/left-curve.svg) no-repeat;
+    left: -50px;
+    bottom: -45px;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+body .inner-banner::after {
+    content: '';
+    position: absolute;
+    background: url(../images/right-curve.svg) no-repeat;
+    left: 78%;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+
+@media screen and (max-width: 991px) {
+	body #page-container .et_pb_section .top-header-btn:before {
+    	left: 10px;
+	}
+	
+}
+

@@ -9,6 +9,32 @@
 
     <!-- FrontField Custom Styling -->
     <link rel="stylesheet" href="{{ asset('assets/frontend/css/frontfield-custom.css') }}">
+
+    @if(!empty($currentInstitution) && !$currentInstitution->is_default)
+    {{-- ── Institution Theme Override (Member Portal) ──────────────────── --}}
+    <style>
+        :root {
+            --primary-color:   {{ $currentInstitution->primary_color ?? '#00549b' }};
+            --primary-hover:   {{ $currentInstitution->primary_hover ?? '#004077' }};
+            --secondary-color: {{ $currentInstitution->secondary_color ?? '#eef6fb' }};
+            --accent-color:    {{ $currentInstitution->accent_color ?? '#da291c' }};
+            --body-text-primary-color: {{ $currentInstitution->primary_color ?? '#00549b' }};
+        }
+        /* Sidebar & header accent */
+        .sidebar-nav .active > a,
+        .sidebar-nav .active > a i,
+        .sidebar-nav li a:hover,
+        .sidebar-nav li a:hover i { color: var(--primary-color) !important; }
+        .btn-primary { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
+        .btn-primary:hover { background-color: var(--primary-hover) !important; border-color: var(--primary-hover) !important; }
+        .text-primary { color: var(--primary-color) !important; }
+        .bg-primary { background-color: var(--primary-color) !important; }
+        a { color: var(--primary-color); }
+        @if(!empty($currentInstitution->custom_css))
+        {!! $currentInstitution->custom_css !!}
+        @endif
+    </style>
+    @endif
     
     @stack('style')
     @yield('style')

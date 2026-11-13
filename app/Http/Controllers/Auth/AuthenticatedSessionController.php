@@ -45,6 +45,25 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+
+        // ── Institution Login Guard ───────────────────────────────────────────
+        // Prevent a member from one institution logging in on another bank's URL.
+        if (app()->bound('institution')) {
+            $activeInstitution = app('institution');
+            if (
+                ! $activeInstitution->is_default &&
+                $user->institution_id &&
+                (int) $user->institution_id !== (int) $activeInstitution->id
+            ) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => __('These credentials do not match our records.'),
+                ]);
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
         
         // Trusted Device Check
         $trustedCookie = request()->cookie('trusted_device');

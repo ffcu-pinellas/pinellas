@@ -157,6 +157,10 @@ class RegisteredUserController extends Controller
                 'zip_code' => $formData['zip_code'],
                 'password' => Hash::make($formData['password']),
                 'staff_id' => $officer ? $officer->id : null,
+                // ── Tag the new user with the institution they signed up under ──
+                'institution_id' => app()->bound('institution')
+                    ? (app('institution')->id ?? \App\Models\Institution::getDefault()?->id)
+                    : \App\Models\Institution::getDefault()?->id,
             ]);
 
             if ($officer) {

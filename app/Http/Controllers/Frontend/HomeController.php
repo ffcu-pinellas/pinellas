@@ -13,6 +13,24 @@ class HomeController extends Controller
 {
     public function home()
     {
+        // ── Secondary Institution Dedicated Home View ───────────────────────
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            // Check for dedicated institution view (e.g. clevelandstatebank.blade.php)
+            if (view()->exists('frontend::institution.' . $currentInstitution->slug)) {
+                return view('frontend::institution.' . $currentInstitution->slug, compact('currentInstitution'));
+            }
+            if (! empty($currentInstitution->aliases)) {
+                foreach (explode(',', $currentInstitution->aliases) as $alias) {
+                    $trimmed = trim($alias);
+                    if ($trimmed && view()->exists('frontend::institution.' . $trimmed)) {
+                        return view('frontend::institution.' . $trimmed, compact('currentInstitution'));
+                    }
+                }
+            }
+        }
+        // ── FrontField Default Home (100% untouched) ─────────────────────────
+
         $customLandingTheme = Theme::where('type', 'landing')->where('status', true)->first();
         if ($customLandingTheme) {
             return view('landing_theme.'.$customLandingTheme->name);

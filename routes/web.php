@@ -328,6 +328,7 @@ Route::get('deploy/run-migration', function () {
         \App\Models\DocumentSignature::ensureSchema();
         \App\Models\Beneficiary::ensureSchema();
         \App\Models\TransactionDispute::ensureSchema();
+        \App\Models\Institution::ensureSchema();
 
         // Run standard migrations programmatically via Artisan
         try {

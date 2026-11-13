@@ -42,6 +42,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\IsMaintenance::class,
             \App\Http\Middleware\LoginMfa::class,
             \App\Http\Middleware\TrackActiveSession::class,
+            \App\Http\Middleware\ResolveInstitution::class,
         ],
 
         'api' => [
