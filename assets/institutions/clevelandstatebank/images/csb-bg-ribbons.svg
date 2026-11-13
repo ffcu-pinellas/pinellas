@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="ribbonGrad1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f5d5d5" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#e9aeae" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#df9797" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="ribbonGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f7dede" stop-opacity="0.55"/>
+      <stop offset="60%" stop-color="#ecb5b5" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#e19e9e" stop-opacity="0.25"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#edf0f4"/>
+  <!-- Left-to-Center sweeping ribbon -->
+  <path d="M-80,1150 C260,1050 380,680 580,380 C780,80 1150,-40 1380,-80 L1240,-80 C1010,-30 680,80 480,450 C280,800 130,1080 -80,1150 Z" fill="url(#ribbonGrad1)"/>
+  <!-- Main large sweeping ribbon -->
+  <path d="M380,1150 C750,1100 860,780 1120,420 C1380,60 1620,-30 1920,-80 L2060,-80 C1760,-30 1520,70 1260,500 C1000,920 810,1120 380,1150 Z" fill="url(#ribbonGrad2)"/>
+  <!-- Right edge ribbon -->
+  <path d="M1180,1150 C1380,920 1560,600 1720,240 C1820,-20 1920,-70 2020,-80 L2120,-80 C2020,-60 1910,20 1810,320 C1660,700 1460,1020 1180,1150 Z" fill="url(#ribbonGrad1)" opacity="0.6"/>
+</svg>

