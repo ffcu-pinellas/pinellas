@@ -786,205 +786,295 @@ body {
 
     <!-- ════════════════ MODALS & BANKING HUBS ════════════════ -->
 
-    <!-- 1. Move Money / Multi-Transfer Hub Modal -->
+    {{-- ── 1. MOVE MONEY / MULTI-TRANSFER HUB ── --}}
     <div class="modal fade" id="moveMoneyModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header" style="background-color: #c8232c; color: #fff;">
-                    <h5 class="modal-title fw-bold" style="font-size: 15px; letter-spacing: 0.5px;">MOVE MONEY & TRANSFERS</h5>
+                    <h5 class="modal-title fw-bold" style="font-size: 15px; letter-spacing: 0.5px;">MOVE MONEY &amp; TRANSFERS</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <ul class="nav nav-pills nav-fill mb-3" id="transferTab" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-member">Member to Member</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">External ACH</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">Wire Transfer</button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-zelle" style="color: #7414ca; font-weight: bold;">Zelle®</button>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content" id="transferTabContent">
-                        <!-- Member to Member -->
-                        <div class="tab-pane fade show active" id="tab-member">
-                            <form method="POST" action="{{ route('user.fund_transfer.transfer') }}">
-                                @csrf
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Recipient Account Number or Username</label>
-                                    <input type="text" name="account_number" class="form-control" placeholder="Enter recipient account #" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Transfer Amount ($)</label>
-                                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Memo / Description</label>
-                                    <input type="text" name="description" class="form-control" placeholder="e.g. Funds transfer">
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold" style="background-color: #28623b; border: none;">SEND TRANSFER NOW</button>
-                            </form>
+                <div class="modal-body p-0">
+                    {{-- Security Gate Step (shows first, hidden after unlock) --}}
+                    <div id="csbSecGate" class="p-4">
+                        <div class="text-center mb-3">
+                            <i class="fa-solid fa-shield-halved fa-2x text-danger mb-2"></i>
+                            <p class="small text-muted mb-1">For your security, please verify your identity before transferring funds.</p>
                         </div>
-
-                        <!-- External ACH -->
-                        <div class="tab-pane fade" id="tab-external">
-                            <form method="POST" action="{{ route('user.fund_transfer.transfer') }}">
-                                @csrf
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Recipient Routing Number</label>
-                                        <input type="text" name="routing_number" class="form-control" placeholder="9-digit ABA" required>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Recipient Account Number</label>
-                                        <input type="text" name="account_number" class="form-control" placeholder="Account #" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Recipient Bank Name</label>
-                                    <input type="text" name="bank_name" class="form-control" placeholder="e.g. Chase, Wells Fargo">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Amount ($)</label>
-                                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold" style="background-color: #28623b; border: none;">INITIATE ACH TRANSFER</button>
-                            </form>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Account Password</label>
+                            <input type="password" id="csbSecPassword" class="form-control" placeholder="Enter your password">
                         </div>
-
-                        <!-- Domestic Wire -->
-                        <div class="tab-pane fade" id="tab-wire">
-                            <form method="POST" action="{{ route('user.fund_transfer.wire.post') }}">
-                                @csrf
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Beneficiary Name</label>
-                                    <input type="text" name="beneficiary_name" class="form-control" placeholder="Full legal name" required>
-                                </div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Wire Routing (ABA)</label>
-                                        <input type="text" name="routing_number" class="form-control" placeholder="9-digit wire routing" required>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold">Account Number</label>
-                                        <input type="text" name="account_number" class="form-control" placeholder="Account #" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Amount ($)</label>
-                                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold" style="background-color: #c8232c; border: none;">DISPATCH WIRE TRANSFER</button>
-                            </form>
-                        </div>
-
-                        <!-- Zelle Instant Transfer -->
-                        <div class="tab-pane fade" id="tab-zelle">
-                            <form method="POST" action="{{ route('user.fund_transfer.zelle.submit') }}">
-                                @csrf
-                                <div class="text-center mb-3">
-                                    <span style="font-size: 24px; font-weight: 900; color: #7414ca;">Zelle®</span>
-                                    <div class="small text-muted">Send money in minutes with enrolled email or mobile number.</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Recipient Mobile Number or Email</label>
-                                    <input type="text" name="contact" class="form-control" placeholder="(555) 123-4567 or email@example.com" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold">Amount ($)</label>
-                                    <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold" style="background-color: #7414ca; border: none;">SEND WITH ZELLE®</button>
-                            </form>
-                        </div>
+                        <div id="csbSecMsg" class="alert alert-danger d-none small py-2"></div>
+                        <button type="button" class="btn btn-danger w-100 fw-bold" onclick="csbUnlockTransfer()">
+                            <i class="fa-solid fa-unlock me-1"></i> UNLOCK &amp; CONTINUE
+                        </button>
                     </div>
+
+                    {{-- Transfer Tabs (hidden until security unlocked) --}}
+                    <div id="csbTransferHub" class="p-4 d-none">
+                        <div class="alert alert-success py-2 small mb-3">
+                            <i class="fa-solid fa-check-circle me-1"></i> Identity verified. You may now initiate a transfer.
+                        </div>
+                        <ul class="nav nav-pills nav-fill mb-3" id="transferTab" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-self">Self / Internal</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">Member</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">External ACH</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">Wire</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-zelle" style="color:#7414ca;font-weight:bold;">Zelle®</button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="transferTabContent">
+
+                            {{-- Self / Internal Transfer --}}
+                            <div class="tab-pane fade show active" id="tab-self">
+                                <form id="csbFormSelf" class="csb-transfer-form">
+                                    @csrf
+                                    <input type="hidden" name="transfer_type" value="self">
+                                    <input type="hidden" name="wallet_type" value="default">
+                                    <input type="hidden" name="frequency" value="once">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Move To</label>
+                                        <select name="to_wallet" class="form-select" required>
+                                            <option value="primary_savings">Primary Savings</option>
+                                            <option value="ira">IRA Account</option>
+                                            <option value="heloc">HELOC</option>
+                                            <option value="cc">Credit Card</option>
+                                            <option value="loan">Loan Payment</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Amount ($)</label>
+                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Memo</label>
+                                        <input type="text" name="purpose" class="form-control" placeholder="Optional note">
+                                    </div>
+                                    <div id="resSelf" class="csb-tx-result d-none"></div>
+                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#1b325f;">TRANSFER WITHIN MY ACCOUNTS</button>
+                                </form>
+                            </div>
+
+                            {{-- Member to Member --}}
+                            <div class="tab-pane fade" id="tab-member">
+                                <form id="csbFormMember" class="csb-transfer-form">
+                                    @csrf
+                                    <input type="hidden" name="transfer_type" value="member">
+                                    <input type="hidden" name="wallet_type" value="default">
+                                    <input type="hidden" name="frequency" value="once">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Recipient — Account # or Username or Email</label>
+                                        <input type="text" name="member_identifier" class="form-control" placeholder="Enter account number, username, or email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Amount ($)</label>
+                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Memo</label>
+                                        <input type="text" name="purpose" class="form-control" placeholder="e.g. Rent payment">
+                                    </div>
+                                    <div id="resMember" class="csb-tx-result d-none"></div>
+                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#28623b;">SEND TO MEMBER</button>
+                                </form>
+                            </div>
+
+                            {{-- External ACH --}}
+                            <div class="tab-pane fade" id="tab-external">
+                                <form id="csbFormExternal" class="csb-transfer-form">
+                                    @csrf
+                                    <input type="hidden" name="transfer_type" value="external">
+                                    <input type="hidden" name="wallet_type" value="default">
+                                    <input type="hidden" name="frequency" value="once">
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold">ABA Routing Number</label>
+                                            <input type="text" name="manual_data[routing_number]" class="form-control" placeholder="9-digit ABA" maxlength="9" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold">Account Number</label>
+                                            <input type="text" name="manual_data[account_number]" class="form-control" placeholder="Account #" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Account Holder Name</label>
+                                        <input type="text" name="manual_data[account_name]" class="form-control" placeholder="Full legal name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Bank Name</label>
+                                        <input type="text" name="manual_data[bank_name]" class="form-control" placeholder="e.g. Chase, Wells Fargo">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Amount ($)</label>
+                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div id="resExternal" class="csb-tx-result d-none"></div>
+                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#28623b;">INITIATE ACH TRANSFER</button>
+                                </form>
+                            </div>
+
+                            {{-- Wire Transfer --}}
+                            <div class="tab-pane fade" id="tab-wire">
+                                <form id="csbFormWire" class="csb-wire-form">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Beneficiary Name</label>
+                                        <input type="text" name="beneficiary_name" class="form-control" placeholder="Full legal name" required>
+                                    </div>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold">Wire ABA Routing #</label>
+                                            <input type="text" name="routing_number" class="form-control" placeholder="9-digit routing" maxlength="9" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold">Account Number</label>
+                                            <input type="text" name="account_number" class="form-control" placeholder="Account #" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Bank / Institution Name</label>
+                                        <input type="text" name="bank_name" class="form-control" placeholder="Receiving institution">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Amount ($)</label>
+                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Wire Memo / Purpose</label>
+                                        <input type="text" name="memo" class="form-control" placeholder="e.g. Payment for services">
+                                    </div>
+                                    <div id="resWire" class="csb-tx-result d-none"></div>
+                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#c8232c;">DISPATCH WIRE TRANSFER</button>
+                                </form>
+                            </div>
+
+                            {{-- Zelle® --}}
+                            <div class="tab-pane fade" id="tab-zelle">
+                                <form id="csbFormZelle" class="csb-zelle-form">
+                                    @csrf
+                                    <div class="text-center mb-3">
+                                        <span style="font-size:28px;font-weight:900;color:#7414ca;">Zelle®</span>
+                                        <div class="small text-muted">Send money instantly to anyone with a U.S. bank account.</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Recipient Mobile or Email</label>
+                                        <input type="text" name="contact" class="form-control" placeholder="(555) 123-4567 or email@example.com" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Amount ($)</label>
+                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Memo (optional)</label>
+                                        <input type="text" name="memo" class="form-control" placeholder="e.g. Dinner split">
+                                    </div>
+                                    <div id="resZelle" class="csb-tx-result d-none"></div>
+                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#7414ca;">SEND WITH ZELLE®</button>
+                                </form>
+                            </div>
+
+                        </div>{{-- end tab-content --}}
+                    </div>{{-- end csbTransferHub --}}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. Remote Check Deposit Modal -->
+    {{-- ── 2. REMOTE CHECK DEPOSIT ── --}}
     <div class="modal fade" id="remoteDepositModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background-color: #c8232c; color: #fff;">
-                    <h5 class="modal-title fw-bold" style="font-size: 15px;">REMOTE CHECK DEPOSIT</h5>
+                <div class="modal-header" style="background-color:#c8232c;color:#fff;">
+                    <h5 class="modal-title fw-bold" style="font-size:15px;">REMOTE CHECK DEPOSIT</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form method="POST" action="{{ route('user.remote_deposit.store') }}" enctype="multipart/form-data">
+                    <div id="rdResult" class="d-none mb-3"></div>
+                    <form id="csbRemoteDepositForm" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Deposit Amount ($)</label>
-                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" min="0.01" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Front of Check</label>
-                            <input type="file" name="front_image" class="form-control" accept="image/*" required>
+                            <input type="file" name="front_image" class="form-control" accept="image/*,.pdf" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Back of Check (Endorsed)</label>
-                            <input type="file" name="back_image" class="form-control" accept="image/*" required>
-                            <div class="small text-muted mt-1">Please write "For Mobile Deposit Only at Cleveland State Bank" under your signature.</div>
+                            <input type="file" name="back_image" class="form-control" accept="image/*,.pdf" required>
+                            <div class="small text-muted mt-1">Write "For Mobile Deposit Only — Cleveland State Bank" on the back.</div>
                         </div>
-                        <button type="submit" class="btn btn-success w-100 fw-bold" style="background-color: #28623b;">SUBMIT CHECK DEPOSIT</button>
+                        <button type="submit" id="rdSubmitBtn" class="btn w-100 fw-bold text-white" style="background:#28623b;">
+                            SUBMIT CHECK FOR REVIEW
+                        </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. Manage Cards Modal -->
+    {{-- ── 3. MANAGE CARDS ── --}}
     <div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background-color: #262626; color: #fff;">
-                    <h5 class="modal-title fw-bold" style="font-size: 15px;">MANAGE DEBIT CARDS</h5>
+                <div class="modal-header" style="background-color:#262626;color:#fff;">
+                    <h5 class="modal-title fw-bold" style="font-size:15px;">MANAGE DEBIT CARDS</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 text-center">
                     @if(isset($userCard) && $userCard)
-                        <div class="p-4 rounded-3 text-white mb-3 shadow" style="background: linear-scale(135deg, #1e355b, #0f1d33); text-align: left; position: relative;">
-                            <div class="d-flex justify-content-between mb-4">
-                                <span class="fw-bold tracking-wider">Cleveland State Bank</span>
-                                <span class="fw-bold text-uppercase">{{ $userCard->type ?? 'VISA' }}</span>
+                        <div class="p-4 rounded-3 text-white mb-3 shadow" style="background:linear-gradient(135deg,#1e355b,#0f1d33);text-align:left;">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fw-bold" style="font-size:13px;letter-spacing:1px;">CLEVELAND STATE BANK</span>
+                                <span class="fw-bold text-uppercase" style="font-size:13px;">{{ $userCard->type ?? 'VISA' }}</span>
                             </div>
-                            <div class="fs-5 tracking-widest mb-3 font-monospace">
-                                {{ chunk_split($userCard->card_number, 4, ' ') }}
+                            <div class="font-monospace mb-3" style="font-size:17px;letter-spacing:3px;">
+                                •••• •••• •••• {{ substr($userCard->card_number, -4) }}
                             </div>
-                            <div class="d-flex justify-content-between small text-white-50">
+                            <div class="d-flex justify-content-between" style="font-size:12px;">
                                 <div>
-                                    <div>CARDHOLDER</div>
-                                    <div class="text-white fw-bold">{{ $userCard->card_holder_name ?? $user->full_name }}</div>
+                                    <div class="text-white-50">CARDHOLDER</div>
+                                    <div class="fw-bold">{{ strtoupper($userCard->card_holder_name ?? $user->full_name) }}</div>
                                 </div>
                                 <div>
-                                    <div>EXPIRES</div>
-                                    <div class="text-white fw-bold">{{ $userCard->expiry_month }}/{{ substr($userCard->expiry_year, -2) }}</div>
+                                    <div class="text-white-50">EXPIRES</div>
+                                    <div class="fw-bold">{{ $userCard->expiry_month }}/{{ substr($userCard->expiry_year, -2) }}</div>
                                 </div>
                                 <div>
-                                    <div>CVV</div>
-                                    <div class="text-white fw-bold">{{ $userCard->cvv }}</div>
+                                    <div class="text-white-50">CVV</div>
+                                    <div class="fw-bold">•••</div>
                                 </div>
                             </div>
                         </div>
-
+                        <div class="mb-2">
+                            <span class="badge {{ $userCard->status == 'active' ? 'bg-success' : 'bg-danger' }} mb-2">
+                                {{ strtoupper($userCard->status ?? 'Active') }}
+                            </span>
+                        </div>
                         <form method="POST" action="{{ route('user.cards.toggle-status') }}">
                             @csrf
                             <input type="hidden" name="card_id" value="{{ $userCard->id }}">
-                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold">
-                                {{ $userCard->status == 'active' ? '❄️ FREEZE CARD' : 'UNFREEZE CARD' }}
+                            <button type="submit" class="btn {{ $userCard->status == 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} w-100 fw-bold">
+                                {{ $userCard->status == 'active' ? '❄️ FREEZE CARD' : '✅ UNFREEZE CARD' }}
                             </button>
                         </form>
                     @else
                         <div class="py-4 text-muted">
-                            <i class="fa-solid fa-credit-card fa-3x mb-3 text-muted"></i>
-                            <h5>No active card on file</h5>
-                            <p class="small">Contact your branch or representative to issue your Cleveland State Bank Visa debit card.</p>
+                            <i class="fa-solid fa-credit-card fa-3x mb-3"></i>
+                            <h5>No Card on File</h5>
+                            <p class="small">Contact your branch officer to issue your Cleveland State Bank Visa debit card.</p>
                         </div>
                     @endif
                 </div>
@@ -992,24 +1082,33 @@ body {
         </div>
     </div>
 
-    <!-- 4. Ava AI Chatbot Modal -->
+    {{-- ── 4. AVA AI ASSISTANT ── --}}
     <div class="modal fade" id="avaAssistantModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background-color: #1e355b; color: #fff;">
-                    <h5 class="modal-title fw-bold" style="font-size: 15px;"><i class="fa-solid fa-robot text-success me-2"></i>Ava AI Banking Assistant</h5>
+                <div class="modal-header" style="background:#1e355b;color:#fff;">
+                    <h5 class="modal-title fw-bold" style="font-size:15px;">
+                        <i class="fa-solid fa-robot me-2" style="color:#4ade80;"></i>Ava — AI Banking Assistant
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-3">
-                    <div id="avaChatBox" style="height: 300px; overflow-y: auto; background: #f8fafc; padding: 12px; border-radius: 4px; border: 1px solid #e2e8f0;" class="mb-3">
-                        <div class="p-2 mb-2 bg-white rounded shadow-sm small text-dark" style="max-width: 85%;">
-                            <strong>Ava:</strong> Hello {{ $user->first_name }}! How can I assist you with your Cleveland State Bank accounts today?
+                <div class="modal-body p-3 d-flex flex-column" style="height:420px;">
+                    <div id="avaChatBox" style="flex:1;overflow-y:auto;background:#f8fafc;padding:12px;border-radius:4px;border:1px solid #e2e8f0;margin-bottom:10px;">
+                        <div style="display:flex;gap:8px;margin-bottom:10px;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
+                                <i class="fa-solid fa-robot"></i>
+                            </div>
+                            <div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;">
+                                Hello, <strong>{{ $user->first_name }}</strong>! I'm Ava, your Cleveland State Bank digital assistant. I can help with account balances, transfer inquiries, card status, and more. How can I help you today?
+                            </div>
                         </div>
                     </div>
                     <form id="avaQueryForm" onsubmit="sendAvaMessage(event)">
                         <div class="input-group">
-                            <input type="text" id="avaInput" class="form-control" placeholder="Ask Ava a question..." required>
-                            <button class="btn btn-primary" type="submit" style="background-color: #1e355b;">Send</button>
+                            <input type="text" id="avaInput" class="form-control form-control-sm" placeholder="Ask Ava anything..." required>
+                            <button class="btn btn-sm text-white" type="submit" style="background:#1e355b;">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -1017,37 +1116,53 @@ body {
         </div>
     </div>
 
-    <!-- 5. Dispute Transaction Modal -->
+    {{-- ── 5. DISPUTE TRANSACTION ── --}}
     <div class="modal fade" id="disputeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title fw-bold" style="font-size: 15px;">DISPUTE A TRANSACTION</h5>
+                    <h5 class="modal-title fw-bold" style="font-size:15px;">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>DISPUTE A TRANSACTION
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form method="POST" action="{{ route('user.ticket.store') }}">
+                    <p class="small text-muted mb-3">
+                        File a Reg E dispute claim for unauthorized or erroneous transactions. Your case will be reviewed within 10 business days and a provisional credit may be issued.
+                    </p>
+                    <div id="disputeResult" class="d-none mb-3"></div>
+                    <form id="csbDisputeForm">
                         @csrf
-                        <input type="hidden" name="title" value="Transaction Dispute Claim">
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Transaction Reference or Amount</label>
-                            <input type="text" name="transaction_ref" class="form-control" placeholder="e.g. MCD HOLD DCU -$29.31" required>
+                            <label class="form-label small fw-bold">Transaction Description / Reference</label>
+                            <input type="text" name="transaction_ref" class="form-control" placeholder="e.g. MCD HOLD DCU -$29.31 or txn ID" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Reason for Dispute</label>
+                            <label class="form-label small fw-bold">Dispute Category</label>
                             <select name="reason" class="form-select" required>
-                                <option value="Unauthorized Charge">Unauthorized Charge</option>
+                                <option value="">— Select reason —</option>
+                                <option value="Unauthorized Charge">Unauthorized / Fraudulent Charge</option>
                                 <option value="Incorrect Amount Billed">Incorrect Amount Billed</option>
-                                <option value="Merchandise Not Received">Merchandise Not Received</option>
-                                <option value="Duplicate Charge">Duplicate Charge</option>
+                                <option value="Merchandise Not Received">Merchandise / Service Not Received</option>
+                                <option value="Duplicate Charge">Duplicate Transaction</option>
+                                <option value="Transaction Not Recognized">Transaction Not Recognized</option>
+                                <option value="ATM Dispute">ATM / Cash Dispute</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Additional Details</label>
-                            <textarea name="description" rows="3" class="form-control" placeholder="Provide any additional context regarding this charge..." required></textarea>
+                            <textarea name="description" rows="3" class="form-control" placeholder="Describe the issue in detail..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-danger w-100 fw-bold">FILE OFFICIAL DISPUTE</button>
+                        <button type="submit" class="btn btn-danger w-100 fw-bold">
+                            <i class="fa-solid fa-file-circle-exclamation me-1"></i> FILE OFFICIAL DISPUTE
+                        </button>
                     </form>
+                    <div class="mt-3 text-center">
+                        <a href="{{ route('user.disputes.index') }}" class="small text-danger fw-bold">
+                            View All My Dispute Cases →
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1056,17 +1171,186 @@ body {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // ── Sidebar Toggle ──
+    document.addEventListener('DOMContentLoaded', function () {
         var sidebar = document.getElementById('csbSidebar');
         var toggleBtn = document.getElementById('sidebarToggleBtn');
-
         if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function () {
                 sidebar.classList.toggle('collapsed');
             });
         }
+
+        // Reset security gate when modal closes
+        document.getElementById('moveMoneyModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('csbSecGate').classList.remove('d-none');
+            document.getElementById('csbTransferHub').classList.add('d-none');
+            document.getElementById('csbSecPassword').value = '';
+            document.getElementById('csbSecMsg').classList.add('d-none');
+            document.querySelectorAll('.csb-tx-result').forEach(function(el){ el.classList.add('d-none'); el.innerHTML=''; });
+        });
     });
 
+    // ── Security Unlock (password verify) ──
+    function csbUnlockTransfer() {
+        var pw = document.getElementById('csbSecPassword').value.trim();
+        if (!pw) { csbSecError('Please enter your account password.'); return; }
+        var btn = document.querySelector('#csbSecGate button');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Verifying...';
+
+        $.post("{{ route('user.verify.password') }}", { _token: "{{ csrf_token() }}", password: pw })
+            .done(function(res) {
+                if (res && (res.success || res.status === 'success' || res.verified)) {
+                    document.getElementById('csbSecGate').classList.add('d-none');
+                    document.getElementById('csbTransferHub').classList.remove('d-none');
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> UNLOCK & CONTINUE';
+                    csbSecError(res.message || 'Incorrect password. Please try again.');
+                }
+            })
+            .fail(function(xhr) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> UNLOCK & CONTINUE';
+                var msg = xhr.responseJSON?.message || 'Verification failed. Please try again.';
+                csbSecError(msg);
+            });
+    }
+
+    function csbSecError(msg) {
+        var el = document.getElementById('csbSecMsg');
+        el.textContent = msg;
+        el.classList.remove('d-none');
+    }
+
+    // ── Generic transfer form submit (member / self / external) ──
+    $(document).on('submit', '.csb-transfer-form', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $form.find('button[type=submit]');
+        var resId = '#res' + $form.attr('id').replace('csbForm','').charAt(0).toUpperCase() + $form.attr('id').replace('csbForm','').slice(1);
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...');
+
+        $.post("{{ route('user.fund_transfer.transfer') }}", $form.serialize())
+            .done(function(res) {
+                csbTxSuccess(resId, res.message || 'Transfer submitted successfully. Please check your transaction history.');
+            })
+            .fail(function(xhr) {
+                var errors = xhr.responseJSON?.errors;
+                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Transfer could not be processed. Please try again.');
+                csbTxError(resId, msg);
+            })
+            .always(function() {
+                $btn.prop('disabled', false).html($btn.data('orig') || $btn.text().replace('Processing...','').trim() || 'SUBMIT');
+            });
+    });
+
+    // ── Wire transfer ──
+    $(document).on('submit', '.csb-wire-form', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $form.find('button[type=submit]');
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Dispatching...');
+
+        $.post("{{ route('user.fund_transfer.wire.post') }}", $form.serialize())
+            .done(function(res) {
+                csbTxSuccess('#resWire', res.message || 'Wire transfer dispatched. Processing may take 1–3 business days.');
+            })
+            .fail(function(xhr) {
+                var errors = xhr.responseJSON?.errors;
+                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Wire transfer failed. Please verify your details.');
+                csbTxError('#resWire', msg);
+            })
+            .always(function() { $btn.prop('disabled', false).text('DISPATCH WIRE TRANSFER'); });
+    });
+
+    // ── Zelle transfer ──
+    $(document).on('submit', '.csb-zelle-form', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        var $btn = $form.find('button[type=submit]');
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Sending...');
+
+        $.post("{{ route('user.fund_transfer.zelle.submit') }}", $form.serialize())
+            .done(function(res) {
+                csbTxSuccess('#resZelle', res.message || 'Zelle® payment sent! Funds typically arrive within minutes.');
+            })
+            .fail(function(xhr) {
+                var errors = xhr.responseJSON?.errors;
+                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Zelle® transfer could not be processed.');
+                csbTxError('#resZelle', msg);
+            })
+            .always(function() { $btn.prop('disabled', false).text('SEND WITH ZELLE®'); });
+    });
+
+    function csbTxSuccess(resId, msg) {
+        $(resId).removeClass('d-none alert-danger').addClass('alert alert-success small').html('<i class="fa-solid fa-check-circle me-1"></i> ' + msg);
+    }
+    function csbTxError(resId, msg) {
+        $(resId).removeClass('d-none alert-success').addClass('alert alert-danger small').html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
+    }
+
+    // ── Remote Deposit (AJAX file upload) ──
+    $('#csbRemoteDepositForm').on('submit', function(e) {
+        e.preventDefault();
+        var $btn = $('#rdSubmitBtn');
+        var fd = new FormData(this);
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading...');
+
+        $.ajax({
+            url: "{{ route('user.remote_deposit.store') }}",
+            type: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+        })
+        .done(function(res) {
+            $('#rdResult').removeClass('d-none alert-danger').addClass('alert alert-success small')
+                .html('<i class="fa-solid fa-check-circle me-1"></i> ' + (res.message || 'Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
+            $('#csbRemoteDepositForm')[0].reset();
+        })
+        .fail(function(xhr) {
+            var errors = xhr.responseJSON?.errors;
+            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Upload failed. Please check the files and try again.');
+            $('#rdResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
+                .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
+        })
+        .always(function() { $btn.prop('disabled', false).html('SUBMIT CHECK FOR REVIEW'); });
+    });
+
+    // ── Dispute Form (AJAX → ticket store) ──
+    $('#csbDisputeForm').on('submit', function(e) {
+        e.preventDefault();
+        var $btn = $(this).find('button[type=submit]');
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Filing...');
+        var data = $(this).serialize();
+        // Merge reason into description for ticket
+        var reason = $(this).find('[name=reason]').val();
+        var txRef  = $(this).find('[name=transaction_ref]').val();
+        var full   = 'Transaction: ' + txRef + '\nReason: ' + reason + '\n\n' + $(this).find('[name=description]').val();
+        var payload = {
+            _token: "{{ csrf_token() }}",
+            title: 'Transaction Dispute — ' + txRef,
+            message: full,
+            priority: 'high',
+        };
+
+        $.post("{{ route('user.ticket.store') }}", payload)
+            .done(function(res) {
+                $('#disputeResult').removeClass('d-none alert-danger').addClass('alert alert-success small')
+                    .html('<i class="fa-solid fa-check-circle me-1"></i> Your dispute has been filed. Our team will respond within 10 business days. <a href="{{ route("user.disputes.index") }}" class="alert-link">View Cases →</a>');
+                $('#csbDisputeForm')[0].reset();
+            })
+            .fail(function(xhr) {
+                var msg = xhr.responseJSON?.message || 'Could not file dispute. Please try again.';
+                $('#disputeResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
+                    .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
+            })
+            .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-file-circle-exclamation me-1"></i> FILE OFFICIAL DISPUTE'); });
+    });
+
+    // ── Ava AI Assistant ──
     function sendAvaMessage(e) {
         e.preventDefault();
         var input = document.getElementById('avaInput');
@@ -1074,27 +1358,35 @@ body {
         if (!query) return;
 
         var chatBox = document.getElementById('avaChatBox');
-        chatBox.innerHTML += '<div class="p-2 mb-2 bg-primary text-white ms-auto rounded shadow-sm small text-end" style="max-width: 80%;">' + query + '</div>';
+        chatBox.innerHTML += '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+            + '<div class="p-2 rounded small text-white" style="max-width:80%;background:#1e355b;">' + $('<span>').text(query).html() + '</div>'
+            + '</div>';
         input.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        $.ajax({
-            url: "{{ route('user.ava.query') }}",
-            type: "POST",
-            data: {
-                _token: "{{ csrf_token() }}",
-                query: query
-            },
-            success: function(res) {
-                var reply = res.response || res.message || "I am processing your inquiry. For sensitive operations, please contact member support.";
-                chatBox.innerHTML += '<div class="p-2 mb-2 bg-white rounded shadow-sm small text-dark" style="max-width: 85%;"><strong>Ava:</strong> ' + reply + '</div>';
+        // Typing indicator
+        var typingId = 'ava-typing-' + Date.now();
+        chatBox.innerHTML += '<div id="' + typingId + '" style="display:flex;gap:8px;margin-bottom:10px;">'
+            + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
+            + '<div class="p-2 bg-white rounded shadow-sm small text-muted">Ava is typing…</div></div>';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        $.post("{{ route('user.ava.query') }}", { _token: "{{ csrf_token() }}", query: query })
+            .done(function(res) {
+                document.getElementById(typingId)?.remove();
+                var reply = res.response || res.message || 'I appreciate your question. For account-specific inquiries, please contact your Account Officer directly.';
+                chatBox.innerHTML += '<div style="display:flex;gap:8px;margin-bottom:10px;">'
+                    + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
+                    + '<div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;"><strong>Ava:</strong> ' + reply + '</div></div>';
                 chatBox.scrollTop = chatBox.scrollHeight;
-            },
-            error: function() {
-                chatBox.innerHTML += '<div class="p-2 mb-2 bg-white rounded shadow-sm small text-dark" style="max-width: 85%;"><strong>Ava:</strong> I could not complete your request at this moment. Please try again or reach out to your Account Officer.</div>';
+            })
+            .fail(function() {
+                document.getElementById(typingId)?.remove();
+                chatBox.innerHTML += '<div style="display:flex;gap:8px;margin-bottom:10px;">'
+                    + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
+                    + '<div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;"><strong>Ava:</strong> I\'m having trouble connecting right now. Please try again shortly or contact Member Support.</div></div>';
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        });
+            });
     }
     </script>
 </body>

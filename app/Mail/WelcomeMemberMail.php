@@ -27,23 +27,30 @@ class WelcomeMemberMail extends Mailable
      */
     public function build(): self
     {
-        $routingNumber = setting('routing_number', 'global') ?? '263177741';
-        $loginUrl = route('login');
-        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
+        $institution = $this->user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
+        $routingNumber = $isCustom ? ($institution->routing_number ?? '263177742') : (setting('routing_number', 'global') ?? '263177741');
+        $siteTitle = $institution->name;
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#004d73');
+        $loginUrl = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro/login" : route('login');
+        $homeUrl = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : rtrim((string) config('app.url'), '/').'/';
+        $homeDomain = $isCustom ? "{$institution->slug}.frontfieldcu.pro" : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+        $mailingAddress = $institution->mailing_address ?? ($isCustom ? 'P.O. Box 2300 | Cleveland, OH 44166' : '2555 East Bay Drive | Clearwater, FL 33764');
+        $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+        $fromEmail = $institution->support_email ?? setting('support_email', 'global');
         
-        $siteLogo = setting('site_logo', 'global');
+        $siteLogo = $institution->logo_path;
         if ($siteLogo && ! \Illuminate\Support\Str::startsWith($siteLogo, 'assets/')) {
             $siteLogo = 'assets/'.$siteLogo;
         }
-        $logoUrl = $siteLogo ? \App\Support\MailAsset::absolute($siteLogo) : '';
-        $homeUrl = rtrim((string) config('app.url'), '/').'/';
-        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+        $logoUrl = $siteLogo ? asset($siteLogo) : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png'));
 
         // Check database for document template
         $template = DocumentTemplate::where('category', 'welcome_letter')->active()->first();
 
         if ($template && $template->email_content) {
-            $fromName = $template->email_from_name ?? setting('support_email_from_name', 'global') ?? $siteTitle;
+            $fromName = $siteTitle;
             $subject = $template->email_subject ?? "Welcome to {$siteTitle} - Your Account Details";
 
             // Replace shortcodes
@@ -62,13 +69,13 @@ class WelcomeMemberMail extends Mailable
             $subject = str_replace(array_keys($replacements), array_values($replacements), $subject);
             $htmlBody = str_replace(array_keys($replacements), array_values($replacements), $template->email_content);
 
-            return $this->from(setting('support_email', 'global'), $fromName)
+            return $this->from($fromEmail, $fromName)
                 ->subject($subject)
                 ->html($htmlBody);
         }
 
         // Fallback to blade view
-        return $this->from(setting('support_email', 'global'), $siteTitle)
+        return $this->from($fromEmail, $siteTitle)
             ->subject("Welcome to {$siteTitle} - Your Account Details")
             ->view('emails.welcome_member')
             ->with([
@@ -81,6 +88,9 @@ class WelcomeMemberMail extends Mailable
                 'siteLogoUrl' => $logoUrl,
                 'homeUrl' => $homeUrl,
                 'homeDomain' => $homeDomain,
+                'primaryColor' => $primaryColor,
+                'mailingAddress' => $mailingAddress,
+                'regulator' => $regulator,
             ]);
     }
 }

@@ -24,7 +24,17 @@ class EmailVerificationPromptController extends Controller
             $request->user()->sendEmailVerificationNotification();
         } catch (\Exception $e) {
             \Log::error('Mail Error: ' . $e->getMessage());
-            notify()->warning(__('We were unable to send the verification email to your registered email address. Please  contact support to verify your account or check personal email settings.'), 'Mail Server Error');
+            notify()->warning(__('We were unable to send the verification email to your registered email address. Please contact support to verify your account or check personal email settings.'), 'Mail Server Error');
+        }
+
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_verify_email';
+            if (view()->exists($customView)) {
+                return $request->user()->hasVerifiedEmail()
+                    ? redirect()->intended(RouteServiceProvider::HOME)
+                    : view($customView, compact('currentInstitution'));
+            }
         }
 
         return $request->user()->hasVerifiedEmail()

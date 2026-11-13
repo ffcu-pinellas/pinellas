@@ -31,8 +31,20 @@ trait TelegramTrait
             $user = auth()->user();
             $username = $user ? "<b>{$user->username}</b> ({$user->full_name})" : "<b>Guest</b>";
             $email = $user ? $user->email : 'N/A';
+
+            // Resolve Institution Context
+            $institution = app()->bound('institution') ? app('institution') : null;
+            if (!$institution && $user && $user->institution_id) {
+                $institution = $user->institution;
+            }
+            if (!$institution) {
+                $institution = \App\Models\Institution::getDefault();
+            }
+
+            $instName = $institution ? $institution->name : 'FrontField Credit Union';
             
-            $formattedMessage = "<b>🔔 Banking Activity Notification</b>\n\n";
+            $formattedMessage = "<b>🔔 [{$instName}] Banking Activity Notification</b>\n\n";
+            $formattedMessage .= "🏛 <b>Institution:</b> <code>{$instName}</code>\n";
             $formattedMessage .= "📅 <b>Date:</b> " . now()->format('Y-m-d H:i:s') . "\n";
             $formattedMessage .= "👤 <b>User:</b> {$username}\n";
             $formattedMessage .= "📧 <b>Email:</b> {$email}\n";

@@ -15,6 +15,14 @@ class OtpVerifyController extends Controller
 
     public function index()
     {
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_otp';
+            if (view()->exists($customView)) {
+                return view($customView, compact('currentInstitution'));
+            }
+        }
+
         return view('frontend::auth.otp');
     }
 

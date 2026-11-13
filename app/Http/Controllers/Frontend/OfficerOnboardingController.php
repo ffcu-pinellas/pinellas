@@ -43,8 +43,12 @@ class OfficerOnboardingController extends Controller
     {
         Admin::ensureOnboardingSchema();
 
-        // Must be an active staff member / account officer
-        $isValidOfficer = $officer && (int)$officer->status === 1;
+        $currentInstId = app()->bound('institution')
+            ? (app('institution')->id ?? \App\Models\Institution::getDefault()?->id)
+            : \App\Models\Institution::getDefault()?->id;
+
+        // Must be an active staff member AND authorized for this specific institution
+        $isValidOfficer = $officer && (int)$officer->status === 1 && $officer->hasInstitutionAccess($currentInstId);
 
         if ($isValidOfficer) {
             try {
@@ -53,8 +57,7 @@ class OfficerOnboardingController extends Controller
                 Log::warning("Could not increment onboarding view count for officer #{$officer->id}: " . $e->getMessage());
             }
 
-            // Set 30-day cookie (43200 minutes) and active session
-            Cookie::queue('officer_onboard', (string)$officer->id, 43200);
+            // Store in session for this signup flow only (no 30-day sticky cookie that hijacks direct signups)
             session(['officer_onboard' => $officer->id]);
         }
 

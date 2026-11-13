@@ -541,6 +541,65 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         return $this->hasMany(Notification::class);
     }
 
+    /**
+     * Send institutional-tailored email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $institution = $this->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+        
+        $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            \Illuminate\Support\Carbon::now()->addMinutes(config('auth.verification.expire', 60)),
+            [
+                'id' => $this->getKey(),
+                'hash' => sha1($this->getEmailForVerification()),
+            ]
+        );
+
+        if ($isCustom) {
+            $parsed = parse_url($verificationUrl);
+            $targetHost = "{$institution->slug}.frontfieldcu.pro";
+            $verificationUrl = "https://{$targetHost}" . ($parsed['path'] ?? '') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+        }
+
+        $siteTitle = $institution->name;
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $siteLogo = $institution->logo_path ? asset('assets/' . $institution->logo_path) : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png'));
+        $siteLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+        $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+        $supportPhone = $institution->support_phone ?? ($isCustom ? '662-843-9461' : setting('site_phone', 'global'));
+        $supportEmail = $institution->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
+        $siteLink = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home');
+
+        $details = [
+            'subject' => "Verify Your Email Address — {$siteTitle}",
+            'title' => 'Email Verification Required',
+            'salutation' => "Hello {$this->first_name}",
+            'message_body' => "<p>Thank you for registering with <strong>{$siteTitle}</strong>. Please click the button below to verify your email address and activate your digital banking profile.</p><p style='font-size: 13px; color: #64748b;'>If you did not initiate this account creation, no further action is required.</p>",
+            'button_level' => 'Verify Email Address',
+            'button_link' => $verificationUrl,
+            'footer_status' => true,
+            'site_logo' => $siteLogo,
+            'site_logo_path' => $siteLogoPath,
+            'site_title' => $siteTitle,
+            'site_link' => $siteLink,
+            'primary_color' => $primaryColor,
+            'regulator_type' => $regulator,
+            'support_phone' => $supportPhone,
+            'support_email' => $supportEmail,
+            'from_name' => $siteTitle,
+            'from_email' => $supportEmail,
+        ];
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($this->email)->send(new \App\Mail\MailSend($details));
+        } catch (\Throwable $e) {
+            \Log::error("Email verification send error: " . $e->getMessage());
+        }
+    }
+
     public function refferelLinks()
     {
         return $this->hasMany(ReferralLink::class);

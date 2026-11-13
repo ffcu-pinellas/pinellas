@@ -1,10 +1,22 @@
+@php
+    $currentInst = app()->bound('institution') ? app('institution') : null;
+    $isCustomInst = $currentInst && !$currentInst->is_default;
+    $siteTitle = $isCustomInst ? $currentInst->name : (setting('site_title') ?? 'FrontField Credit Union');
+    $sitePhone = $isCustomInst ? ($currentInst->support_phone ?? '662-843-9461') : (setting('site_phone') ?? '216 230 1837');
+    $regulator = $isCustomInst ? ('Member ' . ($currentInst->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+    $bgUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/csb-bg-ribbons.svg') : asset('assets/images/background-landscape.png');
+    $favUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/favicon.png') : asset('assets/images/favicon.ico');
+    $logoUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/csb-logo-stacked.png') : asset('assets/external/images/logo.png');
+    $themeColor = $isCustomInst ? ($currentInst->primary_color ?? '#c8232c') : 'rgb(0, 84, 155)';
+    $btnColor = $isCustomInst ? ($currentInst->primary_color ?? '#c8232c') : 'rgb(217, 43, 28)';
+@endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <title>@yield('title') · {{ setting('site_title') ?? 'FrontField Credit Union' }}</title>
+    <title>@yield('title') · {{ $siteTitle }}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <link rel="icon" type="image/x-icon" href="{{ asset('assets/images/favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ $favUrl }}">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/global/css/custom.css') }}">
@@ -13,15 +25,15 @@
         :root {
             --body-text-primary-color: rgb(7, 21, 35);
             --body-text-secondary-color: rgb(98, 110, 122);
-            --body-text-theme-color: rgb(0, 84, 155);
-            --primary-button-color: rgb(217, 43, 28);
+            --body-text-theme-color: {{ $themeColor }};
+            --primary-button-color: {{ $btnColor }};
             --primary-button-text-color: rgb(255, 255, 255);
             --primary-content-background-color: rgb(255, 255, 255);
             --secondary-page-background-color: rgb(227, 231, 237);
             --card-corner-radius: 10px;
             --card-shadow: 0 3px 12px 0 rgba(0,0,0,0.15);
             --button-corner-radius: 8px;
-            --jha-text-theme: rgb(0, 84, 155);
+            --jha-text-theme: {{ $themeColor }};
             --jha-card-article-margin-bottom: 18px;
         }
 
@@ -41,7 +53,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-image: url('{{ asset('assets/images/background-landscape.png') }}');
+            background-image: url('{{ $bgUrl }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -50,7 +62,7 @@
 
         @media (max-width: 600px) {
             .auth-wrapper {
-                background-image: url('{{ asset('assets/images/background-landscape.png') }}');
+                background-image: url('{{ $bgUrl }}');
             }
         }
 
@@ -356,7 +368,7 @@
             @include('global._notify')
             <div class="logo-container">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}">
+                    <img src="{{ $logoUrl }}" alt="{{ $siteTitle }}" style="max-height: 75px; width: auto;">
                 </a>
             </div>
 
@@ -386,7 +398,7 @@
 
     <footer>
         <div style="margin-bottom: 10px;">
-            © {{ date('Y') }} {{ setting('site_title') ?? 'FrontField Credit Union' }}  •  {{ setting('site_phone') ?? '216 230 1837' }}  •  <a href="#">Privacy policy</a>  •  Federally Insured by NCUA
+            © {{ date('Y') }} {{ $siteTitle }}  •  {{ $sitePhone }}  •  <a href="#">Privacy policy</a>  •  {{ $regulator }}
         </div>
         <div>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;"><path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/></svg> Equal Housing Lender

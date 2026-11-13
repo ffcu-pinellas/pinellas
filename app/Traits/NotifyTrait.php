@@ -107,6 +107,29 @@ trait NotifyTrait
     {
         $shortcodes = $this->expandMailShortcodeAliases($this->formatShortcodes($shortcodes));
         try {
+            $user = \App\Models\User::where('email', $email)->first();
+            $institution = $user?->institution
+                ?? (app()->bound('institution') ? app('institution') : null)
+                ?? \App\Models\Institution::getDefault();
+            $isCustom = $institution && !$institution->is_default;
+            $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+            $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+            $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+            $supportPhone = $institution->support_phone ?? ($isCustom ? '662-843-9461' : setting('site_phone', 'global'));
+            $supportEmail = $institution->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
+            $siteLink = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : rtrim((string) config('app.url'), '/').'/';
+
+            $siteLogo = $institution->logo_path ?? null;
+            if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                $siteLogo = 'assets/'.$siteLogo;
+            }
+            if (!$siteLogo || !file_exists(public_path($siteLogo))) {
+                $siteLogo = $isCustom ? 'assets/institutions/clevelandstatebank/images/logo.png' : (setting('site_logo', 'global') ?: 'assets/external/images/logo.png');
+                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                    $siteLogo = 'assets/'.$siteLogo;
+                }
+            }
+
             $template = EmailTemplate::where('status', true)->where('code', $code)->first();
             if ($template) {
                 $find = array_keys($shortcodes);
@@ -119,19 +142,11 @@ trait NotifyTrait
                 }
                 if (!in_array('[[site_title]]', $find)) {
                     $find[] = '[[site_title]]';
-                    $replace[] = setting('site_title', 'global');
+                    $replace[] = $siteTitle;
                 }
                 if (!in_array('[[site_url]]', $find)) {
                     $find[] = '[[site_url]]';
-                    $replace[] = route('home');
-                }
-
-                $siteLogo = setting('site_logo', 'global');
-                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                    $siteLogo = 'assets/'.$siteLogo;
-                }
-                if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
-                    $siteLogo = 'assets/external/images/logo.png';
+                    $replace[] = $siteLink;
                 }
 
                 $banner = $template->banner;
@@ -155,8 +170,14 @@ trait NotifyTrait
 
                     'site_logo' => MailAsset::absolute($siteLogo),
                     'site_logo_path' => $siteLogo ? public_path($siteLogo) : null,
-                    'site_title' => setting('site_title', 'global'),
-                    'site_link' => rtrim((string) config('app.url'), '/').'/',
+                    'site_title' => $siteTitle,
+                    'site_link' => $siteLink,
+                    'primary_color' => $primaryColor,
+                    'regulator_type' => $regulator,
+                    'support_phone' => $supportPhone,
+                    'support_email' => $supportEmail,
+                    'from_name' => $siteTitle,
+                    'from_email' => $supportEmail,
                 ];
 
                 $details = $this->sanitizeMailTemplateDetails($details);
