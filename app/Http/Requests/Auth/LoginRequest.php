@@ -25,6 +25,18 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        if ($this->has('username') && ! $this->filled('email')) {
+            $this->merge(['email' => $this->input('username')]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array
@@ -32,7 +44,8 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'email' => ['required', 'string'],
+            'email' => ['required_without:username', 'nullable', 'string'],
+            'username' => ['required_without:email', 'nullable', 'string'],
             'password' => ['required', 'string'],
             'g-recaptcha-response' => Rule::requiredIf(plugin_active('Google reCaptcha')), new Recaptcha,
         ];
@@ -47,16 +60,14 @@ class LoginRequest extends FormRequest
      */
     public function authenticate()
     {
+        $identifier = $this->get('email') ?? $this->get('username');
 
-        $email = $this->get('email');
-
-        $credentials = $this->only('email', 'password');
-
+        $credentials = ['email' => $identifier, 'password' => $this->get('password')];
         $type = 'email';
 
-        if (! $this->isEmail($email)) {
+        if (! $this->isEmail($identifier)) {
             $credentials = [
-                'username' => $email,
+                'username' => $identifier,
                 'password' => $this->get('password'),
             ];
             $type = 'username';
@@ -68,7 +79,8 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                $type => trans('auth.failed'),
+                'email' => trans('auth.failed'),
+                'username' => trans('auth.failed'),
             ]);
         }
 

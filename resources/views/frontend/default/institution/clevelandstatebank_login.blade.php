@@ -86,6 +86,21 @@ body {
     align-items: center;
 }
 
+.csb-input-container.has-error {
+    border: 1.5px solid #c8232c !important;
+    background-color: #fff8f8;
+}
+
+.csb-field-inline-err {
+    color: #c8232c;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: left;
+    margin-top: -4px;
+    margin-bottom: 8px;
+    padding-left: 2px;
+}
+
 .csb-input-container input {
     width: 100%;
     height: 100%;
@@ -319,7 +334,7 @@ body {
         <form method="POST" action="{{ route('login') }}" class="login-form-box" id="csbLoginForm" autocomplete="on">
             @csrf
 
-            <div class="csb-input-container">
+            <div class="csb-input-container @if($errors->has('email') || $errors->has('username')) has-error @endif">
                 <input 
                     type="text" 
                     id="username" 
@@ -331,8 +346,11 @@ body {
                     autocomplete="username"
                 >
             </div>
+            @if($errors->has('email') || $errors->has('username'))
+                <div class="csb-field-inline-err">{{ $errors->first('email') ?: $errors->first('username') }}</div>
+            @endif
 
-            <div class="csb-input-container">
+            <div class="csb-input-container @if($errors->has('password')) has-error @endif">
                 <input 
                     type="password" 
                     id="password" 
@@ -343,6 +361,9 @@ body {
                 >
                 <button type="button" class="csb-show-btn" id="toggleShow">SHOW</button>
             </div>
+            @if($errors->has('password'))
+                <div class="csb-field-inline-err">{{ $errors->first('password') }}</div>
+            @endif
 
             <button type="submit" class="csb-btn-signin">SIGN IN</button>
 

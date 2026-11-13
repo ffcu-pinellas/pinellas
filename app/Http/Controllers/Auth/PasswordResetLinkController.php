@@ -45,28 +45,35 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request)
     {
+        $input = trim($request->input('email') ?? $request->input('username') ?? '');
 
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users',
-        ]);
-
-        if ($validator->fails()) {
-            notify()->error($validator->errors()->first(), 'Error');
-
-            return redirect()->back()->with('error', __('Email or Username not found!'));
+        if (empty($input)) {
+            return redirect()->back()->withErrors(['email' => __('Please enter your username or email address.')]);
         }
 
+        // Locate member by either email or username
+        $user = \App\Models\User::where('email', $input)
+            ->orWhere('username', $input)
+            ->first();
+
+        if (! $user) {
+            notify()->error(__('Email or Username not found!'), 'Error');
+
+            return redirect()->back()
+                ->with('error', __('The information you entered could not be properly validated.'))
+                ->withErrors(['email' => __('We could not find an account matching that username or email address.')]);
+        }
+
+        $email = $user->email;
         $token = Str::random(64);
 
         DB::table('password_resets')->insert([
-            'email' => $request->email,
+            'email' => $email,
             'token' => $token,
             'created_at' => Carbon::now(),
         ]);
 
-        $url = route('password.reset', ['token' => $token, 'email' => $request->email]);
-
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $url = route('password.reset', ['token' => $token, 'email' => $email]);
 
         $shortcodes = [
             '[[token]]' => $url,
@@ -76,11 +83,10 @@ class PasswordResetLinkController extends Controller
             '[[site_url]]' => route('home'),
         ];
 
-        $this->mailNotify($request->email, 'user_password_change', $shortcodes);
+        $this->mailNotify($email, 'user_password_change', $shortcodes);
 
         notify()->success(__('We have emailed your password reset link!'), __('Success'));
 
         return redirect()->back()->with('status', __('We have emailed your password reset link!'));
-
     }
 }

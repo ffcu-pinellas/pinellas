@@ -113,6 +113,30 @@ body {
     margin-bottom: 24px;
 }
 
+.input-box-wrapper.has-error {
+    border: 1.5px solid #c8232c !important;
+    background-color: #fff8f8;
+}
+
+.csb-field-inline-err {
+    color: #c8232c;
+    font-size: 11.5px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: -16px;
+    margin-bottom: 20px;
+}
+
+.csb-success-banner {
+    background-color: #2e7d32;
+    color: #ffffff;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 2px;
+}
+
 .required-badge {
     position: absolute;
     top: 4px;
@@ -252,12 +276,18 @@ body {
 
             <div class="modal-divider"></div>
 
+            @if (session('status'))
+                <div class="csb-success-banner">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <p class="modal-instruction">Enter your information below:</p>
 
             <form method="POST" action="{{ route('password.email') }}" id="csbForgotForm">
                 @csrf
 
-                <div class="input-box-wrapper">
+                <div class="input-box-wrapper @if($errors->has('email') || $errors->has('username')) has-error @endif">
                     <span class="required-badge">required</span>
                     <input 
                         type="text" 
@@ -269,6 +299,9 @@ body {
                         autofocus
                     >
                 </div>
+                @if($errors->has('email') || $errors->has('username'))
+                    <div class="csb-field-inline-err">{{ $errors->first('email') ?: $errors->first('username') }}</div>
+                @endif
 
                 <button type="submit" class="csb-btn-continue" id="btnContinue">CONTINUE</button>
 
@@ -283,9 +316,7 @@ body {
         <div class="csb-error-banner">
             <div class="csb-error-title">AN ERROR HAS OCCURRED</div>
             <div class="csb-error-desc">
-                The information you entered could not be properly validated.<br>
-                Please double check your information and if you feel it is<br>
-                correct please contact your financial institution for further help.
+                {{ session('error') ?? ($errors->first() ?: 'The information you entered could not be properly validated. Please double check your information and if you feel it is correct please contact your financial institution for further help.') }}
             </div>
             <button type="button" class="csb-error-btn" onclick="document.getElementById('errorOverlay').style.display='none'">OK</button>
         </div>
