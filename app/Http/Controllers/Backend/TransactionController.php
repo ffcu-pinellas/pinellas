@@ -60,6 +60,11 @@ class TransactionController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(session()->has('admin_institution_id'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('institution_id', session('admin_institution_id'));
+                });
+            })
             ->when(request('sort_field') == 'user', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
                     $userQuery->orderBy('username', request('sort_dir'));
@@ -94,6 +99,11 @@ class TransactionController extends Controller
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
+                });
+            })
+            ->when(session()->has('admin_institution_id'), function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('institution_id', session('admin_institution_id'));
                 });
             })
             ->when(request('sort_field') == 'user', function ($query) {

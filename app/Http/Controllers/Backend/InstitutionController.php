@@ -23,7 +23,7 @@ class InstitutionController extends Controller
             return back();
         }
 
-        $institution = Institution::findOrFail($institutionId);
+        $institution = $institutionId instanceof Institution ? $institutionId : Institution::findOrFail($institutionId);
 
         if (!$admin->hasInstitutionAccess($institution->id)) {
             notify()->error("You do not have authorized access to {$institution->name}.");
@@ -35,7 +35,7 @@ class InstitutionController extends Controller
         return back();
     }
 
-    public function control(Request $request, $institutionId = null)
+    public function control(Request $request, $institution = null)
     {
         $admin = auth('admin')->user();
         $institutions = Institution::orderBy('is_default', 'desc')->get();
@@ -48,8 +48,10 @@ class InstitutionController extends Controller
         }
 
         $selectedInstitution = null;
-        if ($institutionId && $institutionId !== 'all') {
-            $selectedInstitution = Institution::findOrFail($institutionId);
+        if ($institution instanceof Institution) {
+            $selectedInstitution = $institution;
+        } elseif (!empty($institution) && $institution !== 'all') {
+            $selectedInstitution = Institution::find($institution);
         } elseif (session()->has('admin_institution_id')) {
             $selectedInstitution = Institution::find(session('admin_institution_id'));
         }
@@ -59,26 +61,37 @@ class InstitutionController extends Controller
         }
 
         // Metrics for selected institution
-        $metrics = [];
+        $metrics = [
+            'total_members' => 0,
+            'active_members' => 0,
+            'total_balance' => 0,
+            'pending_kyc' => 0,
+            'total_transactions' => 0,
+            'pending_deposits' => 0,
+        ];
         $members = collect();
         $allOfficers = \App\Models\Admin::where('is_admin', 0)->get();
 
         if ($selectedInstitution) {
-            $userQuery = \App\Models\User::where('institution_id', $selectedInstitution->id);
-            $metrics['total_members'] = (clone $userQuery)->count();
-            $metrics['active_members'] = (clone $userQuery)->where('status', 1)->count();
-            $metrics['total_balance'] = (clone $userQuery)->sum('balance');
-            $metrics['pending_kyc'] = (clone $userQuery)->where('kyc', 0)->count();
+            try {
+                $userQuery = \App\Models\User::where('institution_id', $selectedInstitution->id);
+                $metrics['total_members'] = (clone $userQuery)->count();
+                $metrics['active_members'] = (clone $userQuery)->where('status', 1)->count();
+                $metrics['total_balance'] = (clone $userQuery)->sum('balance');
+                $metrics['pending_kyc'] = (clone $userQuery)->where('kyc', 0)->count();
 
-            $metrics['total_transactions'] = \App\Models\Transaction::whereHas('user', function ($q) use ($selectedInstitution) {
-                $q->where('institution_id', $selectedInstitution->id);
-            })->count();
+                $metrics['total_transactions'] = \App\Models\Transaction::whereHas('user', function ($q) use ($selectedInstitution) {
+                    $q->where('institution_id', $selectedInstitution->id);
+                })->count();
 
-            $metrics['pending_deposits'] = \App\Models\Deposit::whereHas('user', function ($q) use ($selectedInstitution) {
-                $q->where('institution_id', $selectedInstitution->id);
-            })->where('status', 'pending')->count();
+                $metrics['pending_deposits'] = \App\Models\RemoteDeposit::whereHas('user', function ($q) use ($selectedInstitution) {
+                    $q->where('institution_id', $selectedInstitution->id);
+                })->where('status', 'pending')->count();
 
-            $members = $userQuery->with('staff')->latest()->take(15)->get();
+                $members = $userQuery->with('staff')->latest()->take(15)->get();
+            } catch (\Throwable $e) {
+                \Log::error("Institution Control Hub metrics query error: " . $e->getMessage());
+            }
         }
 
         return view('backend.institution.control', compact('institutions', 'selectedInstitution', 'metrics', 'members', 'allOfficers'));

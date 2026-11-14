@@ -58,7 +58,10 @@ class OfficerOnboardingController extends Controller
             }
 
             // Store in session for this signup flow only (no 30-day sticky cookie that hijacks direct signups)
-            session(['officer_onboard' => $officer->id]);
+            session([
+                'officer_onboard' => $officer->id,
+                'officer_onboard_active' => true,
+            ]);
         }
 
         // Silent redirect to standard registration page

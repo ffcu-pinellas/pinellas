@@ -212,7 +212,7 @@ body {
             </div>
 
             <div class="modal-body">
-                <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-logo-stacked.png') }}" alt="Cleveland State Bank / Grenada State Bank" class="csb-welcome-logo">
+                <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank / Grenada State Bank" class="csb-welcome-logo">
 
                 <hr class="modal-divider">
 
@@ -253,3 +253,4 @@ body {
 
 </body>
 </html>
+

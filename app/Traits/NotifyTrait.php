@@ -180,13 +180,25 @@ trait NotifyTrait
                     'from_email' => $supportEmail,
                 ];
 
+                // When under a custom institution (e.g. Cleveland State Bank), scrub any hardcoded legacy brand names from DB templates
+                if ($isCustom) {
+                    $details['subject'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['subject']);
+                    $details['title'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['title']);
+                    $details['salutation'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['salutation']);
+                    $details['message_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['message_body']);
+                    $details['footer_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['footer_body']);
+                }
+
                 $details = $this->sanitizeMailTemplateDetails($details);
 
                 if ($code == 'email_verification') {
-                return (new MailMessage)
-                    ->subject($details['subject'])
-                    ->markdown('backend.mail.user-mail-send', ['details' => $details]);
-            }
+                    $fromAddress = !empty($details['from_email']) ? $details['from_email'] : config('mail.from.address');
+                    $fromName = !empty($details['from_name']) ? $details['from_name'] : config('mail.from.name');
+                    return (new MailMessage)
+                        ->from($fromAddress, $fromName)
+                        ->subject($details['subject'])
+                        ->markdown('backend.mail.user-mail-send', ['details' => $details]);
+                }
 
             try {
                 return Mail::to($email)->send(new MailSend($details));
@@ -212,15 +224,21 @@ trait NotifyTrait
             $manualMessage = $shortcodes['[[message]]'] ?? null;
 
             $details = [
-                'subject' => $manualSubject ?: 'Account Notification - ' . setting('site_title', 'global'),
+                'subject' => $manualSubject ?: 'Account Notification - ' . $siteTitle,
                 'message_body' => $manualMessage ?: ($shortcodes['[[action]]'] ?? 'A notification has been triggered for your account.'),
                 'site_logo' => MailAsset::absolute($siteLogo),
                 'site_logo_path' => $siteLogo ? public_path($siteLogo) : null,
-                'site_link' => rtrim((string) config('app.url'), '/').'/',
-                'site_title' => setting('site_title', 'global'),
+                'site_link' => $siteLink,
+                'site_title' => $siteTitle,
+                'primary_color' => $primaryColor,
+                'regulator_type' => $regulator,
+                'support_phone' => $supportPhone,
+                'support_email' => $supportEmail,
+                'from_name' => $siteTitle,
+                'from_email' => $supportEmail,
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
                 'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
-                'footer_body' => setting('site_title', 'global') ?? 'FrontField Credit Union',
+                'footer_body' => $siteTitle,
                 'footer_status' => 1,
                 'banner' => null,
                 'button_level' => null,

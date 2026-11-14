@@ -609,12 +609,12 @@ body {
                 </li>
                 <div class="collapse show" id="menuDocsSettings">
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.fund_transfer.log') }}" class="csb-nav-link">
+                        <a href="{{ route('user.fund_transfer.transfer.log') }}" class="csb-nav-link">
                             <i class="fa-solid fa-file-lines" style="width: 16px;"></i> Documents
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.fund_transfer.log') }}" class="csb-nav-link">
+                        <a href="{{ route('user.fund_transfer.transfer.log') }}" class="csb-nav-link">
                             <i class="fa-solid fa-chart-column" style="width: 16px;"></i> Reports
                         </a>
                     </li>
@@ -754,7 +754,7 @@ body {
                         @endif
 
                         <div style="text-align: right; margin-top: 14px;">
-                            <a href="{{ route('user.fund_transfer.log') }}" style="font-size: 12px; color: #1b325f; font-weight: bold; text-decoration: none;">View All Transactions &rarr;</a>
+                            <a href="{{ route('user.fund_transfer.transfer.log') }}" style="font-size: 12px; color: #1b325f; font-weight: bold; text-decoration: none;">View All Transactions &rarr;</a>
                         </div>
                     </div>
                 </div>
@@ -1253,7 +1253,7 @@ body {
         var $btn = $form.find('button[type=submit]');
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Dispatching...');
 
-        $.post("{{ route('user.fund_transfer.wire.post') }}", $form.serialize())
+        $.post("{{ route('user.fund_transfer.transfer.wire.post') }}", $form.serialize())
             .done(function(res) {
                 csbTxSuccess('#resWire', res.message || 'Wire transfer dispatched. Processing may take 1–3 business days.');
             })

@@ -37,6 +37,23 @@ class DashboardController extends Controller
                 });
             }
 
+            // Institutional Scope Filter
+            $scopedInstId = session('admin_institution_id');
+            if ($scopedInstId) {
+                $baseUser->where('institution_id', $scopedInstId);
+                $baseTransaction->whereHas('user', function ($q) use ($scopedInstId) {
+                    $q->where('institution_id', $scopedInstId);
+                });
+            } elseif ($adminUser && !$adminUser->isSuperAdmin()) {
+                $allowed = $adminUser->getAllowedInstitutionsList();
+                if (!in_array('*', $allowed)) {
+                    $baseUser->whereIn('institution_id', $allowed);
+                    $baseTransaction->whereHas('user', function ($q) use ($allowed) {
+                        $q->whereIn('institution_id', $allowed);
+                    });
+                }
+            }
+
             $totalDeposit = (clone $baseTransaction)->where('status', TxnStatus::Success->value)->where('type', TxnType::ManualDeposit->value);
 
             $totalSend = (clone $baseTransaction)->where('status', TxnStatus::Success->value)

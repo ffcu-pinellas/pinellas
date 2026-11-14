@@ -44,7 +44,9 @@ class MailSend extends Mailable
             $fromEmail = trim((string) $this->details['from_email']);
         }
 
-        $fromName = $this->details['from_name'] ?? (setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name'));
+        $fromName = !empty($this->details['from_name']) 
+            ? trim((string) $this->details['from_name']) 
+            : (setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name'));
 
         $mail = $this->from($fromEmail, $fromName)
             ->subject($this->details['subject'])

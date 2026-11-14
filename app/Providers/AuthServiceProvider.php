@@ -38,6 +38,12 @@ class AuthServiceProvider extends ServiceProvider
         });
 
         VerifyEmail::toMailUsing(function ($notifiable) {
+            $institution = ($notifiable instanceof \App\Models\User && $notifiable->institution_id)
+                ? $notifiable->institution
+                : ((app()->bound('institution')) ? app('institution') : \App\Models\Institution::getDefault());
+
+            $isCustom = $institution && !$institution->is_default;
+
             $verifyUrl = URL::temporarySignedRoute(
                 'verification.verify',
                 Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
@@ -46,11 +52,21 @@ class AuthServiceProvider extends ServiceProvider
                     'hash' => sha1($notifiable->getEmailForVerification()),
                 ]
             );
+
+            if ($isCustom) {
+                $parsed = parse_url($verifyUrl);
+                $targetHost = "{$institution->slug}.frontfieldcu.pro";
+                $verifyUrl = "https://{$targetHost}" . ($parsed['path'] ?? '') . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+            }
+
+            $siteTitle = $isCustom ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+            $siteUrl = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home');
+
             $shortcodes = [
                 '[[token]]' => $verifyUrl,
                 '[[full_name]]' => $notifiable->full_name,
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $siteTitle,
+                '[[site_url]]' => $siteUrl,
             ];
 
             return $this->mailNotify($notifiable->email, 'email_verification', $shortcodes);

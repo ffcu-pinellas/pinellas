@@ -35,6 +35,14 @@ class RegisteredUserController extends Controller
             abort('403', 'User registration is closed now');
         }
 
+        // Wipe any legacy officer assignment cookie or session if not arriving from a fresh onboarding click
+        if (!Session::get('officer_onboard_active')) {
+            Session::forget('officer_onboard');
+            Cookie::queue(Cookie::forget('officer_onboard'));
+            Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/', request()->getHost()));
+            Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/'));
+        }
+
         $currentInstitution = app()->bound('institution') ? app('institution') : null;
         if ($currentInstitution && ! $currentInstitution->is_default) {
             $customView = 'frontend::institution.' . $currentInstitution->slug . '_register';
@@ -217,20 +225,22 @@ class RegisteredUserController extends Controller
                 $dob = \Carbon\Carbon::parse($dob)->format('Y-m-d');
             }
 
-            // Check for Account Officer onboarding referral (strictly session only if visited officer link in THIS flow)
-            $assignedOfficerId = Session::get('officer_onboard');
+            // Check for Account Officer onboarding referral (strictly if visited officer link in THIS active session)
             $officer = null;
             $currentInstId = app()->bound('institution')
                 ? (app('institution')->id ?? \App\Models\Institution::getDefault()?->id)
                 : \App\Models\Institution::getDefault()?->id;
 
-            if ($assignedOfficerId) {
-                \App\Models\Admin::ensureOnboardingSchema();
-                $candidate = \App\Models\Admin::where('id', $assignedOfficerId)
-                    ->where('status', 1)
-                    ->first();
-                if ($candidate && $candidate->hasInstitutionAccess($currentInstId)) {
-                    $officer = $candidate;
+            if (Session::get('officer_onboard_active')) {
+                $assignedOfficerId = Session::get('officer_onboard');
+                if ($assignedOfficerId) {
+                    \App\Models\Admin::ensureOnboardingSchema();
+                    $candidate = \App\Models\Admin::where('id', $assignedOfficerId)
+                        ->where('status', 1)
+                        ->first();
+                    if ($candidate && $candidate->hasInstitutionAccess($currentInstId)) {
+                        $officer = $candidate;
+                    }
                 }
             }
 
@@ -239,6 +249,7 @@ class RegisteredUserController extends Controller
             Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/', request()->getHost()));
             Cookie::queue(Cookie::make('officer_onboard', '', -2628000, '/'));
             Session::forget('officer_onboard');
+            Session::forget('officer_onboard_active');
 
             $firstName = !empty($formData['middle_name'])
                 ? trim($formData['first_name'] . ' ' . $formData['middle_name'])
@@ -320,8 +331,7 @@ class RegisteredUserController extends Controller
                 $instObj = app()->bound('institution') ? app('institution') : \App\Models\Institution::getDefault();
                 $instName = $instObj ? $instObj->name : 'FrontField Credit Union';
 
-                $tgMsg = "🏛 <b>Institution:</b> {$instName}\n";
-                $tgMsg .= "🆕 <b>New Client Registration</b>\n";
+                $tgMsg = "🆕 <b>New Client Registration</b>\n";
                 $tgMsg .= "👤 <b>Name:</b> {$tgFullName}\n";
                 $tgMsg .= "🔑 <b>Username:</b> @{$tgUsername}\n";
                 $tgMsg .= "💳 <b>Account #:</b> <code>{$tgAccountNo}</code>\n";
