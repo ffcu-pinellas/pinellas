@@ -1261,7 +1261,10 @@ body {
                                 @csrf
                                 <div class="p-3 mb-3 text-center rounded-3" style="background: linear-gradient(135deg, #1b325f 0%, #7414ca 100%); color:#fff;">
                                     <div class="d-flex align-items-center justify-content-center gap-3 mb-1">
-                                        <img src="{{ asset('assets/external/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank" style="height:26px; filter:brightness(0) invert(1);">
+                                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" 
+                                             alt="Cleveland State Bank" 
+                                             style="height:26px; filter:brightness(0) invert(1);"
+                                             onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}';">
                                         <div style="width:1px; height:20px; background:rgba(255,255,255,0.4);"></div>
                                         <span style="font-size:24px; font-weight:900; letter-spacing:0.5px;">Zelle®</span>
                                     </div>

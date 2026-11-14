@@ -70,7 +70,7 @@
                                         </div>
                                         <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                                             <span class="small text-muted">Routing Number</span>
-                                            <span class="small fw-bold text-dark">063192257</span>
+                                            <span class="small fw-bold text-dark">{{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? ($currentInstitution->routing_number ?? '084301768') : (setting('site_routing_number') ?? '263177742') }}</span>
                                         </div>
                                         <div class="d-flex justify-content-between">
                                             <span class="small text-muted">Next Statement</span>

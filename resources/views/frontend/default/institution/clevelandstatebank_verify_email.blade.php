@@ -212,7 +212,10 @@ body {
             </div>
 
             <div class="modal-body">
-                <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank / Grenada State Bank" class="csb-welcome-logo">
+                <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" 
+                     alt="Cleveland State Bank / Grenada State Bank" 
+                     class="csb-welcome-logo"
+                     onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}';">
 
                 <hr class="modal-divider">
 

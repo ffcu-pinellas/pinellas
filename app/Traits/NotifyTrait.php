@@ -107,17 +107,26 @@ trait NotifyTrait
     {
         $shortcodes = $this->expandMailShortcodeAliases($this->formatShortcodes($shortcodes));
         try {
-            $user = \App\Models\User::where('email', $email)->first();
+            $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower(trim($email))])->first()
+                ?? \App\Models\User::where('email', $email)->first();
             $institution = $user?->institution
                 ?? (app()->bound('institution') ? app('institution') : null)
                 ?? \App\Models\Institution::getDefault();
             $isCustom = $institution && !$institution->is_default;
+
+            if ($user && empty($user->institution_id) && $isCustom) {
+                try {
+                    $user->update(['institution_id' => $institution->id]);
+                } catch (\Throwable $e) {}
+            }
+
             $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
             $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
-            $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+            $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC')) : 'Federally Insured by NCUA';
             $supportPhone = $institution->support_phone ?? ($isCustom ? '662-843-9461' : setting('site_phone', 'global'));
-            $supportEmail = $institution->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
+            $supportEmail = $institution->support_email ?? ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
             $siteLink = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : rtrim((string) config('app.url'), '/').'/';
+            $fromName = $institution->mail_from_name ?: $siteTitle;
 
             $siteLogo = $institution->logo_path ?? null;
             if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
@@ -176,28 +185,29 @@ trait NotifyTrait
                     'regulator_type' => $regulator,
                     'support_phone' => $supportPhone,
                     'support_email' => $supportEmail,
-                    'from_name' => $siteTitle,
+                    'from_name' => $fromName,
                     'from_email' => $supportEmail,
                 ];
 
                 // When under a custom institution (e.g. Cleveland State Bank), scrub any hardcoded legacy brand names from DB templates
                 if ($isCustom) {
-                    $details['subject'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['subject']);
-                    $details['title'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['title']);
-                    $details['salutation'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['salutation']);
-                    $details['message_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['message_body']);
-                    $details['footer_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield'], $siteTitle, $details['footer_body']);
+                    $details['subject'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['subject']);
+                    $details['title'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['title']);
+                    $details['salutation'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['salutation']);
+                    $details['message_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['message_body']);
+                    $details['footer_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['footer_body']);
                 }
 
                 $details = $this->sanitizeMailTemplateDetails($details);
 
                 if ($code == 'email_verification') {
-                    $fromAddress = !empty($details['from_email']) ? $details['from_email'] : config('mail.from.address');
-                    $fromName = !empty($details['from_name']) ? $details['from_name'] : config('mail.from.name');
-                    return (new MailMessage)
+                    $fromAddress = config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+                    $msg = (new MailMessage)
                         ->from($fromAddress, $fromName)
+                        ->replyTo($supportEmail, $fromName)
                         ->subject($details['subject'])
-                        ->markdown('backend.mail.user-mail-send', ['details' => $details]);
+                        ->view('backend.mail.user-mail-send', ['details' => $details]);
+                    return $msg;
                 }
 
             try {

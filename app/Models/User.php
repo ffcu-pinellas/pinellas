@@ -568,10 +568,11 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
         $siteLogo = $institution->logo_path ? asset('assets/' . $institution->logo_path) : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png'));
         $siteLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
-        $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
+        $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC')) : 'Federally Insured by NCUA';
         $supportPhone = $institution->support_phone ?? ($isCustom ? '662-843-9461' : setting('site_phone', 'global'));
-        $supportEmail = $institution->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
+        $supportEmail = $institution->support_email ?? ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
         $siteLink = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home');
+        $fromName = $institution->mail_from_name ?: $siteTitle;
 
         $details = [
             'subject' => "Verify Your Email Address — {$siteTitle}",
@@ -589,7 +590,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
             'regulator_type' => $regulator,
             'support_phone' => $supportPhone,
             'support_email' => $supportEmail,
-            'from_name' => $siteTitle,
+            'from_name' => $fromName,
             'from_email' => $supportEmail,
         ];
 

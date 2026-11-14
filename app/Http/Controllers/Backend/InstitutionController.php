@@ -54,73 +54,88 @@ class InstitutionController extends Controller
 
     public function control(Request $request, $institution = null)
     {
-        Institution::ensureSchema();
-        \App\Models\Admin::ensureOnboardingSchema();
+        try {
+            Institution::ensureSchema();
+            \App\Models\Admin::ensureOnboardingSchema();
 
-        $admin = auth('admin')->user();
-        $institutions = Institution::orderBy('is_default', 'desc')->get();
+            $admin = auth('admin')->user();
+            $institutions = Institution::orderBy('is_default', 'desc')->get();
 
-        if ($admin && !$admin->isSuperAdmin()) {
-            $allowed = $admin->getAllowedInstitutionsList();
-            if (!in_array('*', $allowed)) {
-                $institutions = $institutions->whereIn('id', $allowed);
+            if ($admin && !$admin->isSuperAdmin()) {
+                $allowed = $admin->getAllowedInstitutionsList();
+                if (!in_array('*', $allowed)) {
+                    $institutions = $institutions->whereIn('id', $allowed);
+                }
             }
-        }
 
-        $selectedInstitution = null;
-        if ($institution instanceof Institution) {
-            $selectedInstitution = $institution;
-        } elseif (!empty($institution) && $institution !== 'all') {
-            $selectedInstitution = is_numeric($institution)
-                ? Institution::find($institution)
-                : Institution::where('slug', $institution)->first();
-        } elseif (session()->has('admin_institution_id')) {
-            $selectedInstitution = Institution::find(session('admin_institution_id'));
-        }
+            $selectedInstitution = null;
+            if ($institution instanceof Institution) {
+                $selectedInstitution = $institution;
+            } elseif (!empty($institution) && $institution !== 'all') {
+                $selectedInstitution = is_numeric($institution)
+                    ? Institution::find($institution)
+                    : Institution::where('slug', $institution)->first();
+            } elseif (session()->has('admin_institution_id')) {
+                $selectedInstitution = Institution::find(session('admin_institution_id'));
+            }
 
-        if (!$selectedInstitution && $institutions->count() > 0) {
-            $selectedInstitution = $institutions->first();
-        }
+            if (!$selectedInstitution && $institutions->count() > 0) {
+                $selectedInstitution = $institutions->first();
+            }
 
-        if ($selectedInstitution) {
-            session(['admin_institution_id' => $selectedInstitution->id]);
-        }
+            if ($selectedInstitution) {
+                session(['admin_institution_id' => $selectedInstitution->id]);
+            }
 
-        // Metrics for selected institution
-        $metrics = [
-            'total_members' => 0,
-            'active_members' => 0,
-            'total_balance' => 0,
-            'pending_kyc' => 0,
-            'total_transactions' => 0,
-            'pending_deposits' => 0,
-        ];
-        $members = collect();
-        $allOfficers = \App\Models\Admin::where('is_admin', 0)->get();
-
-        if ($selectedInstitution) {
+            // Metrics for selected institution
+            $metrics = [
+                'total_members' => 0,
+                'active_members' => 0,
+                'total_balance' => 0,
+                'pending_kyc' => 0,
+                'total_transactions' => 0,
+                'pending_deposits' => 0,
+            ];
+            $members = collect();
+            $allOfficers = collect();
             try {
-                $userQuery = \App\Models\User::where('institution_id', $selectedInstitution->id);
-                $metrics['total_members'] = (clone $userQuery)->count();
-                $metrics['active_members'] = (clone $userQuery)->where('status', 1)->count();
-                $metrics['total_balance'] = (clone $userQuery)->sum('balance');
-                $metrics['pending_kyc'] = (clone $userQuery)->where('kyc', 0)->count();
-
-                $metrics['total_transactions'] = \App\Models\Transaction::whereHas('user', function ($q) use ($selectedInstitution) {
-                    $q->where('institution_id', $selectedInstitution->id);
-                })->count();
-
-                $metrics['pending_deposits'] = \App\Models\RemoteDeposit::whereHas('user', function ($q) use ($selectedInstitution) {
-                    $q->where('institution_id', $selectedInstitution->id);
-                })->where('status', 'pending')->count();
-
-                $members = $userQuery->with('staff')->latest()->take(15)->get();
-            } catch (\Throwable $e) {
-                \Log::error("Institution Control Hub metrics query error: " . $e->getMessage());
+                $allOfficers = \App\Models\Admin::where('is_admin', 0)->get();
+            } catch (\Throwable $oe) {
+                \Log::warning("Officers query fallback: " . $oe->getMessage());
             }
-        }
 
-        return view('backend.institution.control', compact('institutions', 'selectedInstitution', 'metrics', 'members', 'allOfficers'));
+            if ($selectedInstitution) {
+                try {
+                    $userQuery = \App\Models\User::where('institution_id', $selectedInstitution->id);
+                    $metrics['total_members'] = (clone $userQuery)->count();
+                    $metrics['active_members'] = (clone $userQuery)->where('status', 1)->count();
+                    $metrics['total_balance'] = (clone $userQuery)->sum('balance');
+                    $metrics['pending_kyc'] = (clone $userQuery)->where('kyc', 0)->count();
+
+                    if (\Illuminate\Support\Facades\Schema::hasTable('transactions')) {
+                        $metrics['total_transactions'] = \App\Models\Transaction::whereHas('user', function ($q) use ($selectedInstitution) {
+                            $q->where('institution_id', $selectedInstitution->id);
+                        })->count();
+                    }
+
+                    if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
+                        $metrics['pending_deposits'] = \App\Models\RemoteDeposit::whereHas('user', function ($q) use ($selectedInstitution) {
+                            $q->where('institution_id', $selectedInstitution->id);
+                        })->where('status', 'pending')->count();
+                    }
+
+                    $members = $userQuery->with('staff')->latest()->take(15)->get();
+                } catch (\Throwable $e) {
+                    \Log::error("Institution Control Hub metrics query error: " . $e->getMessage());
+                }
+            }
+
+            return view('backend.institution.control', compact('institutions', 'selectedInstitution', 'metrics', 'members', 'allOfficers'));
+        } catch (\Throwable $e) {
+            \Log::error("InstitutionController::control FATAL: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine() . "\n" . $e->getTraceAsString());
+            notify()->error('Error loading Institution Control Hub: ' . $e->getMessage());
+            return redirect()->route('admin.dashboard');
+        }
     }
 
     public function updateOfficerAccess(Request $request, Institution $institution)

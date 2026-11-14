@@ -26,6 +26,10 @@
         header.header-FrontField, .header-FrontField {
             background: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
         }
+        /* Hero & Banner Gradients */
+        .banno-hero, .hero-section, .settings-header-banner, .gradient-brand {
+            background: linear-gradient(135deg, {{ $currentInstitution->primary_color ?? '#c8232c' }} 0%, {{ $currentInstitution->primary_hover ?? '#a81c24' }} 100%) !important;
+        }
         /* Sidebar & navigation styling */
         .sidebar-nav .sidebar-nav-item.active,
         .sidebar-nav .sidebar-nav-item:hover,
@@ -40,17 +44,45 @@
         .sidebar-nav li a:hover i {
             color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
         }
-        .btn-primary {
+        .btn-primary, .primary-btn, button.btn-primary, .site-btn-sm.primary-btn {
+            background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            border-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            color: #ffffff !important;
+        }
+        .btn-primary:hover, .primary-btn:hover {
+            background-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
+            border-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
+            color: #ffffff !important;
+        }
+        .btn-outline-primary {
+            color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            border-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            color: #ffffff !important;
+        }
+        .text-primary, .text-site-primary { color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
+        .bg-primary { background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
+        .border-primary { border-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
+        .badge.bg-primary-subtle, .badge.bg-light.text-primary {
+            background-color: {{ $currentInstitution->secondary_color ?? '#fdf2f2' }} !important;
+            color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+            background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            color: #ffffff !important;
+        }
+        .form-check-input:checked {
             background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
             border-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
         }
-        .btn-primary:hover {
-            background-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
-            border-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
+        .loader-spinner {
+            border-top-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
         }
-        .text-primary { color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
-        .bg-primary { background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
-        a { color: {{ $currentInstitution->primary_color ?? '#c8232c' }}; }
+        a:not(.btn):not(.dropdown-item):not(.nav-link) {
+            color: {{ $currentInstitution->primary_color ?? '#c8232c' }};
+        }
         @if(!empty($currentInstitution->custom_css))
         {!! $currentInstitution->custom_css !!}
         @endif

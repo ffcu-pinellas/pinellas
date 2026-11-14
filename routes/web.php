@@ -569,8 +569,20 @@ HTML;
         // 14. Zelle and Email Template Auto Sync
         \App\Services\ZelleSettingAutoSync::sync();
         \App\Services\EmailTemplateAutoSync::sync();
+
+        // 15. Backfill CSB institution accounts if null
+        $csbInst = \App\Models\Institution::where('slug', 'clevelandstatebank')->first();
+        if ($csbInst) {
+            \App\Models\User::where('account_number', 'like', 'CSB%')->whereNull('institution_id')->update(['institution_id' => $csbInst->id]);
+        }
+
+        // 16. Purge View & Route Caches
+        try {
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        } catch (\Throwable $ce) {}
         
-        return "Migration Successful! $count users updated to 'always_ask'. Branded Notification, Zelle and Welcome Email setup complete.";
+        return "Migration & Cache Purge Successful! $count users updated to 'always_ask'. Branded Notification, Zelle, CSB Institutional Schemas and Welcome Email setup complete.";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
