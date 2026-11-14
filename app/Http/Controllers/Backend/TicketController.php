@@ -31,13 +31,15 @@ class TicketController extends Controller
         $perPage = $request->perPage ?? 15;
         $search = $request->search ?? null;
         $status = $request->status ?? 'all';
-        $tickets = Ticket::search($search)
+        $ticketsQuery = Ticket::search($search)
             ->status($status)
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
-            })
+            });
+        admin_institution_scope($ticketsQuery, 'user');
+        $tickets = $ticketsQuery
             ->when(request('query') != null, function ($query) {
                 $query->where('title', 'LIKE', '%'.request('query').'%');
             })

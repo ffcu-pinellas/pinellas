@@ -157,15 +157,22 @@ class DividendService
     /**
      * Dry-run preview of the next dividend batch across all eligible users.
      */
-    public function previewBatch(): array
+    public function previewBatch(?int $institutionId = null): array
     {
         self::autoSyncSchema();
         $global = $this->getGlobalSettings();
 
         // Query only users where dividend_status is 1 (OFF by default) and account is active
-        $users = User::where('dividend_status', 1)
-            ->where('status', 1)
-            ->get();
+        $userQuery = User::where('dividend_status', 1)
+            ->where('status', 1);
+
+        if ($institutionId) {
+            $userQuery->where('institution_id', $institutionId);
+        } elseif (function_exists('admin_institution_scope')) {
+            admin_institution_scope($userQuery, null);
+        }
+
+        $users = $userQuery->get();
 
         $eligible = [];
         $skipped = [];
@@ -195,10 +202,10 @@ class DividendService
     /**
      * Process batch dividend payout.
      */
-    public function processBatch(?array $selectedUserIds = null, string $triggeredBy = 'system'): array
+    public function processBatch(?array $selectedUserIds = null, string $triggeredBy = 'system', ?int $institutionId = null): array
     {
         self::autoSyncSchema();
-        $preview = $this->previewBatch();
+        $preview = $this->previewBatch($institutionId);
         $eligible = $preview['eligible_items'];
 
         if (empty($eligible)) {

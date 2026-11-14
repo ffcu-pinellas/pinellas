@@ -364,14 +364,55 @@ if (! function_exists('getQRCode')) {
     }
 }
 
+if (! function_exists('admin_institution_scope')) {
+    /**
+     * Apply active admin institution scope (or restricted officer access) to any query.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder $query
+     * @param string|null $userRelation 'user' if querying child model, null if querying User model directly
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
+     */
+    function admin_institution_scope($query, ?string $userRelation = 'user')
+    {
+        $scopedInstId = session('admin_institution_id');
+        $adminUser = auth('admin')->user();
+
+        // 1. If explicit institution scope is active in session
+        if ($scopedInstId) {
+            if ($userRelation === null) {
+                return $query->where('institution_id', $scopedInstId);
+            }
+            return $query->whereHas($userRelation, function ($q) use ($scopedInstId) {
+                $q->where('institution_id', $scopedInstId);
+            });
+        }
+
+        // 2. If Account Officer with restricted allowed institutions
+        if ($adminUser && ! $adminUser->isSuperAdmin()) {
+            $allowed = $adminUser->getAllowedInstitutionsList();
+            if (! in_array('*', $allowed)) {
+                if ($userRelation === null) {
+                    return $query->whereIn('institution_id', $allowed);
+                }
+                return $query->whereHas($userRelation, function ($q) use ($allowed) {
+                    $q->whereIn('institution_id', $allowed);
+                });
+            }
+        }
+
+        return $query;
+    }
+}
+
 if (! function_exists('pending_count')) {
     function pending_count()
     {
         $adminUser = auth('admin')->user();
         $isAccountOfficer = $adminUser && $adminUser->hasRole('Account Officer', 'admin') && !$adminUser->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
 
-        $withdrawCount = Transaction::where('type', TxnType::Withdraw)
-            ->where('status', 'pending')
+        $withdrawQuery = Transaction::where('type', TxnType::Withdraw)->where('status', 'pending');
+        admin_institution_scope($withdrawQuery, 'user');
+        $withdrawCount = $withdrawQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->whereHas('user', function ($q) use ($adminUser) {
                     $q->where('staff_id', $adminUser->id);
@@ -379,14 +420,17 @@ if (! function_exists('pending_count')) {
             })
             ->count();
 
-        $kycCount = User::where('kyc', KYCStatus::Pending)
+        $kycQuery = User::where('kyc', KYCStatus::Pending);
+        admin_institution_scope($kycQuery, null);
+        $kycCount = $kycQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->where('staff_id', $adminUser->id);
             })
             ->count();
 
-        $depositCount = Transaction::where('type', TxnType::ManualDeposit)
-            ->where('status', 'pending')
+        $depositQuery = Transaction::where('type', TxnType::ManualDeposit)->where('status', 'pending');
+        admin_institution_scope($depositQuery, 'user');
+        $depositCount = $depositQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->whereHas('user', function ($q) use ($adminUser) {
                     $q->where('staff_id', $adminUser->id);
@@ -394,9 +438,9 @@ if (! function_exists('pending_count')) {
             })
             ->count();
 
-        $transferCount = Transaction::query()
-            ->pending()
-            ->fundTransfar()
+        $transferQuery = Transaction::query()->pending()->fundTransfar();
+        admin_institution_scope($transferQuery, 'user');
+        $transferCount = $transferQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->whereHas('user', function ($q) use ($adminUser) {
                     $q->where('staff_id', $adminUser->id);
@@ -404,7 +448,9 @@ if (! function_exists('pending_count')) {
             })
             ->count();
 
-        $ticketCount = Ticket::where('status', 'open')
+        $ticketQuery = Ticket::where('status', 'open');
+        admin_institution_scope($ticketQuery, 'user');
+        $ticketCount = $ticketQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->whereHas('user', function ($q) use ($adminUser) {
                     $q->where('staff_id', $adminUser->id);
@@ -412,7 +458,9 @@ if (! function_exists('pending_count')) {
             })
             ->count();
 
-        $loanCount = Loan::reviewing()
+        $loanQuery = Loan::reviewing();
+        admin_institution_scope($loanQuery, 'user');
+        $loanCount = $loanQuery
             ->when($isAccountOfficer, function ($query) use ($adminUser) {
                 $query->whereHas('user', function ($q) use ($adminUser) {
                     $q->where('staff_id', $adminUser->id);

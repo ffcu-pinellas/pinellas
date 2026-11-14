@@ -146,7 +146,9 @@ class KycController extends Controller
         $search = $request->search ?? null;
         $status = $request->status ?? null;
 
-        $kycs = User::where('kyc', KYCStatus::Pending->value)
+        $query = User::where('kyc', KYCStatus::Pending->value);
+        admin_institution_scope($query, null);
+        $kycs = $query
             ->search($search)
             ->when(in_array(request('sort_field'), ['updated_at', 'username', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
@@ -169,7 +171,9 @@ class KycController extends Controller
         $search = $request->search ?? null;
         $status = $request->status ?? null;
 
-        $kycs = User::where('kyc', KYCStatus::Failed->value)
+        $query = User::where('kyc', KYCStatus::Failed->value);
+        admin_institution_scope($query, null);
+        $kycs = $query
             ->search($search)
             ->status($status)
             ->when(in_array(request('sort_field'), ['updated_at', 'username', 'status']), function ($query) {
@@ -304,8 +308,10 @@ class KycController extends Controller
         $search = $request->search ?? null;
         $status = $request->status ?? 'all';
 
-        $kycs = User::query()
-            ->has('kycs')
+        $query = User::query()
+            ->has('kycs');
+        admin_institution_scope($query, null);
+        $kycs = $query
             ->when(in_array(request('sort_field'), ['updated_at', 'username', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })

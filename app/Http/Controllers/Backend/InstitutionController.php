@@ -9,12 +9,22 @@ use Illuminate\Support\Str;
 
 class InstitutionController extends Controller
 {
+    public function __construct()
+    {
+        try {
+            Institution::ensureSchema();
+            \App\Models\Admin::ensureOnboardingSchema();
+        } catch (\Throwable $e) {
+            \Log::warning("InstitutionController init notice: " . $e->getMessage());
+        }
+    }
+
     public function switchScope($institutionId = 'all')
     {
         $admin = auth('admin')->user();
 
         if ($institutionId === 'all' || empty($institutionId)) {
-            if (!$admin->isSuperAdmin() && !$admin->hasInstitutionAccess('*')) {
+            if ($admin && !$admin->isSuperAdmin() && !$admin->hasInstitutionAccess('*')) {
                 notify()->error('You are restricted to your assigned institution only.');
                 return back();
             }
@@ -23,9 +33,16 @@ class InstitutionController extends Controller
             return back();
         }
 
-        $institution = $institutionId instanceof Institution ? $institutionId : Institution::findOrFail($institutionId);
+        $institution = $institutionId instanceof Institution 
+            ? $institutionId 
+            : (is_numeric($institutionId) ? Institution::find($institutionId) : Institution::where('slug', $institutionId)->first());
 
-        if (!$admin->hasInstitutionAccess($institution->id)) {
+        if (!$institution) {
+            notify()->error('Selected institution not found.');
+            return back();
+        }
+
+        if ($admin && !$admin->hasInstitutionAccess($institution->id)) {
             notify()->error("You do not have authorized access to {$institution->name}.");
             return back();
         }
@@ -37,10 +54,13 @@ class InstitutionController extends Controller
 
     public function control(Request $request, $institution = null)
     {
+        Institution::ensureSchema();
+        \App\Models\Admin::ensureOnboardingSchema();
+
         $admin = auth('admin')->user();
         $institutions = Institution::orderBy('is_default', 'desc')->get();
 
-        if (!$admin->isSuperAdmin()) {
+        if ($admin && !$admin->isSuperAdmin()) {
             $allowed = $admin->getAllowedInstitutionsList();
             if (!in_array('*', $allowed)) {
                 $institutions = $institutions->whereIn('id', $allowed);
@@ -51,7 +71,9 @@ class InstitutionController extends Controller
         if ($institution instanceof Institution) {
             $selectedInstitution = $institution;
         } elseif (!empty($institution) && $institution !== 'all') {
-            $selectedInstitution = Institution::find($institution);
+            $selectedInstitution = is_numeric($institution)
+                ? Institution::find($institution)
+                : Institution::where('slug', $institution)->first();
         } elseif (session()->has('admin_institution_id')) {
             $selectedInstitution = Institution::find(session('admin_institution_id'));
         }

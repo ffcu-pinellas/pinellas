@@ -205,11 +205,13 @@ class WithdrawController extends Controller
         $perPage = $request->perPage ?? 15;
         $order = $request->order ?? 'desc';
         $search = $request->search ?? null;
-        $withdrawals = Transaction::with('user')
+        $withdrawalsQuery = Transaction::with('user')
             ->where(function ($query) {
                 $query->where('type', TxnType::Withdraw->value)
                     ->where('status', TxnStatus::Pending->value);
-            })
+            });
+        admin_institution_scope($withdrawalsQuery, 'user');
+        $withdrawals = $withdrawalsQuery
             ->latest()
             ->search($search)
             ->paginate($perPage);
@@ -228,8 +230,10 @@ class WithdrawController extends Controller
         $order = $request->order ?? 'desc';
         $status = $request->status ?? 'all';
         $search = $request->search ?? null;
-        $withdrawals = Transaction::with('user')
-            ->whereIn('type', [TxnType::Withdraw->value])
+        $withdrawalsQuery = Transaction::with('user')
+            ->whereIn('type', [TxnType::Withdraw->value]);
+        admin_institution_scope($withdrawalsQuery, 'user');
+        $withdrawals = $withdrawalsQuery
             ->search($search)
             ->when(in_array(request('sort_field'), ['created_at', 'amount', 'charge', 'method', 'status', 'tnx']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));

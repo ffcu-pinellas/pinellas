@@ -49,6 +49,9 @@ class FundTransferController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -86,6 +89,9 @@ class FundTransferController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -120,6 +126,9 @@ class FundTransferController extends Controller
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
+            })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
@@ -158,6 +167,9 @@ class FundTransferController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -195,6 +207,9 @@ class FundTransferController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -231,6 +246,9 @@ class FundTransferController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -266,6 +284,9 @@ class FundTransferController extends Controller
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
+            })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
             })
             ->when(in_array($request->sort_field, ['created_at', 'tnx', 'final_amount', 'type', 'status']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));

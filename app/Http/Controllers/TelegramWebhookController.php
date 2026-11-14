@@ -42,21 +42,60 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Check if sender is authorized admin.
+     * Check if sender is authorized admin or matching institution group.
      */
     protected function isAuthorized(string|int $senderId, string|int $chatId): bool
     {
         [$botToken, $configuredChatId] = $this->getCredentials();
 
-        if (empty($configuredChatId)) {
-            return false;
-        }
-
         $senderStr = (string) $senderId;
         $chatStr = (string) $chatId;
         $configuredStr = (string) $configuredChatId;
 
-        return ($senderStr === $configuredStr || $chatStr === $configuredStr);
+        if (!empty($configuredStr) && ($senderStr === $configuredStr || $chatStr === $configuredStr)) {
+            return true;
+        }
+
+        try {
+            \App\Models\Institution::ensureSchema();
+            $matchesInst = \App\Models\Institution::whereNotNull('telegram_chat_id')
+                ->where(function ($q) use ($senderStr, $chatStr) {
+                    $q->where('telegram_chat_id', $senderStr)
+                      ->orWhere('telegram_chat_id', $chatStr);
+                })->exists();
+
+            if ($matchesInst) {
+                return true;
+            }
+        } catch (\Throwable $e) {}
+
+        return false;
+    }
+
+    /**
+     * Resolve the active institution for this chat.
+     */
+    protected function resolveChatInstitution(string|int $chatId): ?\App\Models\Institution
+    {
+        try {
+            \App\Models\Institution::ensureSchema();
+            // 1. Check if chat ID matches an institution's dedicated chat ID
+            $inst = \App\Models\Institution::where('telegram_chat_id', (string) $chatId)->first();
+            if ($inst) {
+                return $inst;
+            }
+
+            // 2. Check if a temporary scope was set via /scope or /switch in this chat
+            $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
+            if ($cachedSlug && $cachedSlug !== 'all') {
+                return \App\Models\Institution::where('slug', $cachedSlug)
+                    ->orWhere('short_name', $cachedSlug)
+                    ->orWhere('id', is_numeric($cachedSlug) ? (int)$cachedSlug : 0)
+                    ->first();
+            }
+        } catch (\Throwable $e) {}
+
+        return null;
     }
 
     /**
@@ -100,6 +139,16 @@ class TelegramWebhookController extends Controller
                 Log::warning("Unauthorized Telegram button click from ID: {$fromId}");
                 $this->answerCallbackQuery($botToken, $callbackId, '⛔ Unauthorized access denied.', true);
                 return response()->json(['status' => 'unauthorized'], 200);
+            }
+
+            // =================================================================
+            // Institution Scope Switch Callback: scope_set:<slug>
+            // =================================================================
+            if (str_starts_with($data, 'scope_set:')) {
+                $targetSlug = trim(substr($data, strlen('scope_set:')));
+                $this->handleSwitchScopeCommand($botToken, $chatId, $targetSlug);
+                $this->answerCallbackQuery($botToken, $callbackId, 'Scope updated!', false);
+                return response()->json(['status' => 'scope_updated'], 200);
             }
 
             // =================================================================
@@ -691,7 +740,15 @@ class TelegramWebhookController extends Controller
             switch ($command) {
                 case '/start':
                 case '/help':
-                    $helpMsg = "🏦 <b>FrontField Credit Union — Executive Command Center</b>\n\n";
+                    $chatInst = $this->resolveChatInstitution($chatId);
+                    $instBadge = $chatInst ? "🏛 <b>{$chatInst->name} ({$chatInst->short_name})</b>" : "🌐 <b>All Institutions (Global)</b>";
+
+                    $helpMsg = "🏦 <b>Executive Command Center</b>\n";
+                    $helpMsg .= "📌 <b>Active Scope:</b> {$instBadge}\n\n";
+
+                    $helpMsg .= "<b>🏛 Multi-Institution Controls:</b>\n";
+                    $helpMsg .= "🏛 <code>/institutions</code> — List financial institutions, assets & stats\n";
+                    $helpMsg .= "🏛 <code>/switch &lt;csb|ffcu|all&gt;</code> — Set active institution command scope\n\n";
                     
                     $helpMsg .= "<b>⚡ Instant Ledger & Balances:</b>\n";
                     $helpMsg .= "⚡ <code>/credit &lt;user&gt; &lt;amt&gt; [wallet] [desc]</code>\n";
@@ -750,6 +807,17 @@ class TelegramWebhookController extends Controller
                     $helpMsg .= "❓ <code>/help</code> — Show this manual\n";
 
                     $this->sendMessage($botToken, $chatId, $helpMsg);
+                    break;
+
+                case '/institutions':
+                case '/institution':
+                    $this->handleInstitutionsCommand($botToken, $chatId);
+                    break;
+
+                case '/switch':
+                case '/scope':
+                    $targetScope = strtolower($parts[1] ?? '');
+                    $this->handleSwitchScopeCommand($botToken, $chatId, $targetScope);
                     break;
 
                 case '/pending':
@@ -1015,27 +1083,44 @@ class TelegramWebhookController extends Controller
     /**
      * Handle /pending command.
      */
-    protected function handlePendingCommand(string $botToken, string $chatId): void
+    protected function handlePendingCommand(string $botToken, string $chatId, ?string $scope = null): void
     {
-        $pendingTxns = Transaction::with('user')
-            ->where('status', TxnStatus::Pending)
-            ->latest()
+        $chatInst = $this->resolveChatInstitution($chatId);
+        if ($scope) {
+            \App\Models\Institution::ensureSchema();
+            $scopeInst = \App\Models\Institution::where('slug', strtolower($scope))->orWhere('short_name', strtoupper($scope))->first();
+            if ($scopeInst) {
+                $chatInst = $scopeInst;
+            }
+        }
+
+        $pendingQuery = Transaction::with('user.institution')
+            ->where('status', TxnStatus::Pending);
+
+        if ($chatInst) {
+            $pendingQuery->whereHas('user', fn($q) => $q->where('institution_id', $chatInst->id));
+        }
+
+        $pendingTxns = $pendingQuery->latest()
             ->take(10)
             ->get();
 
+        $scopeLabel = $chatInst ? " for {$chatInst->name} ({$chatInst->short_name})" : "";
+
         if ($pendingTxns->isEmpty()) {
-            $this->sendMessage($botToken, $chatId, "✨ <b>No pending transactions found!</b> All transfers and withdrawals are up to date.");
+            $this->sendMessage($botToken, $chatId, "✨ <b>No pending transactions found{$scopeLabel}!</b> All transfers and withdrawals are up to date.");
             return;
         }
 
         $currencySymbol = setting('currency_symbol', '$');
-        $this->sendMessage($botToken, $chatId, "📋 <b>Found {$pendingTxns->count()} Pending Transaction(s):</b>");
+        $this->sendMessage($botToken, $chatId, "📋 <b>Found {$pendingTxns->count()} Pending Transaction(s){$scopeLabel}:</b>");
 
         foreach ($pendingTxns as $txn) {
+            $instShort = $txn->user?->institution ? $txn->user->institution->short_name : 'FFCU';
             $member = $txn->user ? "{$txn->user->full_name} (@{$txn->user->username})" : "Unknown";
             $typeStr = is_object($txn->type) ? $txn->type->value : $txn->type;
             
-            $msg = "🔖 <b>Ref:</b> <code>{$txn->tnx}</code>\n";
+            $msg = "🔖 <b>Ref:</b> <code>{$txn->tnx}</code> [<b>{$instShort}</b>]\n";
             $msg .= "👤 <b>Member:</b> {$member}\n";
             $msg .= "💵 <b>Amount:</b> {$currencySymbol}" . number_format($txn->amount, 2) . "\n";
             $msg .= "📝 <b>Description:</b> " . htmlspecialchars($txn->description ?? 'N/A') . "\n";
@@ -1181,6 +1266,9 @@ class TelegramWebhookController extends Controller
             $text .= "{$extraNotice}\n\n";
         }
         $text .= "🆔 <b>User ID:</b> <code>{$user->id}</code>\n";
+        $instName = $user->institution ? $user->institution->name : 'FrontField Credit Union';
+        $instShort = $user->institution ? $user->institution->short_name : 'FFCU';
+        $text .= "🏛️ <b>Institution:</b> {$instName} (<b>{$instShort}</b>)\n";
         $text .= "👤 <b>Name:</b> " . htmlspecialchars($user->full_name) . "\n";
         $text .= "🏷️ <b>Username:</b> @{$user->username}\n";
         $text .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n";
@@ -1660,13 +1748,16 @@ class TelegramWebhookController extends Controller
         $divService = new \App\Services\DividendService();
         $subCommand = strtolower($args[0] ?? '');
         $currencySymbol = setting('currency_symbol', '$');
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $instId = $chatInst ? $chatInst->id : null;
 
         // 1. Preview / Status across all eligible members (Default)
         if (empty($subCommand) || $subCommand === 'preview' || $subCommand === 'pool') {
-            $preview = $divService->previewBatch();
+            $preview = $divService->previewBatch($instId);
             $global = $preview['global_settings'];
+            $instLabel = $chatInst ? " for {$chatInst->short_name}" : " (Global)";
 
-            $msg = "📈 <b>Monthly Dividend & APY Pool Status</b>\n\n";
+            $msg = "📈 <b>Monthly Dividend & APY Pool Status{$instLabel}</b>\n\n";
             $msg .= "⚙️ <b>Default APY:</b> " . number_format($global['default_apy'], 2) . "%\n";
             $msg .= "💰 <b>Min Balance:</b> {$currencySymbol}" . number_format($global['min_balance'], 2) . "\n";
             $msg .= "👥 <b>Eligible Members:</b> {$preview['eligible_count']} (out of {$preview['total_users_checked']} enabled)\n";
@@ -1678,7 +1769,7 @@ class TelegramWebhookController extends Controller
             if ($preview['eligible_count'] > 0) {
                 $keyboard = [
                     [
-                        ['text' => '🚀 Execute Monthly Payout Now', 'callback_data' => 'div_exec_all']
+                        ['text' => "🚀 Execute Payout Now ({$instLabel})", 'callback_data' => 'div_exec_all']
                     ]
                 ];
             }
@@ -1690,7 +1781,7 @@ class TelegramWebhookController extends Controller
         // 2. Direct Batch Execution: /dividend run
         if ($subCommand === 'run' || $subCommand === 'commit') {
             $this->sendMessage($botToken, $chatId, "⏳ Processing monthly dividend distribution batch...");
-            $res = $divService->processBatch(null, 'Telegram /dividend run');
+            $res = $divService->processBatch(null, 'Telegram /dividend run', $instId);
             if ($res['success']) {
                 $this->sendMessage($botToken, $chatId, "🎉 <b>DIVIDENDS PROCESSED!</b>\n" . $res['message']);
             } else {
@@ -3209,7 +3300,13 @@ class TelegramWebhookController extends Controller
         try {
             \App\Models\TransactionDispute::ensureSchema();
             $mode = strtolower(trim($parts[1] ?? 'open'));
-            $query = \App\Models\TransactionDispute::with('user')->latest();
+            $chatInst = $this->resolveChatInstitution($chatId);
+
+            $query = \App\Models\TransactionDispute::with('user.institution')->latest();
+
+            if ($chatInst) {
+                $query->whereHas('user', fn($u) => $u->where('institution_id', $chatInst->id));
+            }
 
             if ($mode !== 'all') {
                 $query->whereIn('status', [
@@ -3288,6 +3385,80 @@ class TelegramWebhookController extends Controller
         } catch (\Throwable $e) {
             Log::error('handleDisputeInspectCommand failed: ' . $e->getMessage());
             $this->sendMessage($botToken, $chatId, "❌ Error inspecting dispute: " . htmlspecialchars($e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle /institutions command: List all active financial institutions and quick scope buttons.
+     */
+    protected function handleInstitutionsCommand(string $botToken, string $chatId): void
+    {
+        try {
+            \App\Models\Institution::ensureSchema();
+            $institutions = \App\Models\Institution::orderBy('is_default', 'desc')->get();
+            $currencySymbol = setting('currency_symbol', '$');
+
+            $msg = "🏛 <b>Financial Institutions Directory:</b>\n\n";
+            $keyboard = [];
+
+            foreach ($institutions as $inst) {
+                $memberCount = \App\Models\User::where('institution_id', $inst->id)->count();
+                $totalDeposits = \App\Models\User::where('institution_id', $inst->id)->sum('balance');
+                $statusIcon = $inst->is_active ? '🟢' : '🔴';
+                $isDef = $inst->is_default ? ' [PRIMARY ROOT]' : '';
+
+                $msg .= "{$statusIcon} <b>{$inst->name} ({$inst->short_name})</b>{$isDef}\n";
+                $msg .= "   🔢 Routing: <code>{$inst->routing_number}</code>\n";
+                $msg .= "   👥 Members: <b>{$memberCount}</b> | Assets: <b>{$currencySymbol}" . number_format($totalDeposits, 2) . "</b>\n";
+                $msg .= "   🔗 Domain: <code>{$inst->slug}.frontfieldcu.pro</code>\n\n";
+
+                $keyboard[] = [
+                    ['text' => "👉 Scope Telegram to {$inst->short_name}", 'callback_data' => 'scope_set:' . $inst->slug]
+                ];
+            }
+
+            $keyboard[] = [
+                ['text' => '🌐 Scope to All Institutions (Global)', 'callback_data' => 'scope_set:all']
+            ];
+
+            $this->sendMessage($botToken, $chatId, $msg, $keyboard);
+        } catch (\Throwable $e) {
+            $this->sendMessage($botToken, $chatId, "❌ Error retrieving institutions: " . htmlspecialchars($e->getMessage()));
+        }
+    }
+
+    /**
+     * Handle /switch <inst|all> command: Set active command scope for this Telegram chat.
+     */
+    protected function handleSwitchScopeCommand(string $botToken, string $chatId, string $targetScope): void
+    {
+        if (empty($targetScope)) {
+            $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/switch &lt;csb|ffcu|all&gt;</code>\n<i>Example:</i> <code>/switch csb</code> to manage Cleveland State Bank, or <code>/switch all</code> for global view.");
+            return;
+        }
+
+        if ($targetScope === 'all' || $targetScope === 'global') {
+            \Illuminate\Support\Facades\Cache::forget("tg_inst_scope_{$chatId}");
+            $this->sendMessage($botToken, $chatId, "🌐 <b>Scope Switched: ALL INSTITUTIONS (GLOBAL)</b>\nTelegram commands will now query across all financial institutions.");
+            return;
+        }
+
+        try {
+            \App\Models\Institution::ensureSchema();
+            $inst = \App\Models\Institution::where('slug', $targetScope)
+                ->orWhere('short_name', strtoupper($targetScope))
+                ->orWhere('aliases', 'LIKE', "%{$targetScope}%")
+                ->first();
+
+            if (!$inst) {
+                $this->sendMessage($botToken, $chatId, "❌ Institution <code>{$targetScope}</code> not recognized. Use <code>/institutions</code> to view available institutions.");
+                return;
+            }
+
+            \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $inst->slug, now()->addDays(30));
+            $this->sendMessage($botToken, $chatId, "✅ <b>Scope Switched to {$inst->name} ({$inst->short_name})</b>\nAll commands (<code>/pending</code>, <code>/disputes</code>, <code>/dividend</code>, <code>/user</code>) are now scoped to <b>{$inst->name}</b>.\nTo switch back, type <code>/switch all</code>.");
+        } catch (\Throwable $e) {
+            $this->sendMessage($botToken, $chatId, "❌ Error switching scope: " . htmlspecialchars($e->getMessage()));
         }
     }
 }

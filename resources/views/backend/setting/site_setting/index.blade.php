@@ -16,6 +16,24 @@
         </div>
     @endif
 
+    @php
+        $scopedInst = session('admin_institution_id') ? \App\Models\Institution::find(session('admin_institution_id')) : null;
+    @endphp
+    @if($scopedInst && !$scopedInst->is_default)
+        <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between p-3 mb-4 shadow-sm" style="border-left: 4px solid {{ $scopedInst->primary_color }}; background: #fff;">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge" style="background-color: {{ $scopedInst->primary_color }}; color: #fff; font-size: 11px;">{{ $scopedInst->short_name }}</span>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">{{ $scopedInst->name }} Active Scope</h6>
+                    <small class="text-muted">Global Site Settings apply to the primary system. To manage <strong>{{ $scopedInst->name }}</strong> specific limits, routing number, address, and dedicated Telegram credentials, use the Dedicated Control Hub.</small>
+                </div>
+            </div>
+            <a href="{{ route('admin.institutions.control', $scopedInst->id) }}" class="btn btn-sm btn-primary text-nowrap mt-2 mt-md-0">
+                <i data-lucide="sliders" style="width: 14px; height: 14px;"></i> {{ __('Open ') }}{{ $scopedInst->short_name }}{{ __(' Control Hub') }}
+            </a>
+        </div>
+    @endif
+
     @foreach(config('setting') as $section => $fields)
 
         @includeIf('backend.setting.site_setting.include.__'. $section)

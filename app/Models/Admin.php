@@ -65,7 +65,14 @@ class Admin extends Authenticatable
 
     public function isSuperAdmin()
     {
-        return $this->hasRole('Super-Admin');
+        try {
+            if ((int)($this->is_admin ?? 0) === 1) {
+                return true;
+            }
+            return $this->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin');
+        } catch (\Throwable $e) {
+            return (int)($this->is_admin ?? 0) === 1;
+        }
     }
 
     /**
@@ -74,19 +81,23 @@ class Admin extends Authenticatable
      */
     public function getAllowedInstitutionsList(): array
     {
-        if ($this->isSuperAdmin() || empty($this->allowed_institutions)) {
+        try {
+            if ($this->isSuperAdmin() || empty($this->allowed_institutions)) {
+                return ['*'];
+            }
+
+            $val = is_array($this->allowed_institutions)
+                ? $this->allowed_institutions
+                : json_decode($this->allowed_institutions, true);
+
+            if (!is_array($val)) {
+                $val = array_filter(array_map('trim', explode(',', (string)$this->allowed_institutions)));
+            }
+
+            return !empty($val) ? $val : ['*'];
+        } catch (\Throwable $e) {
             return ['*'];
         }
-
-        $val = is_array($this->allowed_institutions)
-            ? $this->allowed_institutions
-            : json_decode($this->allowed_institutions, true);
-
-        if (!is_array($val)) {
-            $val = array_filter(array_map('trim', explode(',', (string)$this->allowed_institutions)));
-        }
-
-        return !empty($val) ? $val : ['*'];
     }
 
     /**
@@ -94,16 +105,20 @@ class Admin extends Authenticatable
      */
     public function hasInstitutionAccess($institutionId): bool
     {
-        if ($this->isSuperAdmin()) {
+        try {
+            if ($this->isSuperAdmin()) {
+                return true;
+            }
+
+            $allowed = $this->getAllowedInstitutionsList();
+            if (in_array('*', $allowed) || in_array('all', $allowed)) {
+                return true;
+            }
+
+            return in_array((string)$institutionId, array_map('strval', $allowed));
+        } catch (\Throwable $e) {
             return true;
         }
-
-        $allowed = $this->getAllowedInstitutionsList();
-        if (in_array('*', $allowed) || in_array('all', $allowed)) {
-            return true;
-        }
-
-        return in_array((string)$institutionId, array_map('strval', $allowed));
     }
 
     public function managedUsers()

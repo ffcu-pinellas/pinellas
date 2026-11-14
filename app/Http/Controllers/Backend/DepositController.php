@@ -182,6 +182,9 @@ class DepositController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
+            })
             ->when(in_array(request('sort_field'), ['created_at', 'amount', 'charge', 'method', 'status', 'tnx']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));
             })
@@ -212,6 +215,9 @@ class DepositController extends Controller
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
+            })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
             })
             ->when(in_array(request('sort_field'), ['created_at', 'amount', 'charge', 'method', 'status', 'tnx']), function ($query) {
                 $query->orderBy(request('sort_field'), request('sort_dir'));

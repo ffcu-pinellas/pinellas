@@ -113,6 +113,9 @@ class UserController extends Controller
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth('admin')->id());
             })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, null);
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -148,6 +151,9 @@ class UserController extends Controller
         $users = User::disabled()
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth('admin')->id());
+            })
+            ->when(true, function ($query) {
+                admin_institution_scope($query, null);
             })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
@@ -186,6 +192,9 @@ class UserController extends Controller
 
         $search = $request->query('query') ?? null;
         $users = User::closed()
+            ->when(true, function ($query) {
+                admin_institution_scope($query, null);
+            })
             ->when(! blank(request('email_status')), function ($query) {
                 if (request('email_status')) {
                     $query->whereNotNull('email_verified_at');
@@ -1066,7 +1075,9 @@ class UserController extends Controller
                 abort(403, 'Unauthorized action. Account Officers cannot send bulk mail.');
             }
 
-            $users = User::where('status', 1)->get();
+            $usersQuery = User::where('status', 1);
+            admin_institution_scope($usersQuery, null);
+            $users = $usersQuery->get();
 
                 foreach ($users as $user) {
                     $shortcodes = array_merge($shortcodes, ['[[full_name]]' => $user->full_name]);
@@ -1101,7 +1112,42 @@ class UserController extends Controller
             }
         }
 
+        // Check if user belongs to a secondary institution (e.g. Cleveland State Bank)
+        if ($user->institution && ! $user->institution->is_default) {
+            $inst = $user->institution;
+            $scheme = request()->getScheme();
+            $rootHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'frontfieldcu.pro';
+            $targetHost = $inst->slug . '.' . $rootHost;
+
+            $temporaryUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'user.impersonate',
+                now()->addMinutes(5),
+                ['user' => $user->id]
+            );
+
+            $parts = parse_url($temporaryUrl);
+            $finalUrl = $scheme . '://' . $targetHost . ($parts['path'] ?? '/auth/impersonate/' . $user->id) . '?' . ($parts['query'] ?? '');
+
+            return redirect()->away($finalUrl);
+        }
+
         Auth::guard('web')->loginUsingId($id);
+
+        return redirect()->route('user.dashboard');
+    }
+
+    /**
+     * Handle signed one-time cross-tenant impersonation login.
+     */
+    public function impersonateLogin(Request $request, $userId)
+    {
+        if (! $request->hasValidSignature()) {
+            abort(401, 'Invalid or expired login link.');
+        }
+
+        $user = User::findOrFail($userId);
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         return redirect()->route('user.dashboard');
     }

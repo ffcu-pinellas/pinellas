@@ -31,19 +31,30 @@ class ResolveInstitution
         // Share with all Blade views
         View::share('currentInstitution', $institution);
 
-        // If the visitor is already logged in and their institution does NOT
-        // match the subdomain they are visiting → log them out silently.
-        // This prevents a FrontField session leaking into a Chase URL.
-        if (auth()->check()) {
-            $user = auth()->user();
-            if (
-                $user->institution_id &&
-                ! $institution->is_default &&        // only enforce on non-default institutions
-                (int) $user->institution_id !== (int) $institution->id
-            ) {
-                auth()->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+        // Tenant isolation enforcement for logged-in members:
+        if (auth('web')->check()) {
+            $user = auth('web')->user();
+            if ($user->institution_id) {
+                // If member belongs to a non-default institution (e.g. Cleveland State Bank)
+                // but accessed a user route on the default Frontfield domain, auto-redirect to their own portal.
+                if ($institution->is_default && $user->institution && ! $user->institution->is_default) {
+                    if ($request->is('user*') || $request->is('dashboard*') || $request->is('login')) {
+                        $instSlug = $user->institution->slug;
+                        $rootHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'frontfieldcu.pro';
+                        $targetHost = $instSlug . '.' . $rootHost;
+                        $scheme = $request->getScheme();
+                        $pathAndQuery = $request->getRequestUri();
+                        return redirect()->away("{$scheme}://{$targetHost}{$pathAndQuery}");
+                    }
+                }
+
+                // If visitor is on a non-default institution subdomain that does NOT match their institution,
+                // terminate the session immediately to guarantee zero cross-tenant leakage.
+                if (! $institution->is_default && (int) $user->institution_id !== (int) $institution->id) {
+                    auth('web')->logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                }
             }
         }
 

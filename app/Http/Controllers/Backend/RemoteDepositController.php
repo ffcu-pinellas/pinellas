@@ -18,13 +18,14 @@ class RemoteDepositController extends Controller
 
     public function index()
     {
-        $deposits = RemoteDeposit::with('user')
+        $depositsQuery = RemoteDeposit::with('user')
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
-            })
-            ->latest()->paginate(15);
+            });
+        admin_institution_scope($depositsQuery, 'user');
+        $deposits = $depositsQuery->latest()->paginate(15);
         return view('backend.remote_deposit.index', compact('deposits'));
     }
 

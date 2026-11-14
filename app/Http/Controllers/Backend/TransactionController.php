@@ -60,10 +60,8 @@ class TransactionController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
-            ->when(session()->has('admin_institution_id'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('institution_id', session('admin_institution_id'));
-                });
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
             })
             ->when(request('sort_field') == 'user', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
@@ -101,10 +99,8 @@ class TransactionController extends Controller
                     $q->where('staff_id', auth('admin')->id());
                 });
             })
-            ->when(session()->has('admin_institution_id'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('institution_id', session('admin_institution_id'));
-                });
+            ->when(true, function ($query) {
+                admin_institution_scope($query, 'user');
             })
             ->when(request('sort_field') == 'user', function ($query) {
                 $query->whereHas('user', function ($userQuery) {

@@ -52,6 +52,7 @@ class DisputeController extends Controller
             ->when($isOfficer, function ($q) use ($adminId) {
                 $q->whereHas('user', fn ($u) => $u->where('staff_id', $adminId));
             });
+        admin_institution_scope($baseQuery, 'user');
 
         $stats = [
             'all' => (clone $baseQuery)->count(),
@@ -60,7 +61,7 @@ class DisputeController extends Controller
             'resolved' => (clone $baseQuery)->whereIn('status', ['resolved_fraud', 'denied'])->count(),
         ];
 
-        $disputes = TransactionDispute::with(['user', 'transaction'])
+        $disputesQuery = TransactionDispute::with(['user', 'transaction'])
             ->when($isOfficer, function ($q) use ($adminId) {
                 $q->whereHas('user', fn ($u) => $u->where('staff_id', $adminId));
             })
@@ -77,7 +78,10 @@ class DisputeController extends Controller
                                 ->orWhere('email', 'LIKE', "%{$search}%");
                         });
                 });
-            })
+            });
+        admin_institution_scope($disputesQuery, 'user');
+
+        $disputes = $disputesQuery
             ->latest()
             ->paginate(20)
             ->withQueryString();

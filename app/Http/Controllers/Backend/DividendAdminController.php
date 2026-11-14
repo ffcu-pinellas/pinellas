@@ -28,9 +28,18 @@ class DividendAdminController extends Controller
 
         $globalSettings = $this->dividendService->getGlobalSettings();
         $preview = $this->dividendService->previewBatch();
-        $recentLogs = DividendLog::with('user')->latest()->take(30)->get();
-        $totalHistoricalPaid = DividendLog::where('status', 'success')->sum('amount');
-        $totalBatches = DividendLog::distinct('batch_id')->count('batch_id');
+
+        $logsQuery = DividendLog::with('user');
+        admin_institution_scope($logsQuery, 'user');
+        $recentLogs = (clone $logsQuery)->latest()->take(30)->get();
+
+        $paidQuery = DividendLog::where('status', 'success');
+        admin_institution_scope($paidQuery, 'user');
+        $totalHistoricalPaid = $paidQuery->sum('amount');
+
+        $batchesQuery = DividendLog::query();
+        admin_institution_scope($batchesQuery, 'user');
+        $totalBatches = $batchesQuery->distinct('batch_id')->count('batch_id');
 
         return view('backend.dividend.index', compact(
             'globalSettings',

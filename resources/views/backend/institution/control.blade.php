@@ -184,8 +184,8 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><span class="badge bg-secondary-subtle text-secondary">{{ $officer->getRoleNames()->first() ?? 'Staff' }}</span></td>
-                                        <td><strong>{{ $officer->managedUsers()->where('institution_id', $selectedInstitution->id)->count() }}</strong> {{ __('members') }}</td>
+                                        <td><span class="badge bg-secondary-subtle text-secondary">{{ (method_exists($officer, 'getRoleNames') && $officer->getRoleNames()->isNotEmpty()) ? $officer->getRoleNames()->first() : ($officer->is_admin ? 'Admin' : 'Staff') }}</span></td>
+                                        <td><strong>{{ method_exists($officer, 'managedUsers') ? $officer->managedUsers()->where('institution_id', $selectedInstitution->id)->count() : 0 }}</strong> {{ __('members') }}</td>
                                         <td class="text-end">
                                             <div class="form-check form-switch d-inline-block">
                                                 <input class="form-check-input" type="checkbox" name="officer_access[{{ $officer->id }}]" value="1" @checked($hasAccess)>
