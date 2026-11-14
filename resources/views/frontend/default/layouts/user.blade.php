@@ -14,22 +14,43 @@
     {{-- ── Institution Theme Override (Member Portal) ──────────────────── --}}
     <style>
         :root {
-            --primary-color:   {{ $currentInstitution->primary_color ?? '#00549b' }};
-            --primary-hover:   {{ $currentInstitution->primary_hover ?? '#004077' }};
-            --secondary-color: {{ $currentInstitution->secondary_color ?? '#eef6fb' }};
-            --accent-color:    {{ $currentInstitution->accent_color ?? '#da291c' }};
-            --body-text-primary-color: {{ $currentInstitution->primary_color ?? '#00549b' }};
+            --primary-color:   {{ $currentInstitution->primary_color ?? '#c8232c' }};
+            --primary-hover:   {{ $currentInstitution->primary_hover ?? '#a81c24' }};
+            --secondary-color: {{ $currentInstitution->secondary_color ?? '#fdf2f2' }};
+            --accent-color:    {{ $currentInstitution->accent_color ?? '#c8232c' }};
+            --body-text-primary-color: {{ $currentInstitution->primary_color ?? '#c8232c' }};
+            --navigation-bar-color: {{ $currentInstitution->primary_color ?? '#c8232c' }};
+            --sidebar-active-color: {{ $currentInstitution->primary_color ?? '#c8232c' }};
         }
-        /* Sidebar & header accent */
+        /* Mobile header & elements */
+        header.header-FrontField, .header-FrontField {
+            background: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        /* Sidebar & navigation styling */
+        .sidebar-nav .sidebar-nav-item.active,
+        .sidebar-nav .sidebar-nav-item:hover,
         .sidebar-nav .active > a,
+        .sidebar-nav li a:hover {
+            color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            border-left-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        .sidebar-nav .sidebar-nav-item.active i,
+        .sidebar-nav .sidebar-nav-item:hover i,
         .sidebar-nav .active > a i,
-        .sidebar-nav li a:hover,
-        .sidebar-nav li a:hover i { color: var(--primary-color) !important; }
-        .btn-primary { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
-        .btn-primary:hover { background-color: var(--primary-hover) !important; border-color: var(--primary-hover) !important; }
-        .text-primary { color: var(--primary-color) !important; }
-        .bg-primary { background-color: var(--primary-color) !important; }
-        a { color: var(--primary-color); }
+        .sidebar-nav li a:hover i {
+            color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        .btn-primary {
+            background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+            border-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important;
+        }
+        .btn-primary:hover {
+            background-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
+            border-color: {{ $currentInstitution->primary_hover ?? '#a81c24' }} !important;
+        }
+        .text-primary { color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
+        .bg-primary { background-color: {{ $currentInstitution->primary_color ?? '#c8232c' }} !important; }
+        a { color: {{ $currentInstitution->primary_color ?? '#c8232c' }}; }
         @if(!empty($currentInstitution->custom_css))
         {!! $currentInstitution->custom_css !!}
         @endif
@@ -191,10 +212,19 @@
     <!-- Mobile Header -->
     <header class="d-lg-none header-FrontField" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
         <div class="d-flex align-items-center">
+            @php
+                $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+                $portalLogo = $isCustomInst
+                    ? ($currentInstitution->logo_path ? asset('assets/' . $currentInstitution->logo_path) : asset('assets/institutions/clevelandstatebank/images/logo.png'))
+                    : asset('assets/external/images/logo.png');
+                $portalTitle = $isCustomInst
+                    ? $currentInstitution->name
+                    : (setting('site_title') ?? 'FrontField Credit Union');
+            @endphp
             <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-            <img src="{{ asset('assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 28px;">
+            <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="height: 28px; max-width: 170px; object-fit: contain;">
         </div>
         <div class="dropdown">
             <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -228,7 +258,7 @@
     <aside class="sidebar" id="content">
         <div class="fi-logo" style="padding: 20px 24px;">
              <a href="{{ route('home') }}" aria-label="Dashboard">
-                <img role="presentation" height="60" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" src="{{ asset('assets/external/images/logo.png') }}" style="max-width: 100%; height: auto;">
+                <img role="presentation" height="60" alt="{{ $portalTitle }}" src="{{ $portalLogo }}" style="max-width: 100%; height: auto; max-height: 52px; object-fit: contain;">
             </a>
         </div>
         

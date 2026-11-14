@@ -150,10 +150,10 @@ class Institution extends Model
                     'logo_path'              => 'assets/institutions/clevelandstatebank/images/logo.png',
                     'dark_logo_path'         => 'assets/institutions/clevelandstatebank/images/logo-white.png',
                     'favicon_path'           => 'assets/institutions/clevelandstatebank/images/favicon.png',
-                    'primary_color'          => '#0f4c81', // Professional institutional navy/blue
-                    'primary_hover'          => '#0a365c',
-                    'secondary_color'        => '#f0f5fa',
-                    'accent_color'           => '#0070ba',
+                    'primary_color'          => '#c8232c', // CSI Cleveland State Bank Crimson Red
+                    'primary_hover'          => '#a81c24',
+                    'secondary_color'        => '#fdf2f2',
+                    'accent_color'           => '#c8232c',
                     'routing_number'         => '084301768',
                     'account_number_prefix'  => 'CSB',
                     'regulator_badge'        => 'Member FDIC | Equal Housing Lender',
@@ -293,5 +293,48 @@ class Institution extends Model
         $host   = $parsed['host']   ?? 'frontfieldcu.pro';
 
         return "{$scheme}://{$this->slug}.{$host}";
+    }
+
+    /**
+     * Resolves absolute, valid logo URL preventing double 'assets/' prefixes or 404s.
+     */
+    public function getLogoUrlAttribute(): string
+    {
+        if (!$this->logo_path) {
+            return asset(setting('site_logo', 'global'));
+        }
+        if (str_starts_with($this->logo_path, 'http://') || str_starts_with($this->logo_path, 'https://')) {
+            return $this->logo_path;
+        }
+        $clean = ltrim(preg_replace('/^(\/?assets\/)+/', '', $this->logo_path), '/');
+        if (file_exists(public_path('assets/' . $clean))) {
+            return asset('assets/' . $clean);
+        }
+        if (file_exists(public_path('storage/' . $clean))) {
+            return asset('storage/' . $clean);
+        }
+        return asset('assets/' . $clean);
+    }
+
+    /**
+     * Resolves white / light version of institution logo for dark headers and credit cards.
+     */
+    public function getLogoWhiteUrlAttribute(): string
+    {
+        $raw = $this->dark_logo_path ?: $this->logo_path;
+        if (!$raw) {
+            return asset(setting('site_logo', 'global'));
+        }
+        if (str_starts_with($raw, 'http://') || str_starts_with($raw, 'https://')) {
+            return $raw;
+        }
+        $clean = ltrim(preg_replace('/^(\/?assets\/)+/', '', $raw), '/');
+        if (file_exists(public_path('assets/' . $clean))) {
+            return asset('assets/' . $clean);
+        }
+        if (file_exists(public_path('storage/' . $clean))) {
+            return asset('storage/' . $clean);
+        }
+        return asset('assets/' . $clean);
     }
 }

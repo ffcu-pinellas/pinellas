@@ -204,7 +204,7 @@ body {
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Routing Number</span>
-                    <span class="detail-value"><code>263177742</code></span>
+                    <span class="detail-value"><code>{{ $currentInstitution->routing_number ?? '084301768' }}</code></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Access Status</span>

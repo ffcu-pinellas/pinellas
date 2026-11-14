@@ -24,7 +24,15 @@
                             <i class="fas fa-arrow-left fs-5"></i>
                         </a>
                         <div class="d-flex align-items-center gap-3">
-                            <img src="{{ asset('assets/external/images/frontfield_logo_white_1774915533306.png') }}" alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}" style="height: 30px;">
+                            @php
+                                $instZelleLogo = (!empty($currentInstitution) && !$currentInstitution->is_default && $currentInstitution->logo_white_path)
+                                    ? asset($currentInstitution->logo_white_path)
+                                    : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
+                                $instZelleTitle = (!empty($currentInstitution) && !$currentInstitution->is_default)
+                                    ? $currentInstitution->name
+                                    : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+                            @endphp
+                            <img src="{{ $instZelleLogo }}" alt="{{ $instZelleTitle }}" style="height: 30px; max-width: 180px; object-fit: contain;">
                             <div style="width: 1px; height: 22px; background-color: rgba(255,255,255,0.4);"></div>
                             <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 20px; filter: brightness(0) invert(1);">
                         </div>

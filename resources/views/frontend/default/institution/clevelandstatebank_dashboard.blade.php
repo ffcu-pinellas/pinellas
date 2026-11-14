@@ -531,6 +531,115 @@ body {
         left: 0;
         z-index: 999;
     }
+    /* ── 3D Card Flip Styles ── */
+    .csb-card-flip-wrap {
+        perspective: 1000px;
+        height: 220px;
+        cursor: pointer;
+        margin: 0 auto 16px auto;
+        max-width: 360px;
+    }
+    .csb-card-flip-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: left;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+    }
+    .csb-card-flip-wrap.flipped .csb-card-flip-inner {
+        transform: rotateY(180deg);
+    }
+    .csb-card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        overflow: hidden;
+        color: #fff;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    }
+    .csb-card-front {
+        background: linear-gradient(135deg, #182848 0%, #0f172a 100%);
+        padding: 20px 22px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .csb-card-back {
+        background: linear-gradient(135deg, #182848 0%, #0f172a 100%);
+        transform: rotateY(180deg);
+        padding: 0;
+    }
+    .csb-card-magnetic-strip {
+        height: 40px;
+        background: #000;
+        margin-top: 18px;
+        width: 100%;
+    }
+    .csb-card-cvv-strip {
+        background: #e2e8f0;
+        height: 30px;
+        margin: 12px 20px 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 12px;
+        color: #1e293b;
+        font-family: monospace;
+        font-weight: bold;
+        font-size: 13px;
+        letter-spacing: 2px;
+    }
+
+    /* ── CSB 2FA Security Gate Overrides ── */
+    #securityGateModal .modal-content {
+        border-radius: 16px !important;
+        overflow: hidden;
+    }
+    #securityGateModal .modal-header {
+        background: #c8232c !important;
+        color: #fff !important;
+        padding: 16px 20px !important;
+    }
+    #securityGateModal .modal-header h5 {
+        color: #fff !important;
+        font-size: 15px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    #securityGateModal .btn-close {
+        filter: brightness(0) invert(1) !important;
+    }
+    #securityGateModal .primary-btn {
+        background: #c8232c !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: bold !important;
+    }
+    #securityGateModal .method-card:hover:not([disabled]) {
+        border-color: #c8232c !important;
+        border-left-color: #c8232c !important;
+        background: #fdf2f2 !important;
+    }
+    #securityGateModal .method-icon {
+        background: rgba(200, 35, 44, 0.08) !important;
+        color: #c8232c !important;
+    }
+    #securityGateModal .key-btn.backspace {
+        color: #c8232c !important;
+    }
+    #securityGateModal .pin-dot.filled {
+        background-color: #c8232c !important;
+        border-color: #c8232c !important;
+    }
+    #securityGateModal .forgot-link {
+        color: #c8232c !important;
+    }
 }
 </style>
 </head>
@@ -609,13 +718,13 @@ body {
                 </li>
                 <div class="collapse show" id="menuDocsSettings">
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.fund_transfer.transfer.log') }}" class="csb-nav-link">
+                        <a href="{{ route('user.documents.index') }}" class="csb-nav-link">
                             <i class="fa-solid fa-file-lines" style="width: 16px;"></i> Documents
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.fund_transfer.transfer.log') }}" class="csb-nav-link">
-                            <i class="fa-solid fa-chart-column" style="width: 16px;"></i> Reports
+                        <a href="{{ route('user.transactions') }}" class="csb-nav-link">
+                            <i class="fa-solid fa-chart-column" style="width: 16px;"></i> Reports & Statements
                         </a>
                     </li>
                     <li class="csb-nav-item">
@@ -624,7 +733,7 @@ body {
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.setting.show') }}" class="csb-nav-link">
+                        <a href="{{ route('user.notification.all') }}" class="csb-nav-link">
                             <i class="fa-solid fa-bell" style="width: 16px;"></i> Manage Alerts
                         </a>
                     </li>
@@ -638,12 +747,12 @@ body {
                 <div class="collapse show" id="menuConnect">
                     <li class="csb-nav-item">
                         <a href="{{ route('user.ticket.index') }}" class="csb-nav-link">
-                            <i class="fa-solid fa-comments" style="width: 16px;"></i> Secure Messages
+                            <i class="fa-solid fa-envelope" style="width: 16px;"></i> Secure Messages
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="javascript:void(0)" class="csb-nav-link" data-bs-toggle="modal" data-bs-target="#avaAssistantModal">
-                            <i class="fa-solid fa-robot" style="width: 16px; color: #4ade80;"></i> Ava Assistant
+                        <a href="javascript:void(0)" class="csb-nav-link" onclick="if(document.getElementById('ava-trigger')) document.getElementById('ava-trigger').click();">
+                            <i class="fa-solid fa-comments" style="width: 16px; color: #c8232c;"></i> Ava Assistant
                         </a>
                     </li>
                     <li class="csb-nav-item">
@@ -740,21 +849,14 @@ body {
                                 @endforeach
                             </div>
                         @else
-                            <div class="transaction-list-table">
-                                <div class="txn-row">
-                                    <div>
-                                        <div class="txn-desc">MCD HOLD DCU YOUR CHECK ORDER MINNEAPOLIS MN</div>
-                                        <div class="txn-date">{{ date('m/d/Y') }}</div>
-                                    </div>
-                                    <div class="txn-amount negative">
-                                        -$29.31
-                                    </div>
-                                </div>
+                            <div class="py-4 text-center text-muted" style="font-size: 13px;">
+                                <i class="fa-regular fa-folder-open fa-2x mb-2 d-block" style="opacity: 0.35;"></i>
+                                No recent transactions found for this account.
                             </div>
                         @endif
 
                         <div style="text-align: right; margin-top: 14px;">
-                            <a href="{{ route('user.fund_transfer.transfer.log') }}" style="font-size: 12px; color: #1b325f; font-weight: bold; text-decoration: none;">View All Transactions &rarr;</a>
+                            <a href="{{ route('user.transactions') }}" style="font-size: 12px; color: #c8232c; font-weight: bold; text-decoration: none;">View All Transactions &rarr;</a>
                         </div>
                     </div>
                 </div>
@@ -789,292 +891,652 @@ body {
     {{-- ── 1. MOVE MONEY / MULTI-TRANSFER HUB ── --}}
     <div class="modal fade" id="moveMoneyModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
                 <div class="modal-header" style="background-color: #c8232c; color: #fff;">
                     <h5 class="modal-title fw-bold" style="font-size: 15px; letter-spacing: 0.5px;">MOVE MONEY &amp; TRANSFERS</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0">
-                    {{-- Security Gate Step (shows first, hidden after unlock) --}}
-                    <div id="csbSecGate" class="p-4">
-                        <div class="text-center mb-3">
-                            <i class="fa-solid fa-shield-halved fa-2x text-danger mb-2"></i>
-                            <p class="small text-muted mb-1">For your security, please verify your identity before transferring funds.</p>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Account Password</label>
-                            <input type="password" id="csbSecPassword" class="form-control" placeholder="Enter your password">
-                        </div>
-                        <div id="csbSecMsg" class="alert alert-danger d-none small py-2"></div>
-                        <button type="button" class="btn btn-danger w-100 fw-bold" onclick="csbUnlockTransfer()">
-                            <i class="fa-solid fa-unlock me-1"></i> UNLOCK &amp; CONTINUE
-                        </button>
+                <div class="modal-body p-4" id="csbTransferHub">
+                    <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                        <span class="small text-muted">Select transfer method to move funds securely:</span>
+                        <span class="badge" style="background: rgba(200,35,44,0.1); color: #c8232c; font-weight: 600;">FDIC Insured Transfers</span>
                     </div>
 
-                    {{-- Transfer Tabs (hidden until security unlocked) --}}
-                    <div id="csbTransferHub" class="p-4 d-none">
-                        <div class="alert alert-success py-2 small mb-3">
-                            <i class="fa-solid fa-check-circle me-1"></i> Identity verified. You may now initiate a transfer.
-                        </div>
-                        <ul class="nav nav-pills nav-fill mb-3" id="transferTab" role="tablist">
-                            <li class="nav-item">
-                                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-self">Self / Internal</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">Member</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">External ACH</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">Wire</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-zelle" style="color:#7414ca;font-weight:bold;">Zelle®</button>
-                            </li>
-                        </ul>
+                    <ul class="nav nav-pills nav-fill mb-3" id="transferTab" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-self">Self / Internal</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">Member</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">External ACH</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">Wire</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-zelle" style="color:#7414ca;font-weight:bold;">Zelle®</button>
+                        </li>
+                    </ul>
 
-                        <div class="tab-content" id="transferTabContent">
+                    <div class="tab-content" id="transferTabContent">
 
-                            {{-- Self / Internal Transfer --}}
-                            <div class="tab-pane fade show active" id="tab-self">
-                                <form id="csbFormSelf" class="csb-transfer-form">
-                                    @csrf
-                                    <input type="hidden" name="transfer_type" value="self">
-                                    <input type="hidden" name="wallet_type" value="default">
-                                    <input type="hidden" name="frequency" value="once">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Move To</label>
-                                        <select name="to_wallet" class="form-select" required>
-                                            <option value="primary_savings">Primary Savings</option>
-                                            <option value="ira">IRA Account</option>
-                                            <option value="heloc">HELOC</option>
-                                            <option value="cc">Credit Card</option>
-                                            <option value="loan">Loan Payment</option>
+                        {{-- 1. Self / Internal Transfer (Direct - No 2FA required) --}}
+                        <div class="tab-pane fade show active" id="tab-self">
+                            <form id="csbFormSelf" class="csb-transfer-form">
+                                @csrf
+                                <input type="hidden" name="transfer_type" value="self">
+                                <input type="hidden" name="charge_type" value="percentage">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
+                                        <select name="wallet_type" id="csbSelfFromWallet" class="form-select shadow-none" onchange="csbSyncSelfToOptions()">
+                                            <option value="default" data-balance="{{ $user->balance }}" selected>
+                                                Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}
+                                            </option>
+                                            <option value="primary_savings" data-balance="{{ $user->savings_balance ?? 0 }}">
+                                                Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — ${{ number_format($user->savings_balance ?? 0, 2) }}
+                                            </option>
+                                            @if($user->ira_status == 1)
+                                            <option value="ira" data-balance="{{ $user->ira_balance ?? 0 }}">
+                                                IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}I) — ${{ number_format($user->ira_balance ?? 0, 2) }}
+                                            </option>
+                                            @endif
+                                            @if($user->heloc_status == 1)
+                                            <option value="heloc" data-balance="{{ ($user->heloc_credit_limit ?? 0) - ($user->heloc_balance ?? 0) }}">
+                                                HELOC (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H) — Available: ${{ number_format(($user->heloc_credit_limit ?? 0) - ($user->heloc_balance ?? 0), 2) }}
+                                            </option>
+                                            @endif
+                                            @if($user->cc_status == 1)
+                                            <option value="cc" data-balance="{{ ($user->cc_credit_limit ?? 0) - ($user->cc_balance ?? 0) }}">
+                                                Credit Card (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }}C) — Available: ${{ number_format(($user->cc_credit_limit ?? 0) - ($user->cc_balance ?? 0), 2) }}
+                                            </option>
+                                            @endif
                                         </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Amount ($)</label>
-                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">To Account</label>
+                                        <select name="to_wallet" id="csbSelfToWallet" class="form-select shadow-none" required>
+                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S)</option>
+                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</option>
+                                            @if($user->ira_status == 1)
+                                            <option value="ira">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}I)</option>
+                                            @endif
+                                            @if($user->heloc_status == 1)
+                                            <option value="heloc">HELOC (Pay Down)</option>
+                                            @endif
+                                            @if($user->cc_status == 1)
+                                            <option value="cc">Credit Card (Pay Down)</option>
+                                            @endif
+                                            @if($user->loan_account_status == 1)
+                                            <option value="loan">Loan (Pay Down)</option>
+                                            @endif
+                                        </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Memo</label>
-                                        <input type="text" name="purpose" class="form-control" placeholder="Optional note">
-                                    </div>
-                                    <div id="resSelf" class="csb-tx-result d-none"></div>
-                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#1b325f;">TRANSFER WITHIN MY ACCOUNTS</button>
-                                </form>
-                            </div>
-
-                            {{-- Member to Member --}}
-                            <div class="tab-pane fade" id="tab-member">
-                                <form id="csbFormMember" class="csb-transfer-form">
-                                    @csrf
-                                    <input type="hidden" name="transfer_type" value="member">
-                                    <input type="hidden" name="wallet_type" value="default">
-                                    <input type="hidden" name="frequency" value="once">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Recipient — Account # or Username or Email</label>
-                                        <input type="text" name="member_identifier" class="form-control" placeholder="Enter account number, username, or email" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Amount ($)</label>
-                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Memo</label>
-                                        <input type="text" name="purpose" class="form-control" placeholder="e.g. Rent payment">
-                                    </div>
-                                    <div id="resMember" class="csb-tx-result d-none"></div>
-                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#28623b;">SEND TO MEMBER</button>
-                                </form>
-                            </div>
-
-                            {{-- External ACH --}}
-                            <div class="tab-pane fade" id="tab-external">
-                                <form id="csbFormExternal" class="csb-transfer-form">
-                                    @csrf
-                                    <input type="hidden" name="transfer_type" value="external">
-                                    <input type="hidden" name="wallet_type" value="default">
-                                    <input type="hidden" name="frequency" value="once">
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold">ABA Routing Number</label>
-                                            <input type="text" name="manual_data[routing_number]" class="form-control" placeholder="9-digit ABA" maxlength="9" required>
-                                        </div>
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold">Account Number</label>
-                                            <input type="text" name="manual_data[account_number]" class="form-control" placeholder="Account #" required>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Amount ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
+                                            <input type="number" step="0.01" min="0.01" name="amount" id="csbSelfAmount" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Account Holder Name</label>
-                                        <input type="text" name="manual_data[account_name]" class="form-control" placeholder="Full legal name" required>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Frequency</label>
+                                        <select name="frequency" class="form-select shadow-none">
+                                            <option value="once" selected>One-time Transfer</option>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Bank Name</label>
-                                        <input type="text" name="manual_data[bank_name]" class="form-control" placeholder="e.g. Chase, Wells Fargo">
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Memo / Purpose (Optional)</label>
+                                        <input type="text" name="purpose" class="form-control shadow-none" placeholder="e.g. Savings allocation, budget buffer">
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Amount ($)</label>
-                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                    </div>
-                                    <div id="resExternal" class="csb-tx-result d-none"></div>
-                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#28623b;">INITIATE ACH TRANSFER</button>
-                                </form>
-                            </div>
+                                </div>
+                                <div id="resSelf" class="csb-tx-result d-none mt-3"></div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#1b325f; border-radius:6px;">
+                                        <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> TRANSFER WITHIN MY ACCOUNTS
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
-                            {{-- Wire Transfer --}}
-                            <div class="tab-pane fade" id="tab-wire">
-                                <form id="csbFormWire" class="csb-wire-form">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Beneficiary Name</label>
-                                        <input type="text" name="beneficiary_name" class="form-control" placeholder="Full legal name" required>
+                        {{-- 2. Member Transfer (Protected by 2FA) --}}
+                        <div class="tab-pane fade" id="tab-member">
+                            <form id="csbFormMember" class="csb-transfer-form">
+                                @csrf
+                                <input type="hidden" name="transfer_type" value="member">
+                                <input type="hidden" name="bank_id" value="0">
+                                <input type="hidden" name="charge_type" value="percentage">
+                                <input type="hidden" name="manual_data[account_name]" id="csbMemberAccName">
+                                <input type="hidden" id="csbRecipientChkLast4" value="">
+                                <input type="hidden" id="csbRecipientSavLast4" value="">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
+                                        <select name="wallet_type" class="form-select shadow-none" required>
+                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}</option>
+                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — ${{ number_format($user->savings_balance ?? 0, 2) }}</option>
+                                        </select>
                                     </div>
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold">Wire ABA Routing #</label>
-                                            <input type="text" name="routing_number" class="form-control" placeholder="9-digit routing" maxlength="9" required>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Credit To Account Type</label>
+                                        <select name="target_account_type" id="csbMemberTargetType" class="form-select shadow-none">
+                                            <option value="checking" selected>Recipient Checking</option>
+                                            <option value="savings" id="csbOptSavings" hidden disabled>Recipient Savings</option>
+                                            <option value="ira" id="csbOptIra" hidden disabled>Recipient IRA</option>
+                                            <option value="heloc" id="csbOptHeloc" hidden disabled>Recipient HELOC</option>
+                                            <option value="cc" id="csbOptCc" hidden disabled>Recipient Credit Card</option>
+                                            <option value="loan" id="csbOptLoan" hidden disabled>Recipient Loan</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Recipient Account #, Username or Email</label>
+                                        <div class="input-group">
+                                            <input type="text" name="member_identifier" id="csbMemberIdentifier" class="form-control shadow-none" placeholder="Enter recipient's registered account number, email or username" required autocomplete="off" oninput="csbLookupMember(this.value)">
+                                            <span class="input-group-text bg-light" id="csbMemberSpinner" style="display:none;"><i class="fa-solid fa-spinner fa-spin text-muted"></i></span>
                                         </div>
-                                        <div class="col-6">
-                                            <label class="form-label small fw-bold">Account Number</label>
-                                            <input type="text" name="account_number" class="form-control" placeholder="Account #" required>
+                                        {{-- Verified Recipient Display --}}
+                                        <div id="csbMemberVerifySuccess" class="d-none mt-2 p-2 px-3 rounded-2" style="background:#f0fdf4; border:1px solid #86efac;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                                                <div>
+                                                    <strong class="text-dark" id="csbMemberVerifiedName"></strong>
+                                                    <span class="badge bg-success ms-2">Verified Member</span>
+                                                    <div class="extra-small text-muted" id="csbMemberVerifiedMeta"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="csbMemberVerifyError" class="d-none mt-2 p-2 px-3 rounded-2 text-danger small" style="background:#fef2f2; border:1px solid #fca5a5;">
+                                            <i class="fa-solid fa-circle-exclamation me-1"></i> No member was found with that information. Please verify and try again.
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Bank / Institution Name</label>
-                                        <input type="text" name="bank_name" class="form-control" placeholder="Receiving institution">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Amount ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
+                                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Amount ($)</label>
-                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Frequency</label>
+                                        <select name="frequency" class="form-select shadow-none">
+                                            <option value="once" selected>One-time Transfer</option>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Wire Memo / Purpose</label>
-                                        <input type="text" name="memo" class="form-control" placeholder="e.g. Payment for services">
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Memo / Note</label>
+                                        <input type="text" name="purpose" class="form-control shadow-none" placeholder="e.g. Shared expense, monthly split">
                                     </div>
-                                    <div id="resWire" class="csb-tx-result d-none"></div>
-                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#c8232c;">DISPATCH WIRE TRANSFER</button>
-                                </form>
-                            </div>
+                                </div>
+                                <div id="resMember" class="csb-tx-result d-none mt-3"></div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
+                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; SEND TO MEMBER
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
 
-                            {{-- Zelle® --}}
-                            <div class="tab-pane fade" id="tab-zelle">
-                                <form id="csbFormZelle" class="csb-zelle-form">
-                                    @csrf
-                                    <div class="text-center mb-3">
-                                        <span style="font-size:28px;font-weight:900;color:#7414ca;">Zelle®</span>
-                                        <div class="small text-muted">Send money instantly to anyone with a U.S. bank account.</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Recipient Mobile or Email</label>
-                                        <input type="text" name="contact" class="form-control" placeholder="(555) 123-4567 or email@example.com" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Amount ($)</label>
-                                        <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Memo (optional)</label>
-                                        <input type="text" name="memo" class="form-control" placeholder="e.g. Dinner split">
-                                    </div>
-                                    <div id="resZelle" class="csb-tx-result d-none"></div>
-                                    <button type="submit" class="btn w-100 fw-bold text-white" style="background:#7414ca;">SEND WITH ZELLE®</button>
-                                </form>
-                            </div>
+                        {{-- 3. External ACH (Protected by 2FA) --}}
+                        <div class="tab-pane fade" id="tab-external">
+                            <form id="csbFormExternal" class="csb-transfer-form">
+                                @csrf
+                                <input type="hidden" name="transfer_type" value="external">
+                                <input type="hidden" name="charge_type" value="percentage">
+                                <input type="hidden" name="bank_id" id="csbResolvedBankId">
+                                <input type="hidden" name="manual_data[bank_name]" id="csbResolvedBankName">
 
-                        </div>{{-- end tab-content --}}
-                    </div>{{-- end csbTransferHub --}}
-                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
+                                        <select name="wallet_type" class="form-select shadow-none" required>
+                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}</option>
+                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — ${{ number_format($user->savings_balance ?? 0, 2) }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Recipient Full Legal Name</label>
+                                        <input type="text" name="manual_data[account_name]" id="csbExtAccName" class="form-control shadow-none" placeholder="Account holder legal name" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">9-Digit ABA Routing Number</label>
+                                        <div class="input-group">
+                                            <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="csbExtRouting" class="form-control shadow-none" placeholder="9-digit ABA routing number" maxlength="9" pattern="[0-9]{9}" required oninput="csbLookupRouting(this.value)">
+                                            <span class="input-group-text bg-light" id="csbRoutingSpinner" style="display:none;"><i class="fa-solid fa-spinner fa-spin text-muted"></i></span>
+                                        </div>
+                                        <div class="small mt-1" id="csbRoutingStatus"></div>
+                                        {{-- Verified Bank Card --}}
+                                        <div id="csbRoutingVerifiedCard" class="d-none mt-2 p-3 rounded-2" style="background:#f0fdf4; border:1px solid #86efac;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-building-columns text-success fs-5"></i>
+                                                <div>
+                                                    <div class="fw-bold text-dark" id="csbLookupBankName"></div>
+                                                    <div class="extra-small text-muted" id="csbLookupBankLoc">Receiving Financial Institution (Verified)</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- Manual Bank Name Fallback --}}
+                                        <div id="csbManualBankWrap" class="d-none mt-2">
+                                            <label class="form-label extra-small fw-bold text-muted text-uppercase">Receiving Bank Name (As on statement)</label>
+                                            <input type="text" name="manual_data[bank_name_manual]" id="csbManualBankInput" class="form-control form-control-sm shadow-none" placeholder="e.g. Wells Fargo, Chase Bank">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Account Number</label>
+                                        <div class="input-group">
+                                            <input type="password" name="manual_data[account_number]" id="csbExtAccNum" class="form-control shadow-none" placeholder="Recipient account number" minlength="4" maxlength="20" required oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="csbTogglePwd('csbExtAccNum', this)"><i class="fa-solid fa-eye-slash"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Confirm Account Number</label>
+                                        <div class="input-group">
+                                            <input type="password" id="csbExtAccNumConfirm" class="form-control shadow-none" placeholder="Re-enter to confirm" minlength="4" maxlength="20" required oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                            <button type="button" class="btn btn-outline-secondary" onclick="csbTogglePwd('csbExtAccNumConfirm', this)"><i class="fa-solid fa-eye-slash"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Amount ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
+                                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Frequency</label>
+                                        <select name="frequency" class="form-select shadow-none">
+                                            <option value="once" selected>One-time Transfer</option>
+                                            <option value="daily">Daily</option>
+                                            <option value="weekly">Weekly</option>
+                                            <option value="monthly">Monthly</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Memo / Purpose (Optional)</label>
+                                        <input type="text" name="purpose" class="form-control shadow-none" placeholder="e.g. Invoice payment, rent deposit">
+                                    </div>
+                                </div>
+                                <div id="resExternal" class="csb-tx-result d-none mt-3"></div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
+                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; INITIATE ACH TRANSFER
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {{-- 4. Wire Transfer (Protected by 2FA) --}}
+                        <div class="tab-pane fade" id="tab-wire">
+                            <form id="csbFormWire" class="csb-wire-form">
+                                @csrf
+                                <input type="hidden" name="wire_type" id="csbWireType" value="domestic">
+
+                                <div class="mb-3">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-sm btn-dark active" id="btnWireDom" onclick="csbSwitchWireType('domestic')">
+                                            <i class="fa-solid fa-flag-usa me-1"></i> Domestic Fedwire
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-dark" id="btnWireIntl" onclick="csbSwitchWireType('international')">
+                                            <i class="fa-solid fa-globe me-1"></i> International SWIFT
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Funding Account</label>
+                                        <select name="wallet_type" class="form-select shadow-none" required>
+                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}</option>
+                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — ${{ number_format($user->savings_balance ?? 0, 2) }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Wire Principal ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
+                                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Beneficiary Full / Business Legal Name</label>
+                                        <input type="text" name="beneficiary_name" class="form-control shadow-none" placeholder="Beneficiary official legal name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Beneficiary Street Address</label>
+                                        <input type="text" name="beneficiary_address" class="form-control shadow-none" placeholder="Street address">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">City, State &amp; ZIP</label>
+                                        <div class="row g-1">
+                                            <div class="col-5"><input type="text" name="beneficiary_city" class="form-control shadow-none" placeholder="City"></div>
+                                            <div class="col-3"><input type="text" name="beneficiary_state" class="form-control shadow-none" placeholder="State"></div>
+                                            <div class="col-4"><input type="text" name="beneficiary_zip" class="form-control shadow-none" placeholder="ZIP"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Account Number / IBAN</label>
+                                        <input type="text" name="account_number" class="form-control shadow-none" placeholder="Account or IBAN" required>
+                                    </div>
+                                    <div class="col-md-6" id="csbWireDomWrap">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Wire ABA Routing #</label>
+                                        <input type="text" name="routing_number" class="form-control shadow-none" placeholder="9-digit Fedwire routing" maxlength="9">
+                                    </div>
+                                    <div class="col-md-6 d-none" id="csbWireIntlWrap">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">SWIFT / BIC Code</label>
+                                        <input type="text" name="swift_bic" class="form-control shadow-none" placeholder="8 or 11 character SWIFT code">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Receiving Bank Name</label>
+                                        <input type="text" name="bank_name" class="form-control shadow-none" placeholder="Receiving financial institution">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Receiving Bank Address</label>
+                                        <input type="text" name="bank_address" class="form-control shadow-none" placeholder="Bank branch city, state">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Wire Memo / Purpose / Escrow Ref</label>
+                                        <input type="text" name="memo" class="form-control shadow-none" placeholder="e.g. Real estate closing, escrow reference #">
+                                    </div>
+                                </div>
+                                <div id="resWire" class="csb-tx-result d-none mt-3"></div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#c8232c; border-radius:6px;">
+                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; DISPATCH WIRE
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {{-- 5. Zelle® (Protected by 2FA) --}}
+                        <div class="tab-pane fade" id="tab-zelle">
+                            <form id="csbFormZelle" class="csb-zelle-form">
+                                @csrf
+                                <div class="p-3 mb-3 text-center rounded-3" style="background: linear-gradient(135deg, #1b325f 0%, #7414ca 100%); color:#fff;">
+                                    <div class="d-flex align-items-center justify-content-center gap-3 mb-1">
+                                        <img src="{{ asset('assets/external/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank" style="height:26px; filter:brightness(0) invert(1);">
+                                        <div style="width:1px; height:20px; background:rgba(255,255,255,0.4);"></div>
+                                        <span style="font-size:24px; font-weight:900; letter-spacing:0.5px;">Zelle®</span>
+                                    </div>
+                                    <div class="extra-small opacity-75">Fast, safe and easy way to send money within minutes.</div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
+                                        <select name="wallet_type" class="form-select shadow-none" required>
+                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}</option>
+                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — ${{ number_format($user->savings_balance ?? 0, 2) }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Amount ($)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 fw-bold" style="color:#7414ca;">$</span>
+                                            <input type="number" step="0.01" min="0.01" name="amount" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Recipient U.S. Mobile or Email</label>
+                                        <div class="input-group">
+                                            <input type="text" name="contact" id="csbZelleContact" class="form-control shadow-none" placeholder="(555) 123-4567 or recipient@email.com" required autocomplete="off" oninput="csbFormatZellePhone(this); csbVerifyZelleContact(this.value)">
+                                            <span class="input-group-text bg-light" id="csbZelleSpinner" style="display:none;"><i class="fa-solid fa-spinner fa-spin text-muted"></i></span>
+                                        </div>
+                                        {{-- Zelle Enrolled Notice Box --}}
+                                        <div id="csbZelleNoticeBox" class="d-none mt-2 p-2 px-3 rounded-2" style="background:#fdf4ff; border-left:4px solid #7414ca;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-circle-check fs-5" style="color:#7414ca;"></i>
+                                                <div>
+                                                    <strong style="color:#581c87;" id="csbZelleNoticeTitle">Enrolled with Zelle®</strong>
+                                                    <div class="extra-small text-muted" id="csbZelleNoticeSub"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- External Name if Not Enrolled --}}
+                                        <div id="csbZelleExternalNameWrap" class="d-none mt-2">
+                                            <label class="form-label extra-small fw-bold text-muted text-uppercase">Recipient First &amp; Last Name</label>
+                                            <input type="text" name="external_name" class="form-control form-control-sm shadow-none" placeholder="Legal full name of recipient">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">What's this for? (Optional)</label>
+                                        <input type="text" name="purpose" class="form-control shadow-none" placeholder="e.g. Dinner split, utilities">
+                                    </div>
+                                </div>
+                                <div id="resZelle" class="csb-tx-result d-none mt-3"></div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#7414ca; border-radius:6px;">
+                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; SEND WITH ZELLE®
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>{{-- end tab-content --}}
+                </div>{{-- end csbTransferHub --}}
             </div>
         </div>
     </div>
 
     {{-- ── 2. REMOTE CHECK DEPOSIT ── --}}
     <div class="modal fade" id="remoteDepositModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background-color:#c8232c;color:#fff;">
-                    <h5 class="modal-title fw-bold" style="font-size:15px;">REMOTE CHECK DEPOSIT</h5>
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header" style="background-color:#c8232c; color:#fff;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-camera"></i>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size:15px; letter-spacing: 0.5px;">REMOTE CHECK DEPOSIT</h5>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="rdResult" class="d-none mb-3"></div>
                     <form id="csbRemoteDepositForm" enctype="multipart/form-data">
                         @csrf
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Deposit Amount ($)</label>
-                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="0.00" min="0.01" required>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold text-uppercase mb-1">Deposit To Account</label>
+                                <select name="account_id" class="form-select border shadow-none fw-bold" style="font-size: 13.5px;" required>
+                                    <option value="checking">
+                                        Personal Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format($user->balance, 2) }}
+                                    </option>
+                                    <option value="savings">
+                                        Primary Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format($user->savings_balance ?? 0, 2) }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold text-uppercase mb-1">Check Amount ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 fw-bold fs-5 text-dark">$</span>
+                                    <input type="number" step="0.01" min="0.01" name="amount" id="csbRdAmount" class="form-control border-start-0 fs-5 fw-bold" placeholder="0.00" required>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Front of Check</label>
-                            <input type="file" name="front_image" class="form-control" accept="image/*,.pdf" required>
+
+                        <!-- Check Photos Front & Back -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold text-uppercase mb-1">Front of Check</label>
+                                <div class="csb-check-capture-card text-center p-3 rounded" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;" onclick="$('#csbFrontFile').click()">
+                                    <div id="csbFrontPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded">
+                                        <img id="csbFrontPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
+                                    </div>
+                                    <div class="capture-inner">
+                                        <i class="fa-solid fa-camera fa-2x mb-2" style="color: #c8232c;"></i>
+                                        <div class="fw-bold text-dark small">Front of Check</div>
+                                        <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
+                                    </div>
+                                    <input type="file" id="csbFrontFile" name="front_image" class="d-none" accept="image/*,.pdf" capture="environment" required onchange="csbPreviewImage(this, 'csbFrontPreview', 'csbFrontPreviewWrap')">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold text-uppercase mb-1">Back of Check (Endorsed)</label>
+                                <div class="csb-check-capture-card text-center p-3 rounded" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;" onclick="$('#csbBackFile').click()">
+                                    <div id="csbBackPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded">
+                                        <img id="csbBackPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
+                                    </div>
+                                    <div class="capture-inner">
+                                        <i class="fa-solid fa-signature fa-2x mb-2" style="color: #c8232c;"></i>
+                                        <div class="fw-bold text-dark small">Back of Check</div>
+                                        <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
+                                    </div>
+                                    <input type="file" id="csbBackFile" name="back_image" class="d-none" accept="image/*,.pdf" capture="environment" required onchange="csbPreviewImage(this, 'csbBackPreview', 'csbBackPreviewWrap')">
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Back of Check (Endorsed)</label>
-                            <input type="file" name="back_image" class="form-control" accept="image/*,.pdf" required>
-                            <div class="small text-muted mt-1">Write "For Mobile Deposit Only — Cleveland State Bank" on the back.</div>
+
+                        <!-- Endorsement Guidance -->
+                        <div class="alert alert-secondary border-0 small d-flex gap-2 p-3 mb-3" style="background: rgba(200, 35, 44, 0.05); border-radius: 8px;">
+                            <i class="fa-solid fa-circle-info mt-1" style="color: #c8232c;"></i>
+                            <div>
+                                <div class="fw-bold text-dark mb-1">Endorsement Guidance</div>
+                                <div class="text-muted" style="font-size: 12px;">
+                                    Sign the back of your check and write <strong>"For Mobile Deposit Only — Cleveland State Bank"</strong> below your signature.
+                                </div>
+                            </div>
                         </div>
-                        <button type="submit" id="rdSubmitBtn" class="btn w-100 fw-bold text-white" style="background:#28623b;">
-                            SUBMIT CHECK FOR REVIEW
+
+                        <button type="submit" id="rdSubmitBtn" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; font-size: 14px;">
+                            <i class="fa-solid fa-paper-plane me-1"></i> SUBMIT CHECK FOR REVIEW
                         </button>
                     </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ route('user.remote_deposit') }}" class="small text-muted text-decoration-none">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> View Full Deposit History
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- ── 3. MANAGE CARDS ── --}}
+    {{-- ── 3. MANAGE CARDS (FrontField-Style 3D Card Flipping) ── --}}
     <div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background-color:#262626;color:#fff;">
-                    <h5 class="modal-title fw-bold" style="font-size:15px;">MANAGE DEBIT CARDS</h5>
+            <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header" style="background-color: #1e293b; color: #fff; border-bottom: 2px solid #c8232c;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-credit-card" style="color: #c8232c;"></i>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size: 15px; letter-spacing: 0.5px;">MANAGE DEBIT CARDS</h5>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4 text-center">
-                    @if(isset($userCard) && $userCard)
-                        <div class="p-4 rounded-3 text-white mb-3 shadow" style="background:linear-gradient(135deg,#1e355b,#0f1d33);text-align:left;">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="fw-bold" style="font-size:13px;letter-spacing:1px;">CLEVELAND STATE BANK</span>
-                                <span class="fw-bold text-uppercase" style="font-size:13px;">{{ $userCard->type ?? 'VISA' }}</span>
-                            </div>
-                            <div class="font-monospace mb-3" style="font-size:17px;letter-spacing:3px;">
-                                •••• •••• •••• {{ substr($userCard->card_number, -4) }}
-                            </div>
-                            <div class="d-flex justify-content-between" style="font-size:12px;">
-                                <div>
-                                    <div class="text-white-50">CARDHOLDER</div>
-                                    <div class="fw-bold">{{ strtoupper($userCard->card_holder_name ?? $user->full_name) }}</div>
+                    @php
+                        $userCardRecord = $userCard ?? \App\Models\Card::where('user_id', $user->id)->first();
+                    @endphp
+                    @if($userCardRecord)
+                        <!-- 3D Card Container -->
+                        <div class="csb-card-flip-wrap" onclick="csbToggleCardFlip(this)" title="Click to flip card">
+                            <div class="csb-card-flip-inner">
+                                <!-- Front Face -->
+                                <div class="csb-card-face csb-card-front">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank" style="height: 24px; max-width: 140px; object-fit: contain;">
+                                        </div>
+                                        <span class="badge text-uppercase" style="background: rgba(255,255,255,0.15); font-size: 10px; letter-spacing: 1px;">
+                                            {{ $userCardRecord->type ?? 'DEBIT' }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3 my-2">
+                                        <i class="fa-solid fa-microchip fa-2x" style="color: #eab308;"></i>
+                                        <i class="fa-solid fa-wifi fa-rotate-90 text-white-50"></i>
+                                    </div>
+                                    <div class="text-center my-1">
+                                        <span class="csb-card-num-masked font-monospace fs-4 text-white" style="letter-spacing: 3px;">
+                                            •••• •••• •••• {{ substr($userCardRecord->card_number, -4) }}
+                                        </span>
+                                        <span class="csb-card-num-full font-monospace fs-4 text-white d-none" style="letter-spacing: 3px;">
+                                            {{ chunk_split($userCardRecord->card_number, 4, ' ') }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-end mt-2">
+                                        <div class="text-start">
+                                            <div class="text-white-50" style="font-size: 9px; text-transform: uppercase;">Cardholder</div>
+                                            <div class="fw-bold text-white small">{{ strtoupper($userCardRecord->card_holder_name ?? $user->full_name) }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-white-50" style="font-size: 9px; text-transform: uppercase;">Expires</div>
+                                            <div class="fw-bold text-white small">{{ $userCardRecord->expiry_month }}/{{ substr($userCardRecord->expiry_year, -2) }}</div>
+                                        </div>
+                                        <div>
+                                            <i class="fa-brands fa-cc-visa fa-2x text-white opacity-75"></i>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="text-white-50">EXPIRES</div>
-                                    <div class="fw-bold">{{ $userCard->expiry_month }}/{{ substr($userCard->expiry_year, -2) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-white-50">CVV</div>
-                                    <div class="fw-bold">•••</div>
+
+                                <!-- Back Face -->
+                                <div class="csb-card-face csb-card-back">
+                                    <div class="csb-card-magnetic-strip"></div>
+                                    <div class="csb-card-cvv-strip">
+                                        <span id="csbCardCvvDisplay">{{ $userCardRecord->cvv ?? '719' }}</span>
+                                    </div>
+                                    <div class="p-3 text-start">
+                                        <div class="text-white-50" style="font-size: 10px; line-height: 1.4;">
+                                            AUTHORIZED SIGNATURE • NOT VALID UNLESS SIGNED
+                                        </div>
+                                        <div class="bg-white rounded my-1" style="height: 22px; opacity: 0.85;"></div>
+                                        <div class="text-white-50 mt-2" style="font-size: 9.5px; line-height: 1.3;">
+                                            For 24/7 customer service or lost cards: <strong>662-843-9461</strong>.<br>
+                                            Cleveland State Bank — Member FDIC | Equal Housing Lender.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-2">
-                            <span class="badge {{ $userCard->status == 'active' ? 'bg-success' : 'bg-danger' }} mb-2">
-                                {{ strtoupper($userCard->status ?? 'Active') }}
-                            </span>
+
+                        <div class="text-muted small mb-3">
+                            <i class="fa-solid fa-arrows-rotate me-1"></i> Tap card to flip
                         </div>
-                        <form method="POST" action="{{ route('user.cards.toggle-status') }}">
-                            @csrf
-                            <input type="hidden" name="card_id" value="{{ $userCard->id }}">
-                            <button type="submit" class="btn {{ $userCard->status == 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} w-100 fw-bold">
-                                {{ $userCard->status == 'active' ? '❄️ FREEZE CARD' : '✅ UNFREEZE CARD' }}
-                            </button>
-                        </form>
+
+                        <!-- Card Controls -->
+                        <div class="bg-light p-3 rounded text-start mb-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rounded-circle d-inline-block {{ $userCardRecord->status == 'active' ? 'bg-success' : 'bg-danger' }}" style="width: 10px; height: 10px;"></span>
+                                    <span class="small fw-bold {{ $userCardRecord->status == 'active' ? 'text-success' : 'text-danger' }}">
+                                        {{ $userCardRecord->status == 'active' ? 'Card Active' : 'Card Frozen' }}
+                                    </span>
+                                </div>
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input" type="checkbox" id="csbDetailsSwitch" onchange="csbToggleCardDetails(this)">
+                                    <label class="form-check-label small" for="csbDetailsSwitch">Show details</label>
+                                </div>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <button type="button" class="btn {{ $userCardRecord->status == 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} w-100 fw-bold btn-sm py-2" onclick="csbToggleCardFreeze(this, {{ $userCardRecord->id }})">
+                                        <i class="fa-solid {{ $userCardRecord->status == 'active' ? 'fa-snowflake' : 'fa-lock-open' }} me-1"></i>
+                                        {{ $userCardRecord->status == 'active' ? 'FREEZE CARD' : 'UNFREEZE CARD' }}
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" class="btn btn-outline-secondary w-100 fw-bold btn-sm py-2" onclick="csbResetPin({{ $userCardRecord->id }})">
+                                        <i class="fa-solid fa-key me-1"></i> RESET PIN
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('user.cards') }}" class="small text-muted text-decoration-none">
+                            <i class="fa-solid fa-sliders me-1"></i> View Full Card Management Hub &rarr;
+                        </a>
                     @else
                         <div class="py-4 text-muted">
-                            <i class="fa-solid fa-credit-card fa-3x mb-3"></i>
-                            <h5>No Card on File</h5>
-                            <p class="small">Contact your branch officer to issue your Cleveland State Bank Visa debit card.</p>
+                            <i class="fa-solid fa-credit-card fa-3x mb-3 text-secondary"></i>
+                            <h5 class="fw-bold">No Card Issued</h5>
+                            <p class="small">Contact your Cleveland State Bank branch officer to issue your Visa® Debit Card.</p>
+                            <a href="{{ route('user.ticket.index') }}" class="btn btn-danger btn-sm fw-bold">Request Card</a>
                         </div>
                     @endif
                 </div>
@@ -1082,39 +1544,9 @@ body {
         </div>
     </div>
 
-    {{-- ── 4. AVA AI ASSISTANT ── --}}
-    <div class="modal fade" id="avaAssistantModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header" style="background:#1e355b;color:#fff;">
-                    <h5 class="modal-title fw-bold" style="font-size:15px;">
-                        <i class="fa-solid fa-robot me-2" style="color:#4ade80;"></i>Ava — AI Banking Assistant
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-3 d-flex flex-column" style="height:420px;">
-                    <div id="avaChatBox" style="flex:1;overflow-y:auto;background:#f8fafc;padding:12px;border-radius:4px;border:1px solid #e2e8f0;margin-bottom:10px;">
-                        <div style="display:flex;gap:8px;margin-bottom:10px;">
-                            <div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">
-                                <i class="fa-solid fa-robot"></i>
-                            </div>
-                            <div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;">
-                                Hello, <strong>{{ $user->first_name }}</strong>! I'm Ava, your Cleveland State Bank digital assistant. I can help with account balances, transfer inquiries, card status, and more. How can I help you today?
-                            </div>
-                        </div>
-                    </div>
-                    <form id="avaQueryForm" onsubmit="sendAvaMessage(event)">
-                        <div class="input-group">
-                            <input type="text" id="avaInput" class="form-control form-control-sm" placeholder="Ask Ava anything..." required>
-                            <button class="btn btn-sm text-white" type="submit" style="background:#1e355b;">
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- ── 2FA Security Gate Modal & Floating Corner Ava Assistant ── --}}
+    @include('frontend::include.__security_gate_modal')
+    @include('frontend::user.partials.ava_chat')
 
     {{-- ── 5. DISPUTE TRANSACTION ── --}}
     <div class="modal fade" id="disputeModal" tabindex="-1" aria-hidden="true">
@@ -1135,7 +1567,7 @@ body {
                         @csrf
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Transaction Description / Reference</label>
-                            <input type="text" name="transaction_ref" class="form-control" placeholder="e.g. MCD HOLD DCU -$29.31 or txn ID" required>
+                            <input type="text" name="transaction_ref" class="form-control" placeholder="e.g. Card purchase, wire, or reference #" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Dispute Category</label>
@@ -1170,6 +1602,9 @@ body {
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=2.2"></script>
+    <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
+
     <script>
     // ── Sidebar Toggle ──
     document.addEventListener('DOMContentLoaded', function () {
@@ -1181,60 +1616,245 @@ body {
             });
         }
 
-        // Reset security gate when modal closes
-        document.getElementById('moveMoneyModal').addEventListener('hidden.bs.modal', function () {
-            document.getElementById('csbSecGate').classList.remove('d-none');
-            document.getElementById('csbTransferHub').classList.add('d-none');
-            document.getElementById('csbSecPassword').value = '';
-            document.getElementById('csbSecMsg').classList.add('d-none');
-            document.querySelectorAll('.csb-tx-result').forEach(function(el){ el.classList.add('d-none'); el.innerHTML=''; });
-        });
+        // Clean up transfer results when modal closes
+        var moveModal = document.getElementById('moveMoneyModal');
+        if (moveModal) {
+            moveModal.addEventListener('hidden.bs.modal', function () {
+                document.querySelectorAll('.csb-tx-result').forEach(function(el){ el.classList.add('d-none'); el.innerHTML=''; });
+            });
+        }
     });
 
-    // ── Security Unlock (password verify) ──
-    function csbUnlockTransfer() {
-        var pw = document.getElementById('csbSecPassword').value.trim();
-        if (!pw) { csbSecError('Please enter your account password.'); return; }
-        var btn = document.querySelector('#csbSecGate button');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Verifying...';
+    // ── 2FA Security Gate Integration ──
+    let pendingTransferCallback = null;
 
-        $.post("{{ route('user.verify.password') }}", { _token: "{{ csrf_token() }}", password: pw })
-            .done(function(res) {
-                if (res && (res.success || res.status === 'success' || res.verified)) {
-                    document.getElementById('csbSecGate').classList.add('d-none');
-                    document.getElementById('csbTransferHub').classList.remove('d-none');
+    window.SecurityGateOnSuccess = function(res) {
+        if (typeof pendingTransferCallback === 'function') {
+            let cb = pendingTransferCallback;
+            pendingTransferCallback = null;
+            cb();
+        }
+    };
+
+    function triggerSecurityGate(callback) {
+        pendingTransferCallback = callback;
+        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.gate({});
+        } else {
+            callback();
+        }
+    }
+
+    // ── Password Eye Toggle Helper ──
+    function csbTogglePwd(inputId, btn) {
+        var inp = document.getElementById(inputId);
+        if (!inp) return;
+        var icon = btn.querySelector('i');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        } else {
+            inp.type = 'password';
+            if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        }
+    }
+
+    // ── Federal Reserve Mod-10 Routing Checksum ──
+    function isValidAbaChecksumAch(routing) {
+        if (!/^\d{9}$/.test(routing)) return false;
+        const d = routing.split('').map(Number);
+        const sum = (3 * (d[0] + d[3] + d[6])) + (7 * (d[1] + d[4] + d[7])) + (d[2] + d[5] + d[8]);
+        return sum % 10 === 0;
+    }
+
+    // ── Self Transfer Account Sync ──
+    function csbSyncSelfToOptions() {
+        var fromVal = $('#csbSelfFromWallet').val();
+        var $to = $('#csbSelfToWallet');
+        $to.find('option').prop('disabled', false).show();
+        $to.find('option[value="' + fromVal + '"]').prop('disabled', true).hide();
+        if ($to.val() === fromVal) {
+            $to.find('option:not(:disabled):first').prop('selected', true);
+        }
+    }
+
+    // ── Member Recipient Live Verification ──
+    let csbMemberTimer = null;
+    function csbLookupMember(val) {
+        val = (val || '').trim();
+        clearTimeout(csbMemberTimer);
+        $('#csbMemberSpinner').hide();
+        $('#csbMemberVerifySuccess, #csbMemberVerifyError').addClass('d-none');
+        $('#csbMemberAccName, #csbRecipientChkLast4, #csbRecipientSavLast4').val('');
+
+        if (val.length < 3) return;
+
+        $('#csbMemberSpinner').show();
+        csbMemberTimer = setTimeout(function() {
+            fetch('/user/search-by-account-number/' + encodeURIComponent(val))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    $('#csbMemberSpinner').hide();
+                    if (data && data.name) {
+                        $('#csbMemberVerifiedName').text(data.name);
+                        $('#csbMemberAccName').val(data.name);
+                        $('#csbRecipientChkLast4').val(data.checking_last4 || '');
+                        $('#csbRecipientSavLast4').val(data.savings_last4 || '');
+                        var metaText = data.checking_last4 ? ('Checking (...*' + data.checking_last4 + ')') : '';
+                        if (data.has_savings && data.savings_last4) {
+                            metaText += ' • Savings (...*' + data.savings_last4 + ')';
+                            $('#csbOptSavings').prop('disabled', false).prop('hidden', false);
+                        } else {
+                            $('#csbOptSavings').prop('disabled', true).prop('hidden', true);
+                        }
+                        if (data.has_ira) $('#csbOptIra').prop('disabled', false).prop('hidden', false);
+                        if (data.has_heloc) $('#csbOptHeloc').prop('disabled', false).prop('hidden', false);
+                        if (data.has_cc) $('#csbOptCc').prop('disabled', false).prop('hidden', false);
+                        if (data.has_loan) $('#csbOptLoan').prop('disabled', false).prop('hidden', false);
+
+                        $('#csbMemberVerifiedMeta').text(metaText);
+                        $('#csbMemberVerifySuccess').removeClass('d-none');
+                    } else {
+                        $('#csbMemberVerifyError').removeClass('d-none');
+                    }
+                })
+                .catch(function() {
+                    $('#csbMemberSpinner').hide();
+                    $('#csbMemberVerifyError').removeClass('d-none');
+                });
+        }, 350);
+    }
+
+    // ── External ACH Routing Lookup ──
+    let csbRoutingTimer = null;
+    function csbLookupRouting(val) {
+        val = (val || '').trim();
+        clearTimeout(csbRoutingTimer);
+        $('#csbResolvedBankId, #csbResolvedBankName').val('');
+        $('#csbRoutingVerifiedCard, #csbManualBankWrap').addClass('d-none');
+        $('#csbRoutingStatus').html('');
+        $('#csbRoutingSpinner').hide();
+
+        if (val.length !== 9) return;
+
+        if (!isValidAbaChecksumAch(val)) {
+            $('#csbRoutingStatus').html('<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Invalid ABA Routing mod-10 checksum. Please check the 9 digits.</span>');
+            return;
+        }
+
+        $('#csbRoutingSpinner').show();
+        $('#csbRoutingStatus').html('<span class="text-muted"><i class="fa-solid fa-spinner fa-spin me-1"></i> Verifying routing number with Federal Reserve directory...</span>');
+
+        csbRoutingTimer = setTimeout(function() {
+            fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ routing_number: val })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(body) {
+                $('#csbRoutingSpinner').hide();
+                if (body && body.status === 'verified') {
+                    $('#csbResolvedBankId').val(body.bank_id);
+                    $('#csbResolvedBankName').val(body.bank_name);
+                    $('#csbLookupBankName').text(body.bank_name);
+                    $('#csbLookupBankLoc').text(body.location ? (body.location + ' — Verified Receiving Institution') : 'Verified Receiving Institution');
+                    $('#csbRoutingVerifiedCard').removeClass('d-none');
+                    $('#csbRoutingStatus').html('<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Institution recognized.</span>');
+                    $('#csbManualBankWrap').addClass('d-none');
                 } else {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> UNLOCK & CONTINUE';
-                    csbSecError(res.message || 'Incorrect password. Please try again.');
+                    $('#csbRoutingStatus').html('<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> Routing verified by checksum. Please provide institution name below.</span>');
+                    $('#csbManualBankWrap').removeClass('d-none');
                 }
             })
-            .fail(function(xhr) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> UNLOCK & CONTINUE';
-                var msg = xhr.responseJSON?.message || 'Verification failed. Please try again.';
-                csbSecError(msg);
+            .catch(function() {
+                $('#csbRoutingSpinner').hide();
+                $('#csbRoutingStatus').html('<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> Verification service offline. Please enter bank name manually.</span>');
+                $('#csbManualBankWrap').removeClass('d-none');
             });
+        }, 300);
     }
 
-    function csbSecError(msg) {
-        var el = document.getElementById('csbSecMsg');
-        el.textContent = msg;
-        el.classList.remove('d-none');
+    // ── Wire Transfer Domestic / International Toggle ──
+    function csbSwitchWireType(type) {
+        $('#csbWireType').val(type);
+        if (type === 'international') {
+            $('#btnWireDom').removeClass('btn-dark active').addClass('btn-outline-dark');
+            $('#btnWireIntl').removeClass('btn-outline-dark').addClass('btn-dark active');
+            $('#csbWireDomWrap').addClass('d-none');
+            $('#csbWireIntlWrap').removeClass('d-none');
+        } else {
+            $('#btnWireIntl').removeClass('btn-dark active').addClass('btn-outline-dark');
+            $('#btnWireDom').removeClass('btn-outline-dark').addClass('btn-dark active');
+            $('#csbWireIntlWrap').addClass('d-none');
+            $('#csbWireDomWrap').removeClass('d-none');
+        }
     }
 
-    // ── Generic transfer form submit (member / self / external) ──
-    $(document).on('submit', '.csb-transfer-form', function(e) {
-        e.preventDefault();
-        var $form = $(this);
+    // ── Zelle Phone Auto-Formatter: (123) 456-7890 ──
+    function csbFormatZellePhone(input) {
+        var v = input.value;
+        if (/@/.test(v)) return; // Email input, don't format as phone
+        var numbers = v.replace(/\D/g, '').substring(0, 10);
+        var char = {0:'(', 3:') ', 6:'-'};
+        var formatted = '';
+        for (var i = 0; i < numbers.length; i++) {
+            formatted += (char[i] || '') + numbers[i];
+        }
+        input.value = formatted;
+    }
+
+    // ── Zelle Live Recipient Enrollment Check ──
+    let csbZelleTimer = null;
+    function csbVerifyZelleContact(val) {
+        val = (val || '').trim();
+        clearTimeout(csbZelleTimer);
+        $('#csbZelleSpinner').hide();
+        $('#csbZelleNoticeBox, #csbZelleExternalNameWrap').addClass('d-none');
+
+        var isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        var isPhone = val.replace(/\D/g, '').length === 10;
+        if (!isEmail && !isPhone) return;
+
+        $('#csbZelleSpinner').show();
+        csbZelleTimer = setTimeout(function() {
+            fetch('/user/fund-transfer/zelle/verify-contact?contact=' + encodeURIComponent(val))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    $('#csbZelleSpinner').hide();
+                    if (data && data.enrolled) {
+                        $('#csbZelleNoticeTitle').text('Enrolled with Zelle®');
+                        $('#csbZelleNoticeSub').text(data.name ? ('Recipient: ' + data.name + ' • Ready to receive instant payment') : 'Recipient is enrolled and will receive money directly.');
+                        $('#csbZelleNoticeBox').removeClass('d-none');
+                        $('#csbZelleExternalNameWrap').addClass('d-none');
+                    } else {
+                        $('#csbZelleExternalNameWrap').removeClass('d-none');
+                    }
+                })
+                .catch(function() {
+                    $('#csbZelleSpinner').hide();
+                    $('#csbZelleExternalNameWrap').removeClass('d-none');
+                });
+        }, 400);
+    }
+
+    // ── Generic Transfer AJAX Dispatcher ──
+    function executeTransfer($form, resId, url) {
         var $btn = $form.find('button[type=submit]');
-        var resId = '#res' + $form.attr('id').replace('csbForm','').charAt(0).toUpperCase() + $form.attr('id').replace('csbForm','').slice(1);
+        var origText = $btn.data('orig') || $btn.html();
+        $btn.data('orig', origText);
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...');
 
-        $.post("{{ route('user.fund_transfer.transfer') }}", $form.serialize())
+        $.post(url, $form.serialize())
             .done(function(res) {
                 csbTxSuccess(resId, res.message || 'Transfer submitted successfully. Please check your transaction history.');
+                $form[0].reset();
+                $('#csbMemberVerifySuccess, #csbRoutingVerifiedCard, #csbZelleNoticeBox').addClass('d-none');
             })
             .fail(function(xhr) {
                 var errors = xhr.responseJSON?.errors;
@@ -1242,46 +1862,75 @@ body {
                 csbTxError(resId, msg);
             })
             .always(function() {
-                $btn.prop('disabled', false).html($btn.data('orig') || $btn.text().replace('Processing...','').trim() || 'SUBMIT');
+                $btn.prop('disabled', false).html($btn.data('orig') || 'SUBMIT');
             });
+    }
+
+    // 1. Self / Internal Transfer: Submits directly without 2FA
+    $('#csbFormSelf').on('submit', function(e) {
+        e.preventDefault();
+        var amt = parseFloat($('#csbSelfAmount').val()) || 0;
+        if (amt <= 0) {
+            csbTxError('#resSelf', 'Please enter a valid transfer amount.');
+            return;
+        }
+        executeTransfer($(this), '#resSelf', "{{ route('user.fund_transfer.transfer') }}");
     });
 
-    // ── Wire transfer ──
-    $(document).on('submit', '.csb-wire-form', function(e) {
+    // 2. Member Transfer: Protected by 2FA Security Gate
+    $('#csbFormMember').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
-        var $btn = $form.find('button[type=submit]');
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Dispatching...');
-
-        $.post("{{ route('user.fund_transfer.transfer.wire.post') }}", $form.serialize())
-            .done(function(res) {
-                csbTxSuccess('#resWire', res.message || 'Wire transfer dispatched. Processing may take 1–3 business days.');
-            })
-            .fail(function(xhr) {
-                var errors = xhr.responseJSON?.errors;
-                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Wire transfer failed. Please verify your details.');
-                csbTxError('#resWire', msg);
-            })
-            .always(function() { $btn.prop('disabled', false).text('DISPATCH WIRE TRANSFER'); });
+        var accName = $('#csbMemberAccName').val();
+        if (!accName) {
+            csbTxError('#resMember', 'Please enter a valid recipient and wait for verification.');
+            return;
+        }
+        triggerSecurityGate(function() {
+            executeTransfer($form, '#resMember', "{{ route('user.fund_transfer.transfer') }}");
+        });
     });
 
-    // ── Zelle transfer ──
-    $(document).on('submit', '.csb-zelle-form', function(e) {
+    // 3. External ACH Transfer: Protected by 2FA Security Gate
+    $('#csbFormExternal').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
-        var $btn = $form.find('button[type=submit]');
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Sending...');
+        var routing = $('#csbExtRouting').val();
+        if (!isValidAbaChecksumAch(routing)) {
+            csbTxError('#resExternal', 'The 9-digit ABA routing number failed mod-10 checksum.');
+            return;
+        }
+        var acc1 = $('#csbExtAccNum').val();
+        var acc2 = $('#csbExtAccNumConfirm').val();
+        if (acc1 !== acc2) {
+            csbTxError('#resExternal', 'Account numbers do not match. Please verify both fields.');
+            return;
+        }
+        if (!$('#csbResolvedBankId').val() && !$('#csbManualBankInput').val().trim()) {
+            csbTxError('#resExternal', 'Please enter the receiving bank name.');
+            return;
+        }
+        triggerSecurityGate(function() {
+            executeTransfer($form, '#resExternal', "{{ route('user.fund_transfer.transfer') }}");
+        });
+    });
 
-        $.post("{{ route('user.fund_transfer.zelle.submit') }}", $form.serialize())
-            .done(function(res) {
-                csbTxSuccess('#resZelle', res.message || 'Zelle® payment sent! Funds typically arrive within minutes.');
-            })
-            .fail(function(xhr) {
-                var errors = xhr.responseJSON?.errors;
-                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Zelle® transfer could not be processed.');
-                csbTxError('#resZelle', msg);
-            })
-            .always(function() { $btn.prop('disabled', false).text('SEND WITH ZELLE®'); });
+    // 4. Wire Transfer: Protected by 2FA Security Gate
+    $('#csbFormWire').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        triggerSecurityGate(function() {
+            executeTransfer($form, '#resWire', "{{ route('user.fund_transfer.transfer.wire.post') }}");
+        });
+    });
+
+    // 5. Zelle® Transfer: Protected by 2FA Security Gate
+    $('#csbFormZelle').on('submit', function(e) {
+        e.preventDefault();
+        var $form = $(this);
+        triggerSecurityGate(function() {
+            executeTransfer($form, '#resZelle', "{{ route('user.fund_transfer.zelle.submit') }}");
+        });
     });
 
     function csbTxSuccess(resId, msg) {
@@ -1291,7 +1940,18 @@ body {
         $(resId).removeClass('d-none alert-success').addClass('alert alert-danger small').html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
     }
 
-    // ── Remote Deposit (AJAX file upload) ──
+    // ── Remote Deposit (AJAX file upload & preview) ──
+    function csbPreviewImage(input, imgId, wrapId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#' + imgId).attr('src', e.target.result);
+                $('#' + wrapId).removeClass('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     $('#csbRemoteDepositForm').on('submit', function(e) {
         e.preventDefault();
         var $btn = $('#rdSubmitBtn');
@@ -1309,6 +1969,7 @@ body {
             $('#rdResult').removeClass('d-none alert-danger').addClass('alert alert-success small')
                 .html('<i class="fa-solid fa-check-circle me-1"></i> ' + (res.message || 'Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
             $('#csbRemoteDepositForm')[0].reset();
+            $('#csbFrontPreviewWrap, #csbBackPreviewWrap').addClass('d-none');
         })
         .fail(function(xhr) {
             var errors = xhr.responseJSON?.errors;
@@ -1316,16 +1977,70 @@ body {
             $('#rdResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
                 .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
         })
-        .always(function() { $btn.prop('disabled', false).html('SUBMIT CHECK FOR REVIEW'); });
+        .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane me-1"></i> SUBMIT CHECK FOR REVIEW'); });
     });
+
+    // ── 3D Card Management Handlers ──
+    function csbToggleCardFlip(el) {
+        $(el).toggleClass('flipped');
+    }
+
+    function csbToggleCardDetails(checkbox) {
+        if (checkbox.checked) {
+            $('.csb-card-num-masked').addClass('d-none');
+            $('.csb-card-num-full').removeClass('d-none');
+        } else {
+            $('.csb-card-num-masked').removeClass('d-none');
+            $('.csb-card-num-full').addClass('d-none');
+        }
+    }
+
+    function csbToggleCardFreeze(btn, cardId) {
+        var $btn = $(btn);
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
+        triggerSecurityGate(function() {
+            $.post("{{ route('user.cards.toggle-status') }}", {
+                _token: "{{ csrf_token() }}",
+                card_id: cardId
+            })
+            .done(function(res) {
+                window.location.reload();
+            })
+            .fail(function(xhr) {
+                $btn.prop('disabled', false).text('FREEZE / UNFREEZE');
+                alert(xhr.responseJSON?.message || 'Could not update card status.');
+            });
+        });
+    }
+
+    function csbResetPin(cardId) {
+        var newPin = prompt("Please enter a new 4-digit PIN for your debit card:");
+        if (!newPin) return;
+        if (!/^\d{4}$/.test(newPin)) {
+            alert("PIN must be exactly 4 digits.");
+            return;
+        }
+        triggerSecurityGate(function() {
+            $.post("{{ route('user.cards.reset-pin') }}", {
+                _token: "{{ csrf_token() }}",
+                card_id: cardId,
+                pin: newPin,
+                pin_confirmation: newPin
+            })
+            .done(function(res) {
+                alert(res.message || "Card PIN reset successfully.");
+            })
+            .fail(function(xhr) {
+                alert(xhr.responseJSON?.message || "Could not reset card PIN.");
+            });
+        });
+    }
 
     // ── Dispute Form (AJAX → ticket store) ──
     $('#csbDisputeForm').on('submit', function(e) {
         e.preventDefault();
         var $btn = $(this).find('button[type=submit]');
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Filing...');
-        var data = $(this).serialize();
-        // Merge reason into description for ticket
         var reason = $(this).find('[name=reason]').val();
         var txRef  = $(this).find('[name=transaction_ref]').val();
         var full   = 'Transaction: ' + txRef + '\nReason: ' + reason + '\n\n' + $(this).find('[name=description]').val();
@@ -1349,45 +2064,6 @@ body {
             })
             .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-file-circle-exclamation me-1"></i> FILE OFFICIAL DISPUTE'); });
     });
-
-    // ── Ava AI Assistant ──
-    function sendAvaMessage(e) {
-        e.preventDefault();
-        var input = document.getElementById('avaInput');
-        var query = input.value.trim();
-        if (!query) return;
-
-        var chatBox = document.getElementById('avaChatBox');
-        chatBox.innerHTML += '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
-            + '<div class="p-2 rounded small text-white" style="max-width:80%;background:#1e355b;">' + $('<span>').text(query).html() + '</div>'
-            + '</div>';
-        input.value = '';
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // Typing indicator
-        var typingId = 'ava-typing-' + Date.now();
-        chatBox.innerHTML += '<div id="' + typingId + '" style="display:flex;gap:8px;margin-bottom:10px;">'
-            + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
-            + '<div class="p-2 bg-white rounded shadow-sm small text-muted">Ava is typing…</div></div>';
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        $.post("{{ route('user.ava.query') }}", { _token: "{{ csrf_token() }}", query: query })
-            .done(function(res) {
-                document.getElementById(typingId)?.remove();
-                var reply = res.response || res.message || 'I appreciate your question. For account-specific inquiries, please contact your Account Officer directly.';
-                chatBox.innerHTML += '<div style="display:flex;gap:8px;margin-bottom:10px;">'
-                    + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
-                    + '<div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;"><strong>Ava:</strong> ' + reply + '</div></div>';
-                chatBox.scrollTop = chatBox.scrollHeight;
-            })
-            .fail(function() {
-                document.getElementById(typingId)?.remove();
-                chatBox.innerHTML += '<div style="display:flex;gap:8px;margin-bottom:10px;">'
-                    + '<div style="width:28px;height:28px;border-radius:50%;background:#1e355b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;"><i class="fa-solid fa-robot"></i></div>'
-                    + '<div class="p-2 bg-white rounded shadow-sm small text-dark" style="max-width:85%;"><strong>Ava:</strong> I\'m having trouble connecting right now. Please try again shortly or contact Member Support.</div></div>';
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
-    }
     </script>
 </body>
 </html>

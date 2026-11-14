@@ -138,7 +138,7 @@
     .forgot-link:hover { text-decoration: underline; }
     .input-box.otp-input { letter-spacing: 8px; font-size: 24px; text-align: center; font-weight: 700; max-width: 240px; margin: 0 auto; border: 2px solid #ddd; border-radius: 8px; padding: 10px; }
     .error-text { color: #ff3b30 !important; font-weight: 700 !important; margin-top: 8px; min-height: 20px; }
-    .primary-btn { background: #e31837 !important; color: #fff !important; border: none !important; border-radius: 8px !important; padding: 12px !important; font-weight: 700 !important; transition: all 0.2s; }
+    .primary-btn { background: var(--primary-color, #c8232c) !important; color: #fff !important; border: none !important; border-radius: 8px !important; padding: 12px !important; font-weight: 700 !important; transition: all 0.2s; }
     .primary-btn:hover { opacity: 0.9; transform: translateY(-1px); }
     .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
     @keyframes shake {
@@ -174,8 +174,8 @@
     }
 
     .method-card:hover:not([disabled]) {
-        border-color: #00549b;
-        border-left-color: #00549b;
+        border-color: var(--primary-color, #00549b);
+        border-left-color: var(--primary-color, #00549b);
         background: #f8fbff;
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.06);
@@ -190,8 +190,8 @@
     .method-icon {
         width: 42px;
         height: 42px;
-        background: rgba(0, 84, 155, 0.08);
-        color: #00549b;
+        background: rgba(200, 35, 44, 0.08);
+        color: var(--primary-color, #c8232c);
         border-radius: 10px;
         display: flex;
         align-items: center;

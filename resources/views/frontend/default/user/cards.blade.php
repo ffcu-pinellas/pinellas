@@ -5,6 +5,16 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $cardLogo = $isCustomInst
+        ? ($currentInstitution->dark_logo_path ? asset('assets/' . $currentInstitution->dark_logo_path) : asset('assets/institutions/clevelandstatebank/images/logo-white.png'))
+        : asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png');
+    $cardTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
+    $cardPhone = $isCustomInst ? ($currentInstitution->support_phone ?? '662-843-9461') : (setting('site_phone') ?? '1-800-FRONTFIELD');
+    $cardBgGradient = $isCustomInst ? 'linear-gradient(135deg, #1e355b 0%, #0f1d33 100%)' : 'linear-gradient(135deg, #00549b 0%, #00305b 100%)';
+    $cardDisclaimer = $isCustomInst ? 'Member FDIC | Equal Housing Lender' : 'Federally Insured by NCUA';
+@endphp
 <div class="row justify-content-center">
     <div class="col-xl-6 col-lg-8 col-md-10 col-12">
         <div class="d-flex align-items-center mb-4">
@@ -27,7 +37,7 @@
                                         <div class="card-bg"></div>
                                         <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-start">
-                                                <img src="{{ asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png') }}" alt="{{ setting('site_title') ?? 'FrontField Credit Union' }}" style="height: 30px; filter: brightness(0) invert(1);">
+                                                <img src="{{ $cardLogo }}" alt="{{ $cardTitle }}" style="height: 30px; max-width: 150px; object-fit: contain; filter: brightness(0) invert(1);">
                                                 <span class="text-white opacity-75 small">{{ ($card->type == 'credit') ? 'Credit Card' : ucfirst($card->type ?? 'Debit') }}</span>
                                             </div>
                                             <div class="d-flex align-items-center my-3">
@@ -71,7 +81,7 @@
                                             <p class="text-white small fw-bold mb-1">Authorized Signature</p>
                                             <div class="bg-white mb-3" style="height: 30px; opacity: 0.9;"></div>
                                             <div class="text-white small fw-bold">
-                                                For customer service, call {{ setting('site_phone') ?? '1-800-FRONTFIELD' }}.
+                                                For customer service, call {{ $cardPhone }}. {{ $cardDisclaimer }}
                                             </div>
                                         </div>
                                     </div>
@@ -277,7 +287,7 @@
         backface-visibility: hidden;
         border-radius: 20px;
         overflow: hidden;
-        background: linear-gradient(135deg, #00549b 0%, #00305b 100%);
+        background: {{ $cardBgGradient }};
         color: white;
     }
     .credit-card-back {

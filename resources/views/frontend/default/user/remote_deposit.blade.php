@@ -100,7 +100,7 @@
                 <div>
                     <div class="fw-bold text-dark mb-1">Endorsement guidance</div>
                     <div class="text-muted">
-                        Be sure to endorse the back of your check with your signature and "For Mobile Deposit Only to {{ setting('site_title') ?? 'FrontField Credit Union' }}".
+                        Be sure to endorse the back of your check with your signature and "For Mobile Deposit Only to {{ !empty($currentInstitution) && !$currentInstitution->is_default ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union') }}".
                     </div>
                 </div>
             </div>

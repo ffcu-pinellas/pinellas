@@ -37,12 +37,17 @@
                 </ul>
             </div>
             <div class="settings-group mt-2">
+                @php
+                    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+                    $navTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
+                    $navRegulator = $isCustomInst ? ($currentInstitution->regulator_badge ?? 'Member FDIC | Equal Housing Lender') : 'Federally Insured by NCUA';
+                @endphp
                 <h6 class="settings-group-title text-muted fw-bold mb-2 px-3 pt-3" style="font-size: 11px; letter-spacing: 0.5px;">ACCOUNTS</h6>
                 <ul class="settings-nav-list list-unstyled m-0 p-0">
                     <li class="mb-0">
                         <a href="{{ route('user.accounts') }}" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom">
                             <i class="fas fa-university fs-5 text-primary" style="width: 24px; text-align: center;"></i> 
-                            <span>{{ setting('site_title') ?? 'FrontField Credit Union' }}</span>
+                            <span>{{ $navTitle }}</span>
                         </a>
                     </li>
                     <li class="mb-0">
@@ -54,8 +59,8 @@
                 </ul>
             </div>
             <div class="text-center p-3 mt-4">
-                 <p class="small text-muted mb-1">&copy; 2026 {{ setting('site_title') ?? 'FrontField Credit Union' }} - Privacy policy</p>
-                 <p class="small text-muted mb-1">Federally Insured by NCUA</p>
+                 <p class="small text-muted mb-1">&copy; 2026 {{ $navTitle }} - Privacy policy</p>
+                 <p class="small text-muted mb-1">{{ $navRegulator }}</p>
                  <p class="small text-muted mb-0"><i class="fas fa-home"></i> Equal Housing Lender</p>
             </div>
         </div>

@@ -55,12 +55,15 @@
                     <div class="container">
                         <div class="header">
                             @php
+                                $fallbackInstLogo = (!empty($details['primary_color']) && $details['primary_color'] !== '#00549b')
+                                    ? public_path('assets/institutions/clevelandstatebank/images/logo.png')
+                                    : public_path('assets/external/images/logo.png');
                                 $logoPath = $details['site_logo_path'] ?? null;
                                 if (!$logoPath || !file_exists($logoPath)) {
-                                    $logoPath = public_path('assets/external/images/logo.png');
+                                    $logoPath = $fallbackInstLogo;
                                 }
                                 $canEmbed = $logoPath && file_exists($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
-                                $siteLogoUrl = $details['site_logo'] ?? asset('assets/external/images/logo.png');
+                                $siteLogoUrl = $details['site_logo'] ?? asset(!empty($details['primary_color']) && $details['primary_color'] !== '#00549b' ? 'assets/institutions/clevelandstatebank/images/logo.png' : 'assets/external/images/logo.png');
                             @endphp
 
                             @if($canEmbed && isset($message))

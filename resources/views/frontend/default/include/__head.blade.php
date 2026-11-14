@@ -17,8 +17,13 @@
         })();
     </script>
     <link rel="canonical" href="{{ url()->current() }}"/>
-    <link rel="shortcut icon" href="{{ asset('assets/'.setting('site_favicon','global')) }}" type="image/x-icon"/>
-    <link rel="icon" href="{{ asset('assets/'.setting('site_favicon','global')) }}" type="image/x-icon" />
+    @php
+        $headFavicon = (!empty($currentInstitution) && !$currentInstitution->is_default && !empty($currentInstitution->favicon_path))
+            ? asset($currentInstitution->favicon_path)
+            : asset('assets/'.setting('site_favicon','global'));
+    @endphp
+    <link rel="shortcut icon" href="{{ $headFavicon }}" type="image/x-icon"/>
+    <link rel="icon" href="{{ $headFavicon }}" type="image/x-icon" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/select2.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/front/css/fontawesome.min.css') }}" />

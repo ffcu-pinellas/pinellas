@@ -60,6 +60,10 @@ class InstitutionController extends Controller
             $selectedInstitution = $institutions->first();
         }
 
+        if ($selectedInstitution) {
+            session(['admin_institution_id' => $selectedInstitution->id]);
+        }
+
         // Metrics for selected institution
         $metrics = [
             'total_members' => 0,

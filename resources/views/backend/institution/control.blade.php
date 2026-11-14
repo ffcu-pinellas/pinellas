@@ -58,13 +58,7 @@
     <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-left: 4px solid {{ $selectedInstitution->primary_color }} !important;">
         <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-3">
-                @if($selectedInstitution->logo_path)
-                    <img src="{{ asset('assets/' . $selectedInstitution->logo_path) }}" alt="{{ $selectedInstitution->name }}" style="height: 50px; max-width: 180px; object-fit: contain;">
-                @else
-                    <div class="d-flex align-items-center justify-content-center fw-bold" style="width: 50px; height: 50px; background: {{ $selectedInstitution->primary_color }}; color: #fff; border-radius: 6px; font-size: 20px;">
-                        {{ substr($selectedInstitution->short_name, 0, 2) }}
-                    </div>
-                @endif
+                <img src="{{ $selectedInstitution->logo_url }}" alt="{{ $selectedInstitution->name }}" style="height: 50px; max-width: 180px; object-fit: contain;">
                 <div>
                     <h4 class="mb-1 text-dark fw-bold">{{ $selectedInstitution->name }}</h4>
                     <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">

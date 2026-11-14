@@ -22,13 +22,7 @@
                     <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border-left: 4px solid {{ $inst->primary_color }} !important;">
                         <div class="card-body">
                             <div class="d-flex align-items-center gap-3 mb-3">
-                                @if($inst->logo_path)
-                                    <img src="{{ asset('storage/'.$inst->logo_path) }}" alt="{{ $inst->name }}" style="height:40px; object-fit:contain;">
-                                @else
-                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white" style="width:40px;height:40px;background:{{ $inst->primary_color }};font-size:16px;">
-                                        {{ strtoupper(substr($inst->short_name, 0, 2)) }}
-                                    </div>
-                                @endif
+                                <img src="{{ $inst->logo_url }}" alt="{{ $inst->name }}" style="height:40px; max-width:140px; object-fit:contain;">
                                 <div>
                                     <div class="fw-bold">{{ $inst->name }}</div>
                                     <div class="text-muted small">{{ $inst->slug }}.frontfieldcu.pro</div>

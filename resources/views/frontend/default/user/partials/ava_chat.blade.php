@@ -1,19 +1,25 @@
-<!-- Ava AI Assistant Widget -->
+<!-- Ava Assistant Widget -->
+@php
+    $avaIsCustom = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $avaColor = $avaIsCustom ? ($currentInstitution->primary_color ?? '#c8232c') : '#00549b';
+    $avaTitle = $avaIsCustom ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
+    $avaColorHex = ltrim($avaColor, '#');
+@endphp
 <div id="ava-widget-container" class="ava-closed">
     <!-- Floating Trigger Button -->
-    <button id="ava-trigger" class="ava-pulse-btn" aria-label="Open Ava Assistant">
+    <button id="ava-trigger" class="ava-pulse-btn" aria-label="Open Ava Assistant" style="background: {{ $avaColor }};">
         <div class="ava-logo-wrapper">
-             <i class="fas fa-robot"></i>
+             <i class="fas fa-comments" style="font-size: 24px;"></i>
         </div>
-        <div id="ava-badge-promo" class="d-none d-md-block">Hi! I'm Ava.</div>
+        <div id="ava-badge-promo" class="d-none d-md-block" style="color: {{ $avaColor }};">Hi! I'm Ava.</div>
     </button>
 
     <!-- Chat Window -->
     <div id="ava-chat-window" class="glass-morph">
-        <div class="ava-header d-flex align-items-center justify-content-between">
+        <div class="ava-header d-flex align-items-center justify-content-between" style="background: {{ $avaColor }};">
             <div class="d-flex align-items-center">
                 <div class="ava-avatar">
-                   <img src="https://ui-avatars.com/api/?name=Ava&background=00549b&color=fff&bold=true" alt="Ava" class="rounded-circle">
+                   <img src="https://ui-avatars.com/api/?name=Ava&background={{ $avaColorHex }}&color=fff&bold=true" alt="Ava" class="rounded-circle">
                    <div class="ava-online-dot"></div>
                 </div>
                 <div class="ms-3">
@@ -30,7 +36,7 @@
             <!-- Greeting Message -->
             <div class="ava-msg ava-msg-bot">
                 <div class="ava-bubble">
-                    Hello {{ auth()->user()->first_name }}! I'm your {{ setting('site_title') ?? 'FrontField Credit Union' }} assistant. How can I help you today?
+                    Hello {{ auth()->user()->first_name }}! I'm your {{ $avaTitle }} assistant. How can I help you today?
                 </div>
             </div>
             
@@ -68,10 +74,10 @@
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: #00549b;
+        background: {{ $avaColor }};
         color: white;
         border: none;
-        box-shadow: 0 8px 16px rgba(0, 84, 155, 0.4);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -88,7 +94,7 @@
         position: absolute;
         top: -5px; left: -5px; right: -5px; bottom: -5px;
         border-radius: 50%;
-        border: 2px solid #00549b;
+        border: 2px solid {{ $avaColor }};
         opacity: 0.5;
         animation: ava-pulse 2s infinite;
     }
@@ -102,7 +108,7 @@
         position: absolute;
         right: 70px;
         background: white;
-        color: #00549b;
+        color: {{ $avaColor }};
         padding: 6px 16px;
         border-radius: 20px;
         font-weight: 600;
@@ -142,7 +148,7 @@
     }
 
     .ava-header {
-        background: #00549b;
+        background: {{ $avaColor }};
         padding: 20px;
         color: white;
     }
@@ -176,7 +182,7 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     .ava-msg-bot .ava-bubble { background: #f0f4f8; color: #1a202c; border-bottom-left-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .ava-msg-user .ava-bubble { background: #00549b; color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); }
+    .ava-msg-user .ava-bubble { background: {{ $avaColor }}; color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
 
     /* Rich Action Cards */
     .ava-card {
@@ -189,7 +195,7 @@
         width: 100%;
         max-width: 300px;
     }
-    .ava-card-title { font-size: 14px; font-weight: bold; color: #00549b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .ava-card-title { font-size: 14px; font-weight: bold; color: {{ $avaColor }}; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     .ava-card-body { font-size: 13px; color: #4a5568; line-height: 1.4; margin-bottom: 12px; }
     .ava-btn-action {
         width: 100%;
