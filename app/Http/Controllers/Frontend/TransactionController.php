@@ -152,41 +152,81 @@ class TransactionController extends Controller
             'loan' => $mask($user->loan_account_number),
         ];
 
+        // Resolve Institution Context
+        $institution = $user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
-        $siteLogo = setting('site_logo', 'global');
-        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
-        if ($logoPath && file_exists($logoPath)) {
-            try {
-                $logoData = file_get_contents($logoPath);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                }
-            } catch (\Exception $e) {
-                \Log::error("PDF Local Logo Read Error: " . $e->getMessage());
+        if ($isCustom) {
+            $instLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+            if (!$instLogoPath || !file_exists($instLogoPath)) {
+                $instLogoPath = public_path('assets/institutions/clevelandstatebank/images/logo.png');
             }
-        }
-        if (!$logoBase64) {
-            try {
-                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
-                if (file_exists($fallbackPath)) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+            if (file_exists($instLogoPath)) {
+                try {
+                    $logoData = file_get_contents($instLogoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("PDF Local Logo Read Error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Log::error("PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            }
+        } else {
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && file_exists($logoPath)) {
+                try {
+                    $logoData = file_get_contents($logoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("PDF Local Logo Read Error: " . $e->getMessage());
+                }
+            }
+            if (!$logoBase64) {
+                try {
+                    $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                    if (file_exists($fallbackPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("PDF Local Fallback Logo Read Error: " . $e->getMessage());
+                }
             }
         }
 
-        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
-        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+        $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?? 'FrontField FCU');
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $regulatorBadge = $isCustom
+            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
+            : 'Federally Insured by NCUA. Equal Housing Lender.';
+        $contactAddress = $isCustom
+            ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+            : 'Corporate Offices • P.O. Box 2300';
+        $contactCityStateZip = $isCustom
+            ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+            : 'Cleveland, OH 44166';
+        $contactPhone = $isCustom
+            ? ($institution->support_phone ?: '662-843-9461')
+            : (setting('site_phone', 'global') ?: '216 230 1837');
+        $homeDomain = $isCustom
+            ? "{$institution->slug}.frontfieldcu.pro"
+            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
 
-        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact('transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 'logoBase64', 'siteTitle', 'homeDomain'));
+        $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact(
+            'transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 
+            'logoBase64', 'siteTitle', 'homeDomain', 'primaryColor', 'regulatorBadge', 
+            'contactAddress', 'contactCityStateZip', 'contactPhone'
+        ));
         
         $filename = 'eStatement_' . $user->username . '_' . now()->format('Y-m-d') . '.pdf';
 
         if ($emailStatement) {
             $details = [
-                'subject' => 'Your Official eStatement is Ready - ' . setting('site_title', 'global'),
+                'subject' => 'Your Official eStatement is Ready - ' . $siteTitle,
                 'title' => 'Your Official eStatement',
                 'salutation' => 'Hello ' . $user->full_name,
                 'message_body' => 'Attached is your requested eStatement for the period ' . $from_date->format('M d, Y') . ' to ' . $to_date->format('M d, Y') . '. <br><br>Please download the attached PDF for your records.',
@@ -194,9 +234,12 @@ class TransactionController extends Controller
                 'button_link' => route('user.dashboard'),
                 'footer_status' => 1,
                 'bottom_status' => 0,
-                'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null,
-                'site_title' => setting('site_title', 'global'),
-                'site_link' => route('home'),
+                'primary_color' => $primaryColor,
+                'regulator_type' => $regulatorBadge,
+                'support_phone' => $contactPhone,
+                'site_logo' => $isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null),
+                'site_title' => $siteTitle,
+                'site_link' => $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home'),
                 'attachment' => [
                     'data' => $pdf->output(),
                     'filename' => $filename
@@ -226,33 +269,68 @@ class TransactionController extends Controller
 
         $user = auth()->user();
         
+        // Resolve Institution Context
+        $institution = $user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
-        $siteLogo = setting('site_logo', 'global');
-        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
-        if ($logoPath && file_exists($logoPath)) {
-            try {
-                $logoData = file_get_contents($logoPath);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                }
-            } catch (\Exception $e) {
-                \Log::error("Receipt PDF Local Logo Read Error: " . $e->getMessage());
+        if ($isCustom) {
+            $instLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+            if (!$instLogoPath || !file_exists($instLogoPath)) {
+                $instLogoPath = public_path('assets/institutions/clevelandstatebank/images/logo.png');
             }
-        }
-        if (!$logoBase64) {
-            try {
-                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
-                if (file_exists($fallbackPath)) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+            if (file_exists($instLogoPath)) {
+                try {
+                    $logoData = file_get_contents($instLogoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt PDF Local Logo Read Error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Log::error("Receipt PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            }
+        } else {
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && file_exists($logoPath)) {
+                try {
+                    $logoData = file_get_contents($logoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt PDF Local Logo Read Error: " . $e->getMessage());
+                }
+            }
+            if (!$logoBase64) {
+                try {
+                    $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                    if (file_exists($fallbackPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt PDF Local Fallback Logo Read Error: " . $e->getMessage());
+                }
             }
         }
 
-        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
-        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64', 'siteTitle'));
+        $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?? 'FrontField FCU');
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $regulatorBadge = $isCustom
+            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . '. Equal Housing Lender.')
+            : 'Federally insured by NCUA. Equal Housing Lender.';
+        $contactAddress = $isCustom
+            ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+            : 'Corporate Offices • P.O. Box 2300';
+        $contactCityStateZip = $isCustom
+            ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+            : 'Cleveland, OH 44166';
+
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact(
+            'transaction', 'user', 'logoBase64', 'siteTitle', 'primaryColor', 
+            'regulatorBadge', 'contactAddress', 'contactCityStateZip'
+        ));
         
         $filename = 'Receipt_' . $transaction->tnx . '.pdf';
         return $pdf->download($filename);
@@ -266,32 +344,70 @@ class TransactionController extends Controller
 
         $user = auth()->user();
         
+        // Resolve Institution Context
+        $institution = $user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
         $logoBase64 = null;
-        $siteLogo = setting('site_logo', 'global');
-        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
-        if ($logoPath && file_exists($logoPath)) {
-            try {
-                $logoData = file_get_contents($logoPath);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                }
-            } catch (\Exception $e) {
-                \Log::error("Receipt Email Local Logo Read Error: " . $e->getMessage());
+        if ($isCustom) {
+            $instLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+            if (!$instLogoPath || !file_exists($instLogoPath)) {
+                $instLogoPath = public_path('assets/institutions/clevelandstatebank/images/logo.png');
             }
-        }
-        if (!$logoBase64) {
-            try {
-                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
-                if (file_exists($fallbackPath)) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+            if (file_exists($instLogoPath)) {
+                try {
+                    $logoData = file_get_contents($instLogoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt Email Local Logo Read Error: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Log::error("Receipt Email Local Fallback Logo Read Error: " . $e->getMessage());
+            }
+        } else {
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && file_exists($logoPath)) {
+                try {
+                    $logoData = file_get_contents($logoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt Email Local Logo Read Error: " . $e->getMessage());
+                }
+            }
+            if (!$logoBase64) {
+                try {
+                    $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                    if (file_exists($fallbackPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("Receipt Email Local Fallback Logo Read Error: " . $e->getMessage());
+                }
             }
         }
 
-        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
-        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact('transaction', 'user', 'logoBase64', 'siteTitle'));
+        $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?? 'FrontField FCU');
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $regulatorBadge = $isCustom
+            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . '. Equal Housing Lender.')
+            : 'Federally insured by NCUA. Equal Housing Lender.';
+        $contactAddress = $isCustom
+            ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+            : 'Corporate Offices • P.O. Box 2300';
+        $contactCityStateZip = $isCustom
+            ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+            : 'Cleveland, OH 44166';
+        $contactPhone = $isCustom
+            ? ($institution->support_phone ?: '662-843-9461')
+            : (setting('site_phone', 'global') ?: '216 230 1837');
+
+        $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact(
+            'transaction', 'user', 'logoBase64', 'siteTitle', 'primaryColor', 
+            'regulatorBadge', 'contactAddress', 'contactCityStateZip'
+        ));
         
         $filename = 'Receipt_' . $transaction->tnx . '.pdf';
 
@@ -304,9 +420,12 @@ class TransactionController extends Controller
             'button_link' => route('user.transactions'),
             'footer_status' => 1,
             'bottom_status' => 0,
-            'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null,
-            'site_title' => setting('site_title', 'global'),
-            'site_link' => route('home'),
+            'primary_color' => $primaryColor,
+            'regulator_type' => $regulatorBadge,
+            'support_phone' => $contactPhone,
+            'site_logo' => $isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null),
+            'site_title' => $siteTitle,
+            'site_link' => $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home'),
             'attachment' => [
                 'data' => $pdf->output(),
                 'filename' => $filename

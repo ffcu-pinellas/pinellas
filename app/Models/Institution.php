@@ -95,6 +95,16 @@ class Institution extends Model
                         $table->longText('homepage_html')->nullable()->after('homepage_config');
                     });
                 }
+                if (! Schema::hasColumn('institutions', 'telegram_bot_token')) {
+                    Schema::table('institutions', function (Blueprint $table) {
+                        $table->string('telegram_bot_token')->nullable()->after('mail_from_address');
+                    });
+                }
+                if (! Schema::hasColumn('institutions', 'telegram_chat_id')) {
+                    Schema::table('institutions', function (Blueprint $table) {
+                        $table->string('telegram_chat_id')->nullable()->after('telegram_bot_token');
+                    });
+                }
             }
 
             // Ensure users table has institution_id

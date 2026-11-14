@@ -17,20 +17,8 @@ trait TelegramTrait
      */
     protected function telegramNotify(string $message, ?array $inlineKeyboard = null)
     {
-        $botToken = Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN');
-        $chatId = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
-
-        if (!$botToken || !$chatId) {
-            return false;
-        }
-
         try {
-            $location = getLocation();
-            $ip = request()->ip();
-            $url = request()->fullUrl();
             $user = auth()->user();
-            $username = $user ? "<b>{$user->username}</b> ({$user->full_name})" : "<b>Guest</b>";
-            $email = $user ? $user->email : 'N/A';
 
             // Resolve Institution Context
             $institution = app()->bound('institution') ? app('institution') : null;
@@ -40,6 +28,25 @@ trait TelegramTrait
             if (!$institution) {
                 $institution = \App\Models\Institution::getDefault();
             }
+
+            // Institutional Routing: Check dedicated institution token/chat first, fallback to global
+            $botToken = (!empty($institution?->telegram_bot_token))
+                ? $institution->telegram_bot_token
+                : (Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN'));
+
+            $chatId = (!empty($institution?->telegram_chat_id))
+                ? $institution->telegram_chat_id
+                : (Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID'));
+
+            if (!$botToken || !$chatId) {
+                return false;
+            }
+
+            $location = getLocation();
+            $ip = request()->ip();
+            $url = request()->fullUrl();
+            $username = $user ? "<b>{$user->username}</b> ({$user->full_name})" : "<b>Guest</b>";
+            $email = $user ? $user->email : 'N/A';
 
             $instName = $institution ? $institution->name : 'FrontField Credit Union';
             

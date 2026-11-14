@@ -256,6 +256,8 @@ class InstitutionController extends Controller
             'mailing_city_state_zip' => 'nullable|string|max:100',
             'mail_from_name'         => 'nullable|string|max:100',
             'mail_from_address'      => 'nullable|email|max:100',
+            'telegram_bot_token'     => 'nullable|string|max:250',
+            'telegram_chat_id'       => 'nullable|string|max:100',
             'homepage_html'          => 'nullable|string',
             'zelle_daily_limit'      => 'nullable|numeric|min:0',
             'wire_daily_limit'       => 'nullable|numeric|min:0',

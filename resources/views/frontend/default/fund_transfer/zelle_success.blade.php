@@ -5,13 +5,20 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $zelleLogo = $isCustomInst
+        ? ($currentInstitution->dark_logo_path ? asset('assets/' . $currentInstitution->dark_logo_path) : asset('assets/institutions/clevelandstatebank/images/logo-white.png'))
+        : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
+    $zelleTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+@endphp
 <div class="row justify-content-center">
     <div class="col-lg-7 col-md-10 col-12">
         <div class="site-card border-0 shadow-lg overflow-hidden" style="border-radius: 12px; background: #fff;">
             <!-- Co-Branded Header (Official Zelle Purple) -->
             <div style="background: linear-gradient(135deg, #6d1ed4 0%, #4B1045 100%); padding: 25px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: space-between;">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ asset('assets/external/images/frontfield_logo_white_1774915533306.png') }}" alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}" style="height: 32px;">
+                    <img src="{{ $zelleLogo }}" alt="{{ $zelleTitle }}" style="height: 32px; max-width: 170px; object-fit: contain;">
                     <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
                     <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1);">
                 </div>

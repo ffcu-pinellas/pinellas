@@ -47,7 +47,7 @@
         .receipt-title {
             font-size: 22pt;
             font-weight: bold;
-            color: #00549b;
+            color: {{ $primaryColor ?? '#00549b' }};
             margin: 0;
             letter-spacing: -0.01em;
         }
@@ -80,7 +80,7 @@
         .amount-value {
             font-size: 32pt;
             font-weight: bold;
-            color: #00549b;
+            color: {{ $primaryColor ?? '#00549b' }};
             margin: 0;
         }
 
@@ -127,7 +127,7 @@
         .footer {
             margin-top: 40pt;
             padding-top: 15pt;
-            border-top: 1.5pt solid #00549b;
+            border-top: 1.5pt solid {{ $primaryColor ?? '#00549b' }};
             text-align: center;
         }
         
@@ -152,7 +152,7 @@
         @if(isset($logoBase64))
             <img src="{{ $logoBase64 }}" class="logo">
         @else
-            <div style="font-size: 20pt; font-weight: bold; color: #00549b;">{{ strtoupper($siteTitle) }}</div>
+            <div style="font-size: 20pt; font-weight: bold; color: {{ $primaryColor ?? '#00549b' }};">{{ strtoupper($siteTitle) }}</div>
         @endif
 
         @if(str_contains(strtolower($transaction->description), 'zelle'))
@@ -218,10 +218,12 @@
     @endif
 
     <div class="footer">
+        <div class="footer">
         <div class="footer-text">
-            {{ $siteTitle }} • Corporate Offices • P.O. Box 2300 • Cleveland, OH 44166<br>
-            Federally insured by NCUA. Equal Housing Lender. © {{ date('Y') }} All Rights Reserved.
+            {{ $siteTitle }} • {{ $contactAddress ?? 'Corporate Offices • P.O. Box 2300' }} • {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}<br>
+            {{ $regulatorBadge ?? 'Federally insured by NCUA. Equal Housing Lender.' }} © {{ date('Y') }} All Rights Reserved.
         </div>
+    </div>
     </div>
 </body>
 </html>

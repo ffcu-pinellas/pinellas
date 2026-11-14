@@ -1,3 +1,22 @@
+@php
+    $emailUser = $user ?? null;
+    $inst = $emailUser ? ($emailUser->institution ?? null) : (app()->bound('institution') ? app('institution') : null);
+    $isCustom = $inst && !$inst->is_default;
+    $emailTitle = $inst ? $inst->name : 'FrontField Credit Union';
+    $emailLogo = $isCustom
+        ? asset('assets/institutions/clevelandstatebank/images/logo-white.png')
+        : 'https://frontfieldcu.pro/assets/external/images/frontfield_logo_white_1774915533306.png';
+    $emailUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : 'https://frontfieldcu.pro';
+    $emailHeaderGrad = $isCustom
+        ? 'linear-gradient(135deg, #c8232c 0%, #1b325f 100%)'
+        : 'linear-gradient(135deg, #003366 0%, #004d73 100%)';
+    $emailAddress = $isCustom
+        ? (($inst->mailing_address ?: 'Corporate Offices • P.O. Box 278') . ', ' . ($inst->mailing_city_state_zip ?: 'Cleveland, MS 38732'))
+        : '2555 East Bay Drive, Clearwater, FL 33764';
+    $emailRegulator = $isCustom
+        ? ('Member ' . ($inst->regulator_type ? strtoupper($inst->regulator_type) : 'FDIC') . ' • Equal Housing Opportunity')
+        : 'Federally Insured by NCUA • Equal Housing Opportunity';
+@endphp
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -26,14 +45,14 @@
                 <!-- Main Email Card Container (620px Max) -->
                 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 620px; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #dbe2ea; box-shadow: 0 4px 18px rgba(0, 30, 60, 0.06);">
                     
-                    <!-- Header Section with FrontField Blue & Logo -->
+                    <!-- Header Section with Institution Branding & Logo -->
                     <tr>
-                        <td style="background-color: #004d73; background: linear-gradient(135deg, #003366 0%, #004d73 100%); padding: 28px 30px; text-align: left;">
+                        <td style="background: {{ $emailHeaderGrad }}; padding: 28px 30px; text-align: left;">
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td valign="middle" style="text-align: left;">
-                                        <a href="https://frontfieldcu.pro/" target="_blank" style="text-decoration: none; display: inline-block;">
-                                            <img src="https://frontfieldcu.pro/assets/external/images/frontfield_logo_white_1774915533306.png" alt="FrontField Credit Union" height="34" style="height: 34px; max-width: 200px; display: block; border: 0; outline: none; text-decoration: none;" />
+                                        <a href="{{ $emailUrl }}" target="_blank" style="text-decoration: none; display: inline-block;">
+                                            <img src="{{ $emailLogo }}" alt="{{ $emailTitle }}" height="34" style="height: 34px; max-width: 200px; object-fit: contain; display: block; border: 0; outline: none; text-decoration: none;" />
                                         </a>
                                     </td>
                                     <td valign="middle" style="text-align: right;">
@@ -222,7 +241,7 @@
                                         <table border="0" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td align="center" style="background-color: #004d73; border-radius: 6px; box-shadow: 0 3px 6px rgba(0, 77, 115, 0.25);">
-                                                    <a href="https://frontfieldcu.pro/login" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 6px; letter-spacing: 0.3px;">
+                                                    <a href="{{ $emailUrl }}/login" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 14px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 6px; letter-spacing: 0.3px;">
                                                         Access Client Portal &rarr;
                                                     </a>
                                                 </td>
@@ -246,19 +265,19 @@
                             
                             <!-- Security Notice -->
                             <div style="color: #cbd5e1; font-size: 11.5px; font-weight: 600; margin-bottom: 12px;">
-                                Security Alert: FrontField Credit Union will never ask for your password, PIN, or multi-factor authentication codes via unprompted email.
+                                Security Alert: {{ $emailTitle }} will never ask for your password, PIN, or multi-factor authentication codes via unprompted email.
                             </div>
 
                             <div style="color: #64748b; font-size: 11px; margin-bottom: 16px;">
-                                2555 East Bay Drive, Clearwater, FL 33764 &bull; <a href="https://frontfieldcu.pro" target="_blank" style="color: #38bdf8; text-decoration: none;">frontfieldcu.pro</a>
+                                {{ $emailAddress }} &bull; <a href="{{ $emailUrl }}" target="_blank" style="color: #38bdf8; text-decoration: none;">{{ parse_url($emailUrl, PHP_URL_HOST) }}</a>
                             </div>
 
                             <!-- Compliance & Badges -->
                             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-top: 1px solid #1e293b; padding-top: 16px; margin-top: 8px;">
                                 <tr>
                                     <td align="center" style="font-size: 10.5px; color: #64748b;">
-                                        Federally Insured by NCUA &bull; Member NDIC &bull; Equal Housing Opportunity<br />
-                                        &copy; 2026 FrontField Credit Union. All rights reserved.
+                                        {{ $emailRegulator }}<br />
+                                        &copy; {{ date('Y') }} {{ $emailTitle }}. All rights reserved.
                                     </td>
                                 </tr>
                             </table>

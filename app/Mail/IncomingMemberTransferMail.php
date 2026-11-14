@@ -35,12 +35,15 @@ class IncomingMemberTransferMail extends Mailable
 
     public function build(): self
     {
-        $siteTitle = setting('site_title', 'global');
+        $inst = $this->receiver->institution ?? ($this->sender->institution ?? null);
+        $isCustom = $inst && !$inst->is_default;
+        $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $primaryColor = $inst->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
         
         if ($this->status === 'success') {
-            $subject = "Deposit Confirmation: Incoming Transfer Credited";
+            $subject = "Deposit Confirmation: Incoming Transfer Credited - {$siteTitle}";
         } elseif ($this->status === 'failed') {
-            $subject = "Incoming Transfer Alert: Transfer Cancelled";
+            $subject = "Incoming Transfer Alert: Transfer Cancelled - {$siteTitle}";
         } else {
             $subject = "Pending Transfer: Incoming Transfer from " . $this->sender->full_name;
         }
@@ -49,6 +52,14 @@ class IncomingMemberTransferMail extends Mailable
         if ($siteLogo && ! Str::startsWith($siteLogo, 'assets/')) {
             $siteLogo = 'assets/'.$siteLogo;
         }
+
+        $siteLogoUrl = $isCustom
+            ? asset('assets/institutions/clevelandstatebank/images/logo.png')
+            : MailAsset::absolute($siteLogo);
+
+        $homeUrl = $isCustom
+            ? "https://{$inst->slug}.frontfieldcu.pro"
+            : rtrim((string) config('app.url'), '/').'/';
 
         $receiverWalletName = $this->receiverWalletType == 'primary_savings' ? 'Savings' : 'Checking';
         $maskedAccount = $receiverWalletName . ' (... ' . substr($this->sanitizedNumber, -4) . ')';
@@ -63,8 +74,9 @@ class IncomingMemberTransferMail extends Mailable
                 'memo' => $this->memo,
                 'maskedAccount' => $maskedAccount,
                 'siteTitle' => $siteTitle,
-                'siteLogoUrl' => MailAsset::absolute($siteLogo),
-                'homeUrl' => rtrim((string) config('app.url'), '/').'/',
+                'primaryColor' => $primaryColor,
+                'siteLogoUrl' => $siteLogoUrl,
+                'homeUrl' => $homeUrl,
                 'transferLogUrl' => route('user.fund_transfer.transfer.log'),
             ]);
     }

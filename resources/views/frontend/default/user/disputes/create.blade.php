@@ -149,7 +149,7 @@
                             <input class="form-check-input" type="checkbox" value="1" id="attestationCheck" name="attestation" {{ old('attestation') ? 'checked' : '' }} required>
                             <label class="form-check-label small text-dark" for="attestationCheck">
                                 <strong>{{ __('Regulation E Declaration:') }}</strong>
-                                {{ __('I affirm the information provided above is true and accurate. I understand FrontField Credit Union may issue a provisional credit during investigation and may reverse that credit if the transaction is determined authorized or valid.') }}
+                                {{ __('I affirm the information provided above is true and accurate. I understand that :bank may issue a provisional credit during investigation and may reverse that credit if the transaction is determined authorized or valid.', ['bank' => (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title', 'global') ?? 'FrontField Credit Union')]) }}
                             </label>
                         </div>
                     </div>

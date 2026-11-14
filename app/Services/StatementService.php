@@ -117,29 +117,64 @@ class StatementService
             'loan' => $mask($user->loan_account_number),
         ];
 
+        // Resolve Institution Context
+        $institution = $user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
         // Base64 logo for PDF
         $logoBase64 = null;
-        $siteLogo = setting('site_logo', 'global');
-        $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
-        if ($logoPath && file_exists($logoPath)) {
-            try {
-                $logoData = file_get_contents($logoPath);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
-                }
-            } catch (\Throwable $e) {}
-        }
-        if (!$logoBase64) {
-            try {
-                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
-                if (file_exists($fallbackPath)) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
-                }
-            } catch (\Throwable $e) {}
+        if ($isCustom) {
+            $instLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+            if (!$instLogoPath || !file_exists($instLogoPath)) {
+                $instLogoPath = public_path('assets/institutions/clevelandstatebank/images/logo.png');
+            }
+            if (file_exists($instLogoPath)) {
+                try {
+                    $logoData = file_get_contents($instLogoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Throwable $e) {}
+            }
+        } else {
+            $siteLogo = setting('site_logo', 'global');
+            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
+            if ($logoPath && file_exists($logoPath)) {
+                try {
+                    $logoData = file_get_contents($logoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Throwable $e) {}
+            }
+            if (!$logoBase64) {
+                try {
+                    $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                    if (file_exists($fallbackPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                    }
+                } catch (\Throwable $e) {}
+            }
         }
 
-        $siteTitle = setting('site_title', 'global') ?? 'FrontField FCU';
-        $homeDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+        $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?? 'FrontField FCU');
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $regulatorBadge = $isCustom
+            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
+            : 'Federally Insured by NCUA. Equal Housing Lender.';
+        $contactAddress = $isCustom
+            ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+            : 'Corporate Offices • P.O. Box 2300';
+        $contactCityStateZip = $isCustom
+            ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+            : 'Cleveland, OH 44166';
+        $contactPhone = $isCustom
+            ? ($institution->support_phone ?: '662-843-9461')
+            : (setting('site_phone', 'global') ?: '216 230 1837');
+        $homeDomain = $isCustom
+            ? "{$institution->slug}.frontfieldcu.pro"
+            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+
         $from_date = $fromDate;
         $to_date = $toDate;
 
@@ -152,7 +187,12 @@ class StatementService
             'maskedAccounts', 
             'logoBase64', 
             'siteTitle', 
-            'homeDomain'
+            'homeDomain',
+            'primaryColor',
+            'regulatorBadge',
+            'contactAddress',
+            'contactCityStateZip',
+            'contactPhone'
         ));
 
         $filename = 'eStatement_' . $user->username . '_' . $fromDate->format('Ymd') . '-' . $toDate->format('Ymd') . '.pdf';

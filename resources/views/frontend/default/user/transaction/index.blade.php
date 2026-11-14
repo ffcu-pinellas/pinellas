@@ -42,15 +42,15 @@
             color: var(--body-text-theme-color);
         }
         .btn-check:checked + .btn-outline-light {
-            background-color: #00549b !important;
+            background-color: var(--primary-color, #00549b) !important;
             color: white !important;
-            border-color: #00549b !important;
+            border-color: var(--primary-color, #00549b) !important;
             box-shadow: 0 4px 12px rgba(0, 84, 155, 0.3);
             transform: translateY(-1px);
         }
         .btn-outline-light:hover {
-            border-color: #00549b !important;
-            color: #00549b !important;
+            border-color: var(--primary-color, #00549b) !important;
+            color: var(--primary-color, #00549b) !important;
         }
         .modal-content {
             backdrop-filter: blur(10px);
@@ -61,8 +61,8 @@
             color: white;
         }
         .form-check-input:checked {
-            background-color: #00549b;
-            border-color: #00549b;
+            background-color: var(--primary-color, #00549b);
+            border-color: var(--primary-color, #00549b);
         }
         /* Daterangepicker in Modal fixes */
         .daterangepicker {
@@ -142,7 +142,7 @@
 
         @if(request('wallet'))
             <div class="mb-4 d-flex align-items-center gap-2">
-                <div class="filter-chip active d-flex align-items-center gap-2" style="background: #00549b; border-color: #00549b; color: white;">
+                <div class="filter-chip active d-flex align-items-center gap-2" style="background: var(--primary-color, #00549b); border-color: var(--primary-color, #00549b); color: white;">
                     <i class="fas fa-university small opacity-75"></i>
                     <span>{{ strtoupper(request('wallet')) }} Account</span>
                     <a href="{{ request()->fullUrlWithQuery(['wallet' => null]) }}" class="text-white ms-1 hover-opacity">
@@ -392,13 +392,13 @@
                 </div>
             </div>
             <div class="modal-footer border-0 p-4 pt-0 gap-2 flex-column">
-                <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: #00549b; border: none;">
+                <a href="#" id="btnDownloadReceipt" class="btn btn-primary w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg" style="background: var(--primary-color, #00549b); border: none;">
                     <i class="fas fa-file-pdf"></i> Download Receipt
                 </a>
                 <a href="#" id="btnDisputeTxn" class="btn w-100 rounded-pill py-2 fw-semibold d-none align-items-center justify-content-center gap-2" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;">
                     <i class="fas fa-flag text-muted"></i> Dispute this transaction
                 </a>
-                <a href="#" id="btnViewDisputeClaim" class="btn w-100 rounded-pill py-2 fw-semibold d-none align-items-center justify-content-center gap-2" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.22);">
+                <a href="#" id="btnViewDisputeClaim" class="btn w-100 rounded-pill py-2 fw-semibold d-none align-items-center justify-content-center gap-2" style="background: #eef6fb; color: var(--primary-color, #00549b); border: 1px solid rgba(0, 84, 155, 0.22);">
                     <i class="fas fa-file-alt"></i> <span>View Dispute Claim</span>
                 </a>
                 <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-2 fw-bold" data-bs-dismiss="modal">Close</button>

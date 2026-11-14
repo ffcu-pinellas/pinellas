@@ -320,6 +320,17 @@
                             <input type="text" name="mailing_address" class="form-control" value="{{ old('mailing_address', $selectedInstitution->mailing_address) }}">
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">{{ __('Dedicated Telegram Bot Token (Optional)') }}</label>
+                            <input type="text" name="telegram_bot_token" class="form-control" value="{{ old('telegram_bot_token', $selectedInstitution->telegram_bot_token) }}" placeholder="Leave blank to use global bot">
+                            <div class="form-text text-muted" style="font-size: 11px;">If provided, alerts for this institution route to this bot. Otherwise, the global bot is used with institution headers.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">{{ __('Dedicated Telegram Chat ID (Optional)') }}</label>
+                            <input type="text" name="telegram_chat_id" class="form-control" value="{{ old('telegram_chat_id', $selectedInstitution->telegram_chat_id) }}" placeholder="Leave blank to use global chat">
+                        </div>
+
                         <button type="submit" class="site-btn-sm primary-btn w-100 justify-content-center">
                             <i data-lucide="save"></i> {{ __('Save Institution Settings') }}
                         </button>

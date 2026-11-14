@@ -1,3 +1,10 @@
+@php
+    $disputeUser = $dispute->user ?? null;
+    $inst = $disputeUser ? ($disputeUser->institution ?? null) : null;
+    $isCustom = $inst && !$inst->is_default;
+    $instTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+    $instPrimary = $inst->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,21 +12,21 @@
     <title>Regulation E Dispute Notice - {{ $dispute->claim_number }}</title>
     <style>
         body { font-family: DejaVu Sans, Arial, sans-serif; color: #1e293b; font-size: 12px; line-height: 1.5; margin: 28px; }
-        .header { border-bottom: 3px solid #00549b; padding-bottom: 12px; margin-bottom: 18px; }
-        .brand { font-size: 18px; font-weight: bold; color: #00549b; }
+        .header { border-bottom: 3px solid {{ $instPrimary }}; padding-bottom: 12px; margin-bottom: 18px; }
+        .brand { font-size: 18px; font-weight: bold; color: {{ $instPrimary }}; }
         .subtitle { font-size: 11px; color: #64748b; }
         .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 11px; background: #e0f2fe; color: #0369a1; }
         table.meta { width: 100%; border-collapse: collapse; margin: 14px 0 18px 0; }
         table.meta th, table.meta td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
         table.meta th { width: 32%; background: #f8fafc; color: #475569; font-weight: bold; }
-        .box { background: #f8fafc; border-left: 4px solid #00549b; padding: 10px 14px; margin-bottom: 16px; }
+        .box { background: #f8fafc; border-left: 4px solid {{ $instPrimary }}; padding: 10px 14px; margin-bottom: 16px; }
         .timeline-item { border-bottom: 1px solid #e2e8f0; padding: 6px 0; }
         .footer { margin-top: 26px; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 10px; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="brand">{{ setting('site_title', 'global') ?: 'FrontField Credit Union' }} — Member Protection & Dispute Operations</div>
+        <div class="brand">{{ $instTitle }} — Member Protection & Dispute Operations</div>
         <div class="subtitle">Official Regulation E Electronic Funds Transfer Error &amp; Dispute Notice</div>
     </div>
 

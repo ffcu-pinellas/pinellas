@@ -5,14 +5,25 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $wireLogo = $isCustomInst
+        ? ($currentInstitution->dark_logo_path ? asset('assets/' . $currentInstitution->dark_logo_path) : asset('assets/institutions/clevelandstatebank/images/logo-white.png'))
+        : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
+    $wireTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+    $wireHeaderGradient = $isCustomInst ? 'linear-gradient(135deg, #c8232c 0%, #1b325f 100%)' : 'linear-gradient(135deg, #00549b 0%, #002d5a 100%)';
+    $wireDisclaimer = $isCustomInst 
+        ? "Member FDIC. {$currentInstitution->name} routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes."
+        : 'Federally insured by NCUA. FrontField Credit Union routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes.';
+@endphp
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 col-12 mt-2">
         <div class="site-card border-0 shadow-lg overflow-hidden mb-5 receipt-print-container" style="border-radius: 12px; background: #ffffff;">
             
             {{-- Official Financial Wire Header --}}
-            <div class="receipt-header" style="background: linear-gradient(135deg, #00549b 0%, #002d5a 100%); padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
+            <div class="receipt-header" style="background: {{ $wireHeaderGradient }}; padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ asset('assets/external/images/frontfield_logo_white_1774915533306.png') }}" alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}" style="height: 28px;">
+                    <img src="{{ $wireLogo }}" alt="{{ $wireTitle }}" style="height: 28px;">
                     <div style="width: 1px; height: 20px; background-color: rgba(255,255,255,0.25);"></div>
                     <div class="d-flex align-items-center gap-1 text-white">
                         <i class="fas fa-shield-alt text-warning small"></i>
@@ -148,7 +159,7 @@
 
                 <div class="mt-3 pt-2 text-center border-top receipt-footer-disclaimer">
                     <p class="extra-small text-muted mb-0" style="font-size: 0.72rem; line-height: 1.4;">
-                        {{ __('Federally insured by NCUA. FrontField Credit Union routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes.') }}
+                        {{ $wireDisclaimer }}
                     </p>
                 </div>
             </div>

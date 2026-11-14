@@ -31,7 +31,7 @@
             width: 500px;
         }
         .header-container {
-            border-bottom: 2px solid #00549b;
+            border-bottom: 2px solid {{ $primaryColor ?? '#00549b' }};
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
@@ -57,7 +57,7 @@
             border: 1px solid #e2e8f0;
         }
         .statement-banner h1 {
-            color: #00549b;
+            color: {{ $primaryColor ?? '#00549b' }};
             margin: 0;
             font-size: 20px;
             text-transform: uppercase;
@@ -80,7 +80,7 @@
         .section-title {
             font-size: 10px;
             font-weight: 800;
-            color: #00549b;
+            color: {{ $primaryColor ?? '#00549b' }};
             text-transform: uppercase;
             margin-bottom: 8px;
             border-bottom: 1px solid #edf2f7;
@@ -91,7 +91,7 @@
             color: #1a202c;
         }
         .summary-box {
-            background: #00549b;
+            background: {{ $primaryColor ?? '#00549b' }};
             color: white;
             padding: 20px;
             border-radius: 8px;
@@ -122,7 +122,7 @@
         .transactions-title {
             font-size: 14px;
             font-weight: bold;
-            color: #00549b;
+            color: {{ $primaryColor ?? '#00549b' }};
             margin-bottom: 10px;
             text-transform: uppercase;
         }
@@ -194,9 +194,9 @@
         @endif
         <div class="bank-details">
             <strong>{{ $siteTitle }}</strong><br>
-            Corporate Offices • P.O. Box 2300<br>
-            Cleveland, OH 44166<br>
-            216 230 1837 | {{ $homeDomain }}
+            {{ $contactAddress ?? 'Corporate Offices • P.O. Box 2300' }}<br>
+            {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}<br>
+            {{ $contactPhone ?? '216 230 1837' }} | {{ $homeDomain }}
         </div>
         <div class="clear"></div>
     </div>
@@ -322,7 +322,7 @@
     <div class="footer-notice">
         This statement is an official record of your account activity. Please review it carefully. 
         Report any discrepancies within 60 days. <br>
-        <strong>{{ $siteTitle }} is Federally Insured by NCUA. Equal Housing Lender.</strong>
+        <strong>{{ $regulatorBadge ?? ($siteTitle . ' is Federally Insured by NCUA. Equal Housing Lender.') }}</strong>
     </div>
 </body>
 </html>

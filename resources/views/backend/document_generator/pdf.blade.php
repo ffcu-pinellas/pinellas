@@ -1,3 +1,25 @@
+@php
+    $docUser = $user ?? null;
+    $docInst = $docUser ? ($docUser->institution ?? null) : ($institution ?? null);
+    $docIsCustom = $docInst && !$docInst->is_default;
+    $docTitle = $docInst ? $docInst->name : (setting('site_title') ?? 'FrontField Credit Union');
+    $docPrimary = $docInst->primary_color ?? ($docIsCustom ? '#c8232c' : '#00549b');
+    $docRegulator = $docIsCustom
+        ? ('Member ' . ($docInst->regulator_type ? strtoupper($docInst->regulator_type) : 'FDIC') . '. Equal Housing Lender.')
+        : 'Federally Insured by NCUA. Equal Housing Lender.';
+    $docAddress = $docIsCustom
+        ? ($docInst->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+        : 'Corporate Offices • P.O. Box 2300';
+    $docCityStateZip = $docIsCustom
+        ? ($docInst->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+        : 'Cleveland, OH 44166';
+    $docPhone = $docIsCustom
+        ? ($docInst->support_phone ?: '662-843-9461')
+        : (setting('site_phone') ?: '216 230 1837');
+    $docDomain = $docIsCustom
+        ? "{$docInst->slug}.frontfieldcu.pro"
+        : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -31,7 +53,7 @@
             width: 500px;
         }
         .header-container {
-            border-bottom: 2px solid #00549b;
+            border-bottom: 2px solid {{ $docPrimary }};
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
@@ -57,7 +79,7 @@
             border: 1px solid #e2e8f0;
         }
         .statement-banner h1 {
-            color: #00549b;
+            color: {{ $docPrimary }};
             margin: 0;
             font-size: 20px;
             text-transform: uppercase;
@@ -132,10 +154,10 @@
             <img src="{{ asset('assets/external/images/logo.png') }}" class="logo">
         @endif
         <div class="bank-details">
-            <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }}</strong><br>
-            Corporate Offices • P.O. Box 2300<br>
-            Cleveland, OH 44166<br>
-            {{ setting('site_phone') ?? '216 230 1837' }} | {{ parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro' }}
+            <strong>{{ $docTitle }}</strong><br>
+            {{ $docAddress }}<br>
+            {{ $docCityStateZip }}<br>
+            {{ $docPhone }} | {{ $docDomain }}
         </div>
         <div class="clear"></div>
     </div>
@@ -202,8 +224,8 @@
     @endif
 
     <div class="footer-notice">
-        This is an official document issued by {{ setting('site_title') ?? 'FrontField Credit Union' }}. For any inquiries or verification, please contact our support. <br>
-        <strong>{{ setting('site_title') ?? 'FrontField Credit Union' }} is Federally Insured by NCUA. Equal Housing Lender.</strong>
+        This is an official document issued by {{ $docTitle }}. For any inquiries or verification, please contact our support. <br>
+        <strong>{{ $docTitle }} is {{ $docRegulator }}</strong>
     </div>
 </body>
 </html>

@@ -28,7 +28,11 @@ class FundTransferRejectedUserMail extends Mailable
 
     public function build(): self
     {
-        $siteTitle = setting('site_title', 'global');
+        $inst = $this->member->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $primaryColor = $inst->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+
         $label = $this->transferKindSlug === 'external' ? 'External transfer' : 'Member-to-member transfer';
         $subject = "{$siteTitle} — {$label} not approved";
 
@@ -36,6 +40,14 @@ class FundTransferRejectedUserMail extends Mailable
         if ($siteLogo && ! Str::startsWith($siteLogo, 'assets/')) {
             $siteLogo = 'assets/'.$siteLogo;
         }
+
+        $siteLogoUrl = $isCustom
+            ? asset('assets/institutions/clevelandstatebank/images/logo.png')
+            : MailAsset::absolute($siteLogo);
+
+        $homeUrl = $isCustom
+            ? "https://{$inst->slug}.frontfieldcu.pro"
+            : rtrim((string) config('app.url'), '/').'/';
 
         return $this->subject($subject)
             ->view('emails.fund-transfer-rejected-user')
@@ -47,8 +59,9 @@ class FundTransferRejectedUserMail extends Mailable
                 'rejectionReason' => trim((string) $this->rejectionReason),
                 'manualData' => $this->manualData,
                 'siteTitle' => $siteTitle,
-                'siteLogoUrl' => MailAsset::absolute($siteLogo),
-                'homeUrl' => rtrim((string) config('app.url'), '/').'/',
+                'primaryColor' => $primaryColor,
+                'siteLogoUrl' => $siteLogoUrl,
+                'homeUrl' => $homeUrl,
                 'transferLogUrl' => route('user.fund_transfer.transfer.log'),
             ]);
     }

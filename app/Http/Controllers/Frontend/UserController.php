@@ -461,7 +461,22 @@ class UserController extends Controller
             return back();
         }
 
-        $routingNumber = '063192257'; // FrontField FCU Routing Number
+        $institution = $user->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $institution && !$institution->is_default;
+
+        $routingNumber = $institution->routing_number ?? ($isCustom ? '084301768' : '063192257');
+        $siteTitle = $institution ? $institution->name : (setting('site_title') ?? 'FrontField Credit Union');
+        $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
+        $contactAddress = $isCustom
+            ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
+            : 'Corporate Offices • P.O. Box 2300';
+        $contactCityStateZip = $isCustom
+            ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
+            : 'Cleveland, OH 44166';
+        $homeDomain = $isCustom
+            ? "{$institution->slug}.frontfieldcu.pro"
+            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+
         $accountTitle = match($type) {
             'savings' => 'Savings Account',
             'ira' => 'IRA Account',
@@ -479,13 +494,30 @@ class UserController extends Controller
 
         // Base64 Logo for PDF rendering
         $logoBase64 = null;
-        try {
-            $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
-            if (file_exists($fallbackPath)) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+        if ($isCustom) {
+            $instLogoPath = $institution->logo_path ? public_path('assets/' . $institution->logo_path) : null;
+            if (!$instLogoPath || !file_exists($instLogoPath)) {
+                $instLogoPath = public_path('assets/institutions/clevelandstatebank/images/logo.png');
             }
-        } catch (\Exception $e) {
-            \Log::error("DD PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            if (file_exists($instLogoPath)) {
+                try {
+                    $logoData = file_get_contents($instLogoPath);
+                    if ($logoData) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error("DD PDF Inst Logo Error: " . $e->getMessage());
+                }
+            }
+        } else {
+            try {
+                $fallbackPath = public_path('assets/global/images/6RR9UFs6kLq67BrPItMv.png');
+                if (file_exists($fallbackPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($fallbackPath));
+                }
+            } catch (\Exception $e) {
+                \Log::error("DD PDF Local Fallback Logo Read Error: " . $e->getMessage());
+            }
         }
 
         // Base64 SentryShield Logo
@@ -499,7 +531,11 @@ class UserController extends Controller
             \Log::error("SentryShield Logo Error: " . $e->getMessage());
         }
 
-        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact('user', 'accountNumber', 'routingNumber', 'accountTitle', 'type', 'ssn', 'fullAddress', 'logoBase64', 'sentryShieldBase64'));
+        $pdf = Pdf::loadView('frontend::user.direct_deposit_pdf', compact(
+            'user', 'accountNumber', 'routingNumber', 'accountTitle', 'type', 'ssn', 
+            'fullAddress', 'logoBase64', 'sentryShieldBase64', 'siteTitle', 'primaryColor',
+            'contactAddress', 'contactCityStateZip', 'homeDomain'
+        ));
         
         $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
         return $pdf->download($filename);

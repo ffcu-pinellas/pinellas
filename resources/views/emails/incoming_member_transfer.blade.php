@@ -28,7 +28,7 @@
         table.meta td:last-child { font-weight: 600; color: #0f172a; word-break: break-word; text-align: right; }
         
         .btn-wrap { text-align: center; margin: 28px 0 12px; }
-        a.btn { display: inline-block; background: #00549b; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 6px rgba(0, 84, 155, 0.15); }
+        a.btn { display: inline-block; background: {{ $primaryColor ?? '#00549b' }}; color: #ffffff !important; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 6px rgba(0, 84, 155, 0.15); }
         .footer { padding: 20px 28px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; line-height: 1.5; }
         .muted { font-size: 11px; color: #94a3b8; margin-top: 14px; }
     </style>
@@ -41,7 +41,7 @@
             @if(!empty($siteLogoUrl))
                 <a href="{{ $homeUrl }}"><img src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }}" class="logo"></a>
             @else
-                <div style="font-size: 18px; font-weight: 700; color: #00549b;">{{ $siteTitle }}</div>
+                <div style="font-size: 18px; font-weight: 700; color: {{ $primaryColor ?? '#00549b' }};">{{ $siteTitle }}</div>
             @endif
         </div>
         <div class="content">

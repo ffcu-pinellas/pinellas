@@ -40,7 +40,7 @@
             <div class="banno-card p-4 bg-white border" style="min-height: 460px;">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                     <div>
-                        <strong class="text-primary">{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}</strong>
+                        <strong class="text-primary">{{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title', 'global') ?? 'FrontField Credit Union') }}</strong>
                         <div class="small text-muted">{{ __('Official Electronic Record') }}</div>
                     </div>
                     <div class="text-end small text-muted">

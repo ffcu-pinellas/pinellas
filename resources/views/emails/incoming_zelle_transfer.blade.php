@@ -1,3 +1,12 @@
+@php
+    $emailUser = $receiver ?? ($user ?? ($transaction->user ?? null));
+    $inst = $emailUser ? ($emailUser->institution ?? null) : (app()->bound('institution') ? app('institution') : null);
+    $isCustom = $inst && !$inst->is_default;
+    $emailLogo = $isCustom
+        ? asset('assets/institutions/clevelandstatebank/images/logo-white.png')
+        : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
+    $emailTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,7 +39,7 @@
                         <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
                             <tr>
                                 <td style="vertical-align: middle;">
-                                    <img src="{{ asset('assets/external/images/frontfield_logo_white_1774915533306.png') }}" alt="{{ setting('site_title', 'global') ?? 'FrontField Credit Union' }}" height="32" style="style: height: 32px; display: block; vertical-align: middle;">
+                                    <img src="{{ $emailLogo }}" alt="{{ $emailTitle }}" height="32" style="height: 32px; max-width: 170px; object-fit: contain; display: block; vertical-align: middle;">
                                 </td>
                                 <td style="padding: 0 15px; vertical-align: middle;">
                                      <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
@@ -48,7 +57,7 @@
         <div class="content">
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px; border-bottom: 1px solid #eeeeee; padding-bottom: 10px;">
                 <tr>
-                    <td style="font-weight: bold; color: #333; font-size: 14px;">{{ setting('site_title', 'global') ?? 'FrontField' }} Alerts</td>
+                    <td style="font-weight: bold; color: #333; font-size: 14px;">{{ $emailTitle }} Alerts</td>
                     <td style="text-align: right; color: #888; font-size: 13px;">{{ $transaction->updated_at->format('h:i A') }}</td>
                 </tr>
             </table>
@@ -130,12 +139,12 @@
             </div>
 
             <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                Thank you for choosing {{ setting('site_title') }} for your mobile payments.
+                Thank you for choosing {{ $emailTitle }} for your mobile payments.
             </p>
         </div>
 
         <div class="footer">
-            &copy; {{ date('Y') }} {{ setting('site_title', 'global') }}. All rights reserved.<br>
+            &copy; {{ date('Y') }} {{ $emailTitle }}. All rights reserved.<br>
             Zelle and the Zelle related marks are wholly owned by Early Warning Services, LLC.
         </div>
     </div>
