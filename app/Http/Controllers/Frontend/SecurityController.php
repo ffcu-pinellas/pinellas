@@ -22,7 +22,12 @@ class SecurityController extends Controller
              return redirect()->route('user.dashboard');
         }
 
-        $method = ($user->security_preference == 'email_priority') ? 'email' : 'pin';
+        // If user has no transaction PIN configured, default to email verification
+        if (empty($user->transaction_pin)) {
+            $method = 'email';
+        } else {
+            $method = ($user->security_preference == 'email_priority') ? 'email' : 'pin';
+        }
         $maskedEmail = substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@'));
 
         return view('frontend::auth.mfa', compact('user', 'method', 'maskedEmail'));

@@ -166,9 +166,17 @@ class ReconciliationService
     /**
      * Scan all active/existing members and return summary + discrepancies list.
      */
-    public function auditAll(bool $onlyDiscrepancies = true): array
+    public function auditAll(bool $onlyDiscrepancies = true, ?int $institutionId = null): array
     {
-        $users = User::orderBy('id')->get();
+        $usersQuery = User::orderBy('id');
+
+        if ($institutionId !== null) {
+            $usersQuery->where('institution_id', $institutionId);
+        } elseif (function_exists('admin_institution_scope')) {
+            admin_institution_scope($usersQuery, null);
+        }
+
+        $users = $usersQuery->get();
         $results = [];
         $discrepancyCount = 0;
         $totalDrift = 0.0;

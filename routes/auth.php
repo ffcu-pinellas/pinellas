@@ -69,10 +69,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/verify', [OtpVerifyController::class, 'verify'])->name('otp.verify.post');
 });
 
-// Cross-tenant one-time signed impersonation link for admin "Login As"
-Route::get('auth/impersonate/{user}', [\App\Http\Controllers\Backend\UserController::class, 'impersonateLogin'])
-    ->name('user.impersonate')
-    ->middleware('signed');
+// Cross-tenant one-time secure impersonation link for admin "Login As"
+Route::get('auth/impersonate/{token}', [\App\Http\Controllers\Backend\UserController::class, 'impersonateLogin'])
+    ->name('user.impersonate');
 
 // ================================ Admin Auth Section ================================
 

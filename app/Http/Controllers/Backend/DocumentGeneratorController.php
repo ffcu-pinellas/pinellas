@@ -26,23 +26,28 @@ class DocumentGeneratorController extends Controller
     {
         DocumentSignature::ensureSchema();
 
-        $users = User::where('status', 1)
+        $usersQuery = User::where('status', 1)
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->where('staff_id', auth('admin')->id());
-            })
-            ->get();
+            });
+        if (function_exists('admin_institution_scope')) {
+            admin_institution_scope($usersQuery, null);
+        }
+        $users = $usersQuery->get();
         
         \App\Services\EmailTemplateAutoSync::sync();
         $templates = \App\Models\DocumentTemplate::where('is_active', true)->orderBy('name', 'asc')->get();
 
-        $histories = DocumentHistory::with(['user', 'signatures', 'emailTrackings'])
+        $historiesQuery = DocumentHistory::with(['user', 'signatures', 'emailTrackings'])
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
-            })
-            ->latest()
-            ->paginate(20);
+            });
+        if (function_exists('admin_institution_scope')) {
+            admin_institution_scope($historiesQuery, 'user');
+        }
+        $histories = $historiesQuery->latest()->paginate(20);
         
         return view('backend.document_generator.index', compact('users', 'histories', 'templates'));
     }
@@ -58,16 +63,26 @@ class DocumentGeneratorController extends Controller
             }
         }
 
+        $targetInst = $signature->user?->institution ?? \App\Models\Institution::getDefault();
+        $isCustom = $targetInst && !$targetInst->is_default;
+
         $meta = $signature->metadata ?? [];
         $docTitle = $meta['title'] ?? ($signature->documentHistory?->title ?? 'Signed Document');
         $renderedHtml = $meta['rendered_html'] ?? ($signature->documentHistory?->content ?? '');
 
         $logoBase64 = null;
         try {
-            $siteLogo = setting('site_logo', 'global');
-            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : null;
-            if ($logoPath && is_file($logoPath)) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+            $instLogoPath = $targetInst?->logo_path ? public_path($targetInst->logo_path) : null;
+            if ($instLogoPath && is_file($instLogoPath)) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($instLogoPath));
+            } elseif ($isCustom && file_exists(public_path('assets/institutions/clevelandstatebank/images/logo.png'))) {
+                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('assets/institutions/clevelandstatebank/images/logo.png')));
+            } else {
+                $siteLogo = setting('site_logo', 'global');
+                $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : public_path('assets/external/images/logo.png');
+                if (is_file($logoPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+                }
             }
         } catch (\Throwable $e) {
         }
@@ -180,10 +195,18 @@ class DocumentGeneratorController extends Controller
         $parseVars = function($text, $targetUser) {
             if (!$text) return '';
 
-            $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
-            $siteUrl = route('home');
-            $siteDomain = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.com';
-            $logoUrl = asset('assets/external/images/logo.png');
+            $inst = $targetUser?->institution
+                ?? (session('admin_institution_id') ? \App\Models\Institution::find(session('admin_institution_id')) : null)
+                ?? (app()->bound('institution') ? app('institution') : null)
+                ?? \App\Models\Institution::getDefault();
+
+            $isCustom = $inst && !$inst->is_default;
+            $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+            $siteDomain = $isCustom ? "{$inst->slug}.frontfieldcu.pro" : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+            $logoUrl = $inst?->logo_url ?: asset('assets/external/images/logo.png');
+            $supportPhone = $inst->support_phone ?? ($isCustom ? '662-843-9461' : (setting('site_phone', 'global') ?: '(216) 230-1837'));
+            $supportEmail = $inst->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : (setting('support_email', 'global') ?: 'support@frontfieldcu.pro'));
             $refCode = '#Z-' . date('Y-md');
 
             // Generic / Fallback replacements
@@ -246,10 +269,10 @@ class DocumentGeneratorController extends Controller
                 '[[total_amount]]' => '$550.00',
                 '[BONUS_AMOUNT]' => '$20.00',
                 '[[bonus_amount]]' => '$20.00',
-                '[SUPPORT_PHONE]' => '(216) 230-1837',
-                '[[support_phone]]' => '(216) 230-1837',
-                '[SUPPORT_EMAIL]' => 'customerservice@zellepay.com',
-                '[[support_email]]' => 'customerservice@zellepay.com',
+                '[SUPPORT_PHONE]' => $supportPhone,
+                '[[support_phone]]' => $supportPhone,
+                '[SUPPORT_EMAIL]' => $supportEmail,
+                '[[support_email]]' => $supportEmail,
                 '[AUTHORISED_SIGNATURE]' => '<br><img src="'.$logoUrl.'" style="max-width:150px; opacity:0.5; filter: grayscale(100%);"><br><strong>Authorized Officer</strong><br>' . $siteTitle,
                 '[USER_SIGNATURE_LINE]' => '<br><br><br>___________________________________<br><strong>'.$userName.'</strong><br>Date: _________________',
             ];
@@ -269,10 +292,22 @@ class DocumentGeneratorController extends Controller
             // Base64 Logo for PDF rendering
             $logoBase64 = null;
             try {
-                $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-                $logoData = curl_get_file_contents($logoUrl);
-                if ($logoData) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                $targetInst = $user?->institution
+                    ?? (session('admin_institution_id') ? \App\Models\Institution::find(session('admin_institution_id')) : null)
+                    ?? \App\Models\Institution::getDefault();
+                $isCustom = $targetInst && !$targetInst->is_default;
+
+                $instLogoPath = $targetInst?->logo_path ? public_path($targetInst->logo_path) : null;
+                if ($instLogoPath && is_file($instLogoPath)) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($instLogoPath));
+                } elseif ($isCustom && file_exists(public_path('assets/institutions/clevelandstatebank/images/logo.png'))) {
+                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('assets/institutions/clevelandstatebank/images/logo.png')));
+                } else {
+                    $siteLogo = setting('site_logo', 'global');
+                    $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : public_path('assets/external/images/logo.png');
+                    if (is_file($logoPath)) {
+                        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+                    }
                 }
             } catch (\Exception $e) {
                 \Log::error("Document PDF Logo Fetch Error: " . $e->getMessage());
@@ -388,6 +423,14 @@ class DocumentGeneratorController extends Controller
                     }
                 }
 
+                $targetInst = $targetUser?->institution
+                    ?? (session('admin_institution_id') ? \App\Models\Institution::find(session('admin_institution_id')) : null)
+                    ?? \App\Models\Institution::getDefault();
+                $isCustom = $targetInst && !$targetInst->is_default;
+                $instTitle = $targetInst ? $targetInst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+                $instLink = $isCustom ? "https://{$targetInst->slug}.frontfieldcu.pro" : route('home');
+                $instLogo = $targetInst?->logo_url ?: (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'));
+
                 $details = [
                     'from_name' => $fromName,
                     'subject' => $parsedSubject ?: ($signingUrl ? "Signature Requested: " . ($title ?: 'Official Document') : 'Official Communication'),
@@ -398,9 +441,9 @@ class DocumentGeneratorController extends Controller
                     'button_link' => $signingUrl ?: route('user.dashboard'),
                     'footer_status' => $isStandaloneHtml ? 0 : 1,
                     'bottom_status' => 0,
-                    'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'),
-                    'site_title' => setting('site_title', 'global') ?: 'FrontField Credit Union',
-                    'site_link' => route('home'),
+                    'site_logo' => $instLogo,
+                    'site_title' => $instTitle,
+                    'site_link' => $instLink,
                     'raw_html' => $isStandaloneHtml,
                     'is_email_only' => $isEmailOnly,
                 ];
@@ -409,9 +452,18 @@ class DocumentGeneratorController extends Controller
                 if (!$isEmailOnly) {
                     $logoBase64 = null;
                     try {
-                        $logoUrl = 'https://www.pinellasfcu.org/templates/pinellas/images/logo.png';
-                        $logoData = curl_get_file_contents($logoUrl);
-                        if ($logoData) $logoBase64 = 'data:image/png;base64,' . base64_encode($logoData);
+                        $instLogoPath = $targetInst?->logo_path ? public_path($targetInst->logo_path) : null;
+                        if ($instLogoPath && is_file($instLogoPath)) {
+                            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($instLogoPath));
+                        } elseif ($isCustom && file_exists(public_path('assets/institutions/clevelandstatebank/images/logo.png'))) {
+                            $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('assets/institutions/clevelandstatebank/images/logo.png')));
+                        } else {
+                            $siteLogo = setting('site_logo', 'global');
+                            $logoPath = $siteLogo ? public_path('assets/' . $siteLogo) : public_path('assets/external/images/logo.png');
+                            if (is_file($logoPath)) {
+                                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+                            }
+                        }
                     } catch (\Exception $e) {}
 
                     $pdf = Pdf::loadView('backend.document_generator.pdf', [

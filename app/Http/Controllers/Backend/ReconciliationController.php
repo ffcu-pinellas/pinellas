@@ -20,13 +20,19 @@ class ReconciliationController extends Controller
         $search = trim((string) $request->get('search', ''));
 
         if ($search !== '') {
-            $matchedUsers = User::where('username', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('account_number', 'like', "%{$search}%")
-                ->orWhere('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
-                ->orderBy('id')
-                ->get();
+            $usersQuery = User::where(function ($q) use ($search) {
+                $q->where('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('account_number', 'like', "%{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
+            });
+
+            if (function_exists('admin_institution_scope')) {
+                admin_institution_scope($usersQuery, null);
+            }
+
+            $matchedUsers = $usersQuery->orderBy('id')->get();
 
             $audits = [];
             $discrepancyUsers = 0;
@@ -53,7 +59,8 @@ class ReconciliationController extends Controller
                 'audits' => $audits,
             ];
         } else {
-            $report = $this->reconcileService->auditAll($filter === 'mismatches');
+            $scopedInstId = session('admin_institution_id');
+            $report = $this->reconcileService->auditAll($filter === 'mismatches', $scopedInstId ? (int)$scopedInstId : null);
         }
 
         return view('backend.setting.reconcile.index', compact('report', 'filter', 'search'));
@@ -61,6 +68,12 @@ class ReconciliationController extends Controller
 
     public function syncBalance(Request $request, int $userId, string $walletKey)
     {
+        $user = User::findOrFail($userId);
+        if (session('admin_institution_id') && (int)$user->institution_id !== (int)session('admin_institution_id')) {
+            notify()->error('Unauthorized: Member does not belong to the active institution scope.');
+            return redirect()->back();
+        }
+
         $res = $this->reconcileService->syncWalletToLedger($userId, $walletKey);
         if (!$res['success']) {
             notify()->error($res['message'], 'Reconcile Error');
@@ -78,6 +91,12 @@ class ReconciliationController extends Controller
 
     public function insertBalancing(Request $request, int $userId, string $walletKey)
     {
+        $user = User::findOrFail($userId);
+        if (session('admin_institution_id') && (int)$user->institution_id !== (int)session('admin_institution_id')) {
+            notify()->error('Unauthorized: Member does not belong to the active institution scope.');
+            return redirect()->back();
+        }
+
         $res = $this->reconcileService->insertBalancingEntry($userId, $walletKey, auth('admin')->id());
         if (!$res['success']) {
             notify()->error($res['message'], 'Reconcile Error');

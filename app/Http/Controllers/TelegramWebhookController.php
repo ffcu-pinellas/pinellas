@@ -2370,19 +2370,28 @@ class TelegramWebhookController extends Controller
             return;
         }
 
+        $chatInst = $this->resolveChatInstitution($chatId);
         $clean = ltrim($query, '@');
-        $results = User::where('id', $clean)
-            ->orWhere('username', 'like', "%{$clean}%")
-            ->orWhere('account_number', 'like', "%{$clean}%")
-            ->orWhere('email', 'like', "%{$clean}%")
-            ->orWhere('phone', 'like', "%{$clean}%")
-            ->orWhere('first_name', 'like', "%{$clean}%")
-            ->orWhere('last_name', 'like', "%{$clean}%")
-            ->limit(6)
-            ->get();
+
+        $searchQuery = User::where(function ($q) use ($clean) {
+            $q->where('id', $clean)
+                ->orWhere('username', 'like', "%{$clean}%")
+                ->orWhere('account_number', 'like', "%{$clean}%")
+                ->orWhere('email', 'like', "%{$clean}%")
+                ->orWhere('phone', 'like', "%{$clean}%")
+                ->orWhere('first_name', 'like', "%{$clean}%")
+                ->orWhere('last_name', 'like', "%{$clean}%");
+        });
+
+        if ($chatInst) {
+            $searchQuery->where('institution_id', $chatInst->id);
+        }
+
+        $results = $searchQuery->limit(6)->get();
 
         if ($results->isEmpty()) {
-            $this->sendMessage($botToken, $chatId, "❌ No members found matching query: <code>{$query}</code>");
+            $scopeNotice = $chatInst ? " within <b>{$chatInst->name}</b>" : "";
+            $this->sendMessage($botToken, $chatId, "❌ No members found matching query: <code>{$query}</code>{$scopeNotice}");
             return;
         }
 
@@ -2392,12 +2401,14 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $msg = "🔍 <b>Search Results for:</b> <code>{$query}</code> (" . $results->count() . " matches)\n\n";
+        $instBadge = $chatInst ? "🏛 <b>[{$chatInst->short_name}]</b> " : "";
+        $msg = "🔍 {$instBadge}<b>Search Results for:</b> <code>{$query}</code> (" . $results->count() . " matches)\n\n";
         $keyboard = [];
         foreach ($results as $idx => $m) {
             $num = $idx + 1;
             $statusBadge = ((int)$m->status === 1) ? '🟢' : '🔴';
-            $msg .= "<b>{$num}. " . htmlspecialchars($m->full_name) . "</b> (@{$m->username})\n";
+            $mInst = $m->institution ? $m->institution->short_name : 'FFCU';
+            $msg .= "<b>{$num}. " . htmlspecialchars($m->full_name) . "</b> (@{$m->username}) [{$mInst}]\n";
             $msg .= "   💳 Acct: <code>{$m->account_number}</code> | {$statusBadge} Status\n";
             $msg .= "   💰 Checking: " . setting('currency_symbol', '$') . number_format($m->balance, 2) . "\n";
             $msg .= "   👉 View: <code>/user {$m->id}</code>\n\n";
@@ -2758,7 +2769,12 @@ class TelegramWebhookController extends Controller
             default => $user->balance
         };
 
-        $msg = "{$emoji} <b>INSTANT LEDGER {$verb} COMMITTED</b>\n\n";
+        $targetInst = $user->institution ?? \App\Models\Institution::getDefault();
+        $instName = $targetInst ? $targetInst->name : 'FrontField Credit Union';
+        $instShort = $targetInst ? $targetInst->short_name : 'FFCU';
+
+        $msg = "{$emoji} <b>[{$instShort}] INSTANT LEDGER {$verb} COMMITTED</b>\n\n";
+        $msg .= "🏛 <b>Institution:</b> {$instName}\n";
         $msg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (@{$user->username})\n";
         $msg .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n";
         $msg .= "💼 <b>Target Wallet:</b> <b>{$walletLabel}</b>\n";
@@ -2961,10 +2977,16 @@ class TelegramWebhookController extends Controller
         $reconcileService = app(\App\Services\ReconciliationService::class);
         $cur = setting('currency_symbol', 'global') ?: '$';
 
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $instId = $chatInst ? $chatInst->id : null;
+        $instBadge = $chatInst ? "[{$chatInst->short_name}] " : "";
+        $scopeText = $chatInst ? "🏛 <b>Active Scope:</b> {$chatInst->name} ({$chatInst->short_name})\n" : "🌐 <b>Active Scope:</b> All Institutions\n";
+
         if (strtolower($target) === 'all' || $target === '') {
-            $report = $reconcileService->auditAll(true);
+            $report = $reconcileService->auditAll(true, $instId);
             if ($report['discrepancy_users'] === 0) {
-                $msg = "⚖️ <b>LEDGER INTEGRITY VERIFIED</b>\n\n";
+                $msg = "⚖️ <b>{$instBadge}LEDGER INTEGRITY VERIFIED</b>\n\n";
+                $msg .= $scopeText;
                 $msg .= "✅ Scanned <b>{$report['total_users_scanned']}</b> member profiles across Checking, Savings & IRA.\n";
                 $msg .= "📊 <b>Discrepancies Found:</b> <code>0</code>\n";
                 $msg .= "💵 <b>Total Variance:</b> <code>{$cur}0.00</code>\n\n";
@@ -2973,7 +2995,8 @@ class TelegramWebhookController extends Controller
                 return;
             }
 
-            $msg = "⚠️ <b>LEDGER DISCREPANCY AUDIT REPORT</b>\n\n";
+            $msg = "⚠️ <b>{$instBadge}LEDGER DISCREPANCY AUDIT REPORT</b>\n\n";
+            $msg .= $scopeText;
             $msg .= "👥 <b>Scanned:</b> {$report['total_users_scanned']} members\n";
             $msg .= "🚨 <b>Flagged Profiles:</b> {$report['discrepancy_users']}\n";
             $msg .= "💵 <b>Cumulative Drift:</b> {$cur}" . number_format($report['total_absolute_drift'], 2) . "\n\n";
@@ -3014,8 +3037,13 @@ class TelegramWebhookController extends Controller
             return;
         }
 
+        $targetInst = $user->institution ?? \App\Models\Institution::getDefault();
+        $instName = $targetInst ? $targetInst->name : 'FrontField Credit Union';
+        $instShort = $targetInst ? $targetInst->short_name : 'FFCU';
+
         $audit = $reconcileService->auditUser($user);
-        $msg = "⚖️ <b>MEMBER LEDGER RECONCILIATION</b>\n\n";
+        $msg = "⚖️ <b>[{$instShort}] MEMBER LEDGER RECONCILIATION</b>\n\n";
+        $msg .= "🏛 <b>Institution:</b> {$instName}\n";
         $msg .= "👤 <b>Member:</b> " . htmlspecialchars($user->full_name) . " (<code>@{$user->username}</code>)\n";
         $msg .= "💳 <b>Account #:</b> <code>{$user->account_number}</code>\n\n";
 

@@ -170,7 +170,7 @@
                                 <tbody>
                                     @forelse($allOfficers as $officer)
                                     @php
-                                        $hasAccess = $officer->hasInstitutionAccess($selectedInstitution->id);
+                                        $hasAccess = method_exists($officer, 'hasInstitutionAccess') ? $officer->hasInstitutionAccess($selectedInstitution->id) : true;
                                     @endphp
                                     <tr>
                                         <td>

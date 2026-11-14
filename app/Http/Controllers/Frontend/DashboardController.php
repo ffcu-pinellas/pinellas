@@ -21,7 +21,14 @@ class DashboardController extends Controller
 
         $referral = $user->getReferrals()->first();
 
-        $loan_last_date = LoanTransaction::where('loan_id', $user->loan->whereIn('status', [LoanStatus::Running, LoanStatus::Due])->first()?->id)->latest('installment_date')->first()?->installment_date->format('d M Y');
+        $activeLoan = $user->loan?->whereIn('status', [LoanStatus::Running, LoanStatus::Due])->first();
+        $latestInstallment = $activeLoan ? LoanTransaction::where('loan_id', $activeLoan->id)->latest('installment_date')->first() : null;
+        $loan_last_date = null;
+        if ($latestInstallment && $latestInstallment->installment_date) {
+            $loan_last_date = $latestInstallment->installment_date instanceof \Carbon\Carbon
+                ? $latestInstallment->installment_date->format('d M Y')
+                : date('d M Y', strtotime((string)$latestInstallment->installment_date));
+        }
 
         $dataCount = [
             'total_transaction' => $transactions->count(),

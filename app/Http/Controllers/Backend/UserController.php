@@ -1119,14 +1119,15 @@ class UserController extends Controller
             $rootHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'frontfieldcu.pro';
             $targetHost = $inst->slug . '.' . $rootHost;
 
-            $temporaryUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'user.impersonate',
-                now()->addMinutes(5),
-                ['user' => $user->id]
-            );
+            // Generate one-time 64-char impersonation token stored in shared server cache
+            $token = \Illuminate\Support\Str::random(64);
+            \Illuminate\Support\Facades\Cache::put('impersonate_token_' . $token, [
+                'user_id' => $user->id,
+                'admin_id' => auth('admin')->id(),
+                'created_at' => now()->timestamp,
+            ], now()->addMinutes(5));
 
-            $parts = parse_url($temporaryUrl);
-            $finalUrl = $scheme . '://' . $targetHost . ($parts['path'] ?? '/auth/impersonate/' . $user->id) . '?' . ($parts['query'] ?? '');
+            $finalUrl = $scheme . '://' . $targetHost . '/auth/impersonate/' . $token;
 
             return redirect()->away($finalUrl);
         }
@@ -1137,15 +1138,16 @@ class UserController extends Controller
     }
 
     /**
-     * Handle signed one-time cross-tenant impersonation login.
+     * Handle one-time secure cross-tenant impersonation login.
      */
-    public function impersonateLogin(Request $request, $userId)
+    public function impersonateLogin(Request $request, $token)
     {
-        if (! $request->hasValidSignature()) {
-            abort(401, 'Invalid or expired login link.');
+        $payload = \Illuminate\Support\Facades\Cache::pull('impersonate_token_' . $token);
+        if (! $payload || empty($payload['user_id'])) {
+            abort(403, 'Invalid or expired login link.');
         }
 
-        $user = User::findOrFail($userId);
+        $user = User::findOrFail($payload['user_id']);
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 

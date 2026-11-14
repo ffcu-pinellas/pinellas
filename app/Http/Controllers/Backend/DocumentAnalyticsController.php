@@ -22,22 +22,21 @@ class DocumentAnalyticsController extends Controller
         $startDate = now()->subDays($dateRange)->startOfDay();
         $endDate = now()->endOfDay();
 
-        // Document Generation Metrics
-        $totalDocuments = DocumentHistory::whereBetween('created_at', [$startDate, $endDate])
+        // Document Generation Base Query
+        $docBase = DocumentHistory::whereBetween('created_at', [$startDate, $endDate])
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
-            })
-            ->count();
+            });
+        if (function_exists('admin_institution_scope')) {
+            admin_institution_scope($docBase, 'user');
+        }
+
+        $totalDocuments = (clone $docBase)->count();
         
-        $documentsByUser = DocumentHistory::whereBetween('created_at', [$startDate, $endDate])
+        $documentsByUser = (clone $docBase)
             ->whereNotNull('user_id')
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
             ->selectRaw('user_id, COUNT(*) as count')
             ->groupBy('user_id')
             ->orderByDesc('count')
@@ -45,50 +44,22 @@ class DocumentAnalyticsController extends Controller
             ->with('user')
             ->get();
 
-        // Email Metrics
-        $totalEmailsSent = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
+        // Email Base Query
+        $emailBase = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
             ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('staff_id', auth('admin')->id());
                 });
-            })
-            ->count();
-        
-        $successfulEmails = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->successful()
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
-            ->count();
-        
-        $failedEmails = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->failed()
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
-            ->count();
-        
-        $openedEmails = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('opened_at')
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
-            ->count();
-        
-        $clickedEmails = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->whereNotNull('clicked_at')
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
-            ->count();
+            });
+        if (function_exists('admin_institution_scope')) {
+            admin_institution_scope($emailBase, 'user');
+        }
+
+        $totalEmailsSent = (clone $emailBase)->count();
+        $successfulEmails = (clone $emailBase)->successful()->count();
+        $failedEmails = (clone $emailBase)->failed()->count();
+        $openedEmails = (clone $emailBase)->whereNotNull('opened_at')->count();
+        $clickedEmails = (clone $emailBase)->whereNotNull('clicked_at')->count();
 
         $emailDeliveryRate = $totalEmailsSent > 0 ? round(($successfulEmails / $totalEmailsSent) * 100, 2) : 0;
         $emailOpenRate = $successfulEmails > 0 ? round(($openedEmails / $successfulEmails) * 100, 2) : 0;
@@ -101,13 +72,8 @@ class DocumentAnalyticsController extends Controller
             ->get();
 
         // Account Officer Performance
-        $officerPerformance = DocumentHistory::whereBetween('created_at', [$startDate, $endDate])
+        $officerPerformance = (clone $docBase)
             ->whereNotNull('user_id')
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
             ->selectRaw('user_id, COUNT(*) as documents_generated')
             ->groupBy('user_id')
             ->with('user')
@@ -137,34 +103,19 @@ class DocumentAnalyticsController extends Controller
             ->take(10);
 
         // Email Status Distribution
-        $emailStatusDistribution = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
+        $emailStatusDistribution = (clone $emailBase)
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
 
         // Daily Trends
-        $dailyDocumentTrend = DocumentHistory::whereBetween('created_at', [$startDate, $endDate])
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
+        $dailyDocumentTrend = (clone $docBase)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
             ->pluck('count', 'date');
 
-        $dailyEmailTrend = EmailTracking::whereBetween('created_at', [$startDate, $endDate])
-            ->when(auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin'), function ($query) {
-                $query->whereHas('user', function ($q) {
-                    $q->where('staff_id', auth('admin')->id());
-                });
-            })
+        $dailyEmailTrend = (clone $emailBase)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')

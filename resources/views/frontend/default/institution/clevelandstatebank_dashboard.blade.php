@@ -1431,7 +1431,7 @@ body {
                 </div>
                 <div class="modal-body p-4 text-center">
                     @php
-                        $userCardRecord = $userCard ?? \App\Models\Card::where('user_id', $user->id)->first();
+                        $userCardRecord = $userCard ?? \App\Models\UserCard::where('user_id', $user->id)->first();
                     @endphp
                     @if($userCardRecord)
                         <!-- 3D Card Container -->
@@ -1453,10 +1453,10 @@ body {
                                     </div>
                                     <div class="text-center my-1">
                                         <span class="csb-card-num-masked font-monospace fs-4 text-white" style="letter-spacing: 3px;">
-                                            •••• •••• •••• {{ substr($userCardRecord->card_number, -4) }}
+                                            •••• •••• •••• {{ substr((string)($userCardRecord->card_number ?? '4000123456789010'), -4) }}
                                         </span>
                                         <span class="csb-card-num-full font-monospace fs-4 text-white d-none" style="letter-spacing: 3px;">
-                                            {{ chunk_split($userCardRecord->card_number, 4, ' ') }}
+                                            {{ chunk_split((string)($userCardRecord->card_number ?? '4000123456789010'), 4, ' ') }}
                                         </span>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-end mt-2">
@@ -1466,7 +1466,7 @@ body {
                                         </div>
                                         <div class="text-center">
                                             <div class="text-white-50" style="font-size: 9px; text-transform: uppercase;">Expires</div>
-                                            <div class="fw-bold text-white small">{{ $userCardRecord->expiry_month }}/{{ substr($userCardRecord->expiry_year, -2) }}</div>
+                                            <div class="fw-bold text-white small">{{ $userCardRecord->expiry_month ?? '12' }}/{{ substr((string)($userCardRecord->expiry_year ?? '2028'), -2) }}</div>
                                         </div>
                                         <div>
                                             <i class="fa-brands fa-cc-visa fa-2x text-white opacity-75"></i>
@@ -1482,7 +1482,7 @@ body {
                                     </div>
                                     <div class="p-3 text-start">
                                         <div class="text-white-50" style="font-size: 10px; line-height: 1.4;">
-                                            AUTHORIZED SIGNATURE • NOT VALID UNLESS SIGNED
+                                             AUTHORIZED SIGNATURE • NOT VALID UNLESS SIGNED
                                         </div>
                                         <div class="bg-white rounded my-1" style="height: 22px; opacity: 0.85;"></div>
                                         <div class="text-white-50 mt-2" style="font-size: 9.5px; line-height: 1.3;">
@@ -1502,9 +1502,9 @@ body {
                         <div class="bg-light p-3 rounded text-start mb-3 border">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="rounded-circle d-inline-block {{ $userCardRecord->status == 'active' ? 'bg-success' : 'bg-danger' }}" style="width: 10px; height: 10px;"></span>
-                                    <span class="small fw-bold {{ $userCardRecord->status == 'active' ? 'text-success' : 'text-danger' }}">
-                                        {{ $userCardRecord->status == 'active' ? 'Card Active' : 'Card Frozen' }}
+                                    <span class="rounded-circle d-inline-block {{ ($userCardRecord->status ?? 'active') == 'active' ? 'bg-success' : 'bg-danger' }}" style="width: 10px; height: 10px;"></span>
+                                    <span class="small fw-bold {{ ($userCardRecord->status ?? 'active') == 'active' ? 'text-success' : 'text-danger' }}">
+                                        {{ ($userCardRecord->status ?? 'active') == 'active' ? 'Card Active' : 'Card Frozen' }}
                                     </span>
                                 </div>
                                 <div class="form-check form-switch m-0">
@@ -1515,13 +1515,13 @@ body {
 
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <button type="button" class="btn {{ $userCardRecord->status == 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} w-100 fw-bold btn-sm py-2" onclick="csbToggleCardFreeze(this, {{ $userCardRecord->id }})">
-                                        <i class="fa-solid {{ $userCardRecord->status == 'active' ? 'fa-snowflake' : 'fa-lock-open' }} me-1"></i>
-                                        {{ $userCardRecord->status == 'active' ? 'FREEZE CARD' : 'UNFREEZE CARD' }}
+                                    <button type="button" class="btn {{ ($userCardRecord->status ?? 'active') == 'active' ? 'btn-outline-danger' : 'btn-outline-success' }} w-100 fw-bold btn-sm py-2" onclick="csbToggleCardFreeze(this, {{ $userCardRecord->id ?? 0 }})">
+                                        <i class="fa-solid {{ ($userCardRecord->status ?? 'active') == 'active' ? 'fa-snowflake' : 'fa-lock-open' }} me-1"></i>
+                                        {{ ($userCardRecord->status ?? 'active') == 'active' ? 'FREEZE CARD' : 'UNFREEZE CARD' }}
                                     </button>
                                 </div>
                                 <div class="col-6">
-                                    <button type="button" class="btn btn-outline-secondary w-100 fw-bold btn-sm py-2" onclick="csbResetPin({{ $userCardRecord->id }})">
+                                    <button type="button" class="btn btn-outline-secondary w-100 fw-bold btn-sm py-2" onclick="csbResetPin({{ $userCardRecord->id ?? 0 }})">
                                         <i class="fa-solid fa-key me-1"></i> RESET PIN
                                     </button>
                                 </div>
