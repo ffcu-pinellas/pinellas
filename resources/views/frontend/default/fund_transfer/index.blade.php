@@ -15,13 +15,18 @@
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
         <div class="text-center mb-4">
+            @if($isCustomInst)
+                <div class="small fw-bold text-uppercase mb-1" style="color: #c8232c; letter-spacing: 1.2px; font-size: 11px;">
+                    <i class="fa-solid fa-building-columns me-1"></i> Cleveland State Bank &bull; Member FDIC &bull; Routing #084301768
+                </div>
+            @endif
             <div class="d-flex align-items-center justify-content-center mb-2">
                 <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
                     <i class="fas fa-arrow-left"></i>
                 </a>
-                <h2 class="mb-0">Transfer Funds</h2>
+                <h2 class="mb-0 fw-bold">Transfer Funds</h2>
             </div>
-            <p class="text-muted small">Send money to other banks or between your accounts.</p>
+            <p class="text-muted small">Send money securely to other banks, members, or between your accounts.</p>
         </div>
 
         <div class="banno-card p-0 mb-4 shadow-sm">
@@ -344,7 +349,7 @@
 
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-arrow-right me-2"></i> {{ __('Submit Transfer') }}
+                                <i class="fas fa-arrow-right me-2"></i> {{ __('Authorize & Submit Transfer') }}
                             </button>
                         </div>
                     </div>
@@ -361,20 +366,70 @@
     :root {
         --primary-color: #c8232c;
     }
+    .banno-card {
+        border-radius: 20px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+        overflow: hidden !important;
+    }
+    .wizard-header {
+        background: linear-gradient(135deg, #2b0407 0%, #4a0307 50%, #1f0205 100%) !important;
+        color: #fff !important;
+        border-bottom: 2px solid #c8232c !important;
+    }
+    .wizard-header .step-indicator {
+        color: rgba(255,255,255,0.65) !important;
+    }
+    .wizard-header .step-circle {
+        background: rgba(255,255,255,0.15) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+    }
+    .wizard-header .step-indicator.active {
+        color: #fff !important;
+    }
+    .wizard-header .step-indicator.active .step-circle {
+        background: #c8232c !important;
+        border-color: #ff6b72 !important;
+        box-shadow: 0 0 14px rgba(200, 35, 44, 0.6) !important;
+        color: #fff !important;
+    }
+    .wizard-header .step-line {
+        background: rgba(255,255,255,0.2) !important;
+    }
+    .transfer-type-card {
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 18px !important;
+        background: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .transfer-type-card:hover {
+        transform: translateY(-4px) !important;
+        border-color: #c8232c !important;
+        box-shadow: 0 12px 28px rgba(200, 35, 44, 0.12) !important;
+    }
     .transfer-type-card.border-primary {
         border-color: #c8232c !important;
-        background: rgba(200, 35, 44, 0.04) !important;
-    }
-    .step-indicator.active .step-circle {
-        background: #c8232c !important;
-        box-shadow: 0 4px 10px rgba(200, 35, 44, 0.25) !important;
-    }
-    .step-indicator.active {
-        color: #c8232c !important;
+        background: linear-gradient(180deg, rgba(200, 35, 44, 0.03) 0%, rgba(200, 35, 44, 0.08) 100%) !important;
+        box-shadow: 0 8px 24px rgba(200, 35, 44, 0.15) !important;
     }
     .btn-primary {
-        background-color: #c8232c !important;
+        background: linear-gradient(135deg, #c8232c 0%, #a81b24 100%) !important;
+        border: none !important;
+        box-shadow: 0 6px 16px rgba(200, 35, 44, 0.3) !important;
+    }
+    .btn-primary:hover, .btn-primary:focus {
+        background: linear-gradient(135deg, #a81b24 0%, #8b0000 100%) !important;
+        box-shadow: 0 8px 22px rgba(200, 35, 44, 0.45) !important;
+        transform: translateY(-1px) !important;
+    }
+    .form-control:focus, .form-select:focus {
         border-color: #c8232c !important;
+        box-shadow: 0 0 0 4px rgba(200, 35, 44, 0.12) !important;
+    }
+    #reviewAmount {
+        color: #c8232c !important;
     }
     @endif
     .title-responsive {
