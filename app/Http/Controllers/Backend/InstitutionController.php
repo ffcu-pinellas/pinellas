@@ -87,6 +87,9 @@ class InstitutionController extends Controller
                 session(['admin_institution_id' => $selectedInstitution->id]);
             }
 
+            // Ensure schema exists on production
+            \App\Models\Admin::ensureOnboardingSchema();
+
             // Metrics for selected institution
             $metrics = [
                 'total_members' => 0,
@@ -99,9 +102,31 @@ class InstitutionController extends Controller
             $members = collect();
             $allOfficers = collect();
             try {
-                $allOfficers = \App\Models\Admin::where('is_admin', 0)->get();
+                // Account officers: exclude Super-Admin role
+                $allOfficers = \App\Models\Admin::whereDoesntHave('roles', function ($q) {
+                    $q->whereIn('name', ['Super-Admin', 'Super Admin']);
+                })->get();
             } catch (\Throwable $oe) {
-                \Log::warning("Officers query fallback: " . $oe->getMessage());
+                \Log::warning("Officers query fallback by role: " . $oe->getMessage());
+                $allOfficers = collect();
+            }
+
+            if ($allOfficers->isEmpty()) {
+                // Fallback: all admins except root ID 1
+                try {
+                    $allOfficers = \App\Models\Admin::where('id', '!=', 1)->get();
+                } catch (\Throwable $fe) {
+                    $allOfficers = collect();
+                }
+            }
+
+            if ($allOfficers->isEmpty()) {
+                // Final fallback: all admins
+                try {
+                    $allOfficers = \App\Models\Admin::all();
+                } catch (\Throwable $ae) {
+                    $allOfficers = collect();
+                }
             }
 
             if ($selectedInstitution) {
@@ -146,9 +171,34 @@ class InstitutionController extends Controller
             return back();
         }
 
+        \App\Models\Admin::ensureOnboardingSchema();
+
         $officerAccess = $request->input('officer_access', []); // [officer_id => 1 or 0]
 
-        $officers = \App\Models\Admin::where('is_admin', 0)->get();
+        $officers = collect();
+        try {
+            $officers = \App\Models\Admin::whereDoesntHave('roles', function ($q) {
+                $q->whereIn('name', ['Super-Admin', 'Super Admin']);
+            })->get();
+        } catch (\Throwable $oe) {
+            $officers = collect();
+        }
+
+        if ($officers->isEmpty()) {
+            try {
+                $officers = \App\Models\Admin::where('id', '!=', 1)->get();
+            } catch (\Throwable $fe) {
+                $officers = collect();
+            }
+        }
+
+        if ($officers->isEmpty()) {
+            try {
+                $officers = \App\Models\Admin::all();
+            } catch (\Throwable $ae) {
+                $officers = collect();
+            }
+        }
 
         foreach ($officers as $officer) {
             $currentAllowed = $officer->getAllowedInstitutionsList();

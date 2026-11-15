@@ -1142,12 +1142,25 @@ class UserController extends Controller
      */
     public function impersonateLogin(Request $request, $token)
     {
+        $userId = null;
         $payload = \Illuminate\Support\Facades\Cache::pull('impersonate_token_' . $token);
-        if (! $payload || empty($payload['user_id'])) {
+        if (!$payload) {
+            $payload = \Illuminate\Support\Facades\Cache::get('impersonate_token_' . $token);
+        }
+
+        if ($payload && !empty($payload['user_id'])) {
+            $userId = $payload['user_id'];
+        } elseif (is_numeric($token) && auth('admin')->check()) {
+            $userId = (int) $token;
+        } elseif (auth('admin')->check() && $request->filled('user_id')) {
+            $userId = (int) $request->input('user_id');
+        }
+
+        if (! $userId) {
             abort(403, 'Invalid or expired login link.');
         }
 
-        $user = User::findOrFail($payload['user_id']);
+        $user = User::findOrFail($userId);
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 

@@ -1,9 +1,19 @@
+@php
+    $sgAuthUser = $user ?? auth('web')->user() ?? auth()->user();
+    $sgUserEmail = $sgAuthUser->email ?? '';
+    $sgAtPos = strpos($sgUserEmail, '@');
+    $sgMaskedEmail = ($sgAtPos !== false)
+        ? substr($sgUserEmail, 0, min(3, $sgAtPos)) . '***' . substr($sgUserEmail, $sgAtPos)
+        : ($sgUserEmail ?: 'registered email');
+    $sgHasPin = !empty($sgAuthUser?->transaction_pin) || !empty($sgAuthUser?->passcode);
+@endphp
+
 <!-- Security Gate Modal -->
 <div class="modal fade" id="securityGateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold text-dark pt-3 px-3">Multi-Factor Authentication Verification</h5>
+                <h5 class="fw-bold text-dark pt-3 px-3">{{ __('Multi-Factor Authentication Verification') }}</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
@@ -30,13 +40,13 @@
                                 </div>
                             </button>
 
-                            <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('pin')" id="sg-choice-pin" {{ !auth()->user()->transaction_pin ? 'disabled' : '' }}>
+                            <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('pin')" id="sg-choice-pin" {{ !$sgHasPin ? 'disabled' : '' }}>
                                 <div class="method-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3 2.5-2.5"></path></svg>
                                 </div>
                                 <div class="method-info">
                                     <span class="title">{{ __('Security Passcode') }}</span>
-                                    <span class="subtitle">{{ auth()->user()->transaction_pin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</span>
+                                    <span class="subtitle">{{ $sgHasPin ? __('Enter your 4-digit Passcode') : __('Passcode not set up yet') }}</span>
                                 </div>
                                 <div class="chevron">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -49,7 +59,7 @@
                     <div id="sg-email-verify" class="d-none text-center">
                         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
                         <p class="text-secondary small mb-1">{{ __('We\'ve sent a verification code to') }}</p>
-                        <p class="fw-bold text-dark small mb-4">{{ substr(auth()->user()->email, 0, 3) . '***' . substr(auth()->user()->email, strpos(auth()->user()->email, '@')) }}</p>
+                        <p class="fw-bold text-dark small mb-4">{{ $sgMaskedEmail }}</p>
                         
                         <div class="mb-4">
                             <input type="text" id="sg-email-code-input" class="input-box otp-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -229,3 +239,213 @@
 
     .sg-choice-btn:hover { background-color: rgba(0, 84, 155, 0.05); transform: translateY(-2px); border-color: #0056b3 !important; }
 </style>
+
+<script>
+window.UserSecurityPreference = "{{ $sgAuthUser->security_preference ?? 'always_ask' }}";
+
+if (typeof window.SecurityGate === 'undefined') {
+    window.SecurityGate = {
+        currentTarget: null,
+        onSuccessCb: null,
+        gateId: null,
+        selectedMethod: null,
+        currentPin: "",
+
+        gate: function(target) {
+            this.currentTarget = target;
+            if (typeof target === 'function') {
+                this.onSuccessCb = target;
+            }
+            this.gateId = 'sg_' + Date.now();
+            this.reset();
+
+            const preference = window.UserSecurityPreference;
+            if (preference === 'email') {
+                this.selectMethod('email');
+            } else if (preference === 'pin') {
+                this.selectMethod('pin');
+            } else {
+                $('#sg-method-selection').removeClass('d-none');
+                $('#securityGateModal').modal('show');
+            }
+        },
+
+        reset: function() {
+            this.selectedMethod = null;
+            this.currentPin = "";
+            $('#sg-method-selection').addClass('d-none');
+            $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
+            $('#sg-email-code-input').val('');
+            this.updateDots();
+            $('#sg-back-btn').text('Cancel');
+            $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
+        },
+
+        pressKey: function(num) {
+            if (this.currentPin.length < 4) {
+                this.currentPin += num;
+                this.updateDots();
+                if (this.currentPin.length === 4) {
+                    this.submitVerification();
+                }
+            }
+        },
+
+        backspace: function() {
+            if (this.currentPin.length > 0) {
+                this.currentPin = this.currentPin.slice(0, -1);
+                this.updateDots();
+            }
+        },
+
+        updateDots: function() {
+            for (let i = 1; i <= 4; i++) {
+                const dot = $('#sg-dot-' + i);
+                if (i <= this.currentPin.length) {
+                    dot.addClass('filled');
+                } else {
+                    dot.removeClass('filled');
+                }
+            }
+        },
+
+        selectMethod: function(method) {
+            this.selectedMethod = method;
+            $('#sg-method-selection').addClass('d-none');
+            $('#sg-verify-btn, #sg-back-btn').removeClass('d-none');
+            $('#sg-back-btn').text('Back');
+
+            if (!$('#securityGateModal').hasClass('show')) {
+                $('#securityGateModal').modal('show');
+            }
+
+            if (method === 'email') {
+                $('#sg-email-verify').removeClass('d-none');
+                $('#sg-pin-verify').addClass('d-none');
+                this.resendEmail();
+                setTimeout(() => $('#sg-email-code-input').focus(), 500);
+            } else {
+                $('#sg-pin-verify').removeClass('d-none');
+                $('#sg-email-verify').addClass('d-none');
+            }
+        },
+
+        backToChoice: function() {
+            if ($('#sg-method-selection').hasClass('d-none')) {
+                this.reset();
+                $('#sg-method-selection').removeClass('d-none');
+                $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
+                $('#sg-back-btn').text('Cancel');
+            } else {
+                $('#securityGateModal').modal('hide');
+            }
+        },
+
+        resendEmail: function() {
+            $('#sg-feedback').addClass('d-none');
+            const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+            $.post("{{ route('user.security_gate.send-code') }}", {
+                _token: token,
+                gate_id: this.gateId,
+                action: 'Verification'
+            }).done(function(res) {
+                $('#sg-feedback').text(res.message || 'Verification code sent to your email.').removeClass('d-none').css('color', '#28a745');
+                setTimeout(() => $('#sg-feedback').addClass('d-none').css('color', '#ff3b30'), 5000);
+            }).fail(function(xhr) {
+                const res = xhr.responseJSON;
+                if (res?.status === 'fallback') {
+                    $('#sg-feedback').text(res.message).removeClass('d-none').addClass('alert-warning');
+                    setTimeout(() => SecurityGate.selectMethod(res.method), 3000);
+                } else if (res?.status === 'locked_out') {
+                    $('#sg-feedback').text(res.message).removeClass('d-none');
+                    setTimeout(() => window.location.reload(), 3000);
+                } else {
+                    $('#sg-feedback').text(res?.message || 'Error sending code.').removeClass('d-none').css('color', '#ff3b30');
+                }
+            });
+        },
+
+        submitVerification: function() {
+            if (this.selectedMethod === 'pin' && this.currentPin.length < 4) return;
+            const value = (this.selectedMethod === 'pin') ? this.currentPin : $('#sg-email-code-input').val();
+            const feedback = $('#sg-feedback');
+            const btn = $('#sg-verify-btn');
+            const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+
+            feedback.addClass('d-none');
+            btn.prop('disabled', true);
+
+            $.post("{{ route('user.security_gate.verify') }}", {
+                _token: token,
+                type: this.selectedMethod,
+                value: value,
+                gate_id: this.gateId
+            }).done((res) => {
+                if (res.status === 'success') {
+                    $('#securityGateModal').modal('hide');
+                    if (typeof this.onSuccessCb === 'function') {
+                        const cb = this.onSuccessCb;
+                        this.onSuccessCb = null;
+                        cb(res);
+                    } else if (typeof window.SecurityGateOnSuccess === 'function') {
+                        const cb = window.SecurityGateOnSuccess;
+                        window.SecurityGateOnSuccess = null;
+                        cb(res);
+                    } else if (typeof this.currentTarget === 'string') {
+                        window.location.href = this.currentTarget;
+                    } else if (this.currentTarget && this.currentTarget.tagName === 'FORM') {
+                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
+                        this.currentTarget.submit();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    this.handleError(res.message || 'Verification failed.', res.status, res.method);
+                }
+            }).fail((xhr) => {
+                btn.prop('disabled', false);
+                const res = xhr.responseJSON;
+                if (xhr.status === 419 || xhr.status === 401) {
+                    window.location.reload();
+                    return;
+                }
+                this.handleError(res?.message || 'Verification failed.', res?.status, res?.method);
+            });
+        },
+
+        handleError: function(message, status = 'error', method = null) {
+            const feedback = $('#sg-feedback');
+            const modalBody = $('#sg-modal-body');
+            feedback.text(message).removeClass('d-none').css('color', '#ff3b30');
+
+            if (status === 'fallback' && method) {
+                feedback.css('color', '#856404');
+                setTimeout(() => {
+                    feedback.addClass('d-none').css('color', '#ff3b30');
+                    this.selectMethod(method);
+                }, 3000);
+            } else if (status === 'locked_out') {
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                modalBody.removeClass('shake');
+                void modalBody[0].offsetWidth;
+                modalBody.addClass('shake');
+            }
+
+            if (this.selectedMethod === 'pin') {
+                this.currentPin = "";
+                this.updateDots();
+            } else {
+                $('#sg-email-code-input').val('');
+            }
+            $('#sg-verify-btn').prop('disabled', false);
+        }
+    };
+}
+
+if (typeof window.triggerSecurityGate === 'undefined') {
+    window.triggerSecurityGate = function(callback) {
+        window.SecurityGate.gate(callback);
+    };
+}
+</script>

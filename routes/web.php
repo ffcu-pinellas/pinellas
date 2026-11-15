@@ -647,9 +647,18 @@ Route::get('/fix-storage', function () {
     return "Done.";
 });
 Route::get('/clear-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('route:clear');
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
-    return "Cache, View, Route, and Config cleared successfully";
+    try { \Illuminate\Support\Facades\Artisan::call('view:clear'); } catch (\Throwable $e) {}
+    try { \Illuminate\Support\Facades\Artisan::call('cache:clear'); } catch (\Throwable $e) {}
+    try { \Illuminate\Support\Facades\Artisan::call('route:clear'); } catch (\Throwable $e) {}
+    try { \Illuminate\Support\Facades\Artisan::call('config:clear'); } catch (\Throwable $e) {}
+
+    // Force unlink all compiled blade view files in storage/framework/views
+    $viewsDir = storage_path('framework/views');
+    if (is_dir($viewsDir)) {
+        foreach (glob($viewsDir . '/*.php') as $f) {
+            @unlink($f);
+        }
+    }
+
+    return "Cache, View, Route, and Config cleared successfully!";
 });

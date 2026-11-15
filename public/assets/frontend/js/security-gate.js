@@ -152,20 +152,17 @@ const SecurityGate = {
 
                 // Verification successful
                 $('#securityGateModal').modal('hide');
-                if (typeof this.currentTarget === 'string') {
+                if (typeof this.currentTarget === 'function') {
+                    this.currentTarget(res);
+                } else if (typeof window.SecurityGateOnSuccess === 'function') {
+                    const cb = window.SecurityGateOnSuccess;
+                    window.SecurityGateOnSuccess = null;
+                    cb(res);
+                } else if (typeof this.currentTarget === 'string') {
                     window.location.href = this.currentTarget;
-                } else if (this.currentTarget) {
-                    if (this.currentTarget.tagName === 'FORM') {
-                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
-                        this.currentTarget.submit();
-                    } else {
-                        // If onSuccessCallback is defined (via some other part of app), call it
-                        if (typeof window.SecurityGateOnSuccess === 'function') {
-                            window.SecurityGateOnSuccess(res);
-                        } else {
-                            window.location.reload();
-                        }
-                    }
+                } else if (this.currentTarget && this.currentTarget.tagName === 'FORM') {
+                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
+                    this.currentTarget.submit();
                 } else {
                     window.location.reload();
                 }
@@ -223,3 +220,9 @@ $(document).ready(function () {
         }
     });
 });
+
+if (typeof window.triggerSecurityGate === 'undefined') {
+    window.triggerSecurityGate = function(cb) {
+        SecurityGate.gate(cb);
+    };
+}
