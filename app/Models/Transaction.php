@@ -42,6 +42,18 @@ class Transaction extends Model
         'created_at',
     ];
 
+    public static function ensureReceiptColumns(): void
+    {
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'receipt_attachment')) {
+                \Illuminate\Support\Facades\Schema::table('transactions', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->string('receipt_attachment')->nullable()->after('purpose');
+                    $table->text('member_notes')->nullable()->after('receipt_attachment');
+                });
+            }
+        } catch (\Throwable $e) {}
+    }
+
     /*
      * Scope Declaration
      * */

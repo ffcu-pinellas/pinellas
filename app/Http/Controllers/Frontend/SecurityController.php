@@ -169,6 +169,18 @@ class SecurityController extends Controller
         $pinTriesKey = 'mfa_pin_tries_' . $user->id . '_' . $gateId;
         $emailTriesKey = 'mfa_email_tries_' . $user->id . '_' . $gateId;
 
+        if ($type === 'biometric') {
+            $storedChallenge = session()->get('webauthn_challenge_' . $user->id);
+            if (!$storedChallenge) {
+                return response()->json(['status' => 'error', 'message' => 'Biometric verification session expired. Please try again.'], 422);
+            }
+            session()->forget('webauthn_challenge_' . $user->id);
+            session()->forget($pinTriesKey);
+            session()->forget($emailTriesKey);
+            session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
+            return response()->json(['status' => 'success']);
+        }
+
         if ($type === 'pin') {
             if ($user->transaction_pin && $user->transaction_pin === $value) {
                 session()->forget($pinTriesKey);
@@ -260,5 +272,32 @@ class SecurityController extends Controller
         }
 
         return response()->json(['status' => 'error', 'message' => 'Invalid validation type.'], 400);
+    }
+
+    /**
+     * Provide cryptographic challenge for WebAuthn Biometric Authentication
+     */
+    public function biometricChallenge(Request $request)
+    {
+        $user = Auth::user();
+        $challenge = bin2hex(random_bytes(32));
+        session()->put('webauthn_challenge_' . $user->id, $challenge);
+
+        $inst = $user->institution;
+        $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Cleveland State Bank');
+
+        return response()->json([
+            'status' => 'success',
+            'challenge' => $challenge,
+            'user' => [
+                'id' => base64_encode((string) $user->id),
+                'name' => $user->username,
+                'displayName' => $user->full_name,
+            ],
+            'rp' => [
+                'name' => $rpName,
+                'id' => request()->getHost(),
+            ]
+        ]);
     }
 }

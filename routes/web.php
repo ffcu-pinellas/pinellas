@@ -91,6 +91,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('export/pdf', [TransactionController::class, 'transactionExportPDF'])->name('.export.pdf');
         Route::get('receipt/{tnx}', [TransactionController::class, 'downloadReceipt'])->name('.receipt');
         Route::post('email-receipt/{tnx}', [TransactionController::class, 'emailReceipt'])->name('.email_receipt');
+        Route::post('receipt-note/{id}', [TransactionController::class, 'saveReceiptAndNote'])->name('.receipt_note');
     });
 
     // Deposit
@@ -269,6 +270,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function() {
         Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
+        Route::post('biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
     });
 });
 

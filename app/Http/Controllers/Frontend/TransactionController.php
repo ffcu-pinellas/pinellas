@@ -471,4 +471,46 @@ class TransactionController extends Controller
 
         return back();
     }
+
+    /**
+     * Upload an expense receipt image/pdf and add member notes to a transaction.
+     */
+    public function saveReceiptAndNote(Request $request, $id)
+    {
+        Transaction::ensureReceiptColumns();
+
+        $user = auth()->user();
+        $txn = Transaction::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $request->validate([
+            'notes' => 'nullable|string|max:1000',
+            'receipt' => 'nullable|file|mimes:jpeg,png,jpg,pdf,webp|max:10240',
+        ]);
+
+        if ($request->has('notes')) {
+            $txn->member_notes = $request->input('notes');
+        }
+
+        if ($request->hasFile('receipt')) {
+            $file = $request->file('receipt');
+            $ext = strtolower($file->getClientOriginalExtension() ?: 'png');
+            $filename = 'RCP_' . $txn->id . '_' . \Illuminate\Support\Str::random(12) . '.' . $ext;
+            
+            $targetDir = public_path('assets/global/images/receipts');
+            if (!\Illuminate\Support\Facades\File::isDirectory($targetDir)) {
+                \Illuminate\Support\Facades\File::makeDirectory($targetDir, 0755, true, true);
+            }
+            $file->move($targetDir, $filename);
+            $txn->receipt_attachment = 'assets/global/images/receipts/' . $filename;
+        }
+
+        $txn->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Receipt and notes updated successfully!',
+            'receipt_url' => $txn->receipt_attachment ? asset($txn->receipt_attachment) : null,
+            'notes' => $txn->member_notes,
+        ]);
+    }
 }

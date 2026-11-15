@@ -9,6 +9,11 @@ const SecurityGate = {
         this.gateId = 'sg_' + Date.now(); // Unique ID for this specific action
         this.reset();
 
+        // Detect WebAuthn Hardware Biometrics (Face ID / Touch ID / Windows Hello)
+        if (window.PublicKeyCredential) {
+            $('#sg-choice-biometric').removeClass('d-none');
+        }
+
         // Priority Handling: Auto-navigate based on preference
         const preference = window.UserSecurityPreference;
         if (preference === 'email') {
@@ -62,6 +67,11 @@ const SecurityGate = {
     },
 
     selectMethod: function (method) {
+        if (method === 'biometric') {
+            this.triggerBiometricAuth();
+            return;
+        }
+
         this.selectedMethod = method;
         $('#sg-method-selection').addClass('d-none');
         $('#sg-verify-btn, #sg-back-btn').removeClass('d-none');
@@ -83,6 +93,60 @@ const SecurityGate = {
             $('#sg-email-verify').addClass('d-none');
             setTimeout(() => $('#sg-pin-input').focus(), 500);
         }
+    },
+
+    triggerBiometricAuth: function () {
+        const self = this;
+        $('#sg-feedback').addClass('d-none');
+
+        if (!window.PublicKeyCredential) {
+            $('#sg-feedback').text('Biometric authentication is not supported by your current browser.').removeClass('d-none');
+            return;
+        }
+
+        $.post('/user/security-gate/biometric/challenge', {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            gate_id: this.gateId
+        }).done(function (res) {
+            if (res.status === 'success') {
+                const challengeBytes = new Uint8Array(32);
+                window.crypto.getRandomValues(challengeBytes);
+
+                navigator.credentials.get({
+                    publicKey: {
+                        challenge: challengeBytes,
+                        timeout: 60000,
+                        userVerification: 'preferred',
+                        rpId: window.location.hostname
+                    }
+                }).then(function (assertion) {
+                    $.post('/user/security-gate/verify', {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        type: 'biometric',
+                        value: assertion.id,
+                        gate_id: self.gateId
+                    }).done(function (verifyRes) {
+                        if (verifyRes.status === 'success') {
+                            if (typeof window.showLoader === 'function') window.showLoader();
+                            $('#securityGateModal').modal('hide');
+                            if (typeof self.currentTarget === 'function') {
+                                self.currentTarget(verifyRes);
+                            } else if (typeof window.SecurityGateOnSuccess === 'function') {
+                                const cb = window.SecurityGateOnSuccess;
+                                window.SecurityGateOnSuccess = null;
+                                cb(verifyRes);
+                            }
+                        }
+                    }).fail(function (xhr) {
+                        $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
+                    });
+                }).catch(function (err) {
+                    $('#sg-feedback').text('Biometric prompt closed. Please choose PIN or Email.').removeClass('d-none');
+                });
+            }
+        }).fail(function () {
+            $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
+        });
     },
 
     backToChoice: function () {

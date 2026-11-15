@@ -824,6 +824,132 @@ body {
 #securityGateModal .forgot-link {
     color: #c8232c !important;
 }
+
+/* ── Mobile Floating Quick-Action Dock ── */
+.csb-mobile-dock {
+    display: none;
+}
+@media (max-width: 768px) {
+    .csb-mobile-dock {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-top: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        z-index: 1040;
+        justify-content: space-around;
+        align-items: center;
+        padding: 4px 8px env(safe-area-inset-bottom, 8px) 8px;
+    }
+    .csb-dock-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 10.5px;
+        font-weight: 600;
+        flex: 1;
+        padding: 4px 0;
+        transition: color 0.15s ease, transform 0.15s ease;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+    .csb-dock-item:active, .csb-dock-item:hover {
+        color: #c8232c;
+        transform: translateY(-1px);
+    }
+    .csb-dock-item i {
+        font-size: 17px;
+        margin-bottom: 3px;
+        display: block;
+    }
+    .csb-dock-item.csb-dock-primary {
+        color: #ffffff;
+    }
+    .csb-dock-item.csb-dock-primary .csb-dock-icon-circle {
+        background: linear-gradient(135deg, #c8232c, #a51821);
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -14px;
+        box-shadow: 0 4px 12px rgba(200, 35, 44, 0.35);
+        color: #ffffff;
+        font-size: 16px;
+    }
+    .dashboard-content, .dashboard-wrapper {
+        padding-bottom: 78px !important;
+    }
+}
+
+/* ── Skeleton Loading Shimmer Placeholders ── */
+@keyframes csbShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.csb-skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+    background-size: 400% 100%;
+    animation: csbShimmer 1.4s ease infinite;
+    border-radius: 6px;
+    display: inline-block;
+}
+.csb-skeleton-text {
+    height: 12px;
+    border-radius: 4px;
+}
+
+/* ── Interactive Ledger Live Search & Export ── */
+.csb-txn-search-wrap {
+    position: relative;
+    max-width: 190px;
+}
+.csb-txn-search-wrap input {
+    height: 32px;
+    padding-left: 28px;
+    padding-right: 12px;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+.csb-txn-search-wrap input:focus {
+    border-color: #c8232c;
+    box-shadow: 0 0 0 3px rgba(200, 35, 44, 0.15);
+    outline: none;
+}
+.csb-btn-export-csv {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 20px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.csb-btn-export-csv:hover {
+    background: #f8fafc;
+    color: #1e293b;
+    border-color: #94a3b8;
+}
 </style>
 </head>
 <body>
@@ -1113,16 +1239,23 @@ body {
             <div class="accounts-btn-row">
                 <a href="{{ route('user.accounts') }}" class="btn-view-all">View All Accounts</a>
                 <a href="javascript:void(0)" class="btn-add-account" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">Move Money</a>
+                <a href="javascript:void(0)" class="btn-direct-dep" data-bs-toggle="modal" data-bs-target="#directDepositModal" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: #ffffff; color: #1b325f; border: 1.5px solid #cbd5e1; border-radius: 6px; font-weight: 600; font-size: 13.5px; text-decoration: none; transition: all 0.2s ease;">
+                    <i class="fa-solid fa-file-invoice-dollar" style="color: #c8232c;"></i> Direct Deposit Form
+                </a>
             </div>
 
             <!-- Two Column Lower Cards -->
             <div class="dashboard-grid-2">
                 <!-- Left: Recent Transactions -->
                 <div class="csb-widget-card">
-                    <div class="widget-header">
-                        <h3>Recent Transactions</h3>
-                        <div class="widget-controls">
-                            <select class="widget-dropdown-select" id="csbTxnAccountSelect">
+                    <div class="widget-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h3 class="mb-0">Recent Transactions</h3>
+                        <div class="widget-controls d-flex align-items-center gap-2 flex-wrap">
+                            <div class="csb-txn-search-wrap">
+                                <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none;"></i>
+                                <input type="text" id="csbTxnLiveSearch" placeholder="Search merchant, amt..." oninput="csbFilterTxnLive(this.value)">
+                            </div>
+                            <select class="widget-dropdown-select" id="csbTxnAccountSelect" onchange="csbOnAccountSelectChanged(this.value)">
                                 <option value="checking" selected>Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
                                 @if($hasSavings)
                                 <option value="savings">Savings *{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</option>
@@ -1140,12 +1273,28 @@ body {
                                 <option value="loan">Loan *{{ substr($user->loan_account_number ?? $user->account_number, -4) }}</option>
                                 @endif
                             </select>
-                            <button type="button" class="widget-dots-menu" title="Options">
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            <button type="button" class="csb-btn-export-csv" onclick="csbExportClientCsv()" title="Export visible transactions to CSV">
+                                <i class="fa-solid fa-file-csv text-success"></i> CSV
                             </button>
                         </div>
                     </div>
                     <div class="widget-body">
+                        <!-- Shimmer Skeleton Placeholder (Used when switching views) -->
+                        <div id="csbTxnSkeletonWrap" class="d-none py-2">
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div style="flex: 1;"><div class="csb-skeleton csb-skeleton-text" style="width: 55%;"></div><div class="csb-skeleton csb-skeleton-text" style="width: 25%;"></div></div>
+                                <div class="csb-skeleton csb-skeleton-text" style="width: 20%; height: 16px;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <div style="flex: 1;"><div class="csb-skeleton csb-skeleton-text" style="width: 65%;"></div><div class="csb-skeleton csb-skeleton-text" style="width: 30%;"></div></div>
+                                <div class="csb-skeleton csb-skeleton-text" style="width: 22%; height: 16px;"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-2">
+                                <div style="flex: 1;"><div class="csb-skeleton csb-skeleton-text" style="width: 50%;"></div><div class="csb-skeleton csb-skeleton-text" style="width: 20%;"></div></div>
+                                <div class="csb-skeleton csb-skeleton-text" style="width: 18%; height: 16px;"></div>
+                            </div>
+                        </div>
+
                         @if(isset($recentTransactions) && count($recentTransactions) > 0)
                             <div class="transaction-list-table">
                                 @foreach($recentTransactions as $tx)
@@ -1168,6 +1317,7 @@ body {
                                     $txDisputeUrl = !empty($tx->tnx) ? route('user.disputes.create', $tx->tnx) : '#';
                                 @endphp
                                 <div class="txn-row" data-account="{{ $wType }}" style="cursor: pointer;"
+                                     data-tx-id="{{ $tx->id }}"
                                      data-tx-desc="{{ e($rawDesc) }}"
                                      data-tx-trx="{{ $tx->tnx ?? '' }}"
                                      data-tx-amount="{{ $txAmtStr }}"
@@ -1176,10 +1326,20 @@ body {
                                      data-tx-method="{{ $txMethodStr }}"
                                      data-tx-receipt="{{ $txReceiptUrl }}"
                                      data-tx-dispute="{{ $txDisputeUrl }}"
+                                     data-tx-note="{{ e($tx->member_notes ?? '') }}"
+                                     data-tx-attachment="{{ $tx->receipt_attachment ? asset($tx->receipt_attachment) : '' }}"
                                      onclick="csbShowTxnFromEl(this)"
-                                     title="Click to view transaction details & dispute options">
+                                     title="Click to view details, add note/receipt, or dispute">
                                     <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
-                                        <div class="txn-desc">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</div>
+                                        <div class="txn-desc d-flex align-items-center gap-1">
+                                            <span class="text-truncate">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</span>
+                                            @if(!empty($tx->receipt_attachment))
+                                                <i class="fa-solid fa-paperclip text-muted small" title="Receipt attached" style="font-size: 11px;"></i>
+                                            @endif
+                                            @if(!empty($tx->member_notes))
+                                                <i class="fa-solid fa-note-sticky text-warning small" title="Note added" style="font-size: 11px;"></i>
+                                            @endif
+                                        </div>
                                         <div class="txn-date">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</div>
                                     </div>
                                     <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}" style="flex-shrink: 0; white-space: nowrap;">
@@ -2002,6 +2162,45 @@ body {
                             <span class="fw-bold small" id="csbTxnModalMethod">System</span>
                         </div>
                     </div>
+
+                    <!-- Receipt Attachment & Member Note Section -->
+                    <div class="mt-3 p-3 text-start rounded-3 border bg-white" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                        <input type="hidden" id="csbTxnModalId" value="">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-dark small mb-0">
+                                <i class="fa-solid fa-note-sticky me-1" style="color: #c8232c;"></i> Notes &amp; Receipt Attachment
+                            </label>
+                            <span class="badge bg-light text-secondary border small" style="font-size: 10px;">Tax &amp; Expenses</span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <textarea id="csbTxnMemberNote" class="form-control form-control-sm" rows="2" placeholder="Add expense notes (e.g. Travel reimbursement, tax deductible receipt)..." style="font-size: 12.5px; border-radius: 8px;"></textarea>
+                        </div>
+
+                        <!-- Existing Attachment Preview if present -->
+                        <div id="csbTxnAttachmentBox" class="mb-2 d-none">
+                            <div class="p-2 bg-light rounded border d-flex align-items-center justify-content-between small">
+                                <div class="d-flex align-items-center gap-2 overflow-hidden" style="max-width: 80%;">
+                                    <i class="fa-solid fa-paperclip text-primary"></i>
+                                    <a href="#" target="_blank" id="csbTxnAttachmentLink" class="text-truncate text-primary fw-semibold" style="font-size: 11.5px;">receipt_file</a>
+                                </div>
+                                <span class="badge bg-success text-white small" style="font-size: 10px;">Attached</span>
+                            </div>
+                        </div>
+
+                        <!-- File Input & Save Button -->
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <label for="csbTxnReceiptFileInput" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 mb-0 d-inline-flex align-items-center gap-1" style="font-size: 11.5px; cursor: pointer;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="color: #c8232c;"></i>
+                                <span id="csbTxnFileLabel">Attach Receipt / Invoice</span>
+                            </label>
+                            <input type="file" id="csbTxnReceiptFileInput" accept="image/jpeg,image/png,image/webp,application/pdf" class="d-none" onchange="csbOnReceiptFileChosen(this)">
+                            <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1 ms-auto fw-bold" id="csbBtnSaveReceipt" onclick="csbSaveTxnReceiptNote()" style="background: #c8232c; font-size: 12px;">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save
+                            </button>
+                        </div>
+                        <div id="csbTxnSaveFeedback" class="small mt-1 text-success d-none"></div>
+                    </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0 gap-2 flex-column">
                     <a href="#" id="csbBtnDownloadReceipt" class="btn w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm text-white" style="background: #c8232c; border: none;">
@@ -2140,6 +2339,113 @@ body {
         </div>
     </div>
 
+    {{-- ── 7. PRE-FILLED DIRECT DEPOSIT SWITCHER MODAL ── --}}
+    <div class="modal fade" id="directDepositModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #1b325f 0%, #0d1b2a 100%);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-file-invoice-dollar fs-5 text-warning"></i>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size: 15px; letter-spacing: 0.5px;">DIRECT DEPOSIT AUTHORIZATION</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="badge px-3 py-2 rounded-pill font-monospace mb-2" style="background: rgba(27, 50, 95, 0.08); color: #1b325f; font-size: 11px;">
+                            <i class="fa-solid fa-shield-halved me-1 text-success"></i> OFFICIAL NACHA ACH FORMAT
+                        </div>
+                        <h5 class="fw-bold mb-1 text-dark">Pre-Filled Direct Deposit Switcher</h5>
+                        <p class="text-muted small mb-0">Provide this authorization to your employer HR or payroll department to switch your paychecks directly to Cleveland State Bank.</p>
+                    </div>
+
+                    <!-- Authorization Summary Card -->
+                    <div class="p-3 rounded-3 bg-light border mb-3" style="font-size: 13px;">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Financial Institution</span>
+                            <span class="fw-bold text-dark">Cleveland State Bank (Member FDIC)</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom align-items-center">
+                            <span class="text-muted">ABA Routing Number</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="font-monospace fw-bold text-dark" id="csbDirectDepRouting">084301768</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" onclick="csbCopyText('084301768', 'Routing number copied!')" style="font-size: 11px;">
+                                    <i class="fa-regular fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom align-items-center">
+                            <span class="text-muted">Target Account</span>
+                            <select class="form-select form-select-sm w-auto fw-bold text-dark" id="csbDirectDepAccountSelect" onchange="csbUpdateDirectDepDisplay(this.value)">
+                                <option value="checking" data-num="{{ $user->account_number ?? '1397' }}">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</option>
+                                @if($hasSavings)
+                                <option value="savings" data-num="{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }})</option>
+                                @endif
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom align-items-center">
+                            <span class="text-muted">Account Number</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="font-monospace fw-bold text-dark" id="csbDirectDepAccountNum">{{ $user->account_number ?? '1397' }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill" onclick="csbCopyDirectDepAcc()" style="font-size: 11px;">
+                                    <i class="fa-regular fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Account Holder</span>
+                            <span class="fw-bold text-dark">{{ $user->first_name }} {{ $user->last_name }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between pt-2">
+                            <span class="text-muted">Allocation</span>
+                            <span class="text-success fw-bold">100% of Net Pay (Full Direct Deposit)</span>
+                        </div>
+                    </div>
+
+                    <div id="csbCopyAlert" class="alert alert-success py-2 px-3 small d-none text-center">
+                        <i class="fa-solid fa-check-circle me-1"></i> Copied to clipboard!
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-2 mt-4">
+                        <a href="{{ route('user.direct-deposit.download', 'checking') }}" id="csbBtnDownloadDirectDep" class="btn py-2 text-white fw-bold rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm" style="background: linear-gradient(135deg, #c8232c 0%, #a51821 100%); border: none;">
+                            <i class="fa-solid fa-file-pdf"></i> Download Official PDF Form
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary py-2 fw-semibold rounded-pill d-flex align-items-center justify-content-center gap-2" onclick="csbPrintDirectDepositNotice()">
+                            <i class="fa-solid fa-print"></i> Print Authorization Notice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════ MOBILE FLOATING QUICK-ACTION DOCK ════════════════ -->
+    <nav class="csb-mobile-dock" aria-label="Mobile Banking Quick Actions">
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">
+            <i class="fa-solid fa-paper-plane" style="color: #c8232c;"></i>
+            <span>Send</span>
+        </a>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#remoteDepositModal">
+            <i class="fa-solid fa-camera"></i>
+            <span>Deposit</span>
+        </a>
+        <a href="javascript:void(0)" class="csb-dock-item csb-dock-primary" data-bs-toggle="modal" data-bs-target="#moveMoneyModal" title="Quick Transfer">
+            <div class="csb-dock-icon-circle">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <span style="color: #c8232c; font-weight: 700; margin-top: 2px;">Move</span>
+        </a>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#debitCardHubModal">
+            <i class="fa-solid fa-credit-card"></i>
+            <span>Cards</span>
+        </a>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#directDepositModal">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Direct Dep</span>
+        </a>
+    </nav>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=2.2"></script>
@@ -2185,22 +2491,7 @@ body {
         var $accountSelect = $('#csbTxnAccountSelect');
         if ($accountSelect.length) {
             $accountSelect.on('change', function () {
-                var selectedAcc = $(this).val();
-                var visibleCount = 0;
-                $('.transaction-list-table .txn-row').each(function () {
-                    var rowAcc = $(this).data('account') || 'checking';
-                    if (selectedAcc === 'all' || rowAcc === selectedAcc) {
-                        $(this).show();
-                        visibleCount++;
-                    } else {
-                        $(this).hide();
-                    }
-                });
-                if (visibleCount === 0) {
-                    $('#csbNoTxnForAccount').removeClass('d-none');
-                } else {
-                    $('#csbNoTxnForAccount').addClass('d-none');
-                }
+                csbOnAccountSelectChanged($(this).val());
             });
         }
 
@@ -2213,7 +2504,91 @@ body {
         }
     });
 
-    // ── Transaction Details & Dispute Modal Popup ──
+    // ── Interactive Ledger Filtering & Live Search ──
+    function csbOnAccountSelectChanged(val) {
+        var $skel = $('#csbTxnSkeletonWrap');
+        if ($skel.length) {
+            $('.transaction-list-table .txn-row').addClass('d-none');
+            $skel.removeClass('d-none');
+            setTimeout(function() {
+                $skel.addClass('d-none');
+                csbFilterTxnLive($('#csbTxnLiveSearch').val());
+            }, 250);
+        } else {
+            csbFilterTxnLive($('#csbTxnLiveSearch').val());
+        }
+    }
+
+    function csbFilterTxnLive(query) {
+        var q = (query || '').toLowerCase().trim();
+        var selectedAcc = $('#csbTxnAccountSelect').val() || 'checking';
+        var visibleCount = 0;
+        
+        $('.transaction-list-table .txn-row').each(function () {
+            var $row = $(this);
+            var rowAcc = $row.attr('data-account') || 'checking';
+            var desc = ($row.attr('data-tx-desc') || '').toLowerCase();
+            var trx = ($row.attr('data-tx-trx') || '').toLowerCase();
+            var amount = ($row.attr('data-tx-amount') || '').toLowerCase();
+            var date = ($row.attr('data-tx-date') || '').toLowerCase();
+            
+            var matchesAcc = (selectedAcc === 'all' || rowAcc === selectedAcc);
+            var matchesQuery = !q || desc.includes(q) || trx.includes(q) || amount.includes(q) || date.includes(q);
+            
+            if (matchesAcc && matchesQuery) {
+                $row.removeClass('d-none').show();
+                visibleCount++;
+            } else {
+                $row.addClass('d-none').hide();
+            }
+        });
+
+        if (visibleCount === 0) {
+            $('#csbNoTxnForAccount').removeClass('d-none').html(
+                q ? '<i class="fa-solid fa-magnifying-glass fa-2x mb-2 d-block text-muted" style="opacity: 0.4;"></i>No transactions match "' + $('<div>').text(q).html() + '"'
+                  : '<i class="fa-regular fa-folder-open fa-2x mb-2 d-block" style="opacity: 0.35;"></i>No recent activity found for this account.'
+            );
+        } else {
+            $('#csbNoTxnForAccount').addClass('d-none');
+        }
+    }
+
+    function csbExportClientCsv() {
+        var rows = [];
+        rows.push(['Date', 'Description', 'Reference', 'Amount', 'Status', 'Method', 'Account']);
+        
+        $('.transaction-list-table .txn-row:visible').each(function () {
+            var $row = $(this);
+            rows.push([
+                '"' + ($row.attr('data-tx-date') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-tx-desc') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-tx-trx') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-tx-amount') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-tx-status') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-tx-method') || '').replace(/"/g, '""') + '"',
+                '"' + ($row.attr('data-account') || '').replace(/"/g, '""') + '"'
+            ]);
+        });
+        
+        if (rows.length <= 1) {
+            alert('No transactions visible to export.');
+            return;
+        }
+        
+        var csvContent = rows.map(function(e){ return e.join(','); }).join('\n');
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var link = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        var today = new Date().toISOString().slice(0, 10);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'CSB_Transactions_' + today + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ── Transaction Details, Receipt Upload & Dispute Modal Popup ──
     function csbShowTxnFromEl(el) {
         var $el = $(el);
         csbShowTxnDetails(
@@ -2224,11 +2599,14 @@ body {
             $el.attr('data-tx-status') || 'Completed',
             $el.attr('data-tx-method') || 'Transfer',
             $el.attr('data-tx-receipt') || '#',
-            $el.attr('data-tx-dispute') || '#'
+            $el.attr('data-tx-dispute') || '#',
+            $el.attr('data-tx-id') || '',
+            $el.attr('data-tx-note') || '',
+            $el.attr('data-tx-attachment') || ''
         );
     }
 
-    function csbShowTxnDetails(desc, trx, amount, date, status, method, receiptUrl, disputeUrl) {
+    function csbShowTxnDetails(desc, trx, amount, date, status, method, receiptUrl, disputeUrl, id, note, attachment) {
         $('#csbTxnModalTitle').text(desc);
         $('#csbTxnModalTrx').text(trx);
         $('#csbTxnModalAmount').text(amount);
@@ -2237,8 +2615,146 @@ body {
         $('#csbTxnModalMethod').text(method);
         $('#csbBtnDownloadReceipt').attr('href', receiptUrl);
         $('#csbBtnDisputeTxn').attr('href', disputeUrl);
+        
+        $('#csbTxnModalId').val(id || '');
+        $('#csbTxnMemberNote').val(note || '');
+        $('#csbTxnReceiptFileInput').val('');
+        $('#csbTxnFileLabel').text('Attach Receipt / Invoice');
+        $('#csbTxnSaveFeedback').addClass('d-none').text('');
+        
+        if (attachment) {
+            $('#csbTxnAttachmentBox').removeClass('d-none');
+            $('#csbTxnAttachmentLink').attr('href', attachment).text(attachment.split('/').pop());
+        } else {
+            $('#csbTxnAttachmentBox').addClass('d-none');
+            $('#csbTxnAttachmentLink').attr('href', '#').text('');
+        }
+        
         var modal = new bootstrap.Modal(document.getElementById('trxViewDetailsBox'));
         modal.show();
+    }
+
+    function csbOnReceiptFileChosen(input) {
+        if (input.files && input.files[0]) {
+            $('#csbTxnFileLabel').text(input.files[0].name);
+        } else {
+            $('#csbTxnFileLabel').text('Attach Receipt / Invoice');
+        }
+    }
+
+    function csbSaveTxnReceiptNote() {
+        var txnId = $('#csbTxnModalId').val();
+        if (!txnId) {
+            alert('Transaction identifier not found.');
+            return;
+        }
+        var note = $('#csbTxnMemberNote').val();
+        var fileInput = document.getElementById('csbTxnReceiptFileInput');
+        var formData = new FormData();
+        formData.append('_token', '{{ csrf_token() }}');
+        formData.append('member_notes', note);
+        if (fileInput && fileInput.files[0]) {
+            formData.append('receipt_file', fileInput.files[0]);
+        }
+        
+        var $btn = $('#csbBtnSaveReceipt');
+        var origHtml = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Saving...');
+        
+        $.ajax({
+            url: '/user/transactions/receipt-note/' + txnId,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(res) {
+                $btn.prop('disabled', false).html(origHtml);
+                $('#csbTxnSaveFeedback').removeClass('d-none text-danger').addClass('text-success')
+                    .html('<i class="fa-solid fa-circle-check me-1"></i> Saved successfully!');
+                
+                // Update matching row in ledger DOM
+                var $row = $('.txn-row[data-tx-id="' + txnId + '"]');
+                if ($row.length) {
+                    $row.attr('data-tx-note', note);
+                    if (res.attachment_url) {
+                        $row.attr('data-tx-attachment', res.attachment_url);
+                    }
+                }
+                if (res.attachment_url) {
+                    $('#csbTxnAttachmentBox').removeClass('d-none');
+                    $('#csbTxnAttachmentLink').attr('href', res.attachment_url).text(res.attachment_url.split('/').pop());
+                }
+                setTimeout(function() {
+                    $('#csbTxnSaveFeedback').fadeOut();
+                }, 3000);
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(origHtml);
+                var err = xhr.responseJSON?.message || 'Failed to save receipt/note.';
+                $('#csbTxnSaveFeedback').removeClass('d-none text-success').addClass('text-danger')
+                    .html('<i class="fa-solid fa-triangle-exclamation me-1"></i> ' + err);
+            }
+        });
+    }
+
+    // ── Direct Deposit Helpers ──
+    function csbCopyText(text, msg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                csbShowCopyNotice(msg);
+            });
+        } else {
+            var temp = $('<input>');
+            $('body').append(temp);
+            temp.val(text).select();
+            document.execCommand('copy');
+            temp.remove();
+            csbShowCopyNotice(msg);
+        }
+    }
+
+    function csbCopyDirectDepAcc() {
+        var num = $('#csbDirectDepAccountNum').text().trim();
+        csbCopyText(num, 'Account number copied!');
+    }
+
+    function csbShowCopyNotice(msg) {
+        var $alert = $('#csbCopyAlert');
+        $alert.text(msg || 'Copied to clipboard!').removeClass('d-none');
+        setTimeout(function() { $alert.addClass('d-none'); }, 2500);
+    }
+
+    function csbUpdateDirectDepDisplay(type) {
+        var $opt = $('#csbDirectDepAccountSelect option:selected');
+        var accNum = $opt.attr('data-num') || '';
+        $('#csbDirectDepAccountNum').text(accNum);
+        var baseDownloadUrl = "{{ url('user/direct-deposit') }}";
+        $('#csbBtnDownloadDirectDep').attr('href', baseDownloadUrl + '/' + type);
+    }
+
+    function csbPrintDirectDepositNotice() {
+        var w = window.open('', '_blank');
+        var accNum = $('#csbDirectDepAccountNum').text().trim();
+        var accType = $('#csbDirectDepAccountSelect option:selected').text().trim();
+        var html = '<!DOCTYPE html><html><head><title>Direct Deposit Authorization — Cleveland State Bank</title>' +
+            '<style>body{font-family:Arial,sans-serif;padding:30px;line-height:1.6;color:#1e293b}h2{color:#c8232c}table{width:100%;border-collapse:collapse;margin:20px 0}td{padding:10px;border-bottom:1px solid #e2e8f0}.bold{font-weight:bold;width:40%}</style>' +
+            '</head><body>' +
+            '<h2>Cleveland State Bank</h2>' +
+            '<p><strong>Official Direct Deposit Authorization Notice</strong></p>' +
+            '<hr>' +
+            '<table>' +
+            '<tr><td class="bold">Employee / Member Name:</td><td>{{ e($user->first_name) }} {{ e($user->last_name) }}</td></tr>' +
+            '<tr><td class="bold">Financial Institution:</td><td>Cleveland State Bank (Member FDIC)</td></tr>' +
+            '<tr><td class="bold">ABA Routing Number:</td><td>084301768</td></tr>' +
+            '<tr><td class="bold">Account Number:</td><td>' + accNum + '</td></tr>' +
+            '<tr><td class="bold">Account Type:</td><td>' + accType + '</td></tr>' +
+            '<tr><td class="bold">Deposit Allocation:</td><td>100% of Net Pay</td></tr>' +
+            '</table>' +
+            '<p style="margin-top:30px;font-size:12px;color:#64748b;">Member FDIC • Equal Housing Lender • Routing #084301768 • Phone: 662-843-9461</p>' +
+            '<script>window.print();<\/script>' +
+            '</body></html>';
+        w.document.write(html);
+        w.document.close();
     }
 
     // ── 2FA Security Gate Integration ──

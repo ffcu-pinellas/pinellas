@@ -26,7 +26,28 @@
             })
         }
 
+        // Request native browser push notification permission if default
+        if ('Notification' in window && Notification.permission === 'default') {
+            setTimeout(function () {
+                Notification.requestPermission();
+            }, 6000);
+        }
+
         function notifyToast(data) {
+            // Trigger native OS push notification when browser tab is inactive/backgrounded
+            if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+                try {
+                    var n = new Notification(data.data.title || 'Banking Activity Notification', {
+                        body: data.data.notice || 'Your account activity has updated.',
+                        icon: '{{ asset("assets/institutions/clevelandstatebank/images/favicon.png") }}'
+                    });
+                    n.onclick = function () {
+                        window.focus();
+                        if (data.data.action_url) window.location.href = data.data.action_url;
+                    };
+                } catch (e) {}
+            }
+
             new Notify({
                 status: 'info',
                 title: data.data.title,
