@@ -508,6 +508,11 @@ class FundTransferController extends Controller
         $user = $transaction->user;
         $manual_data = json_decode($transaction->manual_field_data);
         $rejectionText = trim((string) ($transaction->action_message ?? $input['message'] ?? ''));
+        $inst = $user->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $instSiteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $instSiteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+
         $txnShortcodes = [
             '[[tnx]]' => $transaction->tnx,
             '[[txn]]' => $transaction->tnx,
@@ -515,6 +520,8 @@ class FundTransferController extends Controller
             '[[message]]' => $rejectionText !== '' ? $rejectionText : 'Please contact us if you need more information.',
             '[[reason]]' => $rejectionText !== '' ? $rejectionText : 'Please contact us if you need more information.',
             '[[action_message]]' => $rejectionText,
+            '[[site_title]]' => $instSiteTitle,
+            '[[site_url]]' => $instSiteUrl,
         ];
         $sourceAccNum = match($transaction->wallet_type) {
             'primary_savings' => $user->savings_account_number,
@@ -555,8 +562,8 @@ class FundTransferController extends Controller
                 '[[recipient_account]]' => $recipientAccount,
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $instSiteTitle,
+                '[[site_url]]' => $instSiteUrl,
             ]);
 
             if ($transaction->status->value == 'failed') {
@@ -653,8 +660,8 @@ class FundTransferController extends Controller
                 '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $instSiteTitle,
+                '[[site_url]]' => $instSiteUrl,
             ]);
 
             if ($transaction->status->value == 'failed') {
@@ -815,8 +822,8 @@ class FundTransferController extends Controller
                 '[[memo]]' => $transaction->purpose ?? 'N/A',
                 '[[message_body]]' => $htmlBody,
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $instSiteTitle,
+                '[[site_url]]' => $instSiteUrl,
             ]);
 
             // --- Recipient Notification Integration for Wire ---

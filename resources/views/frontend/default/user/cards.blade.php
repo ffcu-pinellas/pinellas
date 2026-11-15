@@ -51,7 +51,7 @@
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <div class="card-holder-info">
                                                     <div class="text-white opacity-75 mb-0" style="font-size: 8px; text-transform: uppercase;">Card Holder</div>
-                                                    <div class="text-white text-uppercase small fw-bold">{{ $card->card_holder_name ?? auth()->user()->full_name }}</div>
+                                                    <div class="text-white text-uppercase small fw-bold">{{ strtoupper(auth()->user()->full_name ?: ($card->card_holder_name ?? 'MEMBER')) }}</div>
                                                 </div>
                                                 <div class="d-flex align-items-end gap-2" style="min-width: 90px; justify-content: flex-end;">
                                                     <div class="text-end">
@@ -81,7 +81,7 @@
                                             </div>
                                             <!-- Signature Strip with embedded CVV -->
                                             <div class="cvv-signature-panel d-flex align-items-center justify-content-between px-3 mb-2 rounded" style="background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 4px, #e2e8f0 4px, #e2e8f0 8px); height: 32px; border: 1px solid rgba(0,0,0,0.1);">
-                                                <span class="signature-line fst-italic text-dark fw-bold" style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 14px; opacity: 0.85;">{{ $card->card_holder_name ?? auth()->user()->full_name }}</span>
+                                                <span class="signature-line fst-italic text-dark fw-bold" style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 14px; opacity: 0.85;">{{ strtoupper(auth()->user()->full_name ?: ($card->card_holder_name ?? 'MEMBER')) }}</span>
                                                 <span class="cvv-number bg-white px-2 py-0.5 rounded shadow-xs text-dark fw-bold font-monospace" style="font-size: 12px; letter-spacing: 1px;">{{ $card->cvv ?? '***' }}</span>
                                             </div>
                                             <div class="text-white small mt-2" style="font-size: 9.5px; line-height: 1.4; opacity: 0.95;">

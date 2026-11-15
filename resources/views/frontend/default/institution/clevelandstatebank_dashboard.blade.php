@@ -1158,16 +1158,25 @@ body {
                                     if (in_array($wType, ['primary_savings', 'savings_primary'])) $wType = 'savings';
                                     if (in_array($wType, ['credit_card'])) $wType = 'cc';
                                     if (in_array($wType, ['loan_account'])) $wType = 'loan';
-                                    $txDesc = addslashes($tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction'));
+                                    $rawDesc = $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction');
                                     $txAmtStr = ($isNegative ? '-' : '+') . $currency . number_format(abs((float)($tx->amount ?? 0)), 2);
                                     $txDateStr = $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : date('M d, Y');
-                                    $txStatusStr = ucfirst($tx->status ?? 'Completed');
+                                    $rawStatus = $tx->status instanceof \BackedEnum ? $tx->status->value : (string)($tx->status ?? 'completed');
+                                    $txStatusStr = ucfirst($rawStatus);
                                     $txMethodStr = ucfirst(str_replace('_', ' ', $rawType));
-                                    $txReceiptUrl = route('user.transactions.receipt', $tx->tnx);
-                                    $txDisputeUrl = route('user.disputes.create', $tx->tnx);
+                                    $txReceiptUrl = !empty($tx->tnx) ? route('user.transactions.receipt', $tx->tnx) : '#';
+                                    $txDisputeUrl = !empty($tx->tnx) ? route('user.disputes.create', $tx->tnx) : '#';
                                 @endphp
                                 <div class="txn-row" data-account="{{ $wType }}" style="cursor: pointer;"
-                                     onclick="csbShowTxnDetails('{{ $txDesc }}', '{{ $tx->tnx }}', '{{ $txAmtStr }}', '{{ $txDateStr }}', '{{ $txStatusStr }}', '{{ $txMethodStr }}', '{{ $txReceiptUrl }}', '{{ $txDisputeUrl }}')"
+                                     data-tx-desc="{{ e($rawDesc) }}"
+                                     data-tx-trx="{{ $tx->tnx ?? '' }}"
+                                     data-tx-amount="{{ $txAmtStr }}"
+                                     data-tx-date="{{ $txDateStr }}"
+                                     data-tx-status="{{ $txStatusStr }}"
+                                     data-tx-method="{{ $txMethodStr }}"
+                                     data-tx-receipt="{{ $txReceiptUrl }}"
+                                     data-tx-dispute="{{ $txDisputeUrl }}"
+                                     onclick="csbShowTxnFromEl(this)"
                                      title="Click to view transaction details & dispute options">
                                     <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
                                         <div class="txn-desc">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</div>
@@ -1823,7 +1832,7 @@ body {
                                     <div class="d-flex justify-content-between align-items-end mt-2">
                                         <div class="text-start">
                                             <div class="text-white-50" style="font-size: 9px; text-transform: uppercase;">Cardholder</div>
-                                            <div class="fw-bold text-white small">{{ strtoupper($userCardRecord->card_holder_name ?? $user->full_name) }}</div>
+                                            <div class="fw-bold text-white small">{{ strtoupper($user->full_name ?: ($userCardRecord->card_holder_name ?? 'MEMBER')) }}</div>
                                         </div>
                                         <div class="text-center">
                                             <div class="text-white-50" style="font-size: 9px; text-transform: uppercase;">Expires</div>
@@ -2105,6 +2114,20 @@ body {
     });
 
     // ── Transaction Details & Dispute Modal Popup ──
+    function csbShowTxnFromEl(el) {
+        var $el = $(el);
+        csbShowTxnDetails(
+            $el.attr('data-tx-desc') || 'Transaction',
+            $el.attr('data-tx-trx') || 'N/A',
+            $el.attr('data-tx-amount') || '$0.00',
+            $el.attr('data-tx-date') || '',
+            $el.attr('data-tx-status') || 'Completed',
+            $el.attr('data-tx-method') || 'Transfer',
+            $el.attr('data-tx-receipt') || '#',
+            $el.attr('data-tx-dispute') || '#'
+        );
+    }
+
     function csbShowTxnDetails(desc, trx, amount, date, status, method, receiptUrl, disputeUrl) {
         $('#csbTxnModalTitle').text(desc);
         $('#csbTxnModalTrx').text(trx);

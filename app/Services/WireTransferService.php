@@ -376,6 +376,11 @@ class WireTransferService
             </div>
         </div>';
 
+        $inst = $user->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $instSiteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $instSiteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+
         // Shortcodes for notifications
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
@@ -398,8 +403,8 @@ class WireTransferService
             '[[button_link]]' => route('user.fund_transfer.transfer.log'),
             '[[reason]]' => 'Your wire transfer request has been submitted and is pending settlement.',
             '[[action_message]]' => 'Your wire transfer request has been submitted and is pending settlement.',
-            '[[site_title]]' => setting('site_title', 'global') ?? 'FrontField Credit Union',
-            '[[site_url]]' => route('home'),
+            '[[site_title]]' => $instSiteTitle,
+            '[[site_url]]' => $instSiteUrl,
         ];
 
         try {

@@ -261,7 +261,11 @@ class ExternalRecipientNotification extends Mailable
         $pixelUrl = $this->trackingToken ? route('mail.tracking.open', $this->trackingToken) : '';
         $pixel = $pixelUrl ? '<img src="' . $pixelUrl . '" width="1" height="1" style="display:none;" />' : '';
 
-        return $this->from(config('mail.from.address'), $this->template->email_from_name ?? setting('site_title'))
+        $inst = $user->institution ?? null;
+        $fromName = $this->template->email_from_name ?: ($inst ? ($inst->mail_from_name ?: $inst->name) : setting('site_title'));
+        $fromAddress = config('mail.mailers.smtp.username') ?: config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+
+        return $this->from($fromAddress, $fromName)
                     ->subject($subject)
                     ->html($salutation . $content . $footer . $pixel);
     }

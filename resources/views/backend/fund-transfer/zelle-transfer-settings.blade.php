@@ -11,7 +11,7 @@
                         <div class="title-content d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-3 p-2 d-flex align-items-center justify-content-center" style="background: #741B6B; width: 44px; height: 44px;">
-                                    <img src="{{ asset('assets/external/images/zelle-logo.png') }}" alt="Zelle" style="height: 18px; filter: brightness(0) invert(1);">
+                                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="height: 18px; filter: brightness(0) invert(1); object-fit: contain;">
                                 </div>
                                 <div>
                                     <h2 class="title mb-0" style="color: #2b3457; font-weight: 700;">{{ __('Zelle® Transfer Settings') }}</h2>

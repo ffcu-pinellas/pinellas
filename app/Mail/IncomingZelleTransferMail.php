@@ -42,10 +42,22 @@ class IncomingZelleTransferMail extends Mailable
             $subject = "Zelle® Payment Alert: {$this->sender->full_name} initiated a transfer to you";
         }
 
+        $inst = $this->receiver->institution
+            ?? ($this->sender->institution ?? null)
+            ?? (app()->bound('institution') ? app('institution') : null)
+            ?? \App\Models\Institution::getDefault();
+        $isCustom = $inst && !$inst->is_default;
+        $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $fromName = ($inst->mail_from_name ?? null) ?: $siteTitle;
+        $fromEmail = config('mail.mailers.smtp.username') ?: config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+        $replyTo = $inst->support_email ?: ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
+
         $receiverWalletName = $this->receiverWalletType == 'primary_savings' ? 'Savings' : 'Checking';
         $maskedAccount = $receiverWalletName . ' (... ' . substr($this->sanitizedNumber, -4) . ')';
 
-        return $this->subject($subject)
+        return $this->from($fromEmail, $fromName)
+            ->replyTo($replyTo, $fromName)
+            ->subject($subject)
             ->view('emails.incoming_zelle_transfer')
             ->with([
                 'receiver' => $this->receiver,
@@ -54,7 +66,7 @@ class IncomingZelleTransferMail extends Mailable
                 'status' => $this->status,
                 'memo' => $this->memo,
                 'maskedAccount' => $maskedAccount,
-                'homeUrl' => rtrim((string) config('app.url'), '/').'/',
+                'homeUrl' => $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : rtrim((string) config('app.url'), '/').'/',
                 'transferLogUrl' => route('user.fund_transfer.transfer.log'),
             ]);
     }

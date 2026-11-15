@@ -49,7 +49,13 @@ class FundTransferRejectedUserMail extends Mailable
             ? "https://{$inst->slug}.frontfieldcu.pro"
             : rtrim((string) config('app.url'), '/').'/';
 
-        return $this->subject($subject)
+        $fromName = ($inst->mail_from_name ?? null) ?: $siteTitle;
+        $fromEmail = config('mail.mailers.smtp.username') ?: config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+        $replyTo = $inst->support_email ?: ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
+
+        return $this->from($fromEmail, $fromName)
+            ->replyTo($replyTo, $fromName)
+            ->subject($subject)
             ->view('emails.fund-transfer-rejected-user')
             ->with([
                 'member' => $this->member,

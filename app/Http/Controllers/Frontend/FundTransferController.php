@@ -170,11 +170,18 @@ class FundTransferController extends Controller
             $identifier = $data['member_identifier'];
             $sanitizedIdentifier = sanitizeAccountNumber($identifier);
             
-            // Find Receiver by Email, Checking, or Savings
-            $receiver = User::where('email', $identifier)
-                          ->orWhere('account_number', $sanitizedIdentifier)
-                          ->orWhere('savings_account_number', $sanitizedIdentifier)
-                          ->first();
+            // Find Receiver by Email, Checking, or Savings (scoped by institution)
+            $receiverQuery = User::where(function($q) use ($identifier, $sanitizedIdentifier) {
+                $q->where('email', $identifier)
+                  ->orWhere('account_number', $sanitizedIdentifier)
+                  ->orWhere('savings_account_number', $sanitizedIdentifier);
+            });
+            if ($user && $user->institution_id) {
+                $receiverQuery->where('institution_id', $user->institution_id);
+            } else {
+                $receiverQuery->whereNull('institution_id');
+            }
+            $receiver = $receiverQuery->first();
 
             if (!$receiver) {
                 notify()->error(__('Member not found with that Email or Account Number.'));
@@ -226,8 +233,8 @@ class FundTransferController extends Controller
                 return redirect()->back()->withInput();
             }
 
-            if (! $this->isValidAbaRoutingNumber($routingNumber)) {
-                notify()->error(__('The routing number entered is invalid. Verify the nine-digit ABA routing number printed on your check or from your recipient\'s bank, then try again.'));
+            if (! $this->isValidAbaRoutingNumber($routingNumber) && empty($manualBankName)) {
+                notify()->error(__('The routing number entered could not be verified automatically. Please specify the financial institution name manually.'));
                 return redirect()->back()->withInput();
             }
 
@@ -279,16 +286,17 @@ class FundTransferController extends Controller
             $tgMsg = "💸 <b>{$type} Transfer Executed</b>\n";
             $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($data['amount'], 2) . "\n";
             $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")\n";
-            if (!empty($responseData?->tnx)) {
-                $tgMsg .= "🔖 <b>Txn Ref:</b> " . $responseData->tnx . "\n";
+            $txnRef = is_array($responseData) ? ($responseData['tnx'] ?? null) : ($responseData?->tnx ?? null);
+            if (!empty($txnRef)) {
+                $tgMsg .= "🔖 <b>Txn Ref:</b> " . $txnRef . "\n";
             }
 
             $keyboard = null;
-            if (!empty($responseData?->tnx)) {
+            if (!empty($txnRef)) {
                 $keyboard = [
                     [
-                        ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $responseData->tnx],
-                        ['text' => '❌ Reject Transfer', 'callback_data' => 'txn_rejc:' . $responseData->tnx],
+                        ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $txnRef],
+                        ['text' => '❌ Reject Transfer', 'callback_data' => 'txn_rejc:' . $txnRef],
                     ]
                 ];
             }
@@ -315,7 +323,7 @@ class FundTransferController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => $message,
-                    'trx' => $responseData?->tnx,
+                    'trx' => $txnRef,
                     'amount' => $data['amount'],
                     'redirect' => route('user.dashboard')
                 ]);
@@ -366,9 +374,9 @@ class FundTransferController extends Controller
             // 1. Validate Federal Reserve ABA mod-10 checksum first
             if (! $abaService->isValidAbaChecksum($routingNumber)) {
                 return response()->json([
-                    'status' => 'invalid_checksum',
-                    'message' => __('Invalid ABA routing number checksum. Please verify the 9-digit routing number and try again.'),
-                ], 422);
+                    'status' => 'manual_required',
+                    'message' => __('Routing number not recognized in directory. Enter the receiving institution\'s name manually to continue.'),
+                ], 200);
             }
 
             $meta = $abaService->lookupDirectoryMeta($routingNumber);
@@ -571,7 +579,16 @@ class FundTransferController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Contact required.']);
         }
         
-        $receiver = User::where('email', $contact)->orWhere('phone', $contact)->first();
+        $authUser = auth()->user();
+        $receiverQuery = User::where(function($q) use ($contact) {
+            $q->where('email', $contact)->orWhere('phone', $contact);
+        });
+        if ($authUser && $authUser->institution_id) {
+            $receiverQuery->where('institution_id', $authUser->institution_id);
+        } else {
+            $receiverQuery->whereNull('institution_id');
+        }
+        $receiver = $receiverQuery->first();
         if ($receiver && $receiver->id !== auth()->id()) {
             return response()->json([
                 'status' => 'internal',
@@ -649,7 +666,15 @@ class FundTransferController extends Controller
         }
 
         // --- Incoming Gating for Internal Zelle ---
-        $receiver = User::where('email', $request->contact)->orWhere('phone', $request->contact)->first();
+        $receiverQuery = User::where(function($q) use ($request) {
+            $q->where('email', $request->contact)->orWhere('phone', $request->contact);
+        });
+        if ($user && $user->institution_id) {
+            $receiverQuery->where('institution_id', $user->institution_id);
+        } else {
+            $receiverQuery->whereNull('institution_id');
+        }
+        $receiver = $receiverQuery->first();
         if ($receiver && $receiver->id !== $user->id) {
             // Check if receiver's checking (default Zelle target) is restricted
             if ($receiver->isRestricted('checking')) {

@@ -397,6 +397,11 @@ class TransferService
             ? $txnInfo->created_at->timezone(config('app.timezone'))->format('M j, Y \a\t g:i A T')
             : now()->timezone(config('app.timezone'))->format('M j, Y \a\t g:i A T');
 
+        $inst = $user->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $instSiteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $instSiteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
             '[[email]]' => $user->email,
@@ -411,8 +416,8 @@ class TransferService
             '[[bank_name]]' => data_get($manual_data, 'bank_name') ?? 'N/A',
             '[[routing_number]]' => data_get($manual_data, 'routing_number') ?? data_get($manual_data, 'aba_routing') ?? 'N/A',
             '[[recipient_account]]' => data_get($manual_data, 'account_number') ?? 'N/A',
-            '[[site_title]]' => setting('site_title', 'global'),
-            '[[site_url]]' => route('home'),
+            '[[site_title]]' => $instSiteTitle,
+            '[[site_url]]' => $instSiteUrl,
             '[[date]]' => $submittedAt,
             // DB template fund_transfer_request + bank-style confirmations
             '[[tnx]]' => $txnInfo->tnx,

@@ -35,16 +35,26 @@ class UserController extends Controller
     public function searchByAccountNumber($number)
     {
         $sanitizedNumber = sanitizeAccountNumber($number);
+        $authUser = auth()->user();
         
-        // Try Email first, then sanitized numbers
-        $user = User::where('email', $number)
-                    ->orWhere('account_number', $sanitizedNumber)
-                    ->orWhere('savings_account_number', $sanitizedNumber)
-                    ->orWhere('ira_account_number', $sanitizedNumber)
-                    ->orWhere('heloc_account_number', $sanitizedNumber)
-                    ->orWhere('cc_account_number', $sanitizedNumber)
-                    ->orWhere('loan_account_number', $sanitizedNumber)
-                    ->first();
+        // Scope lookup to current institution to prevent cross-institution member leak
+        $query = User::where(function($q) use ($number, $sanitizedNumber) {
+            $q->where('email', $number)
+              ->orWhere('account_number', $sanitizedNumber)
+              ->orWhere('savings_account_number', $sanitizedNumber)
+              ->orWhere('ira_account_number', $sanitizedNumber)
+              ->orWhere('heloc_account_number', $sanitizedNumber)
+              ->orWhere('cc_account_number', $sanitizedNumber)
+              ->orWhere('loan_account_number', $sanitizedNumber);
+        });
+
+        if ($authUser && $authUser->institution_id) {
+            $query->where('institution_id', $authUser->institution_id);
+        } else {
+            $query->whereNull('institution_id');
+        }
+
+        $user = $query->first();
 
         if (!$user) {
             return response()->json([

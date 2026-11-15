@@ -110,7 +110,9 @@ trait NotifyTrait
             $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower(trim($email))])->first()
                 ?? \App\Models\User::where('email', $email)->first();
             $institution = $user?->institution
+                ?? (auth()->check() ? auth()->user()->institution : null)
                 ?? (app()->bound('institution') ? app('institution') : null)
+                ?? (!empty($shortcodes['[[site_title]]']) && $shortcodes['[[site_title]]'] !== setting('site_title', 'global') ? \App\Models\Institution::where('name', $shortcodes['[[site_title]]'])->first() : null)
                 ?? \App\Models\Institution::getDefault();
             $isCustom = $institution && !$institution->is_default;
 
@@ -244,7 +246,7 @@ trait NotifyTrait
                 'regulator_type' => $regulator,
                 'support_phone' => $supportPhone,
                 'support_email' => $supportEmail,
-                'from_name' => $siteTitle,
+                'from_name' => $fromName,
                 'from_email' => $supportEmail,
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
                 'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
@@ -272,7 +274,7 @@ trait NotifyTrait
                 $details['title'] = 'Wire Order Cancelled';
                 $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer request could not be processed and has been cancelled. Funds have been refunded to your account balance.';
             } elseif ($code === 'remote_deposit_submitted') {
-                $details['subject'] = 'Check Deposit Received - ' . setting('site_title', 'global');
+                $details['subject'] = 'Check Deposit Received - ' . $siteTitle;
                 $details['title'] = 'Check Received';
                 $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? 'the specified amount') . ' to your ' . ($shortcodes['[[account_name]]'] ?? 'account') . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.';
             } elseif ($code === 'card_status_update') {

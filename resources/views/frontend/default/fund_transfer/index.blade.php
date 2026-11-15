@@ -78,7 +78,7 @@
                         <div class="col-6 col-md-6 col-xl-3">
                             <div class="transfer-type-card h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
                                 <div class="icon-circle mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive" style="background-color: rgba(116, 27, 107, 0.1);">
-                                    <img src="{{ asset('assets/external/images/zelle-small-logo.png') }}" alt="Zelle" class="img-responsive">
+                                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" class="img-responsive" style="max-height: 28px; width: auto; object-fit: contain;">
                                 </div>
                                 <h6 class="mb-1 mb-md-2 fw-bold title-responsive" style="color: #741B6B;">Send with Zelle®</h6>
                                 <p class="small text-muted mb-0 d-none d-md-block">Fast, safe and easy way to send money.</p>
@@ -344,7 +344,7 @@
 
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
+                                <i class="fas fa-arrow-right me-2"></i> {{ __('Submit Transfer') }}
                             </button>
                         </div>
                     </div>
@@ -740,18 +740,42 @@
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
 
         if(!name || !acc1 || routing.length < 9) {
-            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
+            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '{{ $brandPrimary }}' });
             return;
         }
-        if(!isValidAbaChecksumAch(routing)) { Swal.fire({ title: 'Invalid Routing Number', text: 'The 9-digit ABA routing number failed the Federal Reserve mod-10 checksum. Please verify the number and try again.', icon: 'error', confirmButtonColor: '#00549b' }); return; }
         if(acc1 !== acc2) {
-            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
+            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '{{ $brandPrimary }}' });
             return;
         }
-        if(!document.getElementById('resolvedBankId').value) {
-            const manualName = document.getElementById('manualBankNameInput').value.trim();
+        if(!isValidAbaChecksumAch(routing)) {
+            var manualWrapEl = document.getElementById('manualBankNameWrap');
+            var manualInputEl = document.getElementById('manualBankNameInput');
+            if (manualWrapEl) manualWrapEl.classList.remove('d-none');
+            const manualName = manualInputEl ? manualInputEl.value.trim() : '';
             if(!manualName) {
-                Swal.fire({ title: 'Receiving institution required', text: 'We could not verify your routing number automatically. Enter the receiving financial institution\'s name as it appears on your records.', icon: 'warning', confirmButtonColor: '#00549b' });
+                if (manualInputEl) manualInputEl.focus();
+                Swal.fire({
+                    title: 'Institution Name Required',
+                    text: 'Routing number could not be verified automatically. Please enter the financial institution name below to continue.',
+                    icon: 'info',
+                    confirmButtonColor: '{{ $brandPrimary }}'
+                });
+                return;
+            }
+            document.getElementById('resolvedBankName').value = manualName;
+        } else if(!document.getElementById('resolvedBankId').value) {
+            var manualWrapEl = document.getElementById('manualBankNameWrap');
+            var manualInputEl = document.getElementById('manualBankNameInput');
+            if (manualWrapEl) manualWrapEl.classList.remove('d-none');
+            const manualName = manualInputEl ? manualInputEl.value.trim() : '';
+            if(!manualName) {
+                if (manualInputEl) manualInputEl.focus();
+                Swal.fire({
+                    title: 'Receiving institution required',
+                    text: 'We could not verify your routing number automatically. Enter the receiving financial institution\'s name as it appears on your records.',
+                    icon: 'warning',
+                    confirmButtonColor: '{{ $brandPrimary }}'
+                });
                 return;
             }
             document.getElementById('resolvedBankName').value = manualName;
@@ -1054,7 +1078,11 @@
 
             if(routing.length !== 9) return;
 
-            if(!isValidAbaChecksumAch(routing)) { statusEl.innerHTML = '<span class="text-danger fw-semibold"><i class="fas fa-times-circle me-1"></i> Invalid ABA routing number checksum. Please double-check the 9 digits.</span>'; return; }
+            if(!isValidAbaChecksumAch(routing)) {
+                statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fas fa-circle-info me-1"></i> Routing number unverified. Please provide receiving institution name below.</span>';
+                manualWrap.classList.remove('d-none');
+                return;
+            }
             statusEl.innerHTML = '<span class="text-muted">Verifying ABA routing number…</span>';
             if(lookupTimer) clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => {

@@ -5,6 +5,11 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $brandPrimary = $isCustomInst ? '#c8232c' : '#00549b';
+    $brandHover = $isCustomInst ? '#a81b24' : '#003e73';
+@endphp
 <div class="row justify-content-center mb-5">
     <div class="col-lg-7">
         <!-- Banno Header -->
@@ -354,6 +359,23 @@
         display: block !important;
         animation: flash 0.2s ease-out;
     }
+    @if($isCustomInst)
+    .btn-primary {
+        background-color: #c8232c !important;
+        border-color: #c8232c !important;
+    }
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: #a81b24 !important;
+        border-color: #a81b24 !important;
+    }
+    .text-primary {
+        color: #c8232c !important;
+    }
+    .deposit-capture-box:hover {
+        border-color: #c8232c !important;
+        background: rgba(200, 35, 44, 0.02) !important;
+    }
+    @endif
 </style>
 @endsection
 
@@ -377,7 +399,7 @@
                 title: 'Account Restricted',
                 text: 'This account is currently restricted and cannot receive deposits. Please contact support.',
                 icon: 'error',
-                confirmButtonColor: '#00549b'
+                confirmButtonColor: '{{ $brandPrimary }}'
             });
             // Try to find first non-restricted
             for(let o of select.options) {

@@ -224,6 +224,11 @@ class TelegramApprovalService
             $user = $transaction->user;
             if (!$user) return;
 
+            $inst = $user->institution ?? null;
+            $isCustom = $inst && !$inst->is_default;
+            $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -232,8 +237,8 @@ class TelegramApprovalService
                 '[[total_amount]]' => setting('currency_symbol', '$') . number_format($transaction->final_amount, 2),
                 '[[status]]' => 'Completed / Approved',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $siteTitle,
+                '[[site_url]]' => $siteUrl,
                 '[[tnx]]' => $transaction->tnx,
                 '[[txn]]' => $transaction->tnx,
                 '[[action_message]]' => $transaction->action_message ?? 'Approved',
@@ -266,6 +271,11 @@ class TelegramApprovalService
             $user = $transaction->user;
             if (!$user) return;
 
+            $inst = $user->institution ?? null;
+            $isCustom = $inst && !$inst->is_default;
+            $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
@@ -277,8 +287,8 @@ class TelegramApprovalService
                 '[[reason]]' => $reason,
                 '[[action_message]]' => $reason,
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
-                '[[site_title]]' => setting('site_title', 'global'),
-                '[[site_url]]' => route('home'),
+                '[[site_title]]' => $siteTitle,
+                '[[site_url]]' => $siteUrl,
                 '[[tnx]]' => $transaction->tnx,
                 '[[txn]]' => $transaction->tnx,
             ];

@@ -64,7 +64,13 @@ class IncomingMemberTransferMail extends Mailable
         $receiverWalletName = $this->receiverWalletType == 'primary_savings' ? 'Savings' : 'Checking';
         $maskedAccount = $receiverWalletName . ' (... ' . substr($this->sanitizedNumber, -4) . ')';
 
-        return $this->subject($subject)
+        $fromName = ($inst->mail_from_name ?? null) ?: $siteTitle;
+        $fromEmail = config('mail.mailers.smtp.username') ?: config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+        $replyTo = $inst->support_email ?: ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
+
+        return $this->from($fromEmail, $fromName)
+            ->replyTo($replyTo, $fromName)
+            ->subject($subject)
             ->view('emails.incoming_member_transfer')
             ->with([
                 'receiver' => $this->receiver,

@@ -25,16 +25,24 @@ class TransferPendingAdminMail extends Mailable
 
     public function build(): self
     {
-        $siteTitle = setting('site_title', 'global');
+        $inst = $this->member->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
         $kind = strtoupper((string) ($this->transferPayload['transfer_type'] ?? 'transfer'));
         $subject = "{$siteTitle} — {$kind} transfer pending your review";
+
+        $fromName = ($inst->mail_from_name ?? null) ?: $siteTitle;
+        $fromEmail = config('mail.mailers.smtp.username') ?: config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+        $replyTo = $inst?->support_email ?: ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
 
         $siteLogo = setting('site_logo', 'global');
         if ($siteLogo && ! Str::startsWith($siteLogo, 'assets/')) {
             $siteLogo = 'assets/' . $siteLogo;
         }
 
-        return $this->subject($subject)
+        return $this->from($fromEmail, $fromName)
+            ->replyTo($replyTo, $fromName)
+            ->subject($subject)
             ->view('emails.transfer-pending-admin')
             ->with([
                 'recipientName' => $this->recipient->name,

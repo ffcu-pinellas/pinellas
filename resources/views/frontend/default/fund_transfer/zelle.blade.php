@@ -34,7 +34,7 @@
                             @endphp
                             <img src="{{ $instZelleLogo }}" alt="{{ $instZelleTitle }}" style="height: 30px; max-width: 180px; object-fit: contain;">
                             <div style="width: 1px; height: 22px; background-color: rgba(255,255,255,0.4);"></div>
-                            <img src="{{ asset('assets/external/images/zelle-logo.png') }}" alt="Zelle" style="height: 20px; filter: brightness(0) invert(1);">
+                            <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1); object-fit: contain;">
                         </div>
                         <div style="width: 24px;"></div> <!-- Spacer to balance back button -->
                     </div>
@@ -246,7 +246,7 @@
         </div>
         
         <div class="text-center mt-4">
-            <img src="{{ asset('assets/external/images/zelle-logo.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%);">
+            <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="max-height: 32px; opacity: 0.8; filter: grayscale(100%); object-fit: contain;">
             <p class="small text-muted mt-2">Zelle and the Zelle related marks are wholly owned by<br>Early Warning Services, LLC and are used herein under license.</p>
         </div>
     </div>
