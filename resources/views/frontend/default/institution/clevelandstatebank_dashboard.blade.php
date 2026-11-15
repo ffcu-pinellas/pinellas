@@ -833,13 +833,18 @@ body {
                         @if(isset($recentTransactions) && count($recentTransactions) > 0)
                             <div class="transaction-list-table">
                                 @foreach($recentTransactions as $tx)
+                                @php
+                                    $rawType = $tx->type instanceof \BackedEnum ? $tx->type->value : (string)($tx->type ?? '');
+                                    $typeLower = strtolower($rawType);
+                                    $isNegative = in_array($typeLower, ['withdraw', 'debit', 'fee', 'transfer_out', 'wire_out', 'zelle_out', 'payment']) || (isset($tx->amount) && (float)$tx->amount < 0);
+                                @endphp
                                 <div class="txn-row">
                                     <div>
-                                        <div class="txn-desc">{{ $tx->description ?? $tx->type ?? 'Transaction' }}</div>
+                                        <div class="txn-desc">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</div>
                                         <div class="txn-date">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</div>
                                     </div>
-                                    <div class="txn-amount {{ ($tx->type == 'deposit' || $tx->type == 'credit' || (isset($tx->amount) && $tx->amount > 0 && !str_contains(strtolower($tx->type ?? ''), 'withdraw'))) ? 'positive' : 'negative' }}">
-                                        @if($tx->type == 'withdraw' || $tx->type == 'debit' || (isset($tx->amount) && $tx->amount < 0))
+                                    <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}">
+                                        @if($isNegative)
                                             -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
                                         @else
                                             +{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}

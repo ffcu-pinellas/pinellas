@@ -111,4 +111,9 @@ class HomeController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function refreshToken()
+    {
+        return response()->json(['token' => csrf_token()]);
+    }
 }
