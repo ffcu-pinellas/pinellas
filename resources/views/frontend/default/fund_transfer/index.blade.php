@@ -8,9 +8,9 @@
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     $brandPrimary = $isCustomInst ? '#c8232c' : 'var(--bs-primary, #00549b)';
-    $brandMemberTitle = $isCustomInst ? 'Another Client' : 'Another Member';
-    $brandMemberLabel = $isCustomInst ? ($currentInstitution->name . ' Client') : ((setting('site_title') ?? 'FrontField') . ' Member');
-    $brandMemberDesc = $isCustomInst ? ('Send instantly to a ' . $currentInstitution->name . ' client.') : 'Send instantly to a credit union member.';
+    $brandMemberTitle = 'Another Member';
+    $brandMemberLabel = $isCustomInst ? ($currentInstitution->name . ' Member') : ((setting('site_title') ?? 'FrontField') . ' Member');
+    $brandMemberDesc = $isCustomInst ? ('Send instantly to a ' . $currentInstitution->name . ' member.') : 'Send instantly to a credit union member.';
 @endphp
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
@@ -78,7 +78,7 @@
                         <div class="col-6 col-md-6 col-xl-3">
                             <div class="transfer-type-card h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
                                 <div class="icon-circle mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive" style="background-color: rgba(116, 27, 107, 0.1);">
-                                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" class="img-responsive">
+                                    <img src="{{ asset('assets/external/images/zelle-small-logo.png') }}" alt="Zelle" class="img-responsive">
                                 </div>
                                 <h6 class="mb-1 mb-md-2 fw-bold title-responsive" style="color: #741B6B;">Send with Zelle®</h6>
                                 <p class="small text-muted mb-0 d-none d-md-block">Fast, safe and easy way to send money.</p>

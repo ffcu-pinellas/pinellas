@@ -331,6 +331,11 @@ class Institution extends Model
         return $this->getLogoWhiteUrlAttribute();
     }
 
+    public function getWhiteLogoUrlAttribute(): string
+    {
+        return $this->getLogoWhiteUrlAttribute();
+    }
+
     /**
      * Resolves white / light version of institution logo for dark headers and credit cards.
      */

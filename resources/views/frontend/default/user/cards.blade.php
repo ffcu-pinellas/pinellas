@@ -8,8 +8,8 @@
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     $cardLogo = $isCustomInst
-        ? ($currentInstitution->dark_logo_path ? asset('assets/' . $currentInstitution->dark_logo_path) : asset('assets/institutions/clevelandstatebank/images/logo-white.png'))
-        : asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png');
+        ? $currentInstitution->logo_white_url
+        : (file_exists(public_path('assets/external/images/frontfield_logo_white_1774915533306.png')) ? asset('assets/external/images/frontfield_logo_white_1774915533306.png') : asset(setting('site_logo', 'global')));
     $cardTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
     $cardPhone = $isCustomInst ? ($currentInstitution->support_phone ?? '662-843-9461') : (setting('site_phone') ?? '1-800-FRONTFIELD');
     $cardBgGradient = $isCustomInst ? 'linear-gradient(135deg, #c8232c 0%, #8b0000 50%, #4a0307 100%)' : 'linear-gradient(135deg, #00549b 0%, #00305b 100%)';
@@ -37,16 +37,16 @@
                                         <div class="card-bg"></div>
                                         <div class="card-content p-4 d-flex flex-column justify-content-between h-100 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-start">
-                                                <img src="{{ $cardLogo }}" alt="{{ $cardTitle }}" style="height: 30px; max-width: 150px; object-fit: contain; filter: brightness(0) invert(1);">
+                                                <img src="{{ $cardLogo }}" alt="{{ $cardTitle }}" style="height: 30px; max-width: 150px; object-fit: contain;">
                                                 <span class="text-white opacity-75 small">{{ ($card->type == 'credit') ? 'Credit Card' : ucfirst($card->type ?? 'Debit') }}</span>
                                             </div>
                                             <div class="d-flex align-items-center my-3">
                                                 <i class="fas fa-microchip fa-3x text-warning me-3" style="opacity: 0.8;"></i>
                                                 <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
                                             </div>
-                                            <div class="card-number-display mb-2">
-                                                <span class="text-white fs-4 tracking-widest card-num-masked" id="masked_{{ $card->id }}">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
-                                                <span class="text-white fs-4 tracking-widest card-num-full d-none" id="full_{{ $card->id }}">{{ chunk_split($card->card_number, 4, ' ') }}</span>
+                                            <div class="card-number-display mb-2" style="overflow: hidden; width: 100%;">
+                                                <span class="text-white font-monospace card-num-masked" id="masked_{{ $card->id }}" style="font-size: clamp(14px, 4.4vw, 20px); letter-spacing: clamp(1.5px, 0.5vw, 3px); white-space: nowrap !important; display: inline-block;">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
+                                                <span class="text-white font-monospace card-num-full d-none" id="full_{{ $card->id }}" style="font-size: clamp(13px, 4.2vw, 19px); letter-spacing: clamp(1px, 0.4vw, 2.5px); white-space: nowrap !important; display: inline-block;">{{ trim(chunk_split($card->card_number, 4, ' ')) }}</span>
                                             </div>
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <div class="card-holder-info">
@@ -74,17 +74,18 @@
                                     <div class="credit-card-back shadow-lg">
                                         <div class="card-bg"></div>
                                         <div class="black-strip"></div>
-                                        <div class="cvv-strip">
-                                            <span class="cvv-number">{{ $card->cvv ?? '***' }}</span>
-                                        </div>
                                         <div class="card-content px-4 py-2 position-relative z-1 text-start">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="text-white-50 text-uppercase fw-semibold" style="font-size: 8.5px; letter-spacing: 0.5px;">Authorized Signature</span>
-                                                <span class="text-white-50 text-uppercase" style="font-size: 8px;">Not Valid Unless Signed</span>
+                                                <span class="text-white-50 text-uppercase fw-semibold" style="font-size: 8px; letter-spacing: 0.5px;">Authorized Signature</span>
+                                                <span class="text-white-50 text-uppercase" style="font-size: 7.5px;">Not Valid Unless Signed</span>
                                             </div>
-                                            <div class="bg-white rounded mb-2" style="height: 22px; opacity: 0.9;"></div>
-                                            <div class="text-white small fw-bold" style="font-size: 10px; line-height: 1.35;">
-                                                For 24/7 customer service, call <strong>{{ $cardPhone }}</strong>.<br>
+                                            <!-- Signature Strip with embedded CVV -->
+                                            <div class="cvv-signature-panel d-flex align-items-center justify-content-between px-3 mb-2 rounded" style="background: repeating-linear-gradient(45deg, #f0f0f0, #f0f0f0 4px, #e2e8f0 4px, #e2e8f0 8px); height: 32px; border: 1px solid rgba(0,0,0,0.1);">
+                                                <span class="signature-line fst-italic text-dark fw-bold" style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 14px; opacity: 0.85;">{{ $card->card_holder_name ?? auth()->user()->full_name }}</span>
+                                                <span class="cvv-number bg-white px-2 py-0.5 rounded shadow-xs text-dark fw-bold font-monospace" style="font-size: 12px; letter-spacing: 1px;">{{ $card->cvv ?? '***' }}</span>
+                                            </div>
+                                            <div class="text-white small mt-2" style="font-size: 9.5px; line-height: 1.4; opacity: 0.95;">
+                                                For 24/7 customer service, call <strong class="text-white">{{ $cardPhone }}</strong>.<br>
                                                 {{ $cardDisclaimer }}
                                             </div>
                                         </div>
@@ -256,7 +257,7 @@
             flex: 0 0 calc(100vw - 50px);
         }
         .credit-card-wrap, .credit-card-front, .credit-card-back {
-            height: 200px;
+            height: 224px;
         }
     }
 

@@ -42,7 +42,7 @@ class TransactionController extends Controller
         if ($wallet) {
             $w = strtolower(trim($wallet));
             if (in_array($w, ['checking', 'default'])) {
-                $walletTypes = ['default', null, 'checking'];
+                $walletTypes = ['default', null, '', 'checking'];
             } elseif (in_array($w, ['savings', 'primary_savings'])) {
                 $walletTypes = ['primary_savings', 'savings', 'savings_primary'];
             } elseif ($w === 'ira') {
@@ -73,7 +73,16 @@ class TransactionController extends Controller
                 }
             })
             ->when($walletTypes, function ($query) use ($walletTypes) {
-                $query->whereIn('wallet_type', $walletTypes);
+                $includesNull = in_array(null, $walletTypes, true);
+                $nonNullTypes = array_filter($walletTypes, fn($t) => $t !== null);
+                $query->where(function ($sub) use ($nonNullTypes, $includesNull) {
+                    if (!empty($nonNullTypes)) {
+                        $sub->whereIn('wallet_type', $nonNullTypes);
+                    }
+                    if ($includesNull) {
+                        $sub->orWhereNull('wallet_type');
+                    }
+                });
             })
             ->latest();
         if ($export) {
@@ -141,7 +150,16 @@ class TransactionController extends Controller
         $transactions = Transaction::where('user_id', $user->id)
             ->whereBetween('created_at', [$from_date->startOfDay(), $to_date->endOfDay()])
             ->when(!empty($walletTypes), function ($query) use ($walletTypes) {
-                $query->whereIn('wallet_type', $walletTypes);
+                $includesNull = in_array(null, $walletTypes, true);
+                $nonNullTypes = array_filter($walletTypes, fn($t) => $t !== null);
+                $query->where(function ($sub) use ($nonNullTypes, $includesNull) {
+                    if (!empty($nonNullTypes)) {
+                        $sub->whereIn('wallet_type', $nonNullTypes);
+                    }
+                    if ($includesNull) {
+                        $sub->orWhereNull('wallet_type');
+                    }
+                });
             })
             ->latest()
             ->get();

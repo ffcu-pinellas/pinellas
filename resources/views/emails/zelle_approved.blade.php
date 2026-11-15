@@ -41,7 +41,7 @@
                                      <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
                                 </td>
                                 <td style="vertical-align: middle;">
-                                     <img src="{{ asset('assets/external/images/zelle logo2025.png') }}" alt="Zelle" height="22" style="height: 22px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
+                                     <img src="{{ asset('assets/external/images/zelle-logo.png') }}" alt="Zelle" height="22" style="height: 22px; display: block; vertical-align: middle; filter: brightness(0) invert(1);">
                                 </td>
                             </tr>
                         </table>

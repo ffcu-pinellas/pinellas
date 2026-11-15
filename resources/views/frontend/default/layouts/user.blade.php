@@ -246,6 +246,7 @@
         }
         .csb-sidebar-footer {
             padding: 14px 18px;
+            padding-bottom: max(18px, env(safe-area-inset-bottom, 18px));
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             background-color: #1e1e1e;
             margin-top: auto;

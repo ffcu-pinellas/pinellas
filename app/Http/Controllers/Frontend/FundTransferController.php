@@ -311,10 +311,26 @@ class FundTransferController extends Controller
                 '[[recipient]]' => ($data['manual_data']['account_name'] ?? 'N/A') . ' (' . ($data['manual_data']['account_number'] ?? 'N/A') . ')',
             ], route('admin.fund.transfer.pending'), null, 'Admin');
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => $message,
+                    'trx' => $responseData?->tnx,
+                    'amount' => $data['amount'],
+                    'redirect' => route('user.dashboard')
+                ]);
+            }
+
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
         } catch (\Exception $e) {
             \Log::error("Frontend\FundTransferController::transfer Failed", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage()
+                ], 422);
+            }
             notify()->error($e->getMessage());
             return redirect()->back()->withInput();
         }
@@ -784,6 +800,15 @@ class FundTransferController extends Controller
         ];
         $this->notifyTransferAdminsAndOfficers($user, $notifyData, $responseData);
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $message ?? __('We are processing your Zelle payment.'),
+                'trx' => $tnx,
+                'amount' => $request->amount
+            ]);
+        }
+
         return view('frontend::fund_transfer.zelle_success', compact('message', 'responseData'));
     }
 
@@ -890,12 +915,28 @@ class FundTransferController extends Controller
 
             notify()->success(__('Your wire transfer request has been submitted and is pending.'));
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => __('Your wire transfer request has been submitted and is pending.'),
+                    'trx' => $receipt->tnx ?? null,
+                    'amount' => $request->amount ?? null
+                ]);
+            }
+
             return view('frontend::fund_transfer.wire_success', compact('receipt'));
         } catch (\Illuminate\Validation\ValidationException $e) {
-            notify()->error($e->errors()['error'][0] ?? $e->getMessage(), 'Error');
+            $msg = $e->errors()['error'][0] ?? $e->getMessage();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            notify()->error($msg, 'Error');
             return redirect()->back()->withInput();
         } catch (\Throwable $e) {
             \Log::error('Wire Transfer Submission Failed: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
             notify()->error(__('Failed to process wire transfer: ') . $e->getMessage(), 'Error');
             return redirect()->back()->withInput();
         }

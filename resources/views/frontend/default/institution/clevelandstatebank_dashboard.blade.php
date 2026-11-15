@@ -530,16 +530,99 @@ body {
 }
 
 /* Responsive Layout */
-@media (max-width: 900px) {
+@media (max-width: 991.98px) {
     .dashboard-grid-2 {
         grid-template-columns: 1fr;
     }
+    .csb-main-content {
+        padding: 16px 16px 36px !important;
+    }
     .csb-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        z-index: 1070 !important;
+        transform: translateX(-100%) !important;
+        margin-left: 0 !important;
+        box-shadow: none;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    .csb-sidebar.show {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.5) !important;
+    }
+    .csb-mobile-sidebar-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background-color: #1a1a1a;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .csb-sidebar-backdrop {
+        display: none;
         position: fixed;
-        top: 50px;
-        bottom: 0;
+        top: 0;
         left: 0;
-        z-index: 999;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+        z-index: 1065;
+    }
+    .csb-sidebar-backdrop.show {
+        display: block;
+    }
+}
+@media (min-width: 992px) {
+    .csb-mobile-sidebar-header {
+        display: none !important;
+    }
+    .csb-sidebar-backdrop {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .account-tiles-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        gap: 12px !important;
+        padding-bottom: 8px;
+        margin-right: -16px;
+        padding-right: 16px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-snap-type: x mandatory;
+    }
+    .account-tiles-grid::-webkit-scrollbar {
+        display: none;
+    }
+    .account-tiles-grid .account-tile-card {
+        flex: 0 0 270px !important;
+        max-width: 270px !important;
+        min-width: 270px !important;
+        scroll-snap-align: start;
+        margin-bottom: 0 !important;
+    }
+    .txn-desc {
+        max-width: calc(100vw - 190px) !important;
+        font-size: 11.5px !important;
+    }
+    .widget-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .widget-dropdown-select {
+        max-width: 170px;
     }
 }
 
@@ -764,9 +847,19 @@ body {
 
     <!-- Main Shell -->
     <div class="csb-layout-wrapper">
+        <!-- Backdrop for mobile sidebar drawer -->
+        <div class="csb-sidebar-backdrop" id="csbSidebarBackdrop"></div>
 
         <!-- Left Charcoal Sidebar -->
         <aside class="csb-sidebar" id="csbSidebar">
+            <!-- Mobile Drawer Header -->
+            <div class="csb-mobile-sidebar-header">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank" style="height: 24px; max-width: 140px; object-fit: contain;">
+                </div>
+                <button type="button" class="btn-close btn-close-white" id="csbSidebarCloseBtn" aria-label="Close"></button>
+            </div>
+
             <!-- Member Profile -->
             <div class="csb-user-profile-widget">
                 <div class="csb-user-avatar">
@@ -1060,13 +1153,27 @@ body {
                                     $rawType = $tx->type instanceof \BackedEnum ? $tx->type->value : (string)($tx->type ?? '');
                                     $typeLower = strtolower($rawType);
                                     $isNegative = in_array($typeLower, ['withdraw', 'debit', 'fee', 'transfer_out', 'wire_out', 'zelle_out', 'payment']) || (isset($tx->amount) && (float)$tx->amount < 0);
+                                    $wType = strtolower((string)($tx->wallet_type ?? 'checking'));
+                                    if ($wType === 'default' || empty($wType)) $wType = 'checking';
+                                    if (in_array($wType, ['primary_savings', 'savings_primary'])) $wType = 'savings';
+                                    if (in_array($wType, ['credit_card'])) $wType = 'cc';
+                                    if (in_array($wType, ['loan_account'])) $wType = 'loan';
+                                    $txDesc = addslashes($tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction'));
+                                    $txAmtStr = ($isNegative ? '-' : '+') . $currency . number_format(abs((float)($tx->amount ?? 0)), 2);
+                                    $txDateStr = $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : date('M d, Y');
+                                    $txStatusStr = ucfirst($tx->status ?? 'Completed');
+                                    $txMethodStr = ucfirst(str_replace('_', ' ', $rawType));
+                                    $txReceiptUrl = route('user.transactions.receipt', $tx->tnx);
+                                    $txDisputeUrl = route('user.disputes.create', $tx->tnx);
                                 @endphp
-                                <div class="txn-row">
-                                    <div>
+                                <div class="txn-row" data-account="{{ $wType }}" style="cursor: pointer;"
+                                     onclick="csbShowTxnDetails('{{ $txDesc }}', '{{ $tx->tnx }}', '{{ $txAmtStr }}', '{{ $txDateStr }}', '{{ $txStatusStr }}', '{{ $txMethodStr }}', '{{ $txReceiptUrl }}', '{{ $txDisputeUrl }}')"
+                                     title="Click to view transaction details & dispute options">
+                                    <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
                                         <div class="txn-desc">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</div>
                                         <div class="txn-date">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</div>
                                     </div>
-                                    <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}">
+                                    <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}" style="flex-shrink: 0; white-space: nowrap;">
                                         @if($isNegative)
                                             -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
                                         @else
@@ -1075,6 +1182,10 @@ body {
                                     </div>
                                 </div>
                                 @endforeach
+                            </div>
+                            <div id="csbNoTxnForAccount" class="py-4 text-center text-muted d-none" style="font-size: 13px;">
+                                <i class="fa-regular fa-folder-open fa-2x mb-2 d-block" style="opacity: 0.35;"></i>
+                                No recent activity found for this account.
                             </div>
                         @else
                             <div class="py-4 text-center text-muted" style="font-size: 13px;">
@@ -1138,7 +1249,7 @@ body {
                         </li>
                         <li class="nav-item">
                             <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">
-                                <i class="fa-solid fa-users"></i> Client Transfer
+                                <i class="fa-solid fa-users"></i> Member Transfer
                             </button>
                         </li>
                         <li class="nav-item">
@@ -1701,12 +1812,12 @@ body {
                                         <i class="fa-solid fa-microchip fa-2x" style="color: #eab308;"></i>
                                         <i class="fa-solid fa-wifi fa-rotate-90 text-white-50"></i>
                                     </div>
-                                    <div class="text-center my-1">
-                                        <span class="csb-card-num-masked font-monospace fs-4 text-white" style="letter-spacing: 3px;">
+                                    <div class="text-center my-1" style="overflow: hidden; width: 100%;">
+                                        <span class="csb-card-num-masked font-monospace text-white" style="font-size: clamp(14px, 4.4vw, 19px); letter-spacing: clamp(1.5px, 0.5vw, 2.5px); white-space: nowrap !important; display: inline-block;">
                                             •••• •••• •••• {{ substr((string)($userCardRecord->card_number ?? '4000123456789010'), -4) }}
                                         </span>
-                                        <span class="csb-card-num-full font-monospace fs-4 text-white d-none" style="letter-spacing: 3px;">
-                                            {{ chunk_split((string)($userCardRecord->card_number ?? '4000123456789010'), 4, ' ') }}
+                                        <span class="csb-card-num-full font-monospace text-white d-none" style="font-size: clamp(13px, 4.2vw, 18px); letter-spacing: clamp(1px, 0.4vw, 2px); white-space: nowrap !important; display: inline-block;">
+                                            {{ trim(chunk_split((string)($userCardRecord->card_number ?? '4000123456789010'), 4, ' ')) }}
                                         </span>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-end mt-2">
@@ -1850,19 +1961,137 @@ body {
         </div>
     </div>
 
+    {{-- ── 6. TRANSACTION DETAILS & DISPUTE MODAL ── --}}
+    <div class="modal fade" id="trxViewDetailsBox" tabindex="-1" style="z-index: 2050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 60px; height: 60px; font-size: 24px; background: rgba(200, 35, 44, 0.1); color: #c8232c;">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1 modal-title-val" id="csbTxnModalTitle">Transaction</h4>
+                    <div class="text-muted small mb-4 modal-date-val" id="csbTxnModalDate">Date</div>
+                    
+                    <div class="display-5 fw-bold mb-4 modal-amount-val" id="csbTxnModalAmount">$0.00</div>
+                    
+                    <div class="p-3 text-start mb-0 rounded-3 bg-light border">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Status</span>
+                            <span class="fw-bold small text-success" id="csbTxnModalStatus">Completed</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Transaction Ref</span>
+                            <span class="fw-bold small font-monospace" id="csbTxnModalTrx">TRX12345</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Method</span>
+                            <span class="fw-bold small" id="csbTxnModalMethod">System</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 gap-2 flex-column">
+                    <a href="#" id="csbBtnDownloadReceipt" class="btn w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm text-white" style="background: #c8232c; border: none;">
+                        <i class="fa-solid fa-file-pdf"></i> Download Official Receipt
+                    </a>
+                    <a href="#" id="csbBtnDisputeTxn" class="btn w-100 rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;">
+                        <i class="fa-solid fa-flag text-danger"></i> Dispute this transaction (Reg E)
+                    </a>
+                    <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-1 fw-bold" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── 7. TRANSFER SUCCESS CONFIRMATION MODAL ── --}}
+    <div class="modal fade" id="csbTransferSuccessModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.12); color: #16a34a; font-size: 28px;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Transfer Successful</h4>
+                <p class="text-muted small mb-3" id="csbTransferConfirmMsg">Your transfer has been processed and submitted successfully.</p>
+                <div class="p-3 rounded-3 bg-light text-start mb-4 border">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">Confirmation Ref</span>
+                        <span class="fw-bold font-monospace small" id="csbTransferConfirmTrx">TRX...</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Status</span>
+                        <span class="badge bg-success-subtle text-success fw-semibold">Completed</span>
+                    </div>
+                </div>
+                <button type="button" class="btn text-white w-100 py-2 fw-bold rounded-pill" style="background: #c8232c;" onclick="window.location.reload();">
+                    Done & Refresh Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=2.2"></script>
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
 
     <script>
-    // ── Sidebar Toggle ──
+    // ── Sidebar Toggle & Drawer ──
     document.addEventListener('DOMContentLoaded', function () {
         var sidebar = document.getElementById('csbSidebar');
         var toggleBtn = document.getElementById('sidebarToggleBtn');
-        if (toggleBtn && sidebar) {
-            toggleBtn.addEventListener('click', function () {
-                sidebar.classList.toggle('collapsed');
+        var closeBtn = document.getElementById('csbSidebarCloseBtn');
+        var backdrop = document.getElementById('csbSidebarBackdrop');
+
+        function openMobileSidebar() {
+            if (sidebar) sidebar.classList.add('show');
+            if (backdrop) backdrop.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobileSidebar() {
+            if (sidebar) sidebar.classList.remove('show');
+            if (backdrop) backdrop.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (window.innerWidth < 992) {
+                    if (sidebar && sidebar.classList.contains('show')) {
+                        closeMobileSidebar();
+                    } else {
+                        openMobileSidebar();
+                    }
+                } else {
+                    if (sidebar) sidebar.classList.toggle('collapsed');
+                }
+            });
+        }
+        if (closeBtn) closeBtn.addEventListener('click', closeMobileSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeMobileSidebar);
+
+        // Account filter for Recent Transactions widget
+        var $accountSelect = $('#csbTxnAccountSelect');
+        if ($accountSelect.length) {
+            $accountSelect.on('change', function () {
+                var selectedAcc = $(this).val();
+                var visibleCount = 0;
+                $('.transaction-list-table .txn-row').each(function () {
+                    var rowAcc = $(this).data('account') || 'checking';
+                    if (selectedAcc === 'all' || rowAcc === selectedAcc) {
+                        $(this).show();
+                        visibleCount++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                if (visibleCount === 0) {
+                    $('#csbNoTxnForAccount').removeClass('d-none');
+                } else {
+                    $('#csbNoTxnForAccount').addClass('d-none');
+                }
             });
         }
 
@@ -1874,6 +2103,20 @@ body {
             });
         }
     });
+
+    // ── Transaction Details & Dispute Modal Popup ──
+    function csbShowTxnDetails(desc, trx, amount, date, status, method, receiptUrl, disputeUrl) {
+        $('#csbTxnModalTitle').text(desc);
+        $('#csbTxnModalTrx').text(trx);
+        $('#csbTxnModalAmount').text(amount);
+        $('#csbTxnModalDate').text(date);
+        $('#csbTxnModalStatus').text(status);
+        $('#csbTxnModalMethod').text(method);
+        $('#csbBtnDownloadReceipt').attr('href', receiptUrl);
+        $('#csbBtnDisputeTxn').attr('href', disputeUrl);
+        var modal = new bootstrap.Modal(document.getElementById('trxViewDetailsBox'));
+        modal.show();
+    }
 
     // ── 2FA Security Gate Integration ──
     let pendingTransferCallback = null;
@@ -2098,22 +2341,46 @@ body {
         var $btn = $form.find('button[type=submit]');
         var origText = $btn.data('orig') || $btn.html();
         $btn.data('orig', origText);
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...');
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Processing Transfer...');
 
-        $.post(url, $form.serialize())
-            .done(function(res) {
-                csbTxSuccess(resId, res.message || 'Transfer submitted successfully. Please check your transaction history.');
-                $form[0].reset();
-                $('#csbMemberVerifySuccess, #csbRoutingVerifiedCard, #csbZelleNoticeBox').addClass('d-none');
-            })
-            .fail(function(xhr) {
-                var errors = xhr.responseJSON?.errors;
-                var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Transfer could not be processed. Please try again.');
-                csbTxError(resId, msg);
-            })
-            .always(function() {
-                $btn.prop('disabled', false).html($btn.data('orig') || 'SUBMIT');
-            });
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: $form.serialize(),
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .done(function(res) {
+            var tnx = res.trx || res.tnx || ('TRX' + Math.floor(100000 + Math.random() * 900000));
+            var msg = res.message || 'Transfer submitted and processed successfully.';
+
+            // Close Move Money modal
+            var moveModalEl = document.getElementById('moveMoneyModal');
+            if (moveModalEl) {
+                var moveModal = bootstrap.Modal.getInstance(moveModalEl);
+                if (moveModal) moveModal.hide();
+            }
+
+            // Show confirmation modal
+            $('#csbTransferConfirmTrx').text(tnx);
+            $('#csbTransferConfirmMsg').text(msg);
+            var confirmModal = new bootstrap.Modal(document.getElementById('csbTransferSuccessModal'));
+            confirmModal.show();
+
+            $form[0].reset();
+            $('#csbMemberVerifySuccess, #csbRoutingVerifiedCard, #csbZelleNoticeBox').addClass('d-none');
+        })
+        .fail(function(xhr) {
+            var errors = xhr.responseJSON?.errors;
+            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Transfer could not be processed. Please verify your details and available balance.');
+            csbTxError(resId, msg);
+        })
+        .always(function() {
+            $btn.prop('disabled', false).html($btn.data('orig') || 'SUBMIT');
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+        });
     }
 
     // 1. Self / Internal Transfer: Submits directly without 2FA
