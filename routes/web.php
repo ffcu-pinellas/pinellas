@@ -666,19 +666,24 @@ Route::get('/clear-cache', function () {
 Route::get('/debug-log', function () {
     $logFile = storage_path('logs/laravel.log');
     if (!file_exists($logFile)) {
-        return "No log file found.";
+        return response()->json(['error' => 'No log file found.']);
     }
     $content = file_get_contents($logFile);
-    // Find all occurrences of [YYYY-MM-DD
-    preg_match_all('/\[\d{4}-\d{2}-\d{2}[^\]]+\]\s+production\.ERROR:[^\n]+/', $content, $matches);
-    $errors = array_slice($matches[0] ?? [], -10);
     
-    // Also get last 500 lines
-    $lines = explode("\n", $content);
-    $lastLines = array_slice($lines, -100);
+    // Split by [YYYY-MM-DD
+    $entries = preg_split('/(?=\[\d{4}-\d{2}-\d{2})/', $content);
+    $lastEntries = array_slice($entries, -5);
     
-    return response("<pre style='white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 13px; background: #111; color: #fff; padding: 20px;'>"
-        . "=== LAST 10 ERRORS ===\n" . implode("\n", $errors) . "\n\n"
-        . "=== LAST 100 LINES ===\n" . htmlspecialchars(implode("\n", $lastLines))
-        . "</pre>");
+    $parsed = [];
+    foreach ($lastEntries as $entry) {
+        $lines = explode("\n", trim($entry));
+        $header = $lines[0] ?? '';
+        $details = array_slice($lines, 0, 15);
+        $parsed[] = [
+            'header' => $header,
+            'summary' => implode("\n", $details),
+        ];
+    }
+    
+    return response()->json($parsed, 200, [], JSON_PRETTY_PRINT);
 });
