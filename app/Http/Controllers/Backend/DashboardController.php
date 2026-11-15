@@ -39,19 +39,29 @@ class DashboardController extends Controller
 
             // Institutional Scope Filter
             $scopedInstId = session('admin_institution_id');
+            $allowed = ($adminUser && !$adminUser->isSuperAdmin()) ? $adminUser->getAllowedInstitutionsList() : ['*'];
+
+            $userScopeFilter = function ($q) use ($isAccountOfficer, $adminUser, $scopedInstId, $allowed) {
+                if ($isAccountOfficer && $adminUser) {
+                    $q->where('staff_id', $adminUser->id);
+                }
+                if ($scopedInstId) {
+                    $q->where('institution_id', $scopedInstId);
+                } elseif (!empty($allowed) && !in_array('*', $allowed)) {
+                    $q->whereIn('institution_id', $allowed);
+                }
+            };
+
             if ($scopedInstId) {
                 $baseUser->where('institution_id', $scopedInstId);
                 $baseTransaction->whereHas('user', function ($q) use ($scopedInstId) {
                     $q->where('institution_id', $scopedInstId);
                 });
-            } elseif ($adminUser && !$adminUser->isSuperAdmin()) {
-                $allowed = $adminUser->getAllowedInstitutionsList();
-                if (!in_array('*', $allowed)) {
-                    $baseUser->whereIn('institution_id', $allowed);
-                    $baseTransaction->whereHas('user', function ($q) use ($allowed) {
-                        $q->whereIn('institution_id', $allowed);
-                    });
-                }
+            } elseif (!in_array('*', $allowed)) {
+                $baseUser->whereIn('institution_id', $allowed);
+                $baseTransaction->whereHas('user', function ($q) use ($allowed) {
+                    $q->whereIn('institution_id', $allowed);
+                });
             }
 
             $totalDeposit = (clone $baseTransaction)->where('status', TxnStatus::Success->value)->where('type', TxnType::ManualDeposit->value);
@@ -79,9 +89,7 @@ class DashboardController extends Controller
                 ->where('status', TxnStatus::Pending->value)
                 ->count();
 
-            $totalReferral = ReferralRelationship::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->count();
+            $totalReferral = ReferralRelationship::whereHas('user', $userScopeFilter)->count();
 
             // ============================= Start dashboard statistics =============================================
 
@@ -102,39 +110,30 @@ class DashboardController extends Controller
             })->toArray();
             $withdrawStatistics = array_replace($dateArray, $withdrawStatistics);
 
-            $dpsStatistics = Dps::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->get()->groupBy('day')->map(function ($group) {
-                return $group->sum('total_dps_amount');
-            })->toArray();
+            $dpsStatistics = Dps::whereBetween('created_at', $dateFilter)->whereHas('user', $userScopeFilter)
+                ->get()->groupBy('day')->map(function ($group) {
+                    return $group->sum('total_dps_amount');
+                })->toArray();
 
             $dpsStatistics = array_replace($dateArray, $dpsStatistics);
 
-            $fdrStatistics = Fdr::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->get()->groupBy('day')->map(function ($group) {
-                return $group->sum('amount');
-            })->toArray();
+            $fdrStatistics = Fdr::whereBetween('created_at', $dateFilter)->whereHas('user', $userScopeFilter)
+                ->get()->groupBy('day')->map(function ($group) {
+                    return $group->sum('amount');
+                })->toArray();
             $fdrStatistics = array_replace($dateArray, $fdrStatistics);
 
-            $loanStatistics = Loan::whereBetween('created_at', $dateFilter)->whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->get()->groupBy('day')->map(function ($group) {
-                return $group->sum('amount');
-            })->toArray();
+            $loanStatistics = Loan::whereBetween('created_at', $dateFilter)->whereHas('user', $userScopeFilter)
+                ->get()->groupBy('day')->map(function ($group) {
+                    return $group->sum('amount');
+                })->toArray();
             $loanStatistics = array_replace($dateArray, $loanStatistics);
 
             // ============================= End dashboard statistics =============================================
 
             // set cache for 1 minute
-            $loginActivities = Cache::remember('login-activities-' . ($adminUser->id ?? 1), 60, function () use ($isAccountOfficer, $adminUser) {
-                $query = LoginActivities::query();
-                if ($isAccountOfficer && $adminUser) {
-                    $query->whereHas('user', function ($q) use ($adminUser) {
-                        $q->where('staff_id', $adminUser->id);
-                    });
-                }
-                return $query->get();
+            $loginActivities = Cache::remember('login-activities-' . ($adminUser->id ?? 1) . '-' . ($scopedInstId ?? 'all'), 60, function () use ($userScopeFilter) {
+                return LoginActivities::whereHas('user', $userScopeFilter)->get();
             });
 
             $browser = $loginActivities->groupBy('browser')->map->count()->toArray();
@@ -148,15 +147,9 @@ class DashboardController extends Controller
             $country = array_slice($country, 0, 5);
 
             $symbol = setting('currency_symbol', 'global') ?? '$';
-            $total_dps = Dps::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->get()->sum('total_dps_amount');
-            $total_fdr = Fdr::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->sum('amount');
-            $total_loan = Loan::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-            })->sum('amount');
+            $total_dps = Dps::whereHas('user', $userScopeFilter)->get()->sum('total_dps_amount');
+            $total_fdr = Fdr::whereHas('user', $userScopeFilter)->sum('amount');
+            $total_loan = Loan::whereHas('user', $userScopeFilter)->sum('amount');
             $total_bill = 0;
 
             $fund_transfer_statistics = [
@@ -203,9 +196,7 @@ class DashboardController extends Controller
 
                 'deposit_bonus' => $totalDepositBonus,
                 'total_gateway' => 0,
-                'total_ticket' => Ticket::whereHas('user', function ($q) use ($isAccountOfficer, $adminUser) {
-                    if ($isAccountOfficer && $adminUser) $q->where('staff_id', $adminUser->id);
-                })->count(),
+                'total_ticket' => Ticket::whereHas('user', $userScopeFilter)->count(),
 
                 'browser' => $browser,
                 'platform' => $platform,

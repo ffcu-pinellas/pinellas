@@ -276,6 +276,26 @@
         if (window.innerWidth < 992 && window.location.search.includes('focus=true')) {
             showProfileDetails();
         }
+
+        // Auto format phone number (XXX) XXX-XXXX
+        function formatPhoneNumber(val) {
+            let digits = (val || '').replace(/\D/g, '');
+            if (digits.length > 10) digits = digits.substring(0, 10);
+            if (digits.length === 0) return '';
+            if (digits.length <= 3) return '(' + digits;
+            if (digits.length <= 6) return '(' + digits.substring(0, 3) + ') ' + digits.substring(3);
+            return '(' + digits.substring(0, 3) + ') ' + digits.substring(3, 6) + '-' + digits.substring(6, 10);
+        }
+
+        const phoneInput = $('input[name="phone"]');
+        if (phoneInput.length) {
+            phoneInput.on('input', function() {
+                $(this).val(formatPhoneNumber($(this).val()));
+            });
+            if (phoneInput.val() && !phoneInput.val().includes('(')) {
+                phoneInput.val(formatPhoneNumber(phoneInput.val()));
+            }
+        }
     });
 </script>
 @endsection

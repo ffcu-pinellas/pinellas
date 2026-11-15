@@ -132,13 +132,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
-        $user = Auth::user();
-        $user->phone_verified = 0;
-        $user->save();
+        try {
+            $user = Auth::user();
+            if ($user) {
+                $user->phone_verified = 0;
+                $user->save();
+            }
+        } catch (\Throwable $e) {}
 
         Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        try {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        } catch (\Throwable $e) {}
 
         return to_route('login');
     }

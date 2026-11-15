@@ -11,8 +11,8 @@
                 <h6 class="settings-group-title text-muted fw-bold mb-2 px-3 pt-3" style="font-size: 11px; letter-spacing: 0.5px;">PERSONAL</h6>
                 <ul class="settings-nav-list list-unstyled m-0 p-0">
                     <li class="mb-0">
-                        <a href="javascript:void(0)" onclick="showProfileDetails()" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom">
-                            <i class="far fa-user-circle fs-5 text-muted" style="width: 24px; text-align: center;"></i> 
+                        <a href="{{ route('user.setting.show') }}" onclick="if(window.innerWidth < 992 && (window.location.pathname.endsWith('settings') || window.location.pathname.endsWith('settings/'))) { event.preventDefault(); showProfileDetails(); }" class="d-flex align-items-center gap-3 py-3 px-3 text-decoration-none text-dark fw-500 border-bottom {{ Request::routeIs('user.setting.show') ? 'bg-light fw-bold text-danger' : '' }}">
+                            <i class="far fa-user-circle fs-5 {{ Request::routeIs('user.setting.show') ? 'text-danger' : 'text-muted' }}" style="width: 24px; text-align: center;"></i> 
                             <span>Profile</span>
                         </a>
                     </li>

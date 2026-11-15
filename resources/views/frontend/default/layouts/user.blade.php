@@ -139,7 +139,11 @@
             flex-direction: column;
             flex-shrink: 0;
             transition: all 0.25s ease;
-            min-height: calc(100vh - 52px);
+            position: sticky;
+            top: 52px;
+            height: calc(100vh - 52px);
+            overflow: hidden;
+            z-index: 1020;
         }
         @media (max-width: 991.98px) {
             .csb-sidebar {
@@ -147,6 +151,7 @@
                 top: 52px;
                 left: 0;
                 bottom: 0;
+                height: calc(100vh - 52px);
                 z-index: 1050;
                 transform: translateX(-100%);
             }
@@ -197,6 +202,8 @@
             padding: 12px 0;
             margin: 0;
             flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
         .csb-nav-item {
             margin-bottom: 2px;
@@ -238,8 +245,11 @@
             color: #bbbbbb;
         }
         .csb-sidebar-footer {
-            padding: 16px 18px;
+            padding: 14px 18px;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background-color: #1e1e1e;
+            margin-top: auto;
+            flex-shrink: 0;
         }
         /* CSB Brand Crimson & Contrast System */
         :root {
@@ -878,6 +888,8 @@
             } else {
                 window.location.href = "{{ route('user.setting.show') }}?focus=true";
             }
+        } else {
+            window.location.href = "{{ route('user.setting.show') }}";
         }
     }
 

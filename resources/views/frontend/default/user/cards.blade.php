@@ -77,11 +77,15 @@
                                         <div class="cvv-strip">
                                             <span class="cvv-number">{{ $card->cvv ?? '***' }}</span>
                                         </div>
-                                        <div class="card-content p-4 position-relative z-1 mt-4 text-start">
-                                            <p class="text-white small fw-bold mb-1">Authorized Signature</p>
-                                            <div class="bg-white mb-3" style="height: 30px; opacity: 0.9;"></div>
-                                            <div class="text-white small fw-bold">
-                                                For customer service, call {{ $cardPhone }}. {{ $cardDisclaimer }}
+                                        <div class="card-content px-4 py-2 position-relative z-1 text-start">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="text-white-50 text-uppercase fw-semibold" style="font-size: 8.5px; letter-spacing: 0.5px;">Authorized Signature</span>
+                                                <span class="text-white-50 text-uppercase" style="font-size: 8px;">Not Valid Unless Signed</span>
+                                            </div>
+                                            <div class="bg-white rounded mb-2" style="height: 22px; opacity: 0.9;"></div>
+                                            <div class="text-white small fw-bold" style="font-size: 10px; line-height: 1.35;">
+                                                For 24/7 customer service, call <strong>{{ $cardPhone }}</strong>.<br>
+                                                {{ $cardDisclaimer }}
                                             </div>
                                         </div>
                                     </div>
@@ -310,17 +314,17 @@
         @endif
     }
     .black-strip {
-        height: 50px;
-        background: #000;
-        margin-top: 20px;
+        height: 40px;
+        background: #111;
+        margin-top: 16px;
         position: relative;
         z-index: 2;
     }
     .cvv-strip {
         background: white;
-        height: 30px;
-        width: 80%;
-        margin: 10px auto;
+        height: 28px;
+        width: 82%;
+        margin: 8px auto 4px auto;
         position: relative;
         z-index: 2;
         text-align: right;
@@ -331,7 +335,8 @@
         justify-content: flex-end;
         font-family: monospace;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 1rem;
+        border-radius: 4px;
     }
     .tracking-widest {
         letter-spacing: 0.15em;

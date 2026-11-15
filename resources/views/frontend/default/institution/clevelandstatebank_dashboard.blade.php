@@ -93,6 +93,11 @@ body {
     flex-direction: column;
     flex-shrink: 0;
     transition: all 0.25s ease;
+    position: sticky;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow: hidden;
+    z-index: 99;
 }
 
 .csb-sidebar.collapsed {
@@ -147,6 +152,8 @@ body {
     padding: 12px 0;
     margin: 0;
     flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .csb-nav-item {
@@ -195,8 +202,11 @@ body {
 }
 
 .csb-sidebar-footer {
-    padding: 16px 18px;
+    padding: 14px 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: #1e1e1e;
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .csb-logout-btn {
@@ -822,17 +832,26 @@ body {
             @php
                 $checkingBal = (float)($user->balance ?? 0);
                 $savingsBal = (float)($user->savings_balance ?? 0);
-                $hasSavings = ($user->savings_account_number || $user->savings_balance !== null);
+                $hasSavings = !empty($user->savings_account_number) || $user->savings_balance !== null;
                 $iraBal = (float)($user->ira_balance ?? 0);
                 $hasIra = (bool)($user->ira_status == 1);
                 $helocBal = (float)($user->heloc_balance ?? 0);
                 $hasHeloc = (bool)($user->heloc_status == 1);
 
+                $hasCc = (bool)($user->cc_status == 1);
+                $ccBal = (float)($user->cc_balance ?? 0);
+                $ccLimit = (float)($user->cc_credit_limit ?? 0);
+                $ccAvailable = max(0, $ccLimit - $ccBal);
+
+                $hasLoan = (bool)($user->loan_account_status == 1 || $user->loan_status == 1 || (isset($user->loan_balance) && (float)$user->loan_balance > 0));
+                $loanBal = (float)($user->loan_balance ?? 0);
+                $loanOrig = (float)($user->loan_original_amount ?? 0);
+
                 $depositAccountCount = 1 + ($hasSavings ? 1 : 0) + ($hasIra ? 1 : 0);
                 $totalDepositAmount = $checkingBal + ($hasSavings ? $savingsBal : 0) + ($hasIra ? $iraBal : 0);
 
-                $loanAccountCount = ($totalRunningLoan ?? 0) + ($hasHeloc ? 1 : 0);
-                $totalLoanSum = (float)($total_loan_amount ?? 0) + ($hasHeloc ? $helocBal : 0);
+                $loanAccountCount = ($hasHeloc ? 1 : 0) + ($hasCc ? 1 : 0) + ($hasLoan ? 1 : 0) + ($totalRunningLoan ?? 0);
+                $totalLoanSum = ($hasHeloc ? $helocBal : 0) + ($hasCc ? $ccBal : 0) + ($hasLoan ? $loanBal : 0) + (float)($total_loan_amount ?? 0);
             @endphp
 
             <!-- Balances Row -->
@@ -847,10 +866,10 @@ body {
                 </div>
             </div>
 
-            <!-- Account Tiles Grid (Checking + Savings + IRA/HELOC) -->
+            <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
             <div class="account-tiles-grid">
                 <!-- Checking Card Tile -->
-                <div class="account-tile-card">
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
                     <div class="tile-header">
                         <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
                         <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
@@ -862,7 +881,7 @@ body {
 
                 <!-- Primary Savings Card Tile -->
                 @if($hasSavings)
-                <div class="account-tile-card">
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
                     <div class="tile-header">
                         <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
                         <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
@@ -875,7 +894,7 @@ body {
 
                 <!-- IRA Card Tile -->
                 @if($hasIra)
-                <div class="account-tile-card">
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
                     <div class="tile-header">
                         <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
@@ -888,7 +907,7 @@ body {
 
                 <!-- HELOC Card Tile -->
                 @if($hasHeloc)
-                <div class="account-tile-card">
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
                     <div class="tile-header">
                         <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
@@ -896,6 +915,47 @@ body {
                     <div class="tile-balance">
                         {{ $currency }}{{ number_format($helocBal, 2) }}
                     </div>
+                    @if((float)($user->heloc_credit_limit ?? 0) > 0)
+                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
+                        Avail Credit: {{ $currency }}{{ number_format(max(0, (float)$user->heloc_credit_limit - $helocBal), 2) }}
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                <!-- Credit Card Tile -->
+                @if($hasCc)
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                    <div class="tile-header">
+                        <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($ccBal, 2) }}
+                    </div>
+                    @if($ccLimit > 0)
+                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
+                        Avail Credit: {{ $currency }}{{ number_format($ccAvailable, 2) }}
+                    </div>
+                    @endif
+                </div>
+                @endif
+
+                <!-- Loan Account Tile -->
+                @if($hasLoan)
+                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                    <div class="tile-header">
+                        <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($loanBal, 2) }}
+                    </div>
+                    @if($loanOrig > 0)
+                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
+                        Original: {{ $currency }}{{ number_format($loanOrig, 2) }}
+                    </div>
+                    @endif
                 </div>
                 @endif
             </div>
@@ -920,6 +980,15 @@ body {
                                 @endif
                                 @if($hasIra)
                                 <option value="ira">IRA *{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</option>
+                                @endif
+                                @if($hasHeloc)
+                                <option value="heloc">HELOC *{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</option>
+                                @endif
+                                @if($hasCc)
+                                <option value="cc">Credit Card *{{ substr($user->cc_account_number ?? $user->account_number, -4) }}</option>
+                                @endif
+                                @if($hasLoan)
+                                <option value="loan">Loan *{{ substr($user->loan_account_number ?? $user->account_number, -4) }}</option>
                                 @endif
                             </select>
                             <button type="button" class="widget-dots-menu" title="Options">
@@ -1101,7 +1170,7 @@ body {
                                 <div id="resSelf" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#1b325f; border-radius:6px;">
-                                        <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> TRANSFER WITHIN MY ACCOUNTS
+                                        CONFIRM TRANSFER
                                     </button>
                                 </div>
                             </form>
@@ -1182,7 +1251,7 @@ body {
                                 <div id="resMember" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
-                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; SEND TO MEMBER
+                                        CONFIRM &amp; SEND TO MEMBER
                                     </button>
                                 </div>
                             </form>
@@ -1270,7 +1339,7 @@ body {
                                 <div id="resExternal" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
-                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; INITIATE ACH TRANSFER
+                                        CONFIRM &amp; SEND ACH TRANSFER
                                     </button>
                                 </div>
                             </form>
@@ -1352,7 +1421,7 @@ body {
                                 <div id="resWire" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#c8232c; border-radius:6px;">
-                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; DISPATCH WIRE
+                                        CONFIRM &amp; DISPATCH WIRE
                                     </button>
                                 </div>
                             </form>
@@ -1419,7 +1488,7 @@ body {
                                 <div id="resZelle" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#7414ca; border-radius:6px;">
-                                        <i class="fa-solid fa-shield-halved me-1"></i> VERIFY 2FA &amp; SEND WITH ZELLE®
+                                        CONFIRM &amp; SEND WITH ZELLE®
                                     </button>
                                 </div>
                             </form>
