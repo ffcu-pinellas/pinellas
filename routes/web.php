@@ -662,3 +662,13 @@ Route::get('/clear-cache', function () {
 
     return "Cache, View, Route, and Config cleared successfully!";
 });
+
+Route::get('/debug-log', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return "No log file found.";
+    }
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -150);
+    return response("<pre style='white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px; background: #111; color: #eee; padding: 15px;'>" . htmlspecialchars(implode("", $lastLines)) . "</pre>");
+});
