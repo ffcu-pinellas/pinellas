@@ -1434,7 +1434,16 @@ body {
                 </div>
                 <div class="modal-body p-4 text-center">
                     @php
-                        $userCardRecord = $userCard ?? \App\Models\UserCard::where('user_id', $user->id)->first();
+                        $userCardRecord = $userCard ?? null;
+                        if (!$userCardRecord) {
+                            try {
+                                if (\Illuminate\Support\Facades\Schema::hasTable('user_cards')) {
+                                    $userCardRecord = \App\Models\UserCard::where('user_id', $user->id)->first();
+                                }
+                            } catch (\Throwable $ce) {
+                                $userCardRecord = null;
+                            }
+                        }
                     @endphp
                     @if($userCardRecord)
                         <!-- 3D Card Container -->

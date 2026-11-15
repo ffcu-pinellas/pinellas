@@ -83,6 +83,164 @@
         a:not(.btn):not(.dropdown-item):not(.nav-link) {
             color: {{ $currentInstitution->primary_color ?? '#c8232c' }};
         }
+
+        /* ── CSB Institution Topbars & Navigation ── */
+        .csb-fdic-topbar {
+            background-color: #ffffff;
+            padding: 6px 20px;
+            font-size: 11px;
+            color: #1a2d54;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #edf0f4;
+            position: sticky;
+            top: 0;
+            z-index: 1002;
+        }
+        .csb-fdic-badge {
+            font-weight: 900;
+            font-size: 12px;
+            color: #0b2246;
+            letter-spacing: 0.5px;
+        }
+        .csb-navbar-header {
+            background-color: #c8232c;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+        .csb-toggle-sidebar-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+        .csb-header-logo-img {
+            height: 30px;
+            width: auto;
+            max-width: 170px;
+            object-fit: contain;
+        }
+        .csb-sidebar {
+            width: 240px;
+            background-color: #262626;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+            min-height: calc(100vh - 52px);
+        }
+        @media (max-width: 991.98px) {
+            .csb-sidebar {
+                position: fixed;
+                top: 52px;
+                left: 0;
+                bottom: 0;
+                z-index: 1050;
+                transform: translateX(-100%);
+            }
+            .csb-sidebar.show {
+                transform: translateX(0);
+            }
+        }
+        .csb-user-profile-widget {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .csb-user-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: #3b5078;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .csb-user-info-text .user-name {
+            font-size: 13.5px;
+            font-weight: bold;
+            color: #ffffff;
+            line-height: 1.2;
+            margin-bottom: 3px;
+        }
+        .csb-user-info-text .manage-link {
+            font-size: 11.5px;
+            color: #94a3b8;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .csb-user-info-text .manage-link:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        .csb-nav-menu {
+            list-style: none;
+            padding: 12px 0;
+            margin: 0;
+            flex: 1;
+        }
+        .csb-nav-item {
+            margin-bottom: 2px;
+        }
+        .csb-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            color: #cfd8dc;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .csb-nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+        .csb-nav-link.active {
+            background-color: #383838;
+            color: #ffffff;
+            font-weight: bold;
+            border-left-color: #c8232c;
+        }
+        .csb-nav-section-title {
+            padding: 14px 18px 6px;
+            font-size: 11.5px;
+            font-weight: bold;
+            color: #888888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .csb-nav-section-title:hover {
+            color: #bbbbbb;
+        }
+        .csb-sidebar-footer {
+            padding: 16px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
         @if(!empty($currentInstitution->custom_css))
         {!! $currentInstitution->custom_css !!}
         @endif
@@ -240,108 +398,177 @@
 
 @include('global._notify')
 
-<div class="dashboard-wrapper">
-    <!-- Mobile Header -->
-    <header class="d-lg-none header-FrontField" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
-        <div class="d-flex align-items-center">
-            @php
-                $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
-                $portalLogo = $isCustomInst
-                    ? ($currentInstitution->logo_path ? asset('assets/' . $currentInstitution->logo_path) : asset('assets/institutions/clevelandstatebank/images/logo.png'))
-                    : asset('assets/external/images/logo.png');
-                $portalTitle = $isCustomInst
-                    ? $currentInstitution->name
-                    : (setting('site_title') ?? 'FrontField Credit Union');
-            @endphp
-            <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
-                <i class="fas fa-bars fa-lg"></i>
-            </button>
-            <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="height: 28px; max-width: 170px; object-fit: contain;">
-        </div>
-        <div class="dropdown">
-            <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
-                    {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
-                </div>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px; z-index: 1002;">
-                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
-                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
-                <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
-                <li><hr class="dropdown-divider my-1"></li>
-                <li class="px-3 py-1">
-                    <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
-                    <div class="btn-group w-100 btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="auto" title="System Theme"><i class="fas fa-adjust me-1"></i>Auto</button>
-                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="light" title="Light Mode"><i class="fas fa-sun me-1"></i>Light</button>
-                        <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $portalLogo = $isCustomInst
+        ? ($currentInstitution->logo_path ? asset('assets/' . $currentInstitution->logo_path) : asset('assets/institutions/clevelandstatebank/images/logo.png'))
+        : asset('assets/external/images/logo.png');
+    $portalTitle = $isCustomInst
+        ? $currentInstitution->name
+        : (setting('site_title') ?? 'FrontField Credit Union');
+@endphp
+
+@if($isCustomInst)
+    <!-- Top FDIC Notice -->
+    <div class="csb-fdic-topbar d-none d-md-flex">
+        <span class="csb-fdic-badge">FDIC</span>
+        <span>Cleveland State Bank &amp; Grenada State Bank — Member FDIC • Equal Housing Lender • Routing #{{ $currentInstitution->routing_number ?? '084301768' }}</span>
+    </div>
+
+    <!-- CSB Red Header Bar -->
+    <header class="csb-navbar-header">
+        <button class="csb-toggle-sidebar-btn" id="csbSidebarToggle" type="button" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        <a href="{{ route('user.dashboard') }}" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="{{ $portalTitle }}" class="csb-header-logo-img">
+        </a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <span class="d-none d-md-inline text-white small fw-bold">{{ $user->full_name }}</span>
+            <div class="dropdown">
+                <button class="btn p-0 border-0 bg-transparent text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="csb-user-avatar" style="width: 34px; height: 34px; font-size: 13px;">
+                        {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                     </div>
-                </li>
-                <li><hr class="dropdown-divider my-1"></li>
-                <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
-            </ul>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 8px; min-width: 200px; z-index: 1050;">
+                    <li><a class="dropdown-item py-2" href="{{ route('user.setting.show') }}"><i class="fa-solid fa-user-gear me-2 text-danger"></i> Profile &amp; Settings</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ route('user.notification.all') }}"><i class="fa-solid fa-bell me-2 text-danger"></i> Manage Alerts</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 text-danger fw-bold" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Sign Out</a></li>
+                </ul>
+            </div>
         </div>
     </header>
 
-    <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay"></div>
+    <div class="sidebar-overlay" id="csbOverlay"></div>
 
-    <!-- Banno Sidebar -->
-    <aside class="sidebar" id="content">
-        <div class="fi-logo" style="padding: 20px 24px;">
-             <a href="{{ route('home') }}" aria-label="Dashboard">
-                <img role="presentation" height="60" alt="{{ $portalTitle }}" src="{{ $portalLogo }}" style="max-width: 100%; height: auto; max-height: 52px; object-fit: contain;">
-            </a>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-th-large"></i> <span>Dashboard</span>
-            </a>
-            <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i> <span>Messages</span>
-            </a>
-            <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
-                <i class="fas fa-university"></i> <span>Accounts</span>
-            </a>
-            <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
-                <i data-lucide="repeat"></i> <span>Transfers</span>
-            </a>
-            <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.transfer.wire') ? 'active' : '' }}">
-                <i class="fas fa-paper-plane"></i> <span>Wire Transfer</span>
-            </a>
-            <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
-                <i class="fas fa-users"></i> <span>Member Transfers</span>
-            </a>
-            <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
-                <i class="fas fa-mobile-alt"></i> <span>Remote deposits</span>
-            </a>
-            <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
-                <i class="fas fa-file-invoice-dollar"></i> <span>Bill pay</span>
-            </a>
-            <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
-                <i class="fas fa-gift"></i> <span>Member Rewards</span>
-            </a>
-            <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
-                <i class="fas fa-headset"></i> <span>Support</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer p-0">
-            <div class="dropup w-100 sidebar-user-menu">
-                <div class="user-profile-banno toggle-button" style="cursor: pointer; padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
-                    <div class="user-avatar-banno" style="width: 32px; height: 32px; font-size: 14px;">
-                         <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-info-banno flex-grow-1">
-                        <div class="username text-truncate" style="max-width: 150px;">{{ strtoupper($user->full_name) }}</div>
-                    </div>
-                    <i class="fas fa-chevron-up small text-muted"></i>
+    <div class="d-flex" style="min-height: calc(100vh - 52px);">
+        <!-- CSB Sidebar -->
+        <aside class="csb-sidebar" id="csbSidebar">
+            <div class="csb-user-profile-widget">
+                <div class="csb-user-avatar">
+                    {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                 </div>
-                <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
-                    <li><a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-columns me-3 text-primary icon"></i><div>Organize dashboard</div></a></li>
-                    <li><a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-user-circle me-3 text-primary icon"></i><div>Settings</div></a></li>
-                    <li><a href="{{ route('user.notification.all') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="far fa-bell me-3 text-primary icon"></i><div>Alerts & Notifications</div></a></li>
+                <div class="csb-user-info-text">
+                    <div class="user-name">{{ $user->full_name }}</div>
+                    <a href="{{ route('user.setting.show') }}" class="manage-link">
+                        <i class="fa-solid fa-gear"></i> Manage Profile
+                    </a>
+                </div>
+            </div>
+
+            <ul class="csb-nav-menu">
+                <li class="csb-nav-item">
+                    <a href="{{ route('user.dashboard') }}" class="csb-nav-link {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
+                        <i class="fa-solid fa-landmark" style="width: 16px;"></i> Dashboard
+                    </a>
+                </li>
+                <li class="csb-nav-item">
+                    <a href="{{ route('user.accounts') }}" class="csb-nav-link {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
+                        <i class="fa-solid fa-file-invoice" style="width: 16px;"></i> Accounts
+                    </a>
+                </li>
+                <li class="csb-nav-section-title" data-bs-toggle="collapse" data-bs-target="#csbMenuPayTransfer">
+                    <span>Pay, Transfer, &amp; Receive</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                </li>
+                <div class="collapse show" id="csbMenuPayTransfer">
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.fund_transfer.index') }}" class="csb-nav-link {{ Request::routeIs('user.fund_transfer.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-money-bill-transfer" style="width: 16px;"></i> Move Money
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.remote_deposit') }}" class="csb-nav-link {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
+                            <i class="fa-solid fa-camera" style="width: 16px;"></i> Deposit Check
+                        </a>
+                    </li>
+                </div>
+                <li class="csb-nav-section-title" data-bs-toggle="collapse" data-bs-target="#csbMenuDocsSettings">
+                    <span>Documents &amp; Settings</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                </li>
+                <div class="collapse show" id="csbMenuDocsSettings">
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.documents.index') }}" class="csb-nav-link {{ Request::routeIs('user.documents.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-file-lines" style="width: 16px;"></i> Documents
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.transactions') }}" class="csb-nav-link {{ Request::routeIs('user.transactions') ? 'active' : '' }}">
+                            <i class="fa-solid fa-chart-column" style="width: 16px;"></i> Reports &amp; Statements
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.cards') }}" class="csb-nav-link {{ Request::routeIs('user.cards') ? 'active' : '' }}">
+                            <i class="fa-solid fa-credit-card" style="width: 16px;"></i> Manage Cards
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.notification.all') }}" class="csb-nav-link {{ Request::routeIs('user.notification.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-bell" style="width: 16px;"></i> Manage Alerts
+                        </a>
+                    </li>
+                </div>
+                <li class="csb-nav-section-title" data-bs-toggle="collapse" data-bs-target="#csbMenuConnect">
+                    <span>Connect with Us</span>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i>
+                </li>
+                <div class="collapse show" id="csbMenuConnect">
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.ticket.index') }}" class="csb-nav-link {{ Request::routeIs('user.ticket.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-envelope" style="width: 16px;"></i> Secure Messages
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="javascript:void(0)" class="csb-nav-link" onclick="if(document.getElementById('ava-trigger')) document.getElementById('ava-trigger').click();">
+                            <i class="fa-solid fa-comments" style="width: 16px; color: #c8232c;"></i> Ava Assistant
+                        </a>
+                    </li>
+                    <li class="csb-nav-item">
+                        <a href="{{ route('user.disputes.index') }}" class="csb-nav-link {{ Request::routeIs('user.disputes.*') ? 'active' : '' }}">
+                            <i class="fa-solid fa-triangle-exclamation" style="width: 16px; color: #f87171;"></i> Dispute Transaction
+                        </a>
+                    </li>
+                </div>
+            </ul>
+
+            <div class="csb-sidebar-footer">
+                <a href="{{ route('logout') }}" class="csb-nav-link text-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fa-solid fa-arrow-right-from-bracket" style="width: 16px;"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-grow-1 p-3 p-md-4" style="background-color: #f4f5f7; min-width: 0;">
+            <div class="container-fluid py-2">
+                @yield('content')
+            </div>
+        </main>
+    </div>
+@else
+    <!-- FrontField Credit Union Layout (Untouched) -->
+    <div class="dashboard-wrapper">
+        <!-- Mobile Header -->
+        <header class="d-lg-none header-FrontField" style="position: fixed; top: 0; width: 100%; z-index: 1001; background: var(--navigation-bar-color); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
+                    <i class="fas fa-bars fa-lg"></i>
+                </button>
+                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="height: 28px; max-width: 170px; object-fit: contain;">
+            </div>
+            <div class="dropdown">
+                <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
+                        {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px; z-index: 1002;">
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li class="px-3 py-1">
                         <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
@@ -351,28 +578,71 @@
                             <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
                         </div>
                     </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3 text-muted icon"></i><div>Sign out</div></a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
                 </ul>
             </div>
-        </div>
-    </aside>
+        </header>
 
-    <!-- Main Content Area -->
-    <main class="main-content-area" style="position: relative;">
-        <!-- Desktop Header (Top Right Profile) -->
-        <div class="d-none d-lg-flex justify-content-end align-items-center py-4 px-5 position-absolute top-0 end-0" style="z-index: 1000; pointer-events: none;">
-             <div style="pointer-events: auto;">
-                <div class="dropdown">
-                    <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
-                            {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Banno Sidebar -->
+        <aside class="sidebar" id="content">
+            <div class="fi-logo" style="padding: 20px 24px;">
+                 <a href="{{ route('home') }}" aria-label="Dashboard">
+                    <img role="presentation" height="60" alt="{{ $portalTitle }}" src="{{ $portalLogo }}" style="max-width: 100%; height: auto; max-height: 52px; object-fit: contain;">
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="{{ route('user.dashboard') }}" class="sidebar-nav-item {{ Request::routeIs('user.dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                </a>
+                <a href="{{ route('user.messages') }}" class="sidebar-nav-item {{ Request::routeIs('user.messages') ? 'active' : '' }}">
+                    <i class="fas fa-envelope"></i> <span>Messages</span>
+                </a>
+                <a href="{{ route('user.accounts') }}" class="sidebar-nav-item {{ Request::routeIs('user.accounts') ? 'active' : '' }}">
+                    <i class="fas fa-university"></i> <span>Accounts</span>
+                </a>
+                <a href="{{ route('user.fund_transfer.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.index') || Request::routeIs('user.fund_transfer.member') ? 'active' : '' }}">
+                    <i data-lucide="repeat"></i> <span>Transfers</span>
+                </a>
+                <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.transfer.wire') ? 'active' : '' }}">
+                    <i class="fas fa-paper-plane"></i> <span>Wire Transfer</span>
+                </a>
+                <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
+                    <i class="fas fa-users"></i> <span>Member Transfers</span>
+                </a>
+                <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
+                    <i class="fas fa-mobile-alt"></i> <span>Remote deposits</span>
+                </a>
+                <a href="{{ route('user.bill-pay.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.bill-pay.index') ? 'active' : '' }}">
+                    <i class="fas fa-file-invoice-dollar"></i> <span>Bill pay</span>
+                </a>
+                <a href="{{ route('user.rewards.index') }}" class="sidebar-nav-item {{ Request::routeIs('user.rewards.index') ? 'active' : '' }}">
+                    <i class="fas fa-gift"></i> <span>Member Rewards</span>
+                </a>
+                <a href="{{ route('user.messages') }}" class="sidebar-nav-item">
+                    <i class="fas fa-headset"></i> <span>Support</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer p-0">
+                <div class="dropup w-100 sidebar-user-menu">
+                    <div class="user-profile-banno toggle-button" style="cursor: pointer; padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--divider-default-color);">
+                        <div class="user-avatar-banno" style="width: 32px; height: 32px; font-size: 14px;">
+                             <i class="fas fa-user"></i>
                         </div>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px;">
-                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
-                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
-                        <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
+                        <div class="user-info-banno flex-grow-1">
+                            <div class="username text-truncate" style="max-width: 150px;">{{ strtoupper($user->full_name) }}</div>
+                        </div>
+                        <i class="fas fa-chevron-up small text-muted"></i>
+                    </div>
+                    <ul class="dropdown-menu banno-profile-dropdown border-0 shadow-lg w-100 p-2 sidebar-user-menu-dropup" style="border-radius: 12px; margin-bottom: 8px;">
+                        <li><a href="{{ route('user.dashboard') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-columns me-3 text-primary icon"></i><div>Organize dashboard</div></a></li>
+                        <li><a href="{{ route('user.setting.show') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="fas fa-user-circle me-3 text-primary icon"></i><div>Settings</div></a></li>
+                        <li><a href="{{ route('user.notification.all') }}" class="dropdown-item py-2 d-flex align-items-center"><i class="far fa-bell me-3 text-primary icon"></i><div>Alerts & Notifications</div></a></li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li class="px-3 py-1">
                             <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
@@ -382,18 +652,50 @@
                                 <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
                             </div>
                         </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-dark d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3 text-muted icon"></i><div>Sign out</div></a></li>
                     </ul>
                 </div>
-             </div>
-        </div>
+            </div>
+        </aside>
 
-        <div class="container-fluid py-4" style="min-height: 100%;">
-            @yield('content')
-        </div>
-    </main>
-</div>
+        <!-- Main Content Area -->
+        <main class="main-content-area" style="position: relative;">
+            <!-- Desktop Header (Top Right Profile) -->
+            <div class="d-none d-lg-flex justify-content-end align-items-center py-4 px-5 position-absolute top-0 end-0" style="z-index: 1000; pointer-events: none;">
+                 <div style="pointer-events: auto;">
+                    <div class="dropdown">
+                        <button class="btn p-0 border-0 bg-transparent" type="button" data-bs-toggle="dropdown">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 14px; border: 2px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; font-weight: 600;">
+                                {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                            </div>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg p-2" style="border-radius: 12px; min-width: 220px;">
+                            <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="far fa-user-circle me-3 text-muted"></i><span>Profile</span></a></li>
+                            <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.setting.show') }}"><i class="fas fa-cog me-3 text-muted"></i><span>Settings</span></a></li>
+                            <li><a class="dropdown-item py-2 d-flex align-items-center" href="{{ route('user.notification.all') }}"><i class="far fa-bell me-3 text-muted"></i><span>Alerts & Notifications</span></a></li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li class="px-3 py-1">
+                                <div class="small text-muted fw-bold mb-1" style="font-size: 10px; letter-spacing: 0.5px;">APPEARANCE</div>
+                                <div class="btn-group w-100 btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="auto" title="System Theme"><i class="fas fa-adjust me-1"></i>Auto</button>
+                                    <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="light" title="Light Mode"><i class="fas fa-sun me-1"></i>Light</button>
+                                    <button type="button" class="btn btn-outline-secondary py-1" data-theme-mode="dark" title="Dark Mode"><i class="fas fa-moon me-1"></i>Dark</button>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt me-3"></i><span>Sign out</span></a></li>
+                        </ul>
+                    </div>
+                 </div>
+            </div>
+
+            <div class="container-fluid py-4" style="min-height: 100%;">
+                @yield('content')
+            </div>
+        </main>
+    </div>
+@endif
 
 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
 
@@ -432,6 +734,26 @@
 
         if(toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar(); });
         if(overlay) overlay.addEventListener('click', toggleSidebar);
+
+        // CSB Sidebar Toggle
+        const csbToggle = document.getElementById('csbSidebarToggle');
+        const csbSidebar = document.getElementById('csbSidebar');
+        const csbOverlay = document.getElementById('csbOverlay');
+        if (csbToggle && csbSidebar) {
+            csbToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                csbSidebar.classList.toggle('show');
+                if (csbOverlay) csbOverlay.classList.toggle('show');
+                document.body.style.overflow = csbSidebar.classList.contains('show') ? 'hidden' : '';
+            });
+        }
+        if (csbOverlay) {
+            csbOverlay.addEventListener('click', function() {
+                if (csbSidebar) csbSidebar.classList.remove('show');
+                csbOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            });
+        }
 
         // Capacitor Android Back Button Handling
         if (window.Capacitor && window.Capacitor.Plugins.App) {

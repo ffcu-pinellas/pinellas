@@ -37,7 +37,7 @@
     @stack('style')
     @yield('style')
     <style>
-        {{ \App\Models\CustomCss::first()->css }}
+        {{ \App\Models\CustomCss::first()?->css ?? '' }}
     </style>
     @if(!empty($currentInstitution) && !$currentInstitution->is_default)
     {{-- ── Institution Theme Override ───────────────────────────────────── --}}

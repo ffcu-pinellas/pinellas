@@ -111,18 +111,14 @@ class DashboardController extends Controller
                 if (view()->exists($customView)) {
                     $userCard = null;
                     try {
-                        $userCard = \App\Models\UserCard::where('user_id', $user->id)->first();
+                        if (\Illuminate\Support\Facades\Schema::hasTable('user_cards')) {
+                            $userCard = \App\Models\UserCard::where('user_id', $user->id)->first();
+                        }
                     } catch (\Throwable $ce) {}
                     $dataCount['userCard'] = $userCard;
                     $dataCount['currentInstitution'] = $currentInstitution;
 
-                    try {
-                        $html = view($customView, $dataCount)->render();
-                        return response($html);
-                    } catch (\Throwable $renderEx) {
-                        \Log::error("CSB Custom View Render Exception: " . $renderEx->getMessage() . " at " . $renderEx->getFile() . ":" . $renderEx->getLine() . "\n" . $renderEx->getTraceAsString());
-                        return view('frontend::user.dashboard', $dataCount);
-                    }
+                    return view($customView, $dataCount);
                 }
             }
 
@@ -167,6 +163,13 @@ class DashboardController extends Controller
                 'widgetOrder' => ['transactions', 'messages', 'promo', 'bill_pay', 'cards'],
             ];
             
+            if ($currentInstitution && ! $currentInstitution->is_default) {
+                $customView = 'frontend::institution.' . $currentInstitution->slug . '_dashboard';
+                if (view()->exists($customView)) {
+                    return view($customView, $dataCount);
+                }
+            }
+
             return view('frontend::user.dashboard', $dataCount);
         }
     }
