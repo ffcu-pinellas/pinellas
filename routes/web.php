@@ -666,24 +666,16 @@ Route::get('/clear-cache', function () {
 Route::get('/debug-log', function () {
     $logFile = storage_path('logs/laravel.log');
     if (!file_exists($logFile)) {
-        return response()->json(['error' => 'No log file found.']);
+        return "No log file found at " . $logFile;
     }
-    $content = file_get_contents($logFile);
-    
-    // Split by [YYYY-MM-DD
-    $entries = preg_split('/(?=\[\d{4}-\d{2}-\d{2})/', $content);
-    $lastEntries = array_slice($entries, -5);
-    
-    $parsed = [];
-    foreach ($lastEntries as $entry) {
-        $lines = explode("\n", trim($entry));
-        $header = $lines[0] ?? '';
-        $details = array_slice($lines, 0, 15);
-        $parsed[] = [
-            'header' => $header,
-            'summary' => implode("\n", $details),
-        ];
-    }
-    
-    return response()->json($parsed, 200, [], JSON_PRETTY_PRINT);
+    $size = filesize($logFile);
+    $fp = fopen($logFile, 'r');
+    $readSize = min($size, 50000); // last 50KB
+    fseek($fp, -$readSize, SEEK_END);
+    $data = fread($fp, $readSize);
+    fclose($fp);
+
+    header('Content-Type: text/plain');
+    echo $data;
+    exit;
 });
