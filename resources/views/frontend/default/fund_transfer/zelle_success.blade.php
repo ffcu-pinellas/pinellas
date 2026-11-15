@@ -20,7 +20,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <img src="{{ $zelleLogo }}" alt="{{ $zelleTitle }}" style="height: 32px; max-width: 170px; object-fit: contain;">
                     <div style="width: 1px; height: 24px; background-color: rgba(255,255,255,0.3);"></div>
-                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" style="height: 22px; filter: brightness(0) invert(1); object-fit: contain;">
+                    <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 24px; width: auto; object-fit: contain;">
                 </div>
                 <a href="{{ route('user.dashboard') }}" class="text-white text-decoration-none fw-bold small" style="opacity: 0.8;">{{ __('Close') }}</a>
             </div>

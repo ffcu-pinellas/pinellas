@@ -1273,7 +1273,7 @@ body {
                         </li>
                         <li class="nav-item">
                             <button class="nav-link csb-zelle-pill" data-bs-toggle="pill" data-bs-target="#tab-zelle">
-                                <i class="fa-solid fa-bolt"></i> Zelle®
+                                <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="" style="height: 14px; width: 14px; vertical-align: -1px; margin-right: 4px;"> Zelle®
                             </button>
                         </li>
                     </ul>
@@ -1356,7 +1356,7 @@ body {
                                 <div id="resSelf" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#1b325f; border-radius:6px;">
-                                        CONFIRM TRANSFER
+                                        REVIEW TRANSFER &rarr;
                                     </button>
                                 </div>
                             </form>
@@ -1437,7 +1437,7 @@ body {
                                 <div id="resMember" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
-                                        CONFIRM &amp; SEND TO MEMBER
+                                        REVIEW &amp; SEND TO MEMBER &rarr;
                                     </button>
                                 </div>
                             </form>
@@ -1525,7 +1525,7 @@ body {
                                 <div id="resExternal" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; border-radius:6px;">
-                                        CONFIRM &amp; SEND ACH TRANSFER
+                                        REVIEW &amp; SEND ACH TRANSFER &rarr;
                                     </button>
                                 </div>
                             </form>
@@ -1607,7 +1607,7 @@ body {
                                 <div id="resWire" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#c8232c; border-radius:6px;">
-                                        CONFIRM &amp; DISPATCH WIRE
+                                        REVIEW &amp; DISPATCH WIRE &rarr;
                                     </button>
                                 </div>
                             </form>
@@ -1623,8 +1623,10 @@ body {
                                              alt="Cleveland State Bank" 
                                              style="height:26px; filter:brightness(0) invert(1);"
                                              onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}';">
-                                        <div style="width:1px; height:20px; background:rgba(255,255,255,0.4);"></div>
-                                        <span style="font-size:24px; font-weight:900; letter-spacing:0.5px;">Zelle®</span>
+                                        <div style="width:1px; height:22px; background:rgba(255,255,255,0.4);"></div>
+                                        <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" 
+                                             alt="Zelle®" 
+                                             style="height:26px; width:auto; object-fit:contain;">
                                     </div>
                                     <div class="extra-small opacity-75">Fast, safe and easy way to send money within minutes.</div>
                                 </div>
@@ -1674,7 +1676,7 @@ body {
                                 <div id="resZelle" class="csb-tx-result d-none mt-3"></div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn w-100 fw-bold text-white py-2" style="background:#7414ca; border-radius:6px;">
-                                        CONFIRM &amp; SEND WITH ZELLE®
+                                        REVIEW &amp; SEND WITH ZELLE® &rarr;
                                     </button>
                                 </div>
                             </form>
@@ -2014,28 +2016,126 @@ body {
         </div>
     </div>
 
+    {{-- ── 6.5. TRANSFER REVIEW MODAL ── --}}
+    <div class="modal fade" id="csbTransferReviewModal" tabindex="-1" aria-hidden="true" style="z-index: 2055;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content border-0 shadow-lg text-center" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #c8232c 0%, #8b0000 100%);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check fs-5"></i>
+                        <h5 class="modal-title fw-bold mb-0" style="font-size: 15px; letter-spacing: 0.5px;">REVIEW TRANSFER DETAILS</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" onclick="csbReturnToMoveMoney()"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <span class="badge px-3 py-2 rounded-pill font-monospace" id="csbReviewTypeBadge" style="background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 11.5px;">EXTERNAL ACH</span>
+                        <div class="display-6 fw-bold text-dark mt-2" id="csbReviewAmount">$0.00</div>
+                        <div class="extra-small text-muted" id="csbReviewFeeText">No Transfer Fee • Standard Settlement</div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-light text-start border mb-4" style="font-size: 13.5px;">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">From Account</span>
+                            <span class="fw-bold text-dark" id="csbReviewFromAcc">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Recipient / To</span>
+                            <span class="fw-bold text-dark text-end" id="csbReviewToAcc">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom d-none" id="csbReviewBankRow">
+                            <span class="text-muted">Receiving Bank</span>
+                            <span class="fw-bold text-dark text-end" id="csbReviewBank">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom d-none" id="csbReviewRoutingRow">
+                            <span class="text-muted">Routing / ABA</span>
+                            <span class="font-monospace text-dark" id="csbReviewRouting">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom" id="csbReviewFrequencyRow">
+                            <span class="text-muted">Frequency</span>
+                            <span class="fw-semibold text-dark" id="csbReviewFrequency">One-time Transfer</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom d-none" id="csbReviewMemoRow">
+                            <span class="text-muted">Memo / Purpose</span>
+                            <span class="text-dark text-end" id="csbReviewMemo">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between pt-2">
+                            <span class="text-muted">Estimated Delivery</span>
+                            <span class="text-success fw-bold" id="csbReviewDelivery">Immediate (Within minutes)</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary w-50 py-2 fw-semibold rounded-pill" onclick="csbReturnToMoveMoney()">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Edit Details
+                        </button>
+                        <button type="button" class="btn text-white w-50 py-2 fw-bold rounded-pill shadow-sm" id="csbReviewConfirmBtn" style="background: #c8232c;">
+                            Authorize &amp; Send <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- ── 7. TRANSFER SUCCESS CONFIRMATION MODAL ── --}}
     <div class="modal fade" id="csbTransferSuccessModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
             <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
                 <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.12); color: #16a34a; font-size: 28px;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <h4 class="fw-bold text-dark mb-1">Transfer Successful</h4>
-                <p class="text-muted small mb-3" id="csbTransferConfirmMsg">Your transfer has been processed and submitted successfully.</p>
-                <div class="p-3 rounded-3 bg-light text-start mb-4 border">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="text-muted small">Confirmation Ref</span>
-                        <span class="fw-bold font-monospace small" id="csbTransferConfirmTrx">TRX...</span>
+                <p class="text-muted small mb-2" id="csbTransferConfirmMsg">Your transfer has been processed and submitted successfully.</p>
+                
+                <div class="display-6 fw-bold text-dark mb-3" id="csbTransferConfirmAmount">$0.00</div>
+
+                <div class="p-3 rounded-3 bg-light text-start mb-3 border" style="font-size: 13px;">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Confirmation Ref</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="fw-bold font-monospace text-primary" id="csbTransferConfirmTrx">TRX...</span>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="navigator.clipboard.writeText($('#csbTransferConfirmTrx').text()); alert('Confirmation reference copied!');" title="Copy Reference"><i class="fa-regular fa-copy"></i></button>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <span class="text-muted small">Status</span>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Transfer Type</span>
+                        <span class="fw-semibold text-dark" id="csbTransferConfirmType">External ACH</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">From Account</span>
+                        <span class="fw-semibold text-dark" id="csbTransferConfirmFrom">Checking (*4864)</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Recipient / To</span>
+                        <span class="fw-semibold text-dark text-end" id="csbTransferConfirmTo">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom d-none" id="csbConfirmBankRow">
+                        <span class="text-muted">Receiving Institution</span>
+                        <span class="fw-semibold text-dark text-end" id="csbTransferConfirmBank">—</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Date &amp; Time</span>
+                        <span class="text-muted" id="csbTransferConfirmDate">Nov 15, 2026</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Transfer Fee</span>
+                        <span class="text-success fw-semibold">$0.00 (Free)</span>
+                    </div>
+                    <div class="d-flex justify-content-between pt-1">
+                        <span class="text-muted">Status</span>
                         <span class="badge bg-success-subtle text-success fw-semibold">Completed</span>
                     </div>
                 </div>
-                <button type="button" class="btn text-white w-100 py-2 fw-bold rounded-pill" style="background: #c8232c;" onclick="window.location.reload();">
-                    Done & Refresh Dashboard
-                </button>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary w-50 py-2 fw-semibold rounded-pill" onclick="window.print();">
+                        <i class="fa-solid fa-print me-1"></i> Print Receipt
+                    </button>
+                    <button type="button" class="btn text-white w-50 py-2 fw-bold rounded-pill" style="background: #c8232c;" onclick="window.location.reload();">
+                        Done &amp; Refresh
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2254,7 +2354,8 @@ body {
         if (val.length !== 9) return;
 
         if (!isValidAbaChecksumAch(val)) {
-            $('#csbRoutingStatus').html('<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> Invalid ABA Routing mod-10 checksum. Please check the 9 digits.</span>');
+            $('#csbRoutingStatus').html('<span class="text-warning fw-semibold"><i class="fa-solid fa-triangle-exclamation me-1"></i> ABA routing mod-10 unlisted. Please enter the bank name manually below.</span>');
+            $('#csbManualBankWrap').removeClass('d-none');
             return;
         }
 
@@ -2284,13 +2385,13 @@ body {
                     $('#csbRoutingStatus').html('<span class="text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> Institution recognized.</span>');
                     $('#csbManualBankWrap').addClass('d-none');
                 } else {
-                    $('#csbRoutingStatus').html('<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> Routing verified by checksum. Please provide institution name below.</span>');
+                    $('#csbRoutingStatus').html('<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Routing lookup unlisted. Please enter institution name below.</span>');
                     $('#csbManualBankWrap').removeClass('d-none');
                 }
             })
             .catch(function() {
                 $('#csbRoutingSpinner').hide();
-                $('#csbRoutingStatus').html('<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i> Verification service offline. Please enter bank name manually.</span>');
+                $('#csbRoutingStatus').html('<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Verification service offline. Please enter bank name manually.</span>');
                 $('#csbManualBankWrap').removeClass('d-none');
             });
         }, 300);
@@ -2359,12 +2460,91 @@ body {
         }, 400);
     }
 
+    // ── Transfer Review Flow Management ──
+    let pendingTransferExecution = null;
+
+    function csbOpenTransferReview(details, onConfirm) {
+        $('#csbReviewTypeBadge').text(details.badge || 'TRANSFER');
+        if (details.badgeBg) {
+            $('#csbReviewTypeBadge').css({ background: details.badgeBg, color: details.badgeColor || '#ffffff' });
+        } else {
+            $('#csbReviewTypeBadge').css({ background: 'rgba(200, 35, 44, 0.1)', color: '#c8232c' });
+        }
+        $('#csbReviewAmount').text(details.amount);
+        $('#csbReviewFromAcc').text(details.from);
+        $('#csbReviewToAcc').text(details.to);
+        
+        if (details.bank) {
+            $('#csbReviewBank').text(details.bank);
+            $('#csbReviewBankRow').removeClass('d-none');
+        } else {
+            $('#csbReviewBankRow').addClass('d-none');
+        }
+
+        if (details.routing) {
+            $('#csbReviewRouting').text(details.routing);
+            $('#csbReviewRoutingRow').removeClass('d-none');
+        } else {
+            $('#csbReviewRoutingRow').addClass('d-none');
+        }
+
+        $('#csbReviewFrequency').text(details.frequency || 'One-time Transfer');
+
+        if (details.memo) {
+            $('#csbReviewMemo').text(details.memo);
+            $('#csbReviewMemoRow').removeClass('d-none');
+        } else {
+            $('#csbReviewMemoRow').addClass('d-none');
+        }
+
+        $('#csbReviewDelivery').text(details.delivery || 'Immediate (Within minutes)');
+        $('#csbReviewFeeText').text(details.feeText || 'No Transfer Fee • Standard Settlement');
+
+        pendingTransferExecution = {
+            details: details,
+            callback: onConfirm
+        };
+
+        var moveModalEl = document.getElementById('moveMoneyModal');
+        if (moveModalEl) {
+            var moveModal = bootstrap.Modal.getInstance(moveModalEl);
+            if (moveModal) moveModal.hide();
+        }
+        var reviewModal = new bootstrap.Modal(document.getElementById('csbTransferReviewModal'));
+        reviewModal.show();
+    }
+
+    function csbReturnToMoveMoney() {
+        var reviewModalEl = document.getElementById('csbTransferReviewModal');
+        if (reviewModalEl) {
+            var revModal = bootstrap.Modal.getInstance(reviewModalEl);
+            if (revModal) revModal.hide();
+        }
+        var moveModal = new bootstrap.Modal(document.getElementById('moveMoneyModal'));
+        moveModal.show();
+    }
+
+    $('#csbReviewConfirmBtn').on('click', function() {
+        if (!pendingTransferExecution) return;
+        var exec = pendingTransferExecution;
+        
+        var reviewModalEl = document.getElementById('csbTransferReviewModal');
+        if (reviewModalEl) {
+            var revModal = bootstrap.Modal.getInstance(reviewModalEl);
+            if (revModal) revModal.hide();
+        }
+
+        exec.callback(exec.details);
+    });
+
     // ── Generic Transfer AJAX Dispatcher ──
-    function executeTransfer($form, resId, url) {
+    function executeTransfer($form, resId, url, details) {
         var $btn = $form.find('button[type=submit]');
         var origText = $btn.data('orig') || $btn.html();
         $btn.data('orig', origText);
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Processing Transfer...');
+
+        if (typeof window.showLoader === 'function') window.showLoader();
 
         $.ajax({
             url: url,
@@ -2379,23 +2559,36 @@ body {
             var tnx = res.trx || res.tnx || ('TRX' + Math.floor(100000 + Math.random() * 900000));
             var msg = res.message || 'Transfer submitted and processed successfully.';
 
-            // Close Move Money modal
-            var moveModalEl = document.getElementById('moveMoneyModal');
-            if (moveModalEl) {
-                var moveModal = bootstrap.Modal.getInstance(moveModalEl);
-                if (moveModal) moveModal.hide();
-            }
-
-            // Show confirmation modal
+            // Populate rich confirmation modal
             $('#csbTransferConfirmTrx').text(tnx);
             $('#csbTransferConfirmMsg').text(msg);
+            
+            if (details) {
+                $('#csbTransferConfirmAmount').text(details.amount);
+                $('#csbTransferConfirmType').text(details.badge || 'Transfer');
+                $('#csbTransferConfirmFrom').text(details.from);
+                $('#csbTransferConfirmTo').text(details.to);
+                if (details.bank) {
+                    $('#csbTransferConfirmBank').text(details.bank);
+                    $('#csbConfirmBankRow').removeClass('d-none');
+                } else {
+                    $('#csbConfirmBankRow').addClass('d-none');
+                }
+            }
+
+            var nowStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            $('#csbTransferConfirmDate').text(nowStr);
+
             var confirmModal = new bootstrap.Modal(document.getElementById('csbTransferSuccessModal'));
             confirmModal.show();
 
             $form[0].reset();
-            $('#csbMemberVerifySuccess, #csbRoutingVerifiedCard, #csbZelleNoticeBox').addClass('d-none');
+            $('#csbMemberVerifySuccess, #csbRoutingVerifiedCard, #csbZelleNoticeBox, #csbManualBankWrap').addClass('d-none');
         })
         .fail(function(xhr) {
+            var moveModal = new bootstrap.Modal(document.getElementById('moveMoneyModal'));
+            moveModal.show();
+
             var errors = xhr.responseJSON?.errors;
             var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Transfer could not be processed. Please verify your details and available balance.');
             csbTxError(resId, msg);
@@ -2406,28 +2599,73 @@ body {
         });
     }
 
-    // 1. Self / Internal Transfer: Submits directly without 2FA
+    // 1. Self / Internal Transfer
     $('#csbFormSelf').on('submit', function(e) {
         e.preventDefault();
-        var amt = parseFloat($('#csbSelfAmount').val()) || 0;
+        var $form = $(this);
+        var amt = parseFloat($form.find('input[name="amount"]').val()) || 0;
         if (amt <= 0) {
             csbTxError('#resSelf', 'Please enter a valid transfer amount.');
             return;
         }
-        executeTransfer($(this), '#resSelf', "{{ route('user.fund_transfer.transfer') }}");
+        var fromText = $('#csbSelfFromWallet option:selected').text().split('—')[0].trim();
+        var toText = $('#csbSelfToWallet option:selected').text().trim();
+        var memo = $form.find('input[name="purpose"]').val().trim();
+
+        var details = {
+            badge: 'SELF / INTERNAL TRANSFER',
+            badgeBg: 'rgba(27, 50, 95, 0.1)',
+            badgeColor: '#1b325f',
+            amount: '$' + amt.toFixed(2),
+            from: fromText,
+            to: toText,
+            delivery: 'Immediate (Within minutes)',
+            feeText: 'No Transfer Fee • Internal Transfer',
+            memo: memo
+        };
+
+        csbOpenTransferReview(details, function(d) {
+            executeTransfer($form, '#resSelf', "{{ route('user.fund_transfer.transfer') }}", d);
+        });
     });
 
     // 2. Member Transfer: Protected by 2FA Security Gate
     $('#csbFormMember').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
+        var amt = parseFloat($form.find('input[name="amount"]').val()) || 0;
+        if (amt <= 0) {
+            csbTxError('#resMember', 'Please enter a valid transfer amount.');
+            return;
+        }
         var accName = $('#csbMemberAccName').val();
         if (!accName) {
             csbTxError('#resMember', 'Please enter a valid recipient and wait for verification.');
             return;
         }
-        triggerSecurityGate(function() {
-            executeTransfer($form, '#resMember', "{{ route('user.fund_transfer.transfer') }}");
+        var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
+        var verifiedName = $('#csbMemberVerifiedName').text().trim() || accName;
+        var toMeta = $('#csbMemberVerifiedMeta').text().trim() || $('#csbMemberIdentifier').val();
+        var memo = $form.find('input[name="purpose"]').val().trim();
+        var freq = $form.find('select[name="frequency"] option:selected').text().trim();
+
+        var details = {
+            badge: 'MEMBER TRANSFER',
+            badgeBg: 'rgba(40, 98, 59, 0.1)',
+            badgeColor: '#28623b',
+            amount: '$' + amt.toFixed(2),
+            from: fromText,
+            to: verifiedName + (toMeta ? ' (' + toMeta + ')' : ''),
+            frequency: freq,
+            delivery: 'Immediate (Within seconds)',
+            feeText: 'No Transfer Fee • Instant Credit',
+            memo: memo
+        };
+
+        csbOpenTransferReview(details, function(d) {
+            triggerSecurityGate(function() {
+                executeTransfer($form, '#resMember', "{{ route('user.fund_transfer.transfer') }}", d);
+            });
         });
     });
 
@@ -2435,9 +2673,14 @@ body {
     $('#csbFormExternal').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
-        var routing = $('#csbExtRouting').val();
-        if (!isValidAbaChecksumAch(routing)) {
-            csbTxError('#resExternal', 'The 9-digit ABA routing number failed mod-10 checksum.');
+        var amt = parseFloat($form.find('input[name="amount"]').val()) || 0;
+        if (amt <= 0) {
+            csbTxError('#resExternal', 'Please enter a valid transfer amount.');
+            return;
+        }
+        var routing = $('#csbExtRouting').val().trim();
+        if (routing.length !== 9) {
+            csbTxError('#resExternal', 'Please enter a valid 9-digit ABA routing number.');
             return;
         }
         var acc1 = $('#csbExtAccNum').val();
@@ -2446,12 +2689,45 @@ body {
             csbTxError('#resExternal', 'Account numbers do not match. Please verify both fields.');
             return;
         }
-        if (!$('#csbResolvedBankId').val() && !$('#csbManualBankInput').val().trim()) {
-            csbTxError('#resExternal', 'Please enter the receiving bank name.');
+        var resolvedBank = $('#csbResolvedBankName').val().trim();
+        var manualBank = $('#csbManualBankInput').val().trim();
+        var bankName = resolvedBank || manualBank;
+
+        if (!bankName) {
+            $('#csbManualBankWrap').removeClass('d-none');
+            $('#csbManualBankInput').focus();
+            csbTxError('#resExternal', 'Routing lookup unlisted. Please enter the receiving bank name below to proceed.');
             return;
         }
-        triggerSecurityGate(function() {
-            executeTransfer($form, '#resExternal', "{{ route('user.fund_transfer.transfer') }}");
+
+        if (!resolvedBank && manualBank) {
+            $('#csbResolvedBankName').val(manualBank);
+        }
+
+        var recipientName = $('#csbExtAccName').val().trim();
+        var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
+        var memo = $form.find('input[name="purpose"]').val().trim();
+        var freq = $form.find('select[name="frequency"] option:selected').text().trim();
+
+        var details = {
+            badge: 'EXTERNAL ACH TRANSFER',
+            badgeBg: 'rgba(200, 35, 44, 0.1)',
+            badgeColor: '#c8232c',
+            amount: '$' + amt.toFixed(2),
+            from: fromText,
+            to: recipientName + ' (*' + acc1.slice(-4) + ')',
+            bank: bankName,
+            routing: routing,
+            frequency: freq,
+            delivery: '1–3 Business Days (Standard ACH)',
+            feeText: 'No Transfer Fee • Standard ACH Settlement',
+            memo: memo
+        };
+
+        csbOpenTransferReview(details, function(d) {
+            triggerSecurityGate(function() {
+                executeTransfer($form, '#resExternal', "{{ route('user.fund_transfer.transfer') }}", d);
+            });
         });
     });
 
@@ -2459,8 +2735,36 @@ body {
     $('#csbFormWire').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
-        triggerSecurityGate(function() {
-            executeTransfer($form, '#resWire', "{{ route('user.fund_transfer.transfer.wire.post') }}");
+        var amt = parseFloat($form.find('input[name="amount"]').val()) || 0;
+        if (amt <= 0) {
+            csbTxError('#resWire', 'Please enter a valid wire amount.');
+            return;
+        }
+        var wireType = $('#csbWireType').val();
+        var beneName = $form.find('input[name="beneficiary_name"]').val().trim();
+        var bankName = $form.find('input[name="bank_name"]').val().trim();
+        var routing = (wireType === 'international') ? $form.find('input[name="swift_code"]').val().trim() : $form.find('input[name="routing_number"]').val().trim();
+        var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
+        var memo = $form.find('input[name="memo"]').val().trim();
+
+        var details = {
+            badge: wireType === 'international' ? 'INTERNATIONAL SWIFT WIRE' : 'DOMESTIC FEDWIRE',
+            badgeBg: 'rgba(27, 50, 95, 0.15)',
+            badgeColor: '#1b325f',
+            amount: '$' + amt.toFixed(2),
+            from: fromText,
+            to: beneName,
+            bank: bankName,
+            routing: routing,
+            delivery: 'Same-Day Fedwire / SWIFT Clearing',
+            feeText: 'Wire Settlement • Reg E & Regulatory Review',
+            memo: memo
+        };
+
+        csbOpenTransferReview(details, function(d) {
+            triggerSecurityGate(function() {
+                executeTransfer($form, '#resWire', "{{ route('user.fund_transfer.transfer.wire.post') }}", d);
+            });
         });
     });
 
@@ -2468,8 +2772,44 @@ body {
     $('#csbFormZelle').on('submit', function(e) {
         e.preventDefault();
         var $form = $(this);
-        triggerSecurityGate(function() {
-            executeTransfer($form, '#resZelle', "{{ route('user.fund_transfer.zelle.submit') }}");
+        var amt = parseFloat($form.find('input[name="amount"]').val()) || 0;
+        if (amt <= 0) {
+            csbTxError('#resZelle', 'Please enter a valid transfer amount.');
+            return;
+        }
+        var contact = $('#csbZelleContact').val().trim();
+        if (!contact) {
+            csbTxError('#resZelle', 'Please enter a valid recipient phone or email.');
+            return;
+        }
+        var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
+        var enrolledSub = $('#csbZelleNoticeSub').text().trim();
+        var externalName = $form.find('input[name="external_name"]').val().trim();
+        var recipientDisplay = contact;
+        if (enrolledSub && enrolledSub.indexOf('Recipient:') !== -1) {
+            var extracted = enrolledSub.replace('Recipient:', '').split('•')[0].trim();
+            recipientDisplay = extracted + ' (' + contact + ')';
+        } else if (externalName) {
+            recipientDisplay = externalName + ' (' + contact + ')';
+        }
+        var memo = $form.find('input[name="purpose"]').val().trim();
+
+        var details = {
+            badge: 'ZELLE® INSTANT PAYMENT',
+            badgeBg: 'rgba(116, 20, 202, 0.12)',
+            badgeColor: '#7414ca',
+            amount: '$' + amt.toFixed(2),
+            from: fromText,
+            to: recipientDisplay,
+            delivery: 'Within minutes (Instant Zelle® Settlement)',
+            feeText: 'No Transfer Fee • Zelle® Network',
+            memo: memo
+        };
+
+        csbOpenTransferReview(details, function(d) {
+            triggerSecurityGate(function() {
+                executeTransfer($form, '#resZelle', "{{ route('user.fund_transfer.zelle.submit') }}", d);
+            });
         });
     });
 
