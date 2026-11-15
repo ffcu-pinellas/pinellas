@@ -519,7 +519,7 @@ body {
     text-decoration: underline;
 }
 
-/* Responsive */
+/* Responsive Layout */
 @media (max-width: 900px) {
     .dashboard-grid-2 {
         grid-template-columns: 1fr;
@@ -531,115 +531,149 @@ body {
         left: 0;
         z-index: 999;
     }
-    /* ── 3D Card Flip Styles ── */
-    .csb-card-flip-wrap {
-        perspective: 1000px;
-        height: 220px;
-        cursor: pointer;
-        margin: 0 auto 16px auto;
-        max-width: 360px;
-    }
-    .csb-card-flip-inner {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        text-align: left;
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        transform-style: preserve-3d;
-    }
-    .csb-card-flip-wrap.flipped .csb-card-flip-inner {
-        transform: rotateY(180deg);
-    }
-    .csb-card-face {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        left: 0;
-        top: 0;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        border-radius: 16px;
-        overflow: hidden;
-        color: #fff;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
-    }
-    .csb-card-front {
-        background: linear-gradient(135deg, #182848 0%, #0f172a 100%);
-        padding: 20px 22px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .csb-card-back {
-        background: linear-gradient(135deg, #182848 0%, #0f172a 100%);
-        transform: rotateY(180deg);
-        padding: 0;
-    }
-    .csb-card-magnetic-strip {
-        height: 40px;
-        background: #000;
-        margin-top: 18px;
-        width: 100%;
-    }
-    .csb-card-cvv-strip {
-        background: #e2e8f0;
-        height: 30px;
-        margin: 12px 20px 0 20px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-right: 12px;
-        color: #1e293b;
-        font-family: monospace;
-        font-weight: bold;
-        font-size: 13px;
-        letter-spacing: 2px;
-    }
+}
 
-    /* ── CSB 2FA Security Gate Overrides ── */
-    #securityGateModal .modal-content {
-        border-radius: 16px !important;
-        overflow: hidden;
-    }
-    #securityGateModal .modal-header {
-        background: #c8232c !important;
-        color: #fff !important;
-        padding: 16px 20px !important;
-    }
-    #securityGateModal .modal-header h5 {
-        color: #fff !important;
-        font-size: 15px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    #securityGateModal .btn-close {
-        filter: brightness(0) invert(1) !important;
-    }
-    #securityGateModal .primary-btn {
-        background: #c8232c !important;
-        border: none !important;
-        border-radius: 6px !important;
-        font-weight: bold !important;
-    }
-    #securityGateModal .method-card:hover:not([disabled]) {
-        border-color: #c8232c !important;
-        border-left-color: #c8232c !important;
-        background: #fdf2f2 !important;
-    }
-    #securityGateModal .method-icon {
-        background: rgba(200, 35, 44, 0.08) !important;
-        color: #c8232c !important;
-    }
-    #securityGateModal .key-btn.backspace {
-        color: #c8232c !important;
-    }
-    #securityGateModal .pin-dot.filled {
-        background-color: #c8232c !important;
-        border-color: #c8232c !important;
-    }
-    #securityGateModal .forgot-link {
-        color: #c8232c !important;
-    }
+/* ── Account Tiles Grid ── */
+.account-tiles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+.account-tiles-grid .account-tile-card {
+    flex: 1 1 280px;
+    max-width: 360px;
+    margin-bottom: 0;
+}
+
+/* ── CSB Crimson 3D Card Flip Styles ── */
+.csb-card-flip-wrap {
+    perspective: 1000px;
+    height: 220px;
+    cursor: pointer;
+    margin: 0 auto 16px auto;
+    max-width: 360px;
+    position: relative;
+}
+.csb-card-flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: left;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+.csb-card-flip-wrap.flipped .csb-card-flip-inner {
+    transform: rotateY(180deg);
+}
+.csb-card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    overflow: hidden;
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(139, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.csb-card-front {
+    background: linear-gradient(135deg, #c8232c 0%, #8b0000 50%, #4a0307 100%);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transform: rotateY(0deg);
+    position: relative;
+}
+.csb-card-front::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 85% 15%, rgba(255,255,255,0.22) 0%, transparent 60%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px);
+    pointer-events: none;
+}
+.csb-card-back {
+    background: linear-gradient(135deg, #c8232c 0%, #8b0000 50%, #4a0307 100%);
+    transform: rotateY(180deg);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.csb-card-magnetic-strip {
+    height: 42px;
+    background: #111111;
+    margin-top: 18px;
+    width: 100%;
+}
+.csb-card-cvv-strip {
+    background: #f8fafc;
+    height: 32px;
+    margin: 12px 20px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 14px;
+    color: #0f172a;
+    font-family: monospace;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 3px;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* ── CSB 2FA Security Gate Overrides ── */
+#securityGateModal .modal-content {
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+#securityGateModal .modal-header {
+    background: #c8232c !important;
+    color: #fff !important;
+    padding: 16px 20px !important;
+}
+#securityGateModal .modal-header h5 {
+    color: #fff !important;
+    font-size: 15px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+#securityGateModal .btn-close {
+    filter: brightness(0) invert(1) !important;
+}
+#securityGateModal .primary-btn {
+    background: #c8232c !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: bold !important;
+}
+#securityGateModal .method-card:hover:not([disabled]) {
+    border-color: #c8232c !important;
+    border-left-color: #c8232c !important;
+    background: #fdf2f2 !important;
+}
+#securityGateModal .method-icon {
+    background: rgba(200, 35, 44, 0.08) !important;
+    color: #c8232c !important;
+}
+#securityGateModal .key-btn.backspace {
+    color: #c8232c !important;
+}
+#securityGateModal .pin-dot.filled {
+    background-color: #c8232c !important;
+    border-color: #c8232c !important;
+}
+#securityGateModal .forgot-link {
+    color: #c8232c !important;
 }
 </style>
 </head>
@@ -688,7 +722,7 @@ body {
                     </a>
                 </li>
                 <li class="csb-nav-item">
-                    <a href="{{ route('user.dashboard') }}" class="csb-nav-link">
+                    <a href="{{ route('user.accounts') }}" class="csb-nav-link">
                         <i class="fa-solid fa-file-invoice" style="width: 16px;"></i> Accounts
                     </a>
                 </li>
@@ -785,33 +819,91 @@ body {
                 </div>
             </div>
 
+            @php
+                $checkingBal = (float)($user->balance ?? 0);
+                $savingsBal = (float)($user->savings_balance ?? 0);
+                $hasSavings = ($user->savings_account_number || $user->savings_balance !== null);
+                $iraBal = (float)($user->ira_balance ?? 0);
+                $hasIra = (bool)($user->ira_status == 1);
+                $helocBal = (float)($user->heloc_balance ?? 0);
+                $hasHeloc = (bool)($user->heloc_status == 1);
+
+                $depositAccountCount = 1 + ($hasSavings ? 1 : 0) + ($hasIra ? 1 : 0);
+                $totalDepositAmount = $checkingBal + ($hasSavings ? $savingsBal : 0) + ($hasIra ? $iraBal : 0);
+
+                $loanAccountCount = ($totalRunningLoan ?? 0) + ($hasHeloc ? 1 : 0);
+                $totalLoanSum = (float)($total_loan_amount ?? 0) + ($hasHeloc ? $helocBal : 0);
+            @endphp
+
             <!-- Balances Row -->
             <div class="balance-summary-row">
                 <div class="summary-block">
-                    <div class="summary-label">Total Deposits 1 Accounts</div>
-                    <div class="summary-amount">{{ $currency }}{{ number_format((float)($user->balance ?? 0), 2) }}</div>
+                    <div class="summary-label">Total Deposits {{ $depositAccountCount }} {{ $depositAccountCount === 1 ? 'Account' : 'Accounts' }}</div>
+                    <div class="summary-amount">{{ $currency }}{{ number_format($totalDepositAmount, 2) }}</div>
                 </div>
                 <div class="summary-block">
-                    <div class="summary-label">Total Loans 0 Accounts</div>
-                    <div class="summary-amount">{{ $currency }}{{ number_format($total_loan_amount ?? 0, 2) }}</div>
+                    <div class="summary-label">Total Loans {{ $loanAccountCount }} {{ $loanAccountCount === 1 ? 'Account' : 'Accounts' }}</div>
+                    <div class="summary-amount">{{ $currency }}{{ number_format($totalLoanSum, 2) }}</div>
                 </div>
             </div>
 
-            <!-- Checking Card Tile -->
-            <div class="account-tile-card">
-                <div class="tile-header">
-                    <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
-                    <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
+            <!-- Account Tiles Grid (Checking + Savings + IRA/HELOC) -->
+            <div class="account-tiles-grid">
+                <!-- Checking Card Tile -->
+                <div class="account-tile-card">
+                    <div class="tile-header">
+                        <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($checkingBal, 2) }}
+                    </div>
                 </div>
-                <div class="tile-balance">
-                    {{ $currency }}{{ number_format((float)($user->balance ?? 0), 2) }}
+
+                <!-- Primary Savings Card Tile -->
+                @if($hasSavings)
+                <div class="account-tile-card">
+                    <div class="tile-header">
+                        <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($savingsBal, 2) }}
+                    </div>
                 </div>
+                @endif
+
+                <!-- IRA Card Tile -->
+                @if($hasIra)
+                <div class="account-tile-card">
+                    <div class="tile-header">
+                        <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($iraBal, 2) }}
+                    </div>
+                </div>
+                @endif
+
+                <!-- HELOC Card Tile -->
+                @if($hasHeloc)
+                <div class="account-tile-card">
+                    <div class="tile-header">
+                        <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
+                        <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
+                    </div>
+                    <div class="tile-balance">
+                        {{ $currency }}{{ number_format($helocBal, 2) }}
+                    </div>
+                </div>
+                @endif
             </div>
 
             <!-- Actions Row -->
             <div class="accounts-btn-row">
-                <a href="{{ route('user.dashboard') }}" class="btn-view-all">View All Accounts</a>
-                <a href="javascript:void(0)" class="btn-add-account" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">Add Account</a>
+                <a href="{{ route('user.accounts') }}" class="btn-view-all">View All Accounts</a>
+                <a href="javascript:void(0)" class="btn-add-account" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">Move Money</a>
             </div>
 
             <!-- Two Column Lower Cards -->
@@ -821,8 +913,14 @@ body {
                     <div class="widget-header">
                         <h3>Recent Transactions</h3>
                         <div class="widget-controls">
-                            <select class="widget-dropdown-select">
-                                <option selected>Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
+                            <select class="widget-dropdown-select" id="csbTxnAccountSelect">
+                                <option value="checking" selected>Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
+                                @if($hasSavings)
+                                <option value="savings">Savings *{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</option>
+                                @endif
+                                @if($hasIra)
+                                <option value="ira">IRA *{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</option>
+                                @endif
                             </select>
                             <button type="button" class="widget-dots-menu" title="Options">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>

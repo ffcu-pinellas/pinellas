@@ -675,6 +675,11 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         return (bool) $this->getNotificationPreference('push_alerts_enabled', true);
     }
 
+    public function isPushAlertEnabled(): bool
+    {
+        return $this->isPushAlertsEnabled();
+    }
+
     protected static function booted(): void
     {
         static::created(function ($user) {

@@ -5,6 +5,9 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+@endphp
 <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
     <div class="col-xl-9 col-lg-8 col-md-12 col-12 d-none d-lg-block" id="settings-content-col">
@@ -16,15 +19,15 @@
         </div>
 
         <!-- Banno Profile Card (Image 5 Style) -->
-        <div class="site-card overflow-hidden border-0 shadow-sm mb-4" style="border-radius: 8px;">
+        <div class="site-card overflow-hidden border-0 shadow-sm mb-4" style="border-radius: 10px;">
             <div class="site-card-body p-0">
                 <div class="profile-header-banno p-4 d-flex align-items-start gap-3 bg-white border-bottom">
                     <div class="avatar-display position-relative flex-shrink-0">
-                         <div class="rounded-circle overflow-hidden d-flex align-items-center justify-content-center text-secondary fw-bold" style="width: 80px; height: 80px; background-color: #f0f2f5; font-size: 24px;">
+                         <div class="rounded-circle overflow-hidden d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 80px; height: 80px; background: {{ $isCustomInst ? 'linear-gradient(135deg, #c8232c 0%, #8b0000 100%)' : '#f0f2f5' }}; color: {{ $isCustomInst ? '#ffffff' : '#475569' }}; font-size: 26px;">
                             @if($user->avatar)
                                 <img src="{{ asset($user->avatar) }}" class="w-100 h-100 object-fit-cover" alt="Avatar">
                             @else
-                                Avatar
+                                {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
                             @endif
                          </div>
                          <button type="button" class="position-absolute bottom-0 end-0 bg-primary text-white border-0 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" onclick="$('#avatar_input').click()">
@@ -34,7 +37,7 @@
                     <div class="profile-name-info pt-1">
                         <h1 class="fw-bold mb-1 text-dark" style="font-size: 20px;">{{ $user->full_name }}</h1>
                         <div class="text-muted small" style="font-size: 13px; line-height: 1.4;">
-                             Member Since<br>
+                             {{ $isCustomInst ? 'Customer Since' : 'Member Since' }}<br>
                              {{ \Carbon\Carbon::parse($user->created_at)->format('M Y') }} • Account<br>
                              #{{ substr($user->account_number, 0, 4) . '***' . substr($user->account_number, -4) }}
                         </div>

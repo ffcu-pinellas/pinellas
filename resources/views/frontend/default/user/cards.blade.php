@@ -12,7 +12,7 @@
         : asset(setting('site_logo', 'global') ? (Str::startsWith(setting('site_logo', 'global'), 'assets/') ? setting('site_logo', 'global') : 'assets/'.setting('site_logo', 'global')) : 'assets/external/images/logo.png');
     $cardTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
     $cardPhone = $isCustomInst ? ($currentInstitution->support_phone ?? '662-843-9461') : (setting('site_phone') ?? '1-800-FRONTFIELD');
-    $cardBgGradient = $isCustomInst ? 'linear-gradient(135deg, #1e355b 0%, #0f1d33 100%)' : 'linear-gradient(135deg, #00549b 0%, #00305b 100%)';
+    $cardBgGradient = $isCustomInst ? 'linear-gradient(135deg, #c8232c 0%, #8b0000 50%, #4a0307 100%)' : 'linear-gradient(135deg, #00549b 0%, #00305b 100%)';
     $cardDisclaimer = $isCustomInst ? 'Member FDIC | Equal Housing Lender' : 'Federally Insured by NCUA';
 @endphp
 <div class="row justify-content-center">
@@ -299,10 +299,15 @@
         left: 0;
         width: 100%;
         height: 100%;
+        @if($isCustomInst)
+        background: radial-gradient(circle at 85% 15%, rgba(255,255,255,0.22) 0%, transparent 60%),
+                    repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px);
+        @else
         background-image: url('{{ asset('assets/external/images/bg-main.jpg') }}');
         background-size: cover;
         opacity: 0.3;
         mix-blend-mode: overlay;
+        @endif
     }
     .black-strip {
         height: 50px;

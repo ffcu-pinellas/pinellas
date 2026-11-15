@@ -312,7 +312,7 @@
                                                     <div class="small text-muted">Receive live popups on web & mobile</div>
                                                 </div>
                                                 <label class="banno-switch-lg flex-shrink-0">
-                                                    <input type="checkbox" name="push_alerts_enabled" id="push_alerts_enabled" value="1" {{ $user->isPushAlertEnabled() ? 'checked' : '' }}>
+                                                    <input type="checkbox" name="push_alerts_enabled" id="push_alerts_enabled" value="1" {{ (method_exists($user, 'isPushAlertsEnabled') ? $user->isPushAlertsEnabled() : ($user->isPushAlertEnabled() ?? false)) ? 'checked' : '' }}>
                                                     <span class="slider"></span>
                                                 </label>
                                             </div>

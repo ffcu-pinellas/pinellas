@@ -241,6 +241,59 @@
             padding: 16px 18px;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
+        /* CSB Brand Crimson & Contrast System */
+        :root {
+            --bs-primary: #c8232c;
+            --bs-primary-rgb: 200, 35, 44;
+            --primary-color: #c8232c;
+            --account-card-primary-background-color: #c8232c;
+        }
+        .btn-primary, .btn-custom-primary {
+            background-color: #c8232c !important;
+            border-color: #c8232c !important;
+            color: #ffffff !important;
+        }
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: #a81b24 !important;
+            border-color: #a81b24 !important;
+            color: #ffffff !important;
+        }
+        .btn-outline-primary {
+            color: #c8232c !important;
+            border-color: #c8232c !important;
+        }
+        .btn-outline-primary:hover {
+            background-color: #c8232c !important;
+            color: #ffffff !important;
+        }
+        .text-primary, a.text-primary {
+            color: #c8232c !important;
+        }
+        .bg-primary {
+            background-color: #c8232c !important;
+        }
+        .border-primary {
+            border-color: #c8232c !important;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #c8232c !important;
+            color: #ffffff !important;
+        }
+        .form-check-input:checked {
+            background-color: #c8232c !important;
+            border-color: #c8232c !important;
+        }
+        .settings-nav-list a:hover {
+            background-color: #fdf2f2;
+            color: #c8232c !important;
+        }
+        .settings-nav-list a:hover i {
+            color: #c8232c !important;
+        }
+        .site-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+        }
         @if(!empty($currentInstitution->custom_css))
         {!! $currentInstitution->custom_css !!}
         @endif

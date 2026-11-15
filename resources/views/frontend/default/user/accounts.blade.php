@@ -5,22 +5,49 @@
 @endsection
 
 @section('content')
-<!-- Banno Accounts Header (Blue Water Theme) -->
-<div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('{{ asset('assets/external/images/bg-main.jpg') }}') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
-    <div class="position-relative z-1">
-        <div class="d-flex align-items-center mb-2">
-            <a href="{{ route('user.dashboard') }}" class="back-nav-link bg-white bg-opacity-10 text-white">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="text-white display-5 fw-bold mb-0">Accounts</h1>
-        </div>
-        <div class="text-white opacity-75 small fw-600">{{ strtoupper((!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union')) }}</div>
-    </div>
-    <!-- Water ripple decoration -->
-    <div class="position-absolute bottom-0 start-0 w-100" style="height: 50px; background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);"></div>
-</div>
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $primaryBrandColor = $isCustomInst ? '#c8232c' : 'var(--account-card-primary-background-color, #0052cc)';
+@endphp
 
-<div class="row" style="margin-top: -80px;">
+@if($isCustomInst)
+    <!-- CSB Accounts Clean Header -->
+    <div class="csb-accounts-header mb-4 pt-1">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-light border" style="width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    <i class="fas fa-arrow-left text-dark"></i>
+                </a>
+                <div>
+                    <h1 class="fw-bold mb-0" style="color: #1e293b; font-size: 1.85rem; letter-spacing: -0.3px;">Accounts</h1>
+                    <div class="small fw-semibold text-uppercase" style="color: #64748b; font-size: 11.5px; letter-spacing: 0.5px;">{{ $currentInstitution->name }}</div>
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('user.fund_transfer.index') }}" class="btn text-white px-3 py-2 fw-bold" style="background-color: #c8232c; border-radius: 6px; font-size: 13.5px;">
+                    <i class="fa-solid fa-money-bill-transfer me-1"></i> Move Money
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+@else
+    <!-- Banno Accounts Header (Blue Water Theme - FrontField untouched) -->
+    <div class="accounts-header-banno overflow-hidden mb-5" style="background: var(--account-card-primary-background-color) url('{{ asset('assets/external/images/bg-main.jpg') }}') center/cover; margin: -32px -32px 32px -32px; padding: 64px 32px 100px 32px; position: relative; border-radius: 0 0 20px 20px;">
+        <div class="position-relative z-1">
+            <div class="d-flex align-items-center mb-2">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link bg-white bg-opacity-10 text-white">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-white display-5 fw-bold mb-0">Accounts</h1>
+            </div>
+            <div class="text-white opacity-75 small fw-600">{{ strtoupper(setting('site_title') ?? 'FrontField Credit Union') }}</div>
+        </div>
+        <!-- Water ripple decoration -->
+        <div class="position-absolute bottom-0 start-0 w-100" style="height: 50px; background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);"></div>
+    </div>
+    <div class="row" style="margin-top: -80px;">
+@endif
     <!-- Account Cards Grid -->
     <div class="col-12">
         <div class="row g-4">
@@ -33,7 +60,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Personal Checking</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">Personal Checking</h5>
                                 <div class="text-muted small">{{ auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -62,7 +89,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Primary Savings</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">Primary Savings</h5>
                                 <div class="text-muted small">{{ $savingsAccountNumber }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -90,7 +117,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">{{ $account->type }}</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">{{ $account->type }}</h5>
                                 <div class="text-muted small">{{ $account->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -121,7 +148,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">IRA Account</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">IRA Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -152,7 +179,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">HELOC Account</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">HELOC Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -184,7 +211,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Credit Card</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">Credit Card</h5>
                                 <div class="text-muted small">{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -216,7 +243,7 @@
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Loan Account</h5>
+                                <h5 class="fw-bold mb-0" style="color: {{ $primaryBrandColor }};">Loan Account</h5>
                                 <div class="text-muted small">{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
@@ -248,7 +275,7 @@
                         </div>
                         <h6 class="fw-bold">Open a new account</h6>
                         <p class="text-muted small px-3">Start earning more with our high-yield savings options.</p>
-                        <a href="{{ route('register') }}" class="btn btn-primary rounded-pill px-4 mt-2">Get started</a>
+                        <a href="{{ route('register') }}" class="btn {{ $isCustomInst ? 'btn-danger' : 'btn-primary' }} rounded-pill px-4 mt-2" style="{{ $isCustomInst ? 'background-color: #c8232c; border-color: #c8232c;' : '' }}">Get started</a>
                     </div>
                 </div>
             </div>
