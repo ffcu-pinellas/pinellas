@@ -440,9 +440,12 @@ class UserController extends Controller
             return back();
         }
 
+        $inst = $user->institution ?? null;
+        $instName = $inst ? $inst->name : (setting('site_title') ?? 'FrontField FCU');
+
         $shortcodes = [
             '[[full_name]]' => $user->full_name,
-            '[[message]]' => 'This is a test notification from FrontField FCU. Your device is correctly registered for mobile alerts.',
+            '[[message]]' => "This is a test notification from {$instName}. Your device is correctly registered for mobile alerts.",
         ];
 
         $this->pushNotify('new_user', $shortcodes, route('user.dashboard'), $user->id);

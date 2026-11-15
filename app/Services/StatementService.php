@@ -223,7 +223,11 @@ class StatementService
         $caption .= "💰 <b>Current Checking:</b> {$cur}" . number_format($user->balance, 2) . "\n";
         $caption .= "🏦 <b>Primary Savings:</b> {$cur}" . number_format($user->savings_balance, 2) . "\n";
         $caption .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $caption .= "🏛️ <i>FrontField Credit Union — NCUA Insured</i>";
+        $inst = $user->institution;
+        $isCustom = $inst && !$inst->is_default;
+        $instName = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+        $regulator = $isCustom ? ('Member ' . ($inst->regulator_type ?? 'FDIC')) : 'NCUA Insured';
+        $caption .= "🏛️ <i>{$instName} — {$regulator}</i>";
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/sendDocument";

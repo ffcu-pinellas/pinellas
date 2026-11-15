@@ -217,7 +217,11 @@ class DisputeController extends Controller
         $walletLabel = DisputeService::WALLET_LABELS[$dispute->wallet_type] ?? 'Checking (0010)';
         $pdf = Pdf::loadView('frontend::user.disputes.notice_pdf', compact('dispute', 'walletLabel'));
 
-        return $pdf->download("FrontField-Dispute-Notice-{$dispute->claim_number}.pdf");
+        $user = auth()->user();
+        $inst = $user ? $user->institution : null;
+        $slug = ($inst && !$inst->is_default) ? Str::slug($inst->name) : 'FrontField';
+
+        return $pdf->download("{$slug}-Dispute-Notice-{$dispute->claim_number}.pdf");
     }
 
     protected function storeEvidenceFile(UploadedFile $file): string

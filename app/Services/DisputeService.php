@@ -752,19 +752,22 @@ class DisputeService
 
         // 3. Branded email confirmation to member & assigned Account Officer
         $cur = setting('currency_symbol', 'global') ?: '$';
+        $inst = $user->institution ?? null;
+        $instTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
         $this->sendBrandedDisputeMail(
             $user->email,
             "Reg E Dispute Acknowledgement — Claim #{$dispute->claim_number}",
             'Transaction Dispute Received',
             "Dear {$user->full_name},",
-            "Thank you for contacting FrontField Credit Union Member Protection. Your Regulation E claim has been logged and assigned for review.<br><br>"
+            "Thank you for contacting {$instTitle} Member Protection. Your Regulation E claim has been logged and assigned for review.<br><br>"
             . "<strong>Claim Number:</strong> <code>{$dispute->claim_number}</code><br>"
             . "<strong>Transaction Reference:</strong> <code>{$txn->tnx}</code><br>"
             . "<strong>Disputed Amount:</strong> {$cur}" . number_format((float) $dispute->disputed_amount, 2) . "<br>"
             . "<strong>Reason:</strong> " . e($dispute->category_label) . "<br><br>"
             . "Under Regulation E guidelines, if our investigation requires more than 10 business days, eligible accounts may receive a provisional credit while review continues.",
             'View Claim Status',
-            route('user.disputes.show', $dispute->claim_number)
+            route('user.disputes.show', $dispute->claim_number),
+            $user
         );
 
         if ($user->staff_id) {
@@ -781,7 +784,8 @@ class DisputeService
                     . "• <strong>Category:</strong> " . e($dispute->category_label) . "<br>"
                     . "• <strong>Statement:</strong> " . e($dispute->description),
                     'Inspect Claim in Admin',
-                    route('admin.disputes.show', $dispute->id)
+                    route('admin.disputes.show', $dispute->id),
+                    $user
                 );
             }
         }
@@ -834,7 +838,8 @@ class DisputeService
             "Dear {$user->full_name},",
             $body,
             'View Claim & Timeline',
-            route('user.disputes.show', $dispute->claim_number)
+            route('user.disputes.show', $dispute->claim_number),
+            $user
         );
     }
 
@@ -878,20 +883,28 @@ class DisputeService
         string $salutation,
         string $bodyHtml,
         string $buttonLabel,
-        string $buttonLink
+        string $buttonLink,
+        ?User $user = null
     ): void {
         try {
-            $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
-            $logoSetting = setting('site_logo', 'global');
-            $logoRel = $logoSetting
-                ? (Str::startsWith($logoSetting, ['assets/', 'storage/']) ? $logoSetting : 'assets/' . ltrim($logoSetting, '/'))
-                : 'assets/external/images/logo.png';
+            $inst = $user ? ($user->institution ?? null) : null;
+            $isCustom = $inst && !$inst->is_default;
+            $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+            $logoRel = ($isCustom && $inst->logo_path)
+                ? $inst->logo_path
+                : (setting('site_logo', 'global') ?: 'assets/external/images/logo.png');
+            if (Str::startsWith($logoRel, 'assets/') === false && Str::startsWith($logoRel, 'storage/') === false) {
+                $logoRel = 'assets/' . ltrim($logoRel, '/');
+            }
             if (Str::contains($logoRel, 'fav')) {
-                $logoRel = 'assets/external/images/logo.png';
+                $logoRel = $isCustom ? 'assets/institutions/clevelandstatebank/images/logo.png' : 'assets/external/images/logo.png';
             }
             $logoPath = $this->resolveEvidenceFilePath($logoRel);
+            $siteLink = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+            $fromEmail = $inst->support_email ?? (setting('support_email', 'global') ?: 'notifications@frontfieldcu.pro');
 
             Mail::to($toEmail)->send(new \App\Mail\MailSend([
+                'from_email' => $fromEmail,
                 'from_name' => $siteTitle . ' Member Protection',
                 'subject' => $subject,
                 'title' => $title,
@@ -908,7 +921,7 @@ class DisputeService
                 'site_logo' => MailAsset::absolute($logoRel),
                 'site_logo_path' => $logoPath,
                 'site_title' => $siteTitle,
-                'site_link' => route('home'),
+                'site_link' => $siteLink,
             ]));
         } catch (\Throwable $e) {
             Log::error("Dispute email delivery failed for {$toEmail}: " . $e->getMessage());

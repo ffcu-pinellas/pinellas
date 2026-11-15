@@ -151,9 +151,18 @@ class DocumentSignatureController extends Controller
         }
 
         // Email executed PDF copy to Member + Issuing Staff Officer (if any)
-        $siteTitle = setting('site_title', 'global') ?: 'FrontField Credit Union';
+        $inst = $user->institution ?? null;
+        $isCustom = $inst && !$inst->is_default;
+        $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+        $siteLogo = ($isCustom && $inst->logo_path)
+            ? asset($inst->logo_path)
+            : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'));
+        $siteLink = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+        $supportEmail = $inst->support_email ?? (setting('support_email', 'global') ?: 'notifications@frontfieldcu.pro');
+
         try {
             $mailDetails = [
+                'from_email' => $supportEmail,
                 'from_name' => $siteTitle . ' E-Sign',
                 'subject' => "Executed Agreement Copy: {$docTitle}",
                 'title' => 'Document Electronically Signed',
@@ -168,9 +177,9 @@ class DocumentSignatureController extends Controller
                 'button_link' => route('user.documents.sign.show', $token),
                 'footer_status' => 1,
                 'bottom_status' => 0,
-                'site_logo' => setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'),
+                'site_logo' => $siteLogo,
                 'site_title' => $siteTitle,
-                'site_link' => route('home'),
+                'site_link' => $siteLink,
             ];
 
             if ($pdfOutput) {

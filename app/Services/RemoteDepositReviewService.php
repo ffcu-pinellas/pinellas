@@ -327,23 +327,26 @@ class RemoteDepositReviewService
      */
     public function rejectForRetake(int $depositId, string $reasonType = 'blurry'): array
     {
-        $retakeNote = match ($reasonType) {
-            'endorsement' => 'Missing Restrictive Endorsement: Please sign the back of the check and write "For Mobile Deposit Only at FrontField Credit Union", then capture and resubmit both check images.',
-            default => 'Blurry / Unreadable Check Image: Please place your check on a well-lit dark, flat surface with all four corners inside the frame and resubmit clear front and back photos.',
-        };
-
         $shortTitle = $reasonType === 'endorsement'
             ? 'Missing Endorsement'
             : 'Blurry / Unreadable Image';
 
-        $result = DB::transaction(function () use ($depositId, $retakeNote) {
-            $deposit = RemoteDeposit::with('user')->lockForUpdate()->find($depositId);
+        $result = DB::transaction(function () use ($depositId, $reasonType) {
+            $deposit = RemoteDeposit::with('user.institution')->lockForUpdate()->find($depositId);
             if (!$deposit) {
                 return ['success' => false, 'message' => "Remote Deposit #{$depositId} not found."];
             }
             if ($deposit->status !== 'pending') {
                 return ['success' => false, 'message' => "Deposit #{$depositId} was already {$deposit->status}."];
             }
+
+            $inst = $deposit->user ? $deposit->user->institution : null;
+            $instName = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+
+            $retakeNote = match ($reasonType) {
+                'endorsement' => "Missing Restrictive Endorsement: Please sign the back of the check and write \"For Mobile Deposit Only to {$instName}\", then capture and resubmit both check images.",
+                default => 'Blurry / Unreadable Check Image: Please place your check on a well-lit dark, flat surface with all four corners inside the frame and resubmit clear front and back photos.',
+            };
 
             $deposit->update([
                 'status' => 'rejected',
