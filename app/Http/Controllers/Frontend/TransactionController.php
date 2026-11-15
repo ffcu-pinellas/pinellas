@@ -40,8 +40,19 @@ class TransactionController extends Controller
         $wallet = request('wallet');
         $walletTypes = null;
         if ($wallet) {
-            if ($wallet === 'checking') {
-                $walletTypes = ['default', null];
+            $w = strtolower(trim($wallet));
+            if (in_array($w, ['checking', 'default'])) {
+                $walletTypes = ['default', null, 'checking'];
+            } elseif (in_array($w, ['savings', 'primary_savings'])) {
+                $walletTypes = ['primary_savings', 'savings', 'savings_primary'];
+            } elseif ($w === 'ira') {
+                $walletTypes = ['ira'];
+            } elseif ($w === 'heloc') {
+                $walletTypes = ['heloc'];
+            } elseif (in_array($w, ['cc', 'credit_card'])) {
+                $walletTypes = ['cc', 'credit_card'];
+            } elseif (in_array($w, ['loan', 'loan_account'])) {
+                $walletTypes = ['loan', 'loan_account'];
             } else {
                 $walletTypes = [$wallet];
             }

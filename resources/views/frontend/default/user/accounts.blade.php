@@ -66,7 +66,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'checking']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
@@ -95,7 +95,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'savings']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
@@ -123,8 +123,8 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="#">View activity</a></li>
-                                    <li><a class="dropdown-item" href="#">Transfer funds</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => $account->id]) }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'ira']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
@@ -185,7 +185,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'heloc']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
@@ -217,7 +217,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'cc']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Pay Bill</a></li>
                                 </ul>
                             </div>
@@ -249,7 +249,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions', ['wallet' => 'loan']) }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>

@@ -5,6 +5,13 @@
 @endsection
 
 @section('content')
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $brandPrimary = $isCustomInst ? '#c8232c' : 'var(--bs-primary, #00549b)';
+    $brandMemberTitle = $isCustomInst ? 'Another Client' : 'Another Member';
+    $brandMemberLabel = $isCustomInst ? ($currentInstitution->name . ' Client') : ((setting('site_title') ?? 'FrontField') . ' Member');
+    $brandMemberDesc = $isCustomInst ? ('Send instantly to a ' . $currentInstitution->name . ' client.') : 'Send instantly to a credit union member.';
+@endphp
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
         <div class="text-center mb-4">
@@ -63,9 +70,9 @@
                                 <div class="icon-circle bg-success bg-opacity-10 text-success mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-users fa-lg"></i>
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">Another Member</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">Send instantly to a credit union member.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">{{ setting('site_title') ?? 'FrontField' }} Member</p>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">{{ $brandMemberTitle }}</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">{{ $brandMemberDesc }}</p>
+                                <p class="x-small text-muted mb-0 d-md-none">{{ $brandMemberLabel }}</p>
                             </div>
                         </div>
                         <div class="col-6 col-md-6 col-xl-3">
@@ -350,6 +357,30 @@
 
 @section('style')
 <style>
+    @if($isCustomInst)
+    :root {
+        --primary-color: #c8232c;
+    }
+    .transfer-type-card.border-primary {
+        border-color: #c8232c !important;
+        background: rgba(200, 35, 44, 0.04) !important;
+    }
+    .step-indicator.active .step-circle {
+        background: #c8232c !important;
+        box-shadow: 0 4px 10px rgba(200, 35, 44, 0.25) !important;
+    }
+    .step-indicator.active {
+        color: #c8232c !important;
+    }
+    .btn-primary {
+        background-color: #c8232c !important;
+        border-color: #c8232c !important;
+    }
+    @endif
+    .title-responsive {
+        white-space: normal !important;
+        line-height: 1.25 !important;
+    }
     .wizard-step { transition: all 0.3s ease; }
     .cursor-pointer { cursor: pointer; }
     .transfer-type-card { transition: all 0.25s; border: 2px solid #edeff2 !important; background: #fff; }

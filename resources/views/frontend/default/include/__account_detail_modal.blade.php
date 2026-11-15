@@ -1,17 +1,24 @@
+@php
+    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $primaryBrandColor = $isCustomInst ? '#c8232c' : '#00549b';
+    $primaryBrandBg = $isCustomInst ? 'rgba(200, 35, 44, 0.1)' : 'rgba(0, 84, 155, 0.1)';
+    $routingNum = $isCustomInst ? ($currentInstitution->routing_number ?? '084301768') : (setting('site_routing_number') ?? '263177742');
+    $instName = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
+@endphp
 <div class="modal fade" id="accountDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 28px; background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);">
             <!-- Modal Header -->
             <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3">
-                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; background: rgba(0, 84, 155, 0.1); color: #00549b;">
+                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; background: {{ $primaryBrandBg }}; color: {{ $primaryBrandColor }};">
                         <i class="fas fa-university"></i>
                     </div>
                     <div>
                         <h5 class="modal-title fw-bold mb-0" id="modalAccountTitle" style="color: #0d1e3a; font-size: 1.25rem;">Account Details</h5>
                         <div class="d-flex align-items-center gap-2">
                             <span class="text-muted small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
-                            <button type="button" class="btn btn-link p-0 text-primary text-decoration-none small fw-bold" onclick="window.copyAccountNumber()" style="font-size: 0.75rem;">
+                            <button type="button" class="btn btn-link p-0 text-decoration-none small fw-bold" onclick="window.copyAccountNumber()" style="color: {{ $primaryBrandColor }}; font-size: 0.75rem;">
                                 <i class="far fa-copy me-1"></i>Copy
                             </button>
                         </div>
@@ -46,7 +53,7 @@
                             <!-- Card 2 -->
                             <div class="metric-card p-3 rounded-4 shadow-sm border border-white" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card2-icon" style="width: 40px; height: 40px; background: rgba(0, 84, 155, 0.1); color: #00549b;">
+                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card2-icon" style="width: 40px; height: 40px; background: {{ $primaryBrandBg }}; color: {{ $primaryBrandColor }};">
                                         <i class="fas fa-check-circle"></i>
                                     </div>
                                     <div>
@@ -70,7 +77,7 @@
                                         </div>
                                         <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
                                             <span class="small text-muted">Routing Number</span>
-                                            <span class="small fw-bold text-dark">{{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? ($currentInstitution->routing_number ?? '084301768') : (setting('site_routing_number') ?? '263177742') }}</span>
+                                            <span class="small fw-bold text-dark">{{ $routingNum }}</span>
                                         </div>
                                         <div class="d-flex justify-content-between">
                                             <span class="small text-muted">Next Statement</span>
@@ -92,10 +99,10 @@
             <div class="px-4 pb-4 pt-2">
                 <div class="row g-3">
                     <div class="col-6">
-                        <a href="{{ route('user.transactions') }}" id="btnViewActivity" class="btn btn-outline-primary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px;">View Activity</a>
+                        <a href="{{ route('user.transactions') }}" id="btnViewActivity" class="btn w-100 rounded-pill py-2 fw-bold" style="border: 2px solid {{ $primaryBrandColor }}; color: {{ $primaryBrandColor }};">View Activity</a>
                     </div>
                     <div class="col-6">
-                        <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: #00549b; border: none;">Transfer Funds</a>
+                        <a href="{{ route('user.fund_transfer.index') }}" id="btnTransferFunds" class="btn text-white w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: {{ $primaryBrandColor }}; border: none;">Transfer Funds</a>
                     </div>
                 </div>
                 <div id="directDepositRow" class="mt-3 d-none">
@@ -220,6 +227,26 @@
             }
         }
 
+        const isCustomInst = {{ $isCustomInst ? 'true' : 'false' }};
+        const brandPrimary = isCustomInst ? '#c8232c' : '#00549b';
+        const brandPrimaryBg = isCustomInst ? 'rgba(200, 35, 44, 0.1)' : 'rgba(0, 84, 155, 0.1)';
+
+        const transferBtn = document.getElementById('btnTransferFunds');
+        if (transferBtn && document.getElementById('moveMoneyModal')) {
+            transferBtn.onclick = function(e) {
+                e.preventDefault();
+                try {
+                    const accModal = bootstrap.Modal.getInstance(modalElem);
+                    if (accModal) accModal.hide();
+                    else $(modalElem).modal('hide');
+                    const moveModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('moveMoneyModal'));
+                    moveModal.show();
+                } catch (err) {
+                    window.location.href = "{{ route('user.fund_transfer.index') }}";
+                }
+            };
+        }
+
         const currency = "{{ setting('currency_symbol','$') }}";
         const fmt = (val) => currency + new Intl.NumberFormat().format(parseFloat(val || 0).toFixed(2));
 
@@ -235,13 +262,13 @@
             const available = parseFloat(limit || 0) - spent;
             series = [spent, available];
             labels = ['Used', 'Available'];
-            colors = ['#e31837', '#00ce8d'];
+            colors = [brandPrimary, '#00ce8d'];
             totalValue = parseFloat(limit || 0);
             totalLabel = "Credit Line";
             document.getElementById('card1-label').innerText = "Current Balance";
             document.getElementById('card1-value').innerText = fmt(spent);
-            document.getElementById('card1-icon').style.color = "#e31837";
-            document.getElementById('card1-icon').style.background = "rgba(227, 24, 55, 0.1)";
+            document.getElementById('card1-icon').style.color = brandPrimary;
+            document.getElementById('card1-icon').style.background = brandPrimaryBg;
             document.getElementById('card2-label').innerText = "Available Credit";
             document.getElementById('card2-value').innerText = fmt(available);
             document.getElementById('card2-icon').style.color = "#00ce8d";
@@ -251,13 +278,13 @@
             const remaining = parseFloat(balance || 0);
             series = [paid, remaining];
             labels = ['Paid Off', 'Remaining'];
-            colors = ['#00ce8d', '#00549b'];
+            colors = ['#00ce8d', brandPrimary];
             totalValue = parseFloat(limit || 0);
             totalLabel = "Original Loan";
             document.getElementById('card1-label').innerText = "Remaining Principal";
             document.getElementById('card1-value').innerText = fmt(remaining);
-            document.getElementById('card1-icon').style.color = "#00549b";
-            document.getElementById('card1-icon').style.background = "rgba(0, 84, 155, 0.1)";
+            document.getElementById('card1-icon').style.color = brandPrimary;
+            document.getElementById('card1-icon').style.background = brandPrimaryBg;
             document.getElementById('card2-label').innerText = "Amount Paid";
             document.getElementById('card2-value').innerText = fmt(paid);
             document.getElementById('card2-icon').style.color = "#00ce8d";
@@ -265,7 +292,7 @@
         } else {
             series = [parseFloat(balance || 0)];
             labels = ['Total Balance'];
-            colors = ['#00549b'];
+            colors = [brandPrimary];
             totalValue = parseFloat(balance || 0);
             totalLabel = "Total Value";
             document.getElementById('card1-label').innerText = "Current Balance";
@@ -274,8 +301,8 @@
             document.getElementById('card1-icon').style.background = "rgba(0, 206, 141, 0.1)";
             document.getElementById('card2-label').innerText = "Available Cash";
             document.getElementById('card2-value').innerText = fmt(balance);
-            document.getElementById('card2-icon').style.color = "#00549b";
-            document.getElementById('card2-icon').style.background = "rgba(0, 84, 155, 0.1)";
+            document.getElementById('card2-icon').style.color = brandPrimary;
+            document.getElementById('card2-icon').style.background = brandPrimaryBg;
         }
 
         // Show Modal ASAP

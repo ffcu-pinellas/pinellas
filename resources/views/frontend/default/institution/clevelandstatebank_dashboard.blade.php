@@ -554,6 +554,62 @@ body {
     flex: 1 1 280px;
     max-width: 360px;
     margin-bottom: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.account-tiles-grid .account-tile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* ── Mobile-Optimized Move Money Method Pills ── */
+.csb-transfer-methods-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+}
+.csb-transfer-methods-nav::-webkit-scrollbar {
+    display: none;
+}
+.csb-transfer-methods-nav .nav-item {
+    flex: 0 0 auto;
+}
+.csb-transfer-methods-nav .nav-link {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.csb-transfer-methods-nav .nav-link:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.csb-transfer-methods-nav .nav-link.active {
+    background: #c8232c !important;
+    color: #ffffff !important;
+    border-color: #c8232c !important;
+    box-shadow: 0 4px 10px rgba(200, 35, 44, 0.25);
+}
+.csb-transfer-methods-nav .nav-link.csb-zelle-pill {
+    color: #7414ca;
+    border-color: rgba(116, 20, 202, 0.2);
+}
+.csb-transfer-methods-nav .nav-link.csb-zelle-pill.active {
+    background: #7414ca !important;
+    color: #ffffff !important;
+    border-color: #7414ca !important;
+    box-shadow: 0 4px 10px rgba(116, 20, 202, 0.25);
 }
 
 /* ── CSB Crimson 3D Card Flip Styles ── */
@@ -869,7 +925,7 @@ body {
             <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
             <div class="account-tiles-grid">
                 <!-- Checking Card Tile -->
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', {{ $checkingBal }}, 0, 'checking')">
                     <div class="tile-header">
                         <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
                         <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
@@ -881,7 +937,7 @@ body {
 
                 <!-- Primary Savings Card Tile -->
                 @if($hasSavings)
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}', {{ $savingsBal }}, 0, 'savings')">
                     <div class="tile-header">
                         <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
                         <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
@@ -894,7 +950,7 @@ body {
 
                 <!-- IRA Card Tile -->
                 @if($hasIra)
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('IRA Account', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $iraBal }}, 0, 'ira')">
                     <div class="tile-header">
                         <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
@@ -907,7 +963,7 @@ body {
 
                 <!-- HELOC Card Tile -->
                 @if($hasHeloc)
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
                     <div class="tile-header">
                         <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
@@ -925,7 +981,7 @@ body {
 
                 <!-- Credit Card Tile -->
                 @if($hasCc)
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
                     <div class="tile-header">
                         <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}</span>
@@ -943,7 +999,7 @@ body {
 
                 <!-- Loan Account Tile -->
                 @if($hasLoan)
-                <div class="account-tile-card" role="button" onclick="window.location.href='{{ route('user.accounts') }}'">
+                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
                     <div class="tile-header">
                         <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
                         <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}</span>
@@ -1074,21 +1130,31 @@ body {
                         <span class="badge" style="background: rgba(200,35,44,0.1); color: #c8232c; font-weight: 600;">FDIC Insured Transfers</span>
                     </div>
 
-                    <ul class="nav nav-pills nav-fill mb-3" id="transferTab" role="tablist">
+                    <ul class="nav nav-pills csb-transfer-methods-nav mb-3" id="transferTab" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-self">Self / Internal</button>
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-self">
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i> Self / Internal
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">Member</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-member">
+                                <i class="fa-solid fa-users"></i> Client Transfer
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">External ACH</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-external">
+                                <i class="fa-solid fa-building-columns"></i> External ACH
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">Wire</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-wire">
+                                <i class="fa-solid fa-paper-plane"></i> Wire
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-zelle" style="color:#7414ca;font-weight:bold;">Zelle®</button>
+                            <button class="nav-link csb-zelle-pill" data-bs-toggle="pill" data-bs-target="#tab-zelle">
+                                <i class="fa-solid fa-bolt"></i> Zelle®
+                            </button>
                         </li>
                     </ul>
 
@@ -2249,5 +2315,8 @@ body {
             .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-file-circle-exclamation me-1"></i> FILE OFFICIAL DISPUTE'); });
     });
     </script>
+    <script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
+    @include('frontend::include.__account_detail_modal')
+    @stack('js')
 </body>
 </html>

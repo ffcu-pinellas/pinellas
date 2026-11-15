@@ -107,23 +107,42 @@
 
         <div class="site-card mb-4 p-4">
             <form id="filterForm">
-                <input type="hidden" name="wallet" value="{{ request('wallet') }}">
                 <div class="row g-3 align-items-end">
-                    <div class="col-lg-4">
+                    <div class="col-lg-3 col-md-6">
                         <label class="small text-muted mb-1 fw-bold">SEARCH</label>
                         <div class="input-group border-bottom">
                             <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-search text-muted"></i></span>
                             <input type="text" name="trx" class="form-control border-0 shadow-none" placeholder="Search by description or ID" value="{{ request('trx') }}">
                         </div>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-3 col-md-6">
+                        <label class="small text-muted mb-1 fw-bold">ACCOUNT</label>
+                        <select name="wallet" class="form-select border-0 border-bottom shadow-none rounded-0">
+                            <option value="" @selected(!request('wallet'))>All Accounts</option>
+                            <option value="checking" @selected(request('wallet') == 'checking')>Personal Checking</option>
+                            <option value="savings" @selected(request('wallet') == 'savings')>Primary Savings</option>
+                            @if(auth()->user()->ira_status == 1)
+                            <option value="ira" @selected(request('wallet') == 'ira')>IRA Account</option>
+                            @endif
+                            @if(auth()->user()->heloc_status == 1)
+                            <option value="heloc" @selected(request('wallet') == 'heloc')>HELOC Account</option>
+                            @endif
+                            @if(auth()->user()->cc_status == 1)
+                            <option value="cc" @selected(request('wallet') == 'cc')>Credit Card</option>
+                            @endif
+                            @if(auth()->user()->loan_account_status == 1)
+                            <option value="loan" @selected(request('wallet') == 'loan')>Loan Account</option>
+                            @endif
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
                         <label class="small text-muted mb-1 fw-bold">DATE RANGE</label>
                         <div class="input-group border-bottom">
                             <span class="input-group-text bg-transparent border-0 ps-0"><i class="fas fa-calendar-alt text-muted"></i></span>
                             <input type="text" name="daterange" class="form-control border-0 shadow-none" value="{{ request('daterange') }}" placeholder="All time">
                         </div>
                     </div>
-                    <div class="col-lg-3">
+                    <div class="col-lg-2 col-md-4">
                          <label class="small text-muted mb-1 fw-bold">TYPE</label>
                          <select name="type" class="form-select border-0 border-bottom shadow-none rounded-0">
                              <option value="all" @selected(request('type') == 'all')>All types</option>
@@ -133,7 +152,7 @@
                              <option value="pay_bill" @selected(request('type') == 'pay_bill')>Bill Payments</option>
                          </select>
                     </div>
-                    <div class="col-lg-2">
+                    <div class="col-lg-2 col-md-4">
                         <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Filter</button>
                     </div>
                 </div>
@@ -141,15 +160,26 @@
         </div>
 
         @if(request('wallet'))
+            @php
+                $walletMap = [
+                    'checking' => 'Personal Checking',
+                    'savings' => 'Primary Savings',
+                    'ira' => 'IRA Account',
+                    'heloc' => 'HELOC Account',
+                    'cc' => 'Credit Card',
+                    'loan' => 'Loan Account',
+                ];
+                $walletDisplay = $walletMap[strtolower(request('wallet'))] ?? (strtoupper(request('wallet')) . ' Account');
+            @endphp
             <div class="mb-4 d-flex align-items-center gap-2">
-                <div class="filter-chip active d-flex align-items-center gap-2" style="background: var(--primary-color, #00549b); border-color: var(--primary-color, #00549b); color: white;">
+                <div class="filter-chip active d-flex align-items-center gap-2" style="background: var(--bs-primary, var(--primary-color, #00549b)); border-color: var(--bs-primary, var(--primary-color, #00549b)); color: white;">
                     <i class="fas fa-university small opacity-75"></i>
-                    <span>{{ strtoupper(request('wallet')) }} Account</span>
+                    <span>{{ $walletDisplay }}</span>
                     <a href="{{ request()->fullUrlWithQuery(['wallet' => null]) }}" class="text-white ms-1 hover-opacity">
                         <i class="fas fa-times-circle"></i>
                     </a>
                 </div>
-                <div class="text-muted small">Showing results for this account only</div>
+                <div class="text-muted small">Showing transactions for {{ $walletDisplay }} only</div>
             </div>
         @endif
 
