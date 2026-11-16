@@ -44,14 +44,45 @@ class Handler extends ExceptionHandler
     public function register()
     {
         $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
-            notify()->error(__('Your session has expired. Please sign in again.'), __('Page Expired'));
-            
             $adminPrefix = setting('site_admin_prefix', 'global', 'admin');
-            if ($request->is($adminPrefix) || $request->is($adminPrefix . '/*')) {
-                return redirect()->route('admin.login-view');
+            $targetRoute = ($request->is($adminPrefix) || $request->is($adminPrefix . '/*')) ? route('admin.login-view') : route('login');
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => false,
+                    'session_expired' => true,
+                    'message' => __('Your session has expired. Please sign in again to continue.'),
+                    'redirect' => $targetRoute
+                ], 419);
             }
-            
-            return redirect()->route('login');
+
+            try {
+                notify()->error(__('Your session has expired. Please sign in again.'), __('Session Expired'));
+            } catch (\Throwable $ne) {}
+
+            return redirect()->to($targetRoute);
+        });
+
+        $this->renderable(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, $request) {
+            if ($e->getStatusCode() === 419) {
+                $adminPrefix = setting('site_admin_prefix', 'global', 'admin');
+                $targetRoute = ($request->is($adminPrefix) || $request->is($adminPrefix . '/*')) ? route('admin.login-view') : route('login');
+
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => false,
+                        'session_expired' => true,
+                        'message' => __('Your session has expired. Please sign in again to continue.'),
+                        'redirect' => $targetRoute
+                    ], 419);
+                }
+
+                try {
+                    notify()->error(__('Your session has expired. Please sign in again.'), __('Session Expired'));
+                } catch (\Throwable $ne) {}
+
+                return redirect()->to($targetRoute);
+            }
         });
 
         $this->reportable(function (Throwable $e) {

@@ -78,13 +78,8 @@ class AuthenticatedSessionController extends Controller
         }
         // ─────────────────────────────────────────────────────────────────────
         
-        // Trusted Device Check
-        $trustedCookie = request()->cookie('trusted_device');
-        $expectedToken = hash('sha256', $user->email . '|' . $user->id);
-        $isTrusted = ($trustedCookie === $expectedToken);
-
-        // Enforce 2FA Security Gate on untrusted login (unless explicitly set to 'none')
-        if (!$isTrusted && $user->security_preference !== 'none') {
+        // Enforce 2FA Security Gate on user login
+        if ($user->security_preference !== 'none') {
             session()->put('login_mfa_pending', true);
             return redirect()->route('login.verify.show');
         }

@@ -414,13 +414,17 @@ class SettingController extends Controller
     public function updateSecurityPreference(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'preference' => 'required|in:none,pin,email,always_ask'
+            'preference' => 'required|in:none,pin,email,always_ask,biometrics'
         ]);
 
         if ($validator->fails()) {
             notify()->error(__('Invalid security preference.'));
             return back();
         }
+
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE users MODIFY COLUMN security_preference VARCHAR(32) DEFAULT 'always_ask'");
+        } catch (\Throwable $e) {}
 
         Auth::user()->update(['security_preference' => $request->preference]);
 

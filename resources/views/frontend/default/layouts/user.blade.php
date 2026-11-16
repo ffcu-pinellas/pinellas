@@ -565,7 +565,7 @@
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.cards') }}" class="csb-nav-link {{ Request::routeIs('user.cards') ? 'active' : '' }}">
+                        <a href="javascript:void(0)" class="csb-nav-link" data-bs-toggle="modal" data-bs-target="#manageCardsModal">
                             <i class="fa-solid fa-credit-card" style="width: 16px;"></i> Manage Cards
                         </a>
                     </li>
@@ -1030,6 +1030,7 @@
     </script>
     @include('frontend::user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
+    @include('frontend::include.__manage_cards_modal')
     @stack('modals')
     @include('frontend::user.partials.inactivity_modal')
 </body>

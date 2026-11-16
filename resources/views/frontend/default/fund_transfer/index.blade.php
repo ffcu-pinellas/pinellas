@@ -14,37 +14,47 @@
 @endphp
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
-        <div class="text-center mb-4">
-            @if($isCustomInst)
-                <div class="small fw-bold text-uppercase mb-1" style="color: #c8232c; letter-spacing: 1.2px; font-size: 11px;">
-                    <i class="fa-solid fa-building-columns me-1"></i> Cleveland State Bank &bull; Member FDIC &bull; Routing #084301768
+        <!-- CSB Institutional Header -->
+        <div class="csb-transfer-hero mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #1b325f 0%, #0d1b2a 100%); color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-outline-light rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="badge rounded-pill text-uppercase px-2 py-1" style="background: #c8232c; font-size: 10px; letter-spacing: 0.8px;">
+                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured Transfers
+                            </span>
+                            <span class="text-white-50 font-monospace small" style="font-size: 11px;">ABA #084301768</span>
+                        </div>
+                        <h3 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">Move Money &amp; Transfers</h3>
+                    </div>
                 </div>
-            @endif
-            <div class="d-flex align-items-center justify-content-center mb-2">
-                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-                <h2 class="mb-0 fw-bold">Transfer Funds</h2>
+                <div class="text-sm-end text-white-50 small d-none d-md-block" style="font-size: 12px; line-height: 1.4;">
+                    <strong class="text-white">Cleveland State Bank</strong><br>
+                    Official NACHA ACH &amp; Real-Time Network
+                </div>
             </div>
-            <p class="text-muted small">Send money securely to other banks, members, or between your accounts.</p>
         </div>
 
-        <div class="banno-card p-0 mb-4 shadow-sm">
-            <div class="wizard-header p-3 p-md-4 border-bottom bg-light">
+        <div class="banno-card p-0 mb-4 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; background: #ffffff;">
+            <!-- Executive Step Header -->
+            <div class="wizard-header px-4 py-3 border-bottom" style="background: #f8fafc;">
                 <div class="d-flex justify-content-between align-items-center flex-row">
                     <div class="step-indicator active d-flex align-items-center" data-step="1">
                         <div class="step-circle me-2">1</div>
-                        <span class="d-none d-sm-inline">Type</span>
+                        <span class="d-none d-sm-inline fw-semibold">Transfer Type</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
                     <div class="step-indicator d-flex align-items-center" data-step="2">
                         <div class="step-circle me-2">2</div>
-                        <span class="d-none d-sm-inline">Details</span>
+                        <span class="d-none d-sm-inline fw-semibold">Transfer Details</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
                     <div class="step-indicator d-flex align-items-center" data-step="3">
                         <div class="step-circle me-2">3</div>
-                        <span class="d-none d-sm-inline">Review</span>
+                        <span class="d-none d-sm-inline fw-semibold">Review &amp; Authorize</span>
                     </div>
                 </div>
             </div>
@@ -55,50 +65,77 @@
                 <input type="hidden" name="bank_id" id="resolvedBankId">
                 
                 <!-- Step 1: Transfer Type -->
-                <div class="wizard-step active p-3 p-md-5" id="step1">
-                    <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
-                    <div class="row g-2 g-md-4 justify-content-center px-2 px-md-0">
-                        <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
+                <div class="wizard-step active p-4 p-md-5" id="step1">
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold text-dark mb-1">Select Transfer Method</h4>
+                        <p class="text-muted small">Choose how you want to route funds securely.</p>
+                    </div>
+
+                    <div class="row g-3 justify-content-center">
+                        <!-- Option 1: Internal -->
+                        <div class="col-md-6 col-12">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
-                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
-                                    <i class="fas fa-wallet fa-lg"></i>
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
+                                    <i class="fa-solid fa-wallet"></i>
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">My Accounts</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">Transfer between checking and savings.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">My Accounts</p>
+                                <div style="flex: 1;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold text-dark mb-0">Between My Accounts</h6>
+                                        <span class="badge bg-success-subtle text-success small font-monospace" style="font-size: 10px;">Immediate</span>
+                                    </div>
+                                    <p class="small text-muted mb-0">Transfer funds between Checking, Savings, IRA, or Loan pay-downs.</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
+
+                        <!-- Option 2: Another Member -->
+                        <div class="col-md-6 col-12">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
-                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
-                                    <i class="fas fa-users fa-lg"></i>
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(27, 50, 95, 0.08); color: #1b325f; font-size: 20px;">
+                                    <i class="fa-solid fa-users"></i>
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">{{ $brandMemberTitle }}</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">{{ $brandMemberDesc }}</p>
-                                <p class="x-small text-muted mb-0 d-md-none">{{ $brandMemberLabel }}</p>
+                                <div style="flex: 1;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold text-dark mb-0">{{ $brandMemberTitle }}</h6>
+                                        <span class="badge bg-primary-subtle text-primary small font-monospace" style="font-size: 10px;">Instant Member</span>
+                                    </div>
+                                    <p class="small text-muted mb-0">{{ $brandMemberDesc }} Verified member-to-member routing.</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
-                                <div class="icon-circle mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive" style="background-color: rgba(116, 27, 107, 0.1);">
-                                    <img src="{{ asset('assets/external/images/zelle.png') }}" alt="Zelle" class="img-responsive" style="max-height: 28px; width: auto; object-fit: contain;">
+
+                        <!-- Option 3: Zelle -->
+                        <div class="col-md-6 col-12">
+                            <div class="transfer-type-card csb-method-tile h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(116, 20, 202, 0.08); font-size: 20px;">
+                                    <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 18px; filter: brightness(0) saturate(100%) invert(18%) sepia(87%) saturate(3786%) hue-rotate(270deg) brightness(85%) contrast(106%);">
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive" style="color: #741B6B;">Send with Zelle®</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">Fast, safe and easy way to send money.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">Pay with Zelle</p>
+                                <div style="flex: 1;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold mb-0" style="color: #7414ca;">Send with Zelle®</h6>
+                                        <span class="badge small font-monospace" style="background: rgba(116, 20, 202, 0.1); color: #7414ca; font-size: 10px;">Minutes</span>
+                                    </div>
+                                    <p class="small text-muted mb-0">Fast, safe and easy way to send money using mobile number or email.</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
+
+                        <!-- Option 4: External ACH & Wire -->
+                        <div class="col-md-6 col-12">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
-                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
-                                    <i class="fas fa-university fa-lg"></i>
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(15, 118, 110, 0.08); color: #0f766e; font-size: 20px;">
+                                    <i class="fa-solid fa-building-columns"></i>
                                 </div>
-                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">External & Wire</h6>
-                                <p class="small text-muted mb-0 d-none d-md-block">Send via ACH (1-3 days) or Same-Day Wire.</p>
-                                <p class="x-small text-muted mb-0 d-md-none">External & Wire</p>
+                                <div style="flex: 1;">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <h6 class="fw-bold text-dark mb-0">External Bank &amp; Wire</h6>
+                                        <span class="badge bg-info-subtle text-info-emphasis small font-monospace" style="font-size: 10px;">ACH / Wire</span>
+                                    </div>
+                                    <p class="small text-muted mb-0">Send via standard ACH (1-3 days) or Same-Day Federal Wire.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -107,7 +144,7 @@
                 <!-- Step 2: Core Details -->
                 <div class="wizard-step p-4 p-md-5 d-none" id="step2">
                     <div class="d-flex align-items-center mb-4 cursor-pointer text-primary" onclick="goToStep(1)">
-                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Type</span>
+                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Types</span>
                     </div>
 
                     <div class="row g-4">
@@ -399,20 +436,38 @@
     }
     .transfer-type-card {
         border: 1.5px solid #e2e8f0 !important;
-        border-radius: 18px !important;
+        border-radius: 12px !important;
         background: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     .transfer-type-card:hover {
-        transform: translateY(-4px) !important;
+        transform: translateY(-2px) !important;
         border-color: #c8232c !important;
-        box-shadow: 0 12px 28px rgba(200, 35, 44, 0.12) !important;
+        box-shadow: 0 8px 20px rgba(200, 35, 44, 0.08) !important;
     }
     .transfer-type-card.border-primary {
         border-color: #c8232c !important;
-        background: linear-gradient(180deg, rgba(200, 35, 44, 0.03) 0%, rgba(200, 35, 44, 0.08) 100%) !important;
-        box-shadow: 0 8px 24px rgba(200, 35, 44, 0.15) !important;
+        border-left: 4px solid #c8232c !important;
+        background: #fff8f8 !important;
+        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.12) !important;
+    }
+    .csb-method-tile {
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        background: #ffffff !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .csb-method-tile:hover {
+        transform: translateY(-2px) !important;
+        border-color: #c8232c !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
+    }
+    .csb-method-tile.border-primary {
+        border-color: #c8232c !important;
+        border-left: 4px solid #c8232c !important;
+        background: #fff8f8 !important;
+        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.12) !important;
     }
     .btn-primary {
         background: linear-gradient(135deg, #c8232c 0%, #a81b24 100%) !important;
