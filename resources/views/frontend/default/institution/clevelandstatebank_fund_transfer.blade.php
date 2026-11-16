@@ -170,7 +170,7 @@
                                 <span class="text-muted">High-value immediate settlement via Federal Reserve Wire Network.</span>
                             </div>
                         </div>
-                        <a href="{{ route('user.fund_transfer.wire') }}" class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill" style="background: #162846; font-size: 12px;">
+                        <a href="{{ Route::has('user.fund_transfer.transfer.wire') ? route('user.fund_transfer.transfer.wire') : url('/user/fund-transfer/transfer/wire') }}" class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill" style="background: #162846; font-size: 12px;">
                             <i class="fa-solid fa-paper-plane me-1"></i> Wire Transfer
                         </a>
                     </div>
@@ -681,3 +681,4 @@
     }
 </script>
 @endsection
+

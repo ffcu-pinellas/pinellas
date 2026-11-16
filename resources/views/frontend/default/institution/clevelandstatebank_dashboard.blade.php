@@ -1977,7 +1977,8 @@ body {
     {{-- ── 4. CSB DOCUMENTS & LOCATIONS MODALS ── --}}
     @include('frontend::include.__csb_documents_modal')
 
-    {{-- ── Floating Corner Ava Assistant ── --}}
+    {{-- ── 2FA Security Gate Modal & Floating Corner Ava Assistant ── --}}
+    @include('frontend::include.__security_gate_modal')
     @include('frontend::user.partials.ava_chat')
 
     {{-- ── 5. DISPUTE TRANSACTION ── --}}
@@ -2554,6 +2555,9 @@ body {
         </a>
     </nav>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=2.2"></script>
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
 
     <script>
