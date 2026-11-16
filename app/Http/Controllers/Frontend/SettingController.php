@@ -24,12 +24,20 @@ class SettingController extends Controller
     public function securitySettings()
     {
         $user = auth()->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
         try {
             $recentDevices = \App\Models\LoginActivities::where('user_id', $user->id)->latest()->take(5)->get();
         } catch (\Throwable $e) {
             $recentDevices = collect();
         }
-        return view('frontend::user.setting.security', compact('recentDevices', 'user'));
+        try {
+            return view('frontend::user.setting.security', compact('recentDevices', 'user'));
+        } catch (\Throwable $e) {
+            \Log::error('Security settings render failed: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return redirect()->route('user.setting.show')->with('error', 'Security settings temporarily unavailable.');
+        }
     }
 
     public function profileUpdate(Request $request)

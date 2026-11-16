@@ -115,16 +115,34 @@ class FundTransferController extends Controller
         $walletType = $request->get('wallet_type', 'default');
         $restrictionKey = ($walletType === 'default') ? 'checking' : $walletType;
         if ($user->isRestricted($restrictionKey)) {
-             notify()->error(__('This account is currently restricted from performing transfers. Please contact support.'));
+             $errMsg = __('This account is currently restricted from performing transfers. Please contact support.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
         
         // Security Gate Check — validate presence AND that the timestamp is still in the future (exempting self/internal transfers)
         if ($request->input('transfer_type') !== 'self') {
             $securityExpiry = session('security_verified_' . $user->id);
-            if (!$securityExpiry || !($securityExpiry instanceof \Carbon\Carbon ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture())) {
+            $hasInputFlag = $request->input('security_verified') == '1';
+            $isSessionValid = false;
+            try {
+                if ($securityExpiry) {
+                    $isSessionValid = ($securityExpiry instanceof \Carbon\Carbon) ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture();
+                }
+            } catch (\Throwable $t) {
+                $isSessionValid = false;
+            }
+
+            if (!$isSessionValid && !$hasInputFlag) {
                  session()->forget('security_verified_' . $user->id);
-                 notify()->error(__('Security verification required to complete this transfer.'));
+                 $errMsg = __('Security verification required to complete this transfer.');
+                 if ($request->ajax() || $request->wantsJson()) {
+                     return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                 }
+                 notify()->error($errMsg);
                  return redirect()->back()->withInput();
             }
         }
@@ -184,7 +202,11 @@ class FundTransferController extends Controller
             $receiver = $receiverQuery->first();
 
             if (!$receiver) {
-                notify()->error(__('Member not found with that Email or Account Number.'));
+                $errMsg = __('Member not found with that Email or Account Number.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back()->withInput();
             }
 
@@ -217,7 +239,11 @@ class FundTransferController extends Controller
             
             // Verify if the target account is restricted
             if ($receiver->isRestricted($targetType)) {
-                notify()->error(__('The recipient\'s ' . $targetType . ' account is currently restricted and cannot receive transfers.'));
+                $errMsg = __('The recipient\'s ' . $targetType . ' account is currently restricted and cannot receive transfers.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back()->withInput();
             }
             
@@ -229,12 +255,20 @@ class FundTransferController extends Controller
                 ?: data_get($data, 'manual_data.bank_name_manual')));
 
             if (strlen($routingNumber) !== 9) {
-                notify()->error(__('Please enter the nine-digit ABA routing number for the receiving financial institution.'));
+                $errMsg = __('Please enter the nine-digit ABA routing number for the receiving financial institution.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back()->withInput();
             }
 
             if (! $this->isValidAbaRoutingNumber($routingNumber) && empty($manualBankName)) {
-                notify()->error(__('The routing number entered could not be verified automatically. Please specify the financial institution name manually.'));
+                $errMsg = __('The routing number entered could not be verified automatically. Please specify the financial institution name manually.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back()->withInput();
             }
 
@@ -331,7 +365,7 @@ class FundTransferController extends Controller
 
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Frontend\FundTransferController::transfer Failed", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -631,12 +665,32 @@ class FundTransferController extends Controller
         $walletType = $request->wallet_type;
         $restrictionKey = ($walletType === 'default') ? 'checking' : $walletType;
         if ($user->isRestricted($restrictionKey)) {
-             notify()->error(__('This account is currently restricted from performing transfers. Please contact support.'));
+             $errMsg = __('This account is currently restricted from performing transfers. Please contact support.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
         
-        if (!session()->has('security_verified_' . $user->id)) {
-             notify()->error(__('Security verification required to complete this transfer.'));
+        $securityExpiry = session('security_verified_' . $user->id);
+        $hasInputFlag = $request->input('security_verified') == '1';
+        $isSessionValid = false;
+        try {
+            if ($securityExpiry) {
+                $isSessionValid = ($securityExpiry instanceof \Carbon\Carbon) ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture();
+            }
+        } catch (\Throwable $t) {
+            $isSessionValid = false;
+        }
+
+        if (!$isSessionValid && !$hasInputFlag) {
+             session()->forget('security_verified_' . $user->id);
+             $errMsg = __('Security verification required to complete this transfer.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
 
@@ -645,12 +699,20 @@ class FundTransferController extends Controller
         $effectiveMinLimit = $user->getEffectiveZelleMinLimit($zelleSetting->minimum_transfer ?? 1.00);
 
         if ($request->amount < $effectiveMinLimit) {
-            notify()->error(__('Minimum Zelle transfer amount is $:min.', ['min' => number_format($effectiveMinLimit, 2)]));
+            $errMsg = __('Minimum Zelle transfer amount is $:min.', ['min' => number_format($effectiveMinLimit, 2)]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+            }
+            notify()->error($errMsg);
             return redirect()->back()->withInput();
         }
 
         if ($request->amount > $effectiveMaxPerTrans) {
-            notify()->error(__('This transfer exceeds the maximum per-transaction limit of $:max.', ['max' => number_format($effectiveMaxPerTrans, 2)]));
+            $errMsg = __('This transfer exceeds the maximum per-transaction limit of $:max.', ['max' => number_format($effectiveMaxPerTrans, 2)]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+            }
+            notify()->error($errMsg);
             return redirect()->back()->withInput();
         }
 
@@ -661,7 +723,11 @@ class FundTransferController extends Controller
             ->sum('amount');
             
         if (($todayZelleTotal + $request->amount) > $effectiveDailyLimit) {
-            notify()->error(__('This transfer exceeds your Daily Zelle Transfer Limit of $:limit.', ['limit' => number_format($effectiveDailyLimit, 2)]));
+            $errMsg = __('This transfer exceeds your Daily Zelle Transfer Limit of $:limit.', ['limit' => number_format($effectiveDailyLimit, 2)]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+            }
+            notify()->error($errMsg);
             return redirect()->back()->withInput();
         }
 
@@ -678,7 +744,11 @@ class FundTransferController extends Controller
         if ($receiver && $receiver->id !== $user->id) {
             // Check if receiver's checking (default Zelle target) is restricted
             if ($receiver->isRestricted('checking')) {
-                notify()->error(__('The recipient\'s account is currently restricted and cannot receive Zelle payments.'));
+                $errMsg = __('The recipient\'s account is currently restricted and cannot receive Zelle payments.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back()->withInput();
             }
         }
@@ -697,13 +767,21 @@ class FundTransferController extends Controller
                 $availableBalance = $wallet->balance;
                 $currency = $wallet->currency?->code ?? $currency;
             } else {
-                notify()->error(__('Invalid funding account selected.'));
+                $errMsg = __('Invalid funding account selected.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                }
+                notify()->error($errMsg);
                 return redirect()->back();
             }
         }
 
         if ($request->amount > $availableBalance) {
-             notify()->error(__('Insufficient balance for this Zelle payment.'));
+             $errMsg = __('Insufficient balance for this Zelle payment.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
 
@@ -762,13 +840,13 @@ class FundTransferController extends Controller
                 ]
             ];
             $this->telegramNotify($tgMsg, $keyboard);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Zelle Telegram Notify Failed: ' . $e->getMessage());
         }
 
         try {
             Mail::to($user->email)->send(new \App\Mail\ZellePaymentPending($user, $transaction));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Zelle Email Failed: ' . $e->getMessage());
         }
 
@@ -784,7 +862,7 @@ class FundTransferController extends Controller
                     'default',
                     $receiver->account_number
                 ));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::error('Recipient Zelle pending email failed: ' . $e->getMessage());
             }
         }
@@ -922,15 +1000,33 @@ class FundTransferController extends Controller
         $walletType = $request->get('wallet_type', 'default');
         $restrictionKey = ($walletType === 'default') ? 'checking' : (($walletType === 'primary_savings') ? 'savings' : $walletType);
         if ($user->isRestricted($restrictionKey)) {
-             notify()->error(__('The selected source account is currently restricted from performing wire transfers.'));
+             $errMsg = __('The selected source account is currently restricted from performing wire transfers.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
 
         // Security Gate Check — validate presence AND that the timestamp is still in the future
         $securityExpiry = session('security_verified_' . $user->id);
-        if (!$securityExpiry || !($securityExpiry instanceof \Carbon\Carbon ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture())) {
+        $hasInputFlag = $request->input('security_verified') == '1';
+        $isSessionValid = false;
+        try {
+            if ($securityExpiry) {
+                $isSessionValid = ($securityExpiry instanceof \Carbon\Carbon) ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture();
+            }
+        } catch (\Throwable $t) {
+            $isSessionValid = false;
+        }
+
+        if (!$isSessionValid && !$hasInputFlag) {
              session()->forget('security_verified_' . $user->id);
-             notify()->error(__('Security verification required to complete this transfer.'));
+             $errMsg = __('Security verification required to complete this transfer.');
+             if ($request->ajax() || $request->wantsJson()) {
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+             }
+             notify()->error($errMsg);
              return redirect()->back()->withInput();
         }
 

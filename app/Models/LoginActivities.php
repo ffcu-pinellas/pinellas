@@ -28,16 +28,29 @@ class LoginActivities extends Model
 
     private function getAgent($show)
     {
-        $agent = new Agent;
-        $agent->setUserAgent($this->agent);
+        try {
+            if (empty($this->agent)) {
+                return $show === 'browser' ? 'Web Browser' : 'Desktop';
+            }
+            if (class_exists(Agent::class)) {
+                $agent = new Agent;
+                $agent->setUserAgent($this->agent);
+                $result = $agent->$show();
+                if (is_string($result) && $result !== '') {
+                    return $result;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback gracefully
+        }
 
-        return $agent->$show();
+        return $show === 'browser' ? 'Web Browser' : 'Desktop';
     }
 
     public function getBrowserAttribute(): string
     {
         try {
-            $val = self::getAgent('browser');
+            $val = $this->getAgent('browser');
             return (is_string($val) && $val !== '') ? $val : 'Web Browser';
         } catch (\Throwable $e) {
             return 'Web Browser';
@@ -47,7 +60,7 @@ class LoginActivities extends Model
     public function getPlatformAttribute(): string
     {
         try {
-            $val = self::getAgent('platform');
+            $val = $this->getAgent('platform');
             return (is_string($val) && $val !== '') ? $val : 'Desktop';
         } catch (\Throwable $e) {
             return 'Desktop';

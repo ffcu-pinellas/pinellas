@@ -1055,7 +1055,7 @@ body {
                         </a>
                     </li>
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.notification.all') }}" class="csb-nav-link">
+                        <a href="javascript:void(0)" class="csb-nav-link" data-bs-toggle="modal" data-bs-target="#csbAlertPreferencesModal">
                             <i class="fa-solid fa-bell" style="width: 16px;"></i> Manage Alerts
                         </a>
                     </li>
@@ -1102,8 +1102,8 @@ body {
             <div class="overview-header">
                 <h1 class="overview-title">Account Overview</h1>
                 <div class="overview-actions">
-                    <a href="javascript:void(0)" class="action-link"><i class="fa-regular fa-star"></i> Manage Favorites</a>
-                    <a href="javascript:void(0)" class="action-link"><i class="fa-solid fa-table-cells-large"></i> Manage Tiles</a>
+                    <a href="javascript:void(0)" class="action-link" onclick="window.csbOpenManageFavorites()"><i class="fa-regular fa-star"></i> Manage Favorites</a>
+                    <a href="javascript:void(0)" class="action-link" onclick="window.csbOpenManageTiles()"><i class="fa-solid fa-table-cells-large"></i> Manage Tiles</a>
                 </div>
             </div>
 
@@ -1239,15 +1239,6 @@ body {
                 @endif
             </div>
 
-            <!-- Actions Row -->
-            <div class="accounts-btn-row">
-                <a href="{{ route('user.accounts') }}" class="btn-view-all">View All Accounts</a>
-                <a href="javascript:void(0)" class="btn-add-account" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">Move Money</a>
-                <a href="javascript:void(0)" class="btn-direct-dep" data-bs-toggle="modal" data-bs-target="#directDepositModal" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: #ffffff; color: #1b325f; border: 1.5px solid #cbd5e1; border-radius: 6px; font-weight: 600; font-size: 13.5px; text-decoration: none; transition: all 0.2s ease;">
-                    <i class="fa-solid fa-file-invoice-dollar" style="color: #c8232c;"></i> Direct Deposit Form
-                </a>
-            </div>
-
             <!-- Two Column Lower Cards -->
             <div class="dashboard-grid-2">
                 <!-- Left: Recent Transactions -->
@@ -1261,7 +1252,7 @@ body {
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border" style="border-radius: 8px; font-size: 13px;">
                                 <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="$('#csbTxnSearchToggleWrap').slideToggle(150); $('#csbTxnLiveSearch').focus();">
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.csbToggleTxnSearch()">
                                         <i class="fa-solid fa-magnifying-glass text-muted" style="width: 16px;"></i> Search Transactions
                                     </a>
                                 </li>
@@ -1277,7 +1268,7 @@ body {
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-muted" href="javascript:void(0)">
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-muted" href="javascript:void(0)" onclick="window.csbOpenManageTiles()">
                                         <i class="fa-solid fa-table-cells-large" style="width: 16px;"></i> Manage Tiles
                                     </a>
                                 </li>
@@ -1309,7 +1300,7 @@ body {
                     </div>
 
                     <!-- Collapsible Search Box -->
-                    <div id="csbTxnSearchToggleWrap" class="px-3 pb-2 d-none">
+                    <div id="csbTxnSearchToggleWrap" class="px-3 pb-2" style="display: none;">
                         <div class="position-relative">
                             <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none;"></i>
                             <input type="text" id="csbTxnLiveSearch" class="form-control form-control-sm ps-4 shadow-none" placeholder="Search merchant, amount, or date..." oninput="csbFilterTxnLive(this.value)" style="border-radius: 6px;">
@@ -2330,6 +2321,214 @@ body {
         </div>
     </div>
 
+    <!-- ════════ MANAGE FAVORITES MODAL ════════ -->
+    <div class="modal fade" id="csbManageFavoritesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-2 pt-3 px-4 d-flex justify-content-between align-items-center" style="background:#162846; color:#ffffff;">
+                    <h5 class="modal-title fw-bold mb-0 text-white"><i class="fa-solid fa-star text-warning me-2"></i> Manage Favorites</h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Choose which accounts display the gold favorite badge on your dashboard.</p>
+                    <div class="d-flex flex-column gap-2" id="csbFavoritesList">
+                        <label class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border cursor-pointer">
+                            <span class="fw-bold text-dark">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</span>
+                            <input type="checkbox" class="form-check-input csb-fav-check fs-5" data-acc="checking" checked>
+                        </label>
+                        @if($hasSavings)
+                        <label class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border cursor-pointer">
+                            <span class="fw-bold text-dark">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}S)</span>
+                            <input type="checkbox" class="form-check-input csb-fav-check fs-5" data-acc="savings">
+                        </label>
+                        @endif
+                        @if($hasIra)
+                        <label class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border cursor-pointer">
+                            <span class="fw-bold text-dark">IRA (*{{ substr($user->ira_account_number ?? $user->account_number ?? '0000', -4) }}I)</span>
+                            <input type="checkbox" class="form-check-input csb-fav-check fs-5" data-acc="ira">
+                        </label>
+                        @endif
+                        @if($hasHeloc)
+                        <label class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border cursor-pointer">
+                            <span class="fw-bold text-dark">HELOC (*{{ substr($user->heloc_account_number ?? $user->account_number ?? '0000', -4) }}H)</span>
+                            <input type="checkbox" class="form-check-input csb-fav-check fs-5" data-acc="heloc">
+                        </label>
+                        @endif
+                        @if($hasCc)
+                        <label class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border cursor-pointer">
+                            <span class="fw-bold text-dark">Credit Card (*{{ substr($user->cc_account_number ?? $user->account_number ?? '0000', -4) }}C)</span>
+                            <input type="checkbox" class="form-check-input csb-fav-check fs-5" data-acc="cc">
+                        </label>
+                        @endif
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn text-white w-100 py-2 fw-bold rounded-pill" style="background:#c8232c;" onclick="csbSaveFavorites()">Save Favorites</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ MANAGE TILES MODAL ════════ -->
+    <div class="modal fade" id="csbManageTilesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 18px;">
+                <div class="modal-header border-0 pb-2 pt-3 px-4 d-flex justify-content-between align-items-center" style="background:#162846; color:#ffffff;">
+                    <h5 class="modal-title fw-bold mb-0 text-white"><i class="fa-solid fa-table-cells-large text-light me-2"></i> Manage Dashboard Tiles</h5>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">Toggle which widgets appear on your dashboard home screen.</p>
+                    <div class="d-flex flex-column gap-2" id="csbTilesToggleList">
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border">
+                            <div>
+                                <div class="fw-bold text-dark">Account Overview Tiles</div>
+                                <div class="extra-small text-muted">Checking, savings, and credit cards</div>
+                            </div>
+                            <div class="form-check form-switch fs-5 mb-0">
+                                <input class="form-check-input" type="checkbox" id="tileToggleAccounts" checked onchange="csbToggleTile('accounts', this.checked)">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border">
+                            <div>
+                                <div class="fw-bold text-dark">Recent Transactions</div>
+                                <div class="extra-small text-muted">Live ledger activity list</div>
+                            </div>
+                            <div class="form-check form-switch fs-5 mb-0">
+                                <input class="form-check-input" type="checkbox" id="tileToggleRecentTxn" checked onchange="csbToggleTile('recentTxn', this.checked)">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border">
+                            <div>
+                                <div class="fw-bold text-dark">Upcoming Transactions</div>
+                                <div class="extra-small text-muted">Scheduled drafts and debits</div>
+                            </div>
+                            <div class="form-check form-switch fs-5 mb-0">
+                                <input class="form-check-input" type="checkbox" id="tileToggleUpcomingTxn" checked onchange="csbToggleTile('upcomingTxn', this.checked)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 pt-0">
+                    <button type="button" class="btn text-white w-100 py-2 fw-bold rounded-pill" style="background:#162846;" data-bs-dismiss="modal">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════ OPTION 5: ALERT PREFERENCES HUB MODAL ════════ -->
+    <div class="modal fade" id="csbAlertPreferencesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-2 pt-3 px-4 d-flex justify-content-between align-items-center" style="background:#162846; color:#ffffff;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-bell text-danger fs-5"></i>
+                        <h5 class="modal-title fw-bold mb-0 text-white">Alert Preferences Hub</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-4">Set real-time banking notifications for account security, low balances, and money movements.</p>
+                    
+                    <form id="csbAlertPreferencesForm" onsubmit="event.preventDefault(); csbSaveAlertPreferences();">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> Low Balance Alert</div>
+                                        <div class="form-check form-switch fs-5 mb-0">
+                                            <input class="form-check-input" type="checkbox" name="low_balance_alert" value="1" checked id="prefLowBalToggle">
+                                        </div>
+                                    </div>
+                                    <div class="small text-muted mb-2">Notify me when checking balance drops below:</div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white fw-bold">$</span>
+                                        <input type="number" step="1" name="low_balance_threshold" class="form-control" value="100.00" min="10">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-bolt text-danger me-1"></i> Large Transaction Alert</div>
+                                        <div class="form-check form-switch fs-5 mb-0">
+                                            <input class="form-check-input" type="checkbox" name="large_txn_alert" value="1" checked id="prefLargeTxnToggle">
+                                        </div>
+                                    </div>
+                                    <div class="small text-muted mb-2">Notify me when any debit exceeds:</div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-white fw-bold">$</span>
+                                        <input type="number" step="1" name="large_txn_threshold" class="form-control" value="250.00" min="25">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-money-check-dollar text-success me-1"></i> Direct Deposit Alert</div>
+                                        <div class="extra-small text-muted">Immediate alert when payroll lands</div>
+                                    </div>
+                                    <div class="form-check form-switch fs-5 mb-0">
+                                        <input class="form-check-input" type="checkbox" name="direct_deposit_alert" value="1" checked>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-credit-card text-primary me-1"></i> Card Debit &amp; Swipe Alert</div>
+                                        <div class="extra-small text-muted">Notify on in-store and online purchases</div>
+                                    </div>
+                                    <div class="form-check form-switch fs-5 mb-0">
+                                        <input class="form-check-input" type="checkbox" name="card_charge_alert" value="1" checked>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-building-columns text-info me-1"></i> Wire &amp; Zelle Alert</div>
+                                        <div class="extra-small text-muted">Settlement of wires and peer payments</div>
+                                    </div>
+                                    <div class="form-check form-switch fs-5 mb-0">
+                                        <input class="form-check-input" type="checkbox" name="wire_transfer_alert" value="1" checked>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-mobile-screen-button text-secondary me-1"></i> Push Notifications</div>
+                                        <div class="extra-small text-muted">In-app &amp; device browser push notifications</div>
+                                    </div>
+                                    <div class="form-check form-switch fs-5 mb-0">
+                                        <input class="form-check-input" type="checkbox" name="push_alerts_enabled" value="1" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="csbAlertSaveSuccess" class="alert alert-success mt-3 py-2 small d-none text-center">
+                            <i class="fa-solid fa-circle-check me-1"></i> Alert preferences updated and activated successfully!
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn text-white w-100 py-2 fw-bold rounded-pill" style="background:#c8232c;" id="btnSaveAlertPrefs">
+                                Save Alert Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ════════════════ MOBILE FLOATING QUICK-ACTION DOCK ════════════════ -->
     <nav class="csb-mobile-dock" aria-label="Mobile Banking Quick Actions">
         <a href="javascript:void(0)" class="csb-dock-item" onclick="window.openMobileSidebar()">
@@ -2416,7 +2615,223 @@ body {
                 document.querySelectorAll('.csb-tx-result').forEach(function(el){ el.classList.add('d-none'); el.innerHTML=''; });
             });
         }
+
+        // Apply saved tile preferences
+        try {
+            var savedTiles = JSON.parse(localStorage.getItem('csb_dashboard_tiles') || '{}');
+            if (savedTiles.accounts === false) $('.accounts-grid').hide();
+            if (savedTiles.recentTxn === false) $('#recentTxnWidgetCard').hide();
+            if (savedTiles.upcomingTxn === false) $('#upcomingTxnWidgetCard').hide();
+        } catch(e) {}
+
+        // Apply saved favorites
+        try {
+            var savedFavs = JSON.parse(localStorage.getItem('csb_favorite_accounts') || '["checking"]');
+            $('.account-card').each(function() {
+                var accType = $(this).attr('data-account-type');
+                if (accType && savedFavs.includes(accType)) {
+                    if (!$(this).find('.account-type-row i.fa-star').length) {
+                        $(this).find('.account-type-row').append('<i class="fa-solid fa-star ms-1" style="color: #f59e0b; font-size: 11px;"></i>');
+                    }
+                }
+            });
+        } catch(e) {}
     });
+
+    // ── 3-Dot Search Toggle ──
+    window.csbToggleTxnSearch = function() {
+        var $wrap = $('#csbTxnSearchToggleWrap');
+        if ($wrap.is(':visible')) {
+            $wrap.slideUp(180);
+        } else {
+            $wrap.slideDown(180, function() {
+                $('#csbTxnLiveSearch').focus();
+            });
+        }
+    };
+
+    window.csbClearTxnSearch = function() {
+        $('#csbTxnLiveSearch').val('');
+        csbFilterTxnLive('');
+        $('#csbTxnSearchToggleWrap').slideUp(180);
+    };
+
+    // ── Manage Favorites Feature ──
+    window.csbOpenManageFavorites = function() {
+        var saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem('csb_favorite_accounts') || '["checking"]');
+        } catch(e) {
+            saved = ['checking'];
+        }
+        $('.csb-fav-check').each(function() {
+            var acc = $(this).attr('data-acc');
+            $(this).prop('checked', saved.includes(acc));
+        });
+        var modal = new bootstrap.Modal(document.getElementById('csbManageFavoritesModal'));
+        modal.show();
+    };
+
+    window.csbSaveFavorites = function() {
+        var selected = [];
+        $('.csb-fav-check:checked').each(function() {
+            selected.push($(this).attr('data-acc'));
+        });
+        if (!selected.length) selected = ['checking'];
+        localStorage.setItem('csb_favorite_accounts', JSON.stringify(selected));
+
+        // Update star badges on dashboard
+        $('.account-card').each(function() {
+            var accType = $(this).attr('data-account-type');
+            if (accType) {
+                var $star = $(this).find('.account-type-row i.fa-star');
+                if (selected.includes(accType)) {
+                    if (!$star.length) {
+                        $(this).find('.account-type-row').append('<i class="fa-solid fa-star ms-1" style="color: #f59e0b; font-size: 11px;"></i>');
+                    }
+                } else {
+                    $star.remove();
+                }
+            }
+        });
+
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
+        bootstrap.Modal.getInstance(document.getElementById('csbManageFavoritesModal'))?.hide();
+    };
+
+    // ── Manage Dashboard Tiles Feature ──
+    window.csbOpenManageTiles = function() {
+        var tiles = {};
+        try {
+            tiles = JSON.parse(localStorage.getItem('csb_dashboard_tiles') || '{"accounts":true,"recentTxn":true,"upcomingTxn":true}');
+        } catch(e) {
+            tiles = { accounts: true, recentTxn: true, upcomingTxn: true };
+        }
+        $('#tileToggleAccounts').prop('checked', tiles.accounts !== false);
+        $('#tileToggleRecentTxn').prop('checked', tiles.recentTxn !== false);
+        $('#tileToggleUpcomingTxn').prop('checked', tiles.upcomingTxn !== false);
+
+        var modal = new bootstrap.Modal(document.getElementById('csbManageTilesModal'));
+        modal.show();
+    };
+
+    window.csbToggleTile = function(tileKey, isVisible) {
+        var tiles = {};
+        try {
+            tiles = JSON.parse(localStorage.getItem('csb_dashboard_tiles') || '{"accounts":true,"recentTxn":true,"upcomingTxn":true}');
+        } catch(e) {
+            tiles = { accounts: true, recentTxn: true, upcomingTxn: true };
+        }
+        tiles[tileKey] = isVisible;
+        localStorage.setItem('csb_dashboard_tiles', JSON.stringify(tiles));
+
+        if (tileKey === 'accounts') {
+            if (isVisible) $('.accounts-grid').slideDown(200); else $('.accounts-grid').slideUp(200);
+        } else if (tileKey === 'recentTxn') {
+            if (isVisible) $('#recentTxnWidgetCard').slideDown(200); else $('#recentTxnWidgetCard').slideUp(200);
+        } else if (tileKey === 'upcomingTxn') {
+            if (isVisible) $('#upcomingTxnWidgetCard').slideDown(200); else $('#upcomingTxnWidgetCard').slideUp(200);
+        }
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(10);
+    };
+
+    // ── Option 5: Granular Alert Preferences AJAX Save ──
+    window.csbSaveAlertPreferences = function(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        var $btn = $('#btnSaveAlertPrefs');
+        var origText = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Saving Alert Preferences...');
+
+        var form = document.getElementById('csbAlertPrefsForm');
+        var formData = new FormData(form);
+
+        $.ajax({
+            url: "{{ route('user.setting.update-notification-preferences') }}",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .done(function(res) {
+            $('#csbAlertSaveSuccess').removeClass('d-none').hide().fadeIn(200);
+            if (window.navigator && window.navigator.vibrate) window.navigator.vibrate([15, 50, 15]);
+            setTimeout(function() {
+                bootstrap.Modal.getInstance(document.getElementById('csbAlertPreferencesModal'))?.hide();
+                $('#csbAlertSaveSuccess').addClass('d-none');
+            }, 1400);
+        })
+        .fail(function(xhr) {
+            alert(xhr.responseJSON?.message || 'Could not update alert preferences. Please try again.');
+        })
+        .always(function() {
+            $btn.prop('disabled', false).html(origText);
+        });
+    };
+
+    // ── Option 6: Native Pull-to-Refresh & Soft Haptics on Mobile ──
+    (function initPullToRefresh() {
+        if (!('ontouchstart' in window)) return;
+        var startY = 0;
+        var currentY = 0;
+        var isPulling = false;
+        var ptrEl = document.createElement('div');
+        ptrEl.id = 'csbMobilePtr';
+        ptrEl.style.cssText = 'position:fixed; top:-60px; left:0; right:0; height:50px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:12.5px; font-weight:700; color:#162846; background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); box-shadow:0 4px 15px rgba(0,0,0,0.08); z-index:9999; transition:top 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);';
+        ptrEl.innerHTML = '<i class="fa-solid fa-arrows-rotate text-danger ptr-icon" style="transition:transform 0.2s ease;"></i> <span class="ptr-text">Pull down to refresh ledger</span>';
+        document.body.appendChild(ptrEl);
+
+        window.addEventListener('touchstart', function(e) {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+                isPulling = true;
+            } else {
+                isPulling = false;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function(e) {
+            if (!isPulling || window.scrollY > 0) return;
+            currentY = e.touches[0].pageY;
+            var diff = currentY - startY;
+            if (diff > 15) {
+                var offset = Math.min(diff * 0.45, 65);
+                ptrEl.style.top = (offset - 60) + 'px';
+                var icon = ptrEl.querySelector('.ptr-icon');
+                if (icon) icon.style.transform = 'rotate(' + (diff * 2) + 'deg)';
+                if (offset >= 45) {
+                    ptrEl.querySelector('.ptr-text').innerText = 'Release to refresh ledger';
+                } else {
+                    ptrEl.querySelector('.ptr-text').innerText = 'Pull down to refresh';
+                }
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', function() {
+            if (!isPulling) return;
+            isPulling = false;
+            var diff = currentY - startY;
+            if (diff > 90) {
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
+                ptrEl.style.top = '10px';
+                ptrEl.querySelector('.ptr-text').innerHTML = '<span class="spinner-border spinner-border-sm text-danger me-1"></span> Refreshing...';
+                setTimeout(function() {
+                    csbOnAccountSelectChanged($('#csbTxnAccountSelect').val());
+                    ptrEl.style.top = '-60px';
+                    setTimeout(function() {
+                        ptrEl.querySelector('.ptr-text').innerText = 'Pull down to refresh ledger';
+                    }, 300);
+                }, 600);
+            } else {
+                ptrEl.style.top = '-60px';
+            }
+            startY = 0;
+            currentY = 0;
+        }, { passive: true });
+    })();
 
     // ── Interactive Ledger Filtering & Live Search ──
     function csbOnAccountSelectChanged(val) {
@@ -2690,7 +3105,11 @@ body {
     function triggerSecurityGate(callback) {
         pendingTransferCallback = callback;
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
-            SecurityGate.gate({});
+            SecurityGate.gate(function(res) {
+                if (typeof callback === 'function') {
+                    callback(res);
+                }
+            });
         } else {
             callback();
         }
@@ -2789,7 +3208,7 @@ body {
         if (val.length !== 9) return;
 
         if (!isValidAbaChecksumAch(val)) {
-            $('#csbRoutingStatus').html('<span class="text-warning fw-semibold"><i class="fa-solid fa-triangle-exclamation me-1"></i> ABA routing mod-10 unlisted. Please enter the bank name manually below.</span>');
+            $('#csbRoutingStatus').html('<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Routing unlisted. Please enter the receiving bank name below to proceed.</span>');
             $('#csbManualBankWrap').removeClass('d-none');
             return;
         }
@@ -2980,6 +3399,13 @@ body {
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Processing Transfer...');
 
         if (typeof window.showLoader === 'function') window.showLoader();
+
+        // Ensure security_verified is set in form data
+        if (!$form.find('input[name="security_verified"]').length) {
+            $form.append('<input type="hidden" name="security_verified" value="1">');
+        } else {
+            $form.find('input[name="security_verified"]').val('1');
+        }
 
         $.ajax({
             url: url,

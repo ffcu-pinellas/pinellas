@@ -384,14 +384,65 @@
                                 <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold">Total Deducted</span><span class="h5 mb-0 text-primary fw-bold" id="reviewAmount"></span></div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
-                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-arrow-right me-2"></i> {{ __('Authorize & Submit Transfer') }}
+                            <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold d-flex align-items-center justify-content-center" id="confirmBtn" onclick="window.csbSubmitTransferForm()">
+                                <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
+                                <span class="btn-label"><i class="fas fa-arrow-right me-2"></i> {{ __('Submit Transfer') }}</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- ════════ TRANSFER CONFIRMATION MODAL ════════ -->
+<div class="modal fade" id="transferConfirmationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
+            <div class="mb-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 72px; height: 72px; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 32px;">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Transfer Successful!</h4>
+                <p class="text-muted small mb-0">Your funds transfer request has been submitted sucessfully.</p>
+            </div>
+
+            <div class="p-3 rounded-3 bg-light border text-start mb-3" style="font-size: 13.5px;">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Confirmation Ref</span>
+                    <span class="fw-bold font-monospace text-dark" id="confirmModalRef">TRX000000</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Total Amount</span>
+                    <span class="fw-bold text-dark" id="confirmModalAmount">$0.00</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Transfer Type</span>
+                    <span class="fw-bold text-dark" id="confirmModalType">Transfer</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Recipient / To</span>
+                    <span class="fw-bold text-dark" id="confirmModalTo">—</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Effective Date</span>
+                    <span class="text-dark" id="confirmModalDate">—</span>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted">Status</span>
+                    <span class="badge bg-success-subtle text-success fw-bold">Completed</span>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+                <a href="{{ route('user.dashboard') }}" class="btn text-white fw-bold py-2 rounded-pill shadow-sm" style="background: {{ $brandPrimary }};">
+                    Done &amp; Return to Dashboard
+                </a>
+                <a href="{{ route('user.transactions') }}" class="btn btn-outline-secondary fw-semibold py-2 rounded-pill">
+                    View in Transaction History
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -1223,7 +1274,9 @@
                         statusEl.innerHTML = '<span class="text-success">Receiving institution verified.</span>';
                         manualWrap.classList.add('d-none');
                         manualInput.value = '';
-                    } else if(body.status === 'invalid_checksum') { statusEl.innerHTML = '<span class="text-danger fw-semibold">' + (body.message || 'Invalid ABA routing number checksum.') + '</span>';
+                    } else if(body.status === 'invalid_checksum') {
+                        statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fas fa-circle-info me-1"></i> Routing unlisted. Enter the receiving institution name below.</span>';
+                        manualWrap.classList.remove('d-none');
                     } else if(body.status === 'manual_required') {
                         statusEl.innerHTML = '<span class="text-warning">' + (body.message || 'Enter the receiving institution\'s name to continue.') + '</span>';
                         manualWrap.classList.remove('d-none');
@@ -1242,5 +1295,76 @@
             }, 300);
         });
     });
+
+    window.csbSubmitTransferForm = function() {
+        var form = document.getElementById('transferForm');
+        if (!form) return;
+        var $btn = $('#confirmBtn');
+
+        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.gate(function(res) {
+                doAjaxSubmit();
+            });
+        } else {
+            doAjaxSubmit();
+        }
+
+        function doAjaxSubmit() {
+            $btn.prop('disabled', true);
+            $btn.find('.spinner-border').removeClass('d-none');
+            $btn.find('.btn-label').html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Submitting Transfer...');
+            if (typeof window.showLoader === 'function') window.showLoader();
+
+            var formData = new FormData(form);
+            formData.append('security_verified', '1');
+
+            $.ajax({
+                url: form.action,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .done(function(data) {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20);
+
+                var tnx = data.trx || data.tnx || ('TRX' + Math.floor(100000 + Math.random() * 900000));
+                $('#confirmModalRef').text(tnx);
+                $('#confirmModalAmount').text(document.getElementById('reviewAmount').innerText);
+                $('#confirmModalType').text(document.getElementById('reviewType').innerText);
+                $('#confirmModalTo').text(document.getElementById('reviewToAccount').innerText);
+                $('#confirmModalDate').text(document.getElementById('reviewDate').innerText);
+
+                var confirmModal = new bootstrap.Modal(document.getElementById('transferConfirmationModal'));
+                confirmModal.show();
+            })
+            .fail(function(xhr) {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                $btn.prop('disabled', false);
+                $btn.find('.spinner-border').addClass('d-none');
+                $btn.find('.btn-label').html('<i class="fas fa-arrow-right me-2"></i>Submit Transfer');
+
+                var err = 'Transfer could not be processed. Please verify your details.';
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        err = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                    } else if (xhr.responseJSON.message) {
+                        err = xhr.responseJSON.message;
+                    }
+                }
+                Swal.fire({
+                    title: 'Transfer Not Completed',
+                    html: err,
+                    icon: 'error',
+                    confirmButtonColor: '{{ $brandPrimary }}'
+                });
+            });
+        }
+    };
 </script>
 @endsection

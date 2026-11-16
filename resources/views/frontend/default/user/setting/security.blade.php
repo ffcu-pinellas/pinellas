@@ -154,25 +154,31 @@
                         @endif
                      </div>
                      <div class="device-list">
-                        @forelse($recentDevices as $device)
+                        @forelse($recentDevices ?? [] as $device)
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary" style="width: 48px; height: 48px;">
-                                        @if($device->platform == 'Windows' || $device->platform == 'OS X' || $device->platform == 'Linux')
+                                        @php
+                                            $plat = !empty($device->platform) ? $device->platform : 'Desktop';
+                                            $isDesk = in_array($plat, ['Windows', 'OS X', 'Linux', 'Desktop']);
+                                        @endphp
+                                        @if($isDesk)
                                             <i class="fas fa-desktop fs-5"></i>
                                         @else
                                             <i class="fas fa-mobile-alt fs-5"></i>
                                         @endif
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark">{{ $device->browser }} on {{ $device->platform }}</div>
-                                        <div class="small text-muted">{{ $device->ip }} • {{ $device->created_at ? $device->created_at->diffForHumans() : 'Active' }}</div>
+                                        <div class="fw-bold text-dark">{{ $device->browser ?? 'Web Browser' }} on {{ $plat }}</div>
+                                        <div class="small text-muted">{{ $device->ip ?? '127.0.0.1' }} &bull; {{ (!empty($device->created_at) && method_exists($device->created_at, 'diffForHumans')) ? $device->created_at->diffForHumans() : 'Active' }}</div>
                                     </div>
                                 </div>
+                                @if(!empty($device->id))
                                 <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none small fw-bold">Remove</button>
                                 </form>
+                                @endif
                             </div>
                         @empty
                             <div class="text-center py-4">
