@@ -199,6 +199,7 @@ class FundTransferController extends Controller
             // Find Receiver by Email, Checking, or Savings (scoped by institution)
             $receiverQuery = User::where(function($q) use ($identifier, $sanitizedIdentifier) {
                 $q->where('email', $identifier)
+                  ->orWhere('username', $identifier)
                   ->orWhere('account_number', $sanitizedIdentifier)
                   ->orWhere('savings_account_number', $sanitizedIdentifier);
             });

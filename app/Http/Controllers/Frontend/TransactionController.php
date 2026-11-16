@@ -107,7 +107,10 @@ class TransactionController extends Controller
         set_time_limit(600);
 
         $period = $request->get('period', '1m');
-        $selectedAccounts = $request->get('accounts', ['checking']);
+        $selectedAccounts = (array) $request->get('accounts', ['checking']);
+        if (in_array('all', $selectedAccounts) || empty($selectedAccounts)) {
+            $selectedAccounts = ['checking', 'savings', 'ira', 'heloc', 'cc', 'loan'];
+        }
         $emailStatement = $request->has('email_statement');
         $user = auth()->user();
 

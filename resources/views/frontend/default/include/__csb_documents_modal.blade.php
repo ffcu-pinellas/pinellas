@@ -70,6 +70,7 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase">Account</label>
                         <select class="form-select shadow-none" id="csbFilterAccount" required>
+                            <option value="all" selected>All Accounts (Consolidated)</option>
                             @foreach($userAccounts as $acc)
                                 <option value="{{ $acc['type'] }}">{{ $acc['label'] }}</option>
                             @endforeach
@@ -87,14 +88,25 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Date Range</label>
-                        <select class="form-select shadow-none" id="csbFilterRange">
-                            <option value="last_30" selected>Last 30 Days</option>
-                            <option value="last_60">Last 60 Days</option>
-                            <option value="last_90">Last 90 Days</option>
-                            <option value="ytd">Year to Date ({{ date('Y') }})</option>
-                            <option value="all">All Available Documents</option>
+                        <label class="form-label small fw-bold text-muted text-uppercase">Date Range / Period</label>
+                        <select class="form-select shadow-none" id="csbFilterRange" onchange="csbToggleCustomDates(this.value)">
+                            <option value="1m" selected>Last 30 Days</option>
+                            <option value="3m">Last 90 Days (Quarterly)</option>
+                            <option value="6m">Last 6 Months</option>
+                            <option value="1y">Last 1 Year (Annual)</option>
+                            <option value="custom">Custom Date Range...</option>
                         </select>
+                    </div>
+
+                    <div id="csbCustomDateFields" class="row g-2 mb-3 d-none">
+                        <div class="col-6">
+                            <label class="form-label extra-small fw-bold text-muted text-uppercase">From Date</label>
+                            <input type="date" id="csbDocFromDate" class="form-control form-control-sm" value="{{ now()->subMonth()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label extra-small fw-bold text-muted text-uppercase">To Date</label>
+                            <input type="date" id="csbDocToDate" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">
+                        </div>
                     </div>
 
                     <div class="alert alert-light border small text-muted d-flex align-items-center gap-2 mb-4">
@@ -222,14 +234,47 @@ function backToDocTypes() {
     }, 300);
 }
 
+function csbToggleCustomDates(val) {
+    var customRow = document.getElementById('csbCustomDateFields');
+    if (customRow) {
+        if (val === 'custom') {
+            customRow.classList.remove('d-none');
+        } else {
+            customRow.classList.add('d-none');
+        }
+    }
+}
+
 function handleDocFilterSubmit(e) {
     e.preventDefault();
     var type = document.getElementById('csbFilterType').value;
     var acc = document.getElementById('csbFilterAccount').value;
-    if (type === 'direct_deposit') {
-        window.location.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', acc);
+    var period = document.getElementById('csbFilterRange').value;
+
+    var wiz = bootstrap.Modal.getInstance(document.getElementById('csbDocFilterModal'));
+    if (wiz) wiz.hide();
+
+    if (type === 'statement') {
+        var url = "{{ route('user.transactions.export.pdf') }}?period=" + encodeURIComponent(period);
+        if (acc === 'all') {
+            url += "&accounts[]=checking&accounts[]=savings&accounts[]=ira&accounts[]=heloc&accounts[]=cc&accounts[]=loan";
+        } else {
+            url += "&accounts[]=" + encodeURIComponent(acc);
+        }
+
+        if (period === 'custom') {
+            var fromDate = document.getElementById('csbDocFromDate').value;
+            var toDate = document.getElementById('csbDocToDate').value;
+            if (fromDate) url += "&from_date=" + encodeURIComponent(fromDate);
+            if (toDate) url += "&to_date=" + encodeURIComponent(toDate);
+        }
+
+        window.location.href = url;
+    } else if (type === 'direct_deposit') {
+        var depType = (acc === 'all') ? 'checking' : acc;
+        window.location.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', depType);
     } else {
-        window.location.href = "{{ route('user.documents.index') }}?type=" + type + "&account=" + acc;
+        window.location.href = "{{ route('user.documents.index') }}";
     }
 }
 </script>

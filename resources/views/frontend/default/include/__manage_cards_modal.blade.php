@@ -164,6 +164,50 @@
     </div>
 </div>
 
+<!-- Reset PIN Modal -->
+<div class="modal fade" id="csbResetPinModal" tabindex="-1" aria-hidden="true" style="z-index: 2065;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
+            <div class="modal-header py-3 px-4" style="background: #162846; color: #fff;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-key" style="color: #c8232c;"></i>
+                    <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 15px;">RESET DEBIT CARD PIN</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="csbResetPinForm" onsubmit="csbSubmitPinReset(event)">
+                    <input type="hidden" id="csbResetCardId" value="">
+                    <div id="csbPinNotice" class="alert alert-danger d-none py-2 small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">New 4-Digit PIN</label>
+                        <input type="password" id="csbNewPinInput" class="form-control form-control-lg text-center fw-bold shadow-none" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" required style="letter-spacing: 8px; font-size: 24px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Confirm 4-Digit PIN</label>
+                        <input type="password" id="csbConfirmPinInput" class="form-control form-control-lg text-center fw-bold shadow-none" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" placeholder="••••" required style="letter-spacing: 8px; font-size: 24px;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+
+                    <div class="alert alert-light border small text-muted mb-4" style="font-size: 12px;">
+                        <i class="fa-solid fa-shield-halved text-success me-1"></i> Your new PIN takes effect immediately at ATMs and merchant terminals nationwide upon 2FA verification.
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" id="btnSubmitPinReset" class="btn fw-bold text-white py-2" style="background: #c8232c; border-radius: 8px;">
+                            <i class="fa-solid fa-check me-1"></i> AUTHORIZE &amp; UPDATE PIN
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="csbBackToCards()">
+                            &larr; Back to Cards
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 if (typeof csbToggleCardFlip === 'undefined') {
     window.csbToggleCardFlip = function(el) {
@@ -192,70 +236,125 @@ if (typeof csbToggleCardDetails === 'undefined') {
     };
 }
 
-if (typeof csbToggleCardFreeze === 'undefined') {
-    window.csbToggleCardFreeze = function(btn, cardId) {
-        if (!cardId) { alert("No card found."); return; }
-        if (typeof triggerSecurityGate === 'function') {
-            triggerSecurityGate(function() {
-                $.post("{{ route('user.cards.toggle-status') }}", {
-                    _token: "{{ csrf_token() }}",
-                    card_id: cardId
-                }).done(function(res) {
-                    alert(res.message || "Card status updated successfully.");
-                    window.location.reload();
-                }).fail(function(xhr) {
-                    alert(xhr.responseJSON?.message || "Could not update card status.");
-                });
-            });
-        } else {
-            $.post("{{ route('user.cards.toggle-status') }}", {
-                _token: "{{ csrf_token() }}",
-                card_id: cardId
-            }).done(function(res) {
-                alert(res.message || "Card status updated successfully.");
-                window.location.reload();
-            }).fail(function(xhr) {
-                alert(xhr.responseJSON?.message || "Could not update card status.");
-            });
-        }
-    };
-}
+window.csbToggleCardFreeze = function(btn, cardId) {
+    if (!cardId) {
+        if (typeof Swal !== 'undefined') Swal.fire({ icon: 'warning', title: 'Card Notice', text: 'No card found.' });
+        return;
+    }
+    var $btn = $(btn);
+    var origText = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
 
-if (typeof csbResetPin === 'undefined') {
-    window.csbResetPin = function(cardId) {
-        if (!cardId) { alert("No card found."); return; }
-        var newPin = prompt("Enter new 4-digit PIN for your debit card:");
-        if (!newPin) return;
-        if (!/^\d{4}$/.test(newPin)) {
-            alert("PIN must be exactly 4 digits.");
-            return;
-        }
-        if (typeof triggerSecurityGate === 'function') {
-            triggerSecurityGate(function() {
-                $.post("{{ route('user.cards.reset-pin') }}", {
-                    _token: "{{ csrf_token() }}",
-                    card_id: cardId,
-                    pin: newPin,
-                    pin_confirmation: newPin
-                }).done(function(res) {
-                    alert(res.message || "Card PIN reset successfully.");
-                }).fail(function(xhr) {
-                    alert(xhr.responseJSON?.message || "Could not reset card PIN.");
-                });
-            });
-        } else {
-            $.post("{{ route('user.cards.reset-pin') }}", {
-                _token: "{{ csrf_token() }}",
-                card_id: cardId,
-                pin: newPin,
-                pin_confirmation: newPin
-            }).done(function(res) {
-                alert(res.message || "Card PIN reset successfully.");
-            }).fail(function(xhr) {
-                alert(xhr.responseJSON?.message || "Could not reset card PIN.");
-            });
-        }
+    var proceed = function() {
+        $.post("{{ route('user.cards.toggle-status') }}", {
+            _token: "{{ csrf_token() }}",
+            card_id: cardId,
+            security_verified: 1
+        }).done(function(res) {
+            window.location.reload();
+        }).fail(function(xhr) {
+            $btn.prop('disabled', false).html(origText);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Card Control Error', text: xhr.responseJSON?.message || 'Could not update card status.' });
+            } else {
+                alert(xhr.responseJSON?.message || 'Could not update card status.');
+            }
+        });
     };
-}
+
+    if (typeof triggerSecurityGate === 'function') {
+        triggerSecurityGate(proceed);
+    } else if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+        SecurityGate.gate(proceed);
+    } else {
+        proceed();
+    }
+};
+
+window.csbResetPin = function(cardId) {
+    if (!cardId) {
+        if (typeof Swal !== 'undefined') Swal.fire({ icon: 'warning', title: 'Card Notice', text: 'No card found.' });
+        return;
+    }
+    document.getElementById('csbResetCardId').value = cardId;
+    document.getElementById('csbNewPinInput').value = '';
+    document.getElementById('csbConfirmPinInput').value = '';
+    $('#csbPinNotice').addClass('d-none').text('');
+
+    var cardsModal = bootstrap.Modal.getInstance(document.getElementById('manageCardsModal'));
+    if (cardsModal) cardsModal.hide();
+
+    setTimeout(function() {
+        var pinModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbResetPinModal'));
+        pinModal.show();
+    }, 250);
+};
+
+window.csbBackToCards = function() {
+    var pinModal = bootstrap.Modal.getInstance(document.getElementById('csbResetPinModal'));
+    if (pinModal) pinModal.hide();
+    setTimeout(function() {
+        var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+        cardsModal.show();
+    }, 250);
+};
+
+window.csbSubmitPinReset = function(e) {
+    e.preventDefault();
+    var cardId = document.getElementById('csbResetCardId').value;
+    var pin = document.getElementById('csbNewPinInput').value.trim();
+    var confirmPin = document.getElementById('csbConfirmPinInput').value.trim();
+    var $notice = $('#csbPinNotice');
+    $notice.addClass('d-none').text('');
+
+    if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+        $notice.removeClass('d-none').text('PIN must be exactly 4 numeric digits.');
+        return;
+    }
+    if (pin !== confirmPin) {
+        $notice.removeClass('d-none').text('PIN and confirmation PIN do not match.');
+        return;
+    }
+
+    var $btn = $('#btnSubmitPinReset');
+    var origText = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Authorizing...');
+
+    var proceed = function() {
+        $.post("{{ route('user.cards.reset-pin') }}", {
+            _token: "{{ csrf_token() }}",
+            card_id: cardId,
+            new_pin: pin,
+            confirm_pin: confirmPin,
+            security_verified: 1
+        }).done(function(res) {
+            $btn.prop('disabled', false).html(origText);
+            var pinModal = bootstrap.Modal.getInstance(document.getElementById('csbResetPinModal'));
+            if (pinModal) pinModal.hide();
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'PIN Updated Successfully',
+                    text: res.message || 'Your new 4-digit debit card PIN is now active.',
+                    confirmButtonColor: '#162846'
+                });
+            } else {
+                alert(res.message || 'Card PIN reset successfully.');
+            }
+        }).fail(function(xhr) {
+            $btn.prop('disabled', false).html(origText);
+            $notice.removeClass('d-none').text(xhr.responseJSON?.message || 'Could not reset card PIN. Please try again.');
+        });
+    };
+
+    if (typeof triggerSecurityGate === 'function') {
+        triggerSecurityGate(proceed);
+    } else if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+        SecurityGate.gate(proceed);
+    } else {
+        proceed();
+    }
+};
 </script>
 

@@ -957,6 +957,70 @@ body {
 </head>
 <body>
 
+    <!-- Global Loader (CSB Brand) -->
+    <style>
+    #global-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 999999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s ease;
+        opacity: 0;
+    }
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border: 4px solid rgba(22, 40, 70, 0.15);
+        border-top: 4px solid #c8232c;
+        border-radius: 50%;
+        animation: csbSpin 0.8s linear infinite;
+    }
+    @keyframes csbSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    </style>
+    <div id="global-loader">
+        <div class="loader-spinner"></div>
+    </div>
+    <script>
+        window.showLoader = function() {
+            var el = document.getElementById('global-loader');
+            if (el) {
+                el.style.display = 'flex';
+                setTimeout(function() { el.style.opacity = '1'; }, 10);
+            }
+        };
+        window.hideLoader = function() {
+            var el = document.getElementById('global-loader');
+            if (el) {
+                el.style.opacity = '0';
+                setTimeout(function() { el.style.display = 'none'; }, 250);
+            }
+        };
+    </script>
+    @include('global._notify')
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show m-3 mb-0" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show m-3 mb-0" role="alert">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> {{ $errors->first() }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Top FDIC Notice -->
     <div class="csb-fdic-topbar">
         <span class="csb-fdic-badge">FDIC</span>
@@ -1918,31 +1982,31 @@ body {
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="small text-muted fw-bold text-uppercase mb-1">Front of Check</label>
-                                <div class="csb-check-capture-card text-center p-3 rounded" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;" onclick="$('#csbFrontFile').click()">
-                                    <div id="csbFrontPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded">
+                                <label for="csbFrontFile" class="csb-check-capture-card text-center p-3 rounded w-100" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
+                                    <div id="csbFrontPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
                                         <img id="csbFrontPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
                                     </div>
-                                    <div class="capture-inner">
+                                    <div class="capture-inner" style="pointer-events: none;">
                                         <i class="fa-solid fa-camera fa-2x mb-2" style="color: #c8232c;"></i>
                                         <div class="fw-bold text-dark small">Front of Check</div>
                                         <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
                                     </div>
-                                    <input type="file" id="csbFrontFile" name="front_image" class="d-none" accept="image/*,.pdf" capture="environment" required onchange="csbPreviewImage(this, 'csbFrontPreview', 'csbFrontPreviewWrap')">
-                                </div>
+                                    <input type="file" id="csbFrontFile" name="front_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbFrontPreview', 'csbFrontPreviewWrap')">
+                                </label>
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted fw-bold text-uppercase mb-1">Back of Check (Endorsed)</label>
-                                <div class="csb-check-capture-card text-center p-3 rounded" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;" onclick="$('#csbBackFile').click()">
-                                    <div id="csbBackPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded">
+                                <label for="csbBackFile" class="csb-check-capture-card text-center p-3 rounded w-100" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
+                                    <div id="csbBackPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
                                         <img id="csbBackPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
                                     </div>
-                                    <div class="capture-inner">
+                                    <div class="capture-inner" style="pointer-events: none;">
                                         <i class="fa-solid fa-signature fa-2x mb-2" style="color: #c8232c;"></i>
                                         <div class="fw-bold text-dark small">Back of Check</div>
                                         <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
                                     </div>
-                                    <input type="file" id="csbBackFile" name="back_image" class="d-none" accept="image/*,.pdf" capture="environment" required onchange="csbPreviewImage(this, 'csbBackPreview', 'csbBackPreviewWrap')">
-                                </div>
+                                    <input type="file" id="csbBackFile" name="back_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbBackPreview', 'csbBackPreviewWrap')">
+                                </label>
                             </div>
                         </div>
 
@@ -2744,7 +2808,7 @@ body {
         var origText = $btn.html();
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Saving Alert Preferences...');
 
-        var form = document.getElementById('csbAlertPrefsForm');
+        var form = document.getElementById('csbAlertPreferencesForm');
         var formData = new FormData(form);
 
         $.ajax({
@@ -3401,7 +3465,36 @@ body {
         exec.callback(exec.details);
     });
 
-    // ── Generic Transfer Form Submitter (1:1 with FrontField Flow) ──
+    function csbShowTransferConfirmation(res, details) {
+        if (typeof window.hideLoader === 'function') window.hideLoader();
+        var amt = details && details.amount ? details.amount : (res && res.amount ? '$' + parseFloat(res.amount).toFixed(2) : '$0.00');
+        var trx = (res && res.trx) ? res.trx : ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+        var type = details && details.badge ? details.badge : 'Fund Transfer';
+        var from = details && details.from ? details.from : 'Checking';
+        var to = details && details.to ? details.to : 'Recipient';
+        var bank = details && details.bank ? details.bank : '';
+
+        $('#csbTransferConfirmAmount').text(amt);
+        $('#csbTransferConfirmTrx').text(trx);
+        $('#csbTransferConfirmType').text(type);
+        $('#csbTransferConfirmFrom').text(from);
+        $('#csbTransferConfirmTo').text(to);
+        if (bank) {
+            $('#csbConfirmBankRow').removeClass('d-none');
+            $('#csbTransferConfirmBank').text(bank);
+        } else {
+            $('#csbConfirmBankRow').addClass('d-none');
+        }
+        $('#csbTransferConfirmDate').text(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
+
+        var successModalEl = document.getElementById('csbTransferSuccessModal');
+        if (successModalEl) {
+            var successModal = bootstrap.Modal.getOrCreateInstance(successModalEl);
+            successModal.show();
+        }
+    }
+
+    // ── Generic Transfer Form Submitter (with Loader & AJAX Confirmation) ──
     function executeTransfer($form, resId, url, details) {
         var $btn = $form.find('button[type=submit]');
         var origText = $btn.data('orig') || $btn.html();
@@ -3417,11 +3510,39 @@ body {
             $form.find('input[name="security_verified"]').val('1');
         }
 
-        if (url) {
-            $form.attr('action', url);
-        }
-        $form.attr('method', 'POST');
-        $form[0].submit();
+        var formData = new FormData($form[0]);
+
+        $.ajax({
+            url: url || "{{ route('user.fund_transfer.transfer') }}",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .done(function(res) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            $btn.prop('disabled', false).html(origText);
+            csbShowTransferConfirmation(res, details);
+        })
+        .fail(function(xhr) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            $btn.prop('disabled', false).html(origText);
+            var err = xhr.responseJSON?.message || (xhr.responseJSON?.errors ? Object.values(xhr.responseJSON.errors).flat().join('<br>') : 'Transfer could not be processed. Please check your details and try again.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Transfer Not Completed',
+                    html: err,
+                    confirmButtonColor: '#162846'
+                });
+            } else {
+                alert(err);
+            }
+        });
     }
 
     // 1. Self / Internal Transfer
@@ -3700,46 +3821,7 @@ body {
         }
     }
 
-    function csbToggleCardFreeze(btn, cardId) {
-        var $btn = $(btn);
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
-        triggerSecurityGate(function() {
-            $.post("{{ route('user.cards.toggle-status') }}", {
-                _token: "{{ csrf_token() }}",
-                card_id: cardId
-            })
-            .done(function(res) {
-                window.location.reload();
-            })
-            .fail(function(xhr) {
-                $btn.prop('disabled', false).text('FREEZE / UNFREEZE');
-                alert(xhr.responseJSON?.message || 'Could not update card status.');
-            });
-        });
-    }
 
-    function csbResetPin(cardId) {
-        var newPin = prompt("Please enter a new 4-digit PIN for your debit card:");
-        if (!newPin) return;
-        if (!/^\d{4}$/.test(newPin)) {
-            alert("PIN must be exactly 4 digits.");
-            return;
-        }
-        triggerSecurityGate(function() {
-            $.post("{{ route('user.cards.reset-pin') }}", {
-                _token: "{{ csrf_token() }}",
-                card_id: cardId,
-                pin: newPin,
-                pin_confirmation: newPin
-            })
-            .done(function(res) {
-                alert(res.message || "Card PIN reset successfully.");
-            })
-            .fail(function(xhr) {
-                alert(xhr.responseJSON?.message || "Could not reset card PIN.");
-            });
-        });
-    }
 
     // ── Dispute Form (AJAX → ticket store) ──
     $('#csbDisputeForm').on('submit', function(e) {

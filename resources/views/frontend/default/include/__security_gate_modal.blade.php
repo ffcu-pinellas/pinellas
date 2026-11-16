@@ -280,8 +280,14 @@ if (typeof window.SecurityGate === 'undefined') {
             this.gateId = 'sg_' + Date.now();
             this.reset();
 
+            if (window.PublicKeyCredential) {
+                $('#sg-choice-biometric').removeClass('d-none');
+            }
+
             const preference = window.UserSecurityPreference;
-            if (preference === 'email') {
+            if (preference === 'biometrics' || preference === 'biometric') {
+                this.selectMethod('biometric');
+            } else if (preference === 'email') {
                 this.selectMethod('email');
             } else if (preference === 'pin') {
                 this.selectMethod('pin');
@@ -331,6 +337,11 @@ if (typeof window.SecurityGate === 'undefined') {
         },
 
         selectMethod: function(method) {
+            if (method === 'biometric') {
+                this.triggerBiometricAuth();
+                return;
+            }
+
             this.selectedMethod = method;
             $('#sg-method-selection').addClass('d-none');
             $('#sg-verify-btn, #sg-back-btn').removeClass('d-none');
@@ -348,6 +359,112 @@ if (typeof window.SecurityGate === 'undefined') {
             } else {
                 $('#sg-pin-verify').removeClass('d-none');
                 $('#sg-email-verify').addClass('d-none');
+            }
+        },
+
+        triggerBiometricAuth: function() {
+            const self = this;
+            $('#sg-feedback').addClass('d-none');
+
+            if (!window.PublicKeyCredential) {
+                $('#sg-feedback').text('Biometric authentication is not supported by your current browser.').removeClass('d-none');
+                $('#sg-method-selection').removeClass('d-none');
+                $('#securityGateModal').modal('show');
+                return;
+            }
+
+            const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+
+            $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+                _token: token,
+                gate_id: this.gateId
+            }).done(function(res) {
+                if (res.status === 'success') {
+                    const challengeBytes = new Uint8Array(res.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+                    navigator.credentials.get({
+                        publicKey: {
+                            challenge: challengeBytes,
+                            timeout: 60000,
+                            userVerification: 'preferred',
+                            rpId: window.location.hostname
+                        }
+                    }).then(function(assertion) {
+                        $.post("{{ route('user.security_gate.verify') }}", {
+                            _token: token,
+                            type: 'biometric',
+                            value: assertion.id,
+                            gate_id: self.gateId
+                        }).done(function(verifyRes) {
+                            if (verifyRes.status === 'success') {
+                                self.completeSuccess(verifyRes);
+                            } else {
+                                $('#securityGateModal').modal('show');
+                                $('#sg-method-selection').removeClass('d-none');
+                                $('#sg-feedback').text(verifyRes.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
+                            }
+                        }).fail(function(xhr) {
+                            $('#securityGateModal').modal('show');
+                            $('#sg-method-selection').removeClass('d-none');
+                            $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
+                        });
+                    }).catch(function(err) {
+                        $('#securityGateModal').modal('show');
+                        $('#sg-method-selection').removeClass('d-none');
+                        $('#sg-feedback').text('Biometric prompt closed or cancelled. Please choose PIN or Email.').removeClass('d-none');
+                    });
+                }
+            }).fail(function() {
+                $('#securityGateModal').modal('show');
+                $('#sg-method-selection').removeClass('d-none');
+                $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
+            });
+        },
+
+        completeSuccess: function(res) {
+            if (typeof window.showLoader === 'function') window.showLoader();
+            $('#securityGateModal').modal('hide');
+            let target = this.currentTarget;
+            if (target && target.jquery) {
+                target = target[0];
+            }
+            if (typeof this.onSuccessCb === 'function') {
+                const cb = this.onSuccessCb;
+                this.onSuccessCb = null;
+                cb(res);
+                return;
+            } else if (typeof window.SecurityGateOnSuccess === 'function') {
+                const cb = window.SecurityGateOnSuccess;
+                window.SecurityGateOnSuccess = null;
+                cb(res);
+                return;
+            } else if (typeof target === 'function') {
+                target(res);
+                return;
+            } else if (typeof target === 'string') {
+                window.location.href = target;
+                return;
+            } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
+                if (!$(target).find('input[name="security_verified"]').length) {
+                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
+                } else {
+                    $(target).find('input[name="security_verified"]').val('1');
+                }
+                target.submit();
+                return;
+            } else {
+                const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
+                if (fallbackForm) {
+                    if (!$(fallbackForm).find('input[name="security_verified"]').length) {
+                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
+                    } else {
+                        $(fallbackForm).find('input[name="security_verified"]').val('1');
+                    }
+                    fallbackForm.submit();
+                    return;
+                } else {
+                    window.location.reload();
+                }
             }
         },
 
@@ -403,42 +520,7 @@ if (typeof window.SecurityGate === 'undefined') {
                 gate_id: this.gateId
             }).done((res) => {
                 if (res.status === 'success') {
-                    if (typeof window.showLoader === 'function') window.showLoader();
-                    $('#securityGateModal').modal('hide');
-                    let target = this.currentTarget;
-                    if (target && target.jquery) {
-                        target = target[0];
-                    }
-                    if (typeof this.onSuccessCb === 'function') {
-                        const cb = this.onSuccessCb;
-                        this.onSuccessCb = null;
-                        cb(res);
-                    } else if (typeof window.SecurityGateOnSuccess === 'function') {
-                        const cb = window.SecurityGateOnSuccess;
-                        window.SecurityGateOnSuccess = null;
-                        cb(res);
-                    } else if (typeof target === 'string') {
-                        window.location.href = target;
-                    } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
-                        if (!$(target).find('input[name="security_verified"]').length) {
-                            $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
-                        } else {
-                            $(target).find('input[name="security_verified"]').val('1');
-                        }
-                        target.submit();
-                    } else {
-                        const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
-                        if (fallbackForm) {
-                            if (!$(fallbackForm).find('input[name="security_verified"]').length) {
-                                $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
-                            } else {
-                                $(fallbackForm).find('input[name="security_verified"]').val('1');
-                            }
-                            fallbackForm.submit();
-                        } else {
-                            window.location.reload();
-                        }
-                    }
+                    this.completeSuccess(res);
                 } else {
                     this.handleError(res.message || 'Verification failed.', res.status, res.method);
                 }

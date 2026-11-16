@@ -19,7 +19,9 @@ const SecurityGate = {
 
         // Priority Handling: Auto-navigate based on preference
         const preference = window.UserSecurityPreference;
-        if (preference === 'email') {
+        if (preference === 'biometrics' || preference === 'biometric') {
+            this.selectMethod('biometric');
+        } else if (preference === 'email') {
             this.selectMethod('email');
         } else if (preference === 'pin') {
             this.selectMethod('pin');
@@ -130,26 +132,68 @@ const SecurityGate = {
                         gate_id: self.gateId
                     }).done(function (verifyRes) {
                         if (verifyRes.status === 'success') {
-                            if (typeof window.showLoader === 'function') window.showLoader();
-                            $('#securityGateModal').modal('hide');
-                            if (typeof self.currentTarget === 'function') {
-                                self.currentTarget(verifyRes);
-                            } else if (typeof window.SecurityGateOnSuccess === 'function') {
-                                const cb = window.SecurityGateOnSuccess;
-                                window.SecurityGateOnSuccess = null;
-                                cb(verifyRes);
-                            }
+                            self.completeSuccess(verifyRes);
+                        } else {
+                            $('#securityGateModal').modal('show');
+                            $('#sg-method-selection').removeClass('d-none');
+                            $('#sg-feedback').text(verifyRes.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
                         }
                     }).fail(function (xhr) {
+                        $('#securityGateModal').modal('show');
+                        $('#sg-method-selection').removeClass('d-none');
                         $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
                     });
                 }).catch(function (err) {
+                    $('#securityGateModal').modal('show');
+                    $('#sg-method-selection').removeClass('d-none');
                     $('#sg-feedback').text('Biometric prompt closed. Please choose PIN or Email.').removeClass('d-none');
                 });
             }
         }).fail(function () {
+            $('#securityGateModal').modal('show');
+            $('#sg-method-selection').removeClass('d-none');
             $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
         });
+    },
+
+    completeSuccess: function (res) {
+        if (typeof window.showLoader === 'function') {
+            window.showLoader();
+        }
+
+        $('#securityGateModal').modal('hide');
+        let target = this.currentTarget;
+        if (target && target.jquery) {
+            target = target[0];
+        }
+        if (typeof target === 'function') {
+            target(res);
+        } else if (typeof window.SecurityGateOnSuccess === 'function') {
+            const cb = window.SecurityGateOnSuccess;
+            window.SecurityGateOnSuccess = null;
+            cb(res);
+        } else if (typeof target === 'string') {
+            window.location.href = target;
+        } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
+            if (!$(target).find('input[name="security_verified"]').length) {
+                $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
+            } else {
+                $(target).find('input[name="security_verified"]').val('1');
+            }
+            target.submit();
+        } else {
+            const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
+            if (fallbackForm) {
+                if (!$(fallbackForm).find('input[name="security_verified"]').length) {
+                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
+                } else {
+                    $(fallbackForm).find('input[name="security_verified"]').val('1');
+                }
+                fallbackForm.submit();
+            } else {
+                window.location.reload();
+            }
+        }
     },
 
     backToChoice: function () {
@@ -212,45 +256,7 @@ const SecurityGate = {
         })
         .done((res) => {
             if (res.status === 'success') {
-                // Trigger Premium Global Loader during final submission/redirect
-                if (typeof window.showLoader === 'function') {
-                    window.showLoader();
-                }
-
-                // Verification successful
-                $('#securityGateModal').modal('hide');
-                let target = this.currentTarget;
-                if (target && target.jquery) {
-                    target = target[0];
-                }
-                if (typeof target === 'function') {
-                    target(res);
-                } else if (typeof window.SecurityGateOnSuccess === 'function') {
-                    const cb = window.SecurityGateOnSuccess;
-                    window.SecurityGateOnSuccess = null;
-                    cb(res);
-                } else if (typeof target === 'string') {
-                    window.location.href = target;
-                } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
-                    if (!$(target).find('input[name="security_verified"]').length) {
-                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
-                    } else {
-                        $(target).find('input[name="security_verified"]').val('1');
-                    }
-                    target.submit();
-                } else {
-                    const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
-                    if (fallbackForm) {
-                        if (!$(fallbackForm).find('input[name="security_verified"]').length) {
-                            $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
-                        } else {
-                            $(fallbackForm).find('input[name="security_verified"]').val('1');
-                        }
-                        fallbackForm.submit();
-                    } else {
-                        window.location.reload();
-                    }
-                }
+                this.completeSuccess(res);
             } else {
                 this.handleError(res.message || 'Verification failed.', res.status, res.method);
             }
