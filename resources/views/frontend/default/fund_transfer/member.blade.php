@@ -41,30 +41,30 @@
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="checkRestriction(); validateBalance();">
                                 @if($wallets->isEmpty())
                                     <option value="default" data-balance="{{ auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
+                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)auth()->user()->balance, 2) }}
                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
                                         <option value="{{ $wallet->currency->code }}" data-balance="{{ $wallet->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
+                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)$wallet->balance, 2) }}
                                             @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
                                 @endif
                                 <option value="primary_savings" data-balance="{{ auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
                                     @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                 </option>
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}" @disabled(auth()->user()->isRestricted('heloc'))>
-                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - ${{ number_format((float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance), 2) }} (Available)
                                     @if(auth()->user()->isRestricted('heloc')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
                                 <option value="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}" @disabled(auth()->user()->isRestricted('cc'))>
-                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - ${{ number_format((float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance), 2) }} (Available)
                                     @if(auth()->user()->isRestricted('cc')) (Restricted) @endif
                                 </option>
                                 @endif

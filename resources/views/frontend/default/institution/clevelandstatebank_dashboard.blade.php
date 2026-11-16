@@ -836,45 +836,60 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 60px;
+        height: 64px;
         background: #162846; /* Official CSB Dark Navy */
         border-top: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
         z-index: 1040;
         justify-content: space-around;
-        align-items: stretch;
-        padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+        align-items: center;
+        padding: 4px 6px env(safe-area-inset-bottom, 8px) 6px;
     }
     .csb-dock-item {
-        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #ffffff !important;
+        color: #94a3b8;
         text-decoration: none;
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 600;
-        letter-spacing: 0.2px;
+        flex: 1;
+        padding: 4px 0;
+        transition: color 0.15s ease, transform 0.15s ease;
         border: none;
-        border-right: 1px solid rgba(255, 255, 255, 0.12);
         background: transparent;
         cursor: pointer;
-        transition: background 0.15s ease;
-        padding: 6px 0;
-    }
-    .csb-dock-item:last-child {
-        border-right: none;
     }
     .csb-dock-item:active, .csb-dock-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: #ffffff !important;
+        color: #ffffff;
+        transform: translateY(-1px);
     }
     .csb-dock-item i {
-        font-size: 16px;
+        font-size: 17px;
         margin-bottom: 3px;
         display: block;
-        color: #ffffff !important;
+        color: #cbd5e1;
+    }
+    .csb-dock-item:hover i {
+        color: #ffffff;
+    }
+    .csb-dock-item.csb-dock-primary {
+        color: #ffffff;
+    }
+    .csb-dock-item.csb-dock-primary .csb-dock-icon-circle {
+        background: linear-gradient(135deg, #c8232c, #a51821);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -16px;
+        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.45);
+        color: #ffffff;
+        font-size: 16px;
+        border: 2px solid #162846;
     }
     .dashboard-content, .dashboard-wrapper {
         padding-bottom: 78px !important;
@@ -962,7 +977,7 @@ body {
     <!-- Main Shell -->
     <div class="csb-layout-wrapper">
         <!-- Backdrop for mobile sidebar drawer -->
-        <div class="csb-sidebar-backdrop" id="csbSidebarBackdrop"></div>
+        <div class="csb-sidebar-backdrop" id="csbSidebarBackdrop" onclick="window.closeMobileSidebar()"></div>
 
         <!-- Left Charcoal Sidebar -->
         <aside class="csb-sidebar" id="csbSidebar">
@@ -971,7 +986,7 @@ body {
                 <div class="d-flex align-items-center gap-2">
                     <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank" style="height: 24px; max-width: 140px; object-fit: contain;">
                 </div>
-                <button type="button" class="btn-close btn-close-white" id="csbSidebarCloseBtn" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" id="csbSidebarCloseBtn" onclick="window.closeMobileSidebar()" aria-label="Close"></button>
             </div>
 
             <!-- Member Profile -->
@@ -1093,6 +1108,7 @@ body {
             </div>
 
             @php
+                $currency = '$';
                 $checkingBal = (float)($user->balance ?? 0);
                 $savingsBal = (float)($user->savings_balance ?? 0);
                 $hasSavings = !empty($user->savings_account_number) || $user->savings_balance !== null;
@@ -1235,36 +1251,68 @@ body {
             <!-- Two Column Lower Cards -->
             <div class="dashboard-grid-2">
                 <!-- Left: Recent Transactions -->
-                <div class="csb-widget-card">
-                    <div class="widget-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="csb-widget-card" id="recentTxnWidgetCard">
+                    <div class="widget-header d-flex justify-content-between align-items-center">
                         <h3 class="mb-0">Recent Transactions</h3>
-                        <div class="widget-controls d-flex align-items-center gap-2 flex-wrap">
-                            <div class="csb-txn-search-wrap">
-                                <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none;"></i>
-                                <input type="text" id="csbTxnLiveSearch" placeholder="Search merchant, amt..." oninput="csbFilterTxnLive(this.value)">
-                            </div>
-                            <select class="widget-dropdown-select" id="csbTxnAccountSelect" onchange="csbOnAccountSelectChanged(this.value)">
-                                <option value="all" selected>All Accounts</option>
-                                <option value="checking">Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
-                                @if($hasSavings)
-                                <option value="savings">Savings *{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</option>
-                                @endif
-                                @if($hasIra)
-                                <option value="ira">IRA *{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</option>
-                                @endif
-                                @if($hasHeloc)
-                                <option value="heloc">HELOC *{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</option>
-                                @endif
-                                @if($hasCc)
-                                <option value="cc">Credit Card *{{ substr($user->cc_account_number ?? $user->account_number, -4) }}</option>
-                                @endif
-                                @if($hasLoan)
-                                <option value="loan">Loan *{{ substr($user->loan_account_number ?? $user->account_number, -4) }}</option>
-                                @endif
-                            </select>
-                            <button type="button" class="csb-btn-export-csv" onclick="csbExportClientCsv()" title="Export visible transactions to CSV">
-                                <i class="fa-solid fa-file-csv text-success"></i> CSV
+                        <!-- 3-Dot Dropdown Menu (Matching original bank design) -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm text-secondary border-0 p-1 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px; border-radius: 50%;">
+                                <i class="fa-solid fa-ellipsis-vertical fs-5"></i>
                             </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border" style="border-radius: 8px; font-size: 13px;">
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="$('#csbTxnSearchToggleWrap').slideToggle(150); $('#csbTxnLiveSearch').focus();">
+                                        <i class="fa-solid fa-magnifying-glass text-muted" style="width: 16px;"></i> Search Transactions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="javascript:void(0)" onclick="csbExportClientCsv()">
+                                        <i class="fa-solid fa-file-csv text-success" style="width: 16px;"></i> Export to CSV
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-muted" href="javascript:void(0)" onclick="$('#recentTxnWidgetCard').slideToggle(200)">
+                                        <i class="fa-regular fa-eye-slash" style="width: 16px;"></i> Hide Tile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 text-muted" href="javascript:void(0)">
+                                        <i class="fa-solid fa-table-cells-large" style="width: 16px;"></i> Manage Tiles
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Clean Account Selector (Matching Mobile App Screenshot) -->
+                    <div class="px-3 pt-3 pb-2">
+                        <select class="form-select border shadow-none fw-semibold" id="csbTxnAccountSelect" onchange="csbOnAccountSelectChanged(this.value)" style="border-radius: 6px; font-size: 14px; background-color: #ffffff; color: #1e293b;">
+                            <option value="all" selected>All Accounts</option>
+                            <option value="checking">Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
+                            @if($hasSavings)
+                            <option value="savings">Savings *{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</option>
+                            @endif
+                            @if($hasIra)
+                            <option value="ira">IRA *{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</option>
+                            @endif
+                            @if($hasHeloc)
+                            <option value="heloc">HELOC *{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</option>
+                            @endif
+                            @if($hasCc)
+                            <option value="cc">Credit Card *{{ substr($user->cc_account_number ?? $user->account_number, -4) }}</option>
+                            @endif
+                            @if($hasLoan)
+                            <option value="loan">Loan *{{ substr($user->loan_account_number ?? $user->account_number, -4) }}</option>
+                            @endif
+                        </select>
+                    </div>
+
+                    <!-- Collapsible Search Box -->
+                    <div id="csbTxnSearchToggleWrap" class="px-3 pb-2 d-none">
+                        <div class="position-relative">
+                            <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none;"></i>
+                            <input type="text" id="csbTxnLiveSearch" class="form-control form-control-sm ps-4 shadow-none" placeholder="Search merchant, amount, or date..." oninput="csbFilterTxnLive(this.value)" style="border-radius: 6px;">
                         </div>
                     </div>
                     <div class="widget-body">
@@ -2068,7 +2116,7 @@ body {
                     <a href="#" id="csbBtnDownloadReceipt" class="btn w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm text-white" style="background: #c8232c; border: none;">
                         <i class="fa-solid fa-file-pdf"></i> Download Official Receipt
                     </a>
-                    <a href="#" id="csbBtnDisputeTxn" class="btn w-100 rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;">
+                    <a href="#" id="csbBtnDisputeTxn" class="btn w-100 rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2 d-none" style="background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;">
                         <i class="fa-solid fa-flag text-danger"></i> Dispute this transaction (Reg E)
                     </a>
                     <button type="button" class="btn btn-link text-muted text-decoration-none w-100 py-1 fw-bold" data-bs-dismiss="modal">Close</button>
@@ -2284,17 +2332,23 @@ body {
 
     <!-- ════════════════ MOBILE FLOATING QUICK-ACTION DOCK ════════════════ -->
     <nav class="csb-mobile-dock" aria-label="Mobile Banking Quick Actions">
-        <a href="javascript:void(0)" class="csb-dock-item" onclick="openMobileSidebar()">
+        <a href="javascript:void(0)" class="csb-dock-item" onclick="window.openMobileSidebar()">
             <i class="fa-solid fa-bars"></i>
             <span>Menu</span>
         </a>
-        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">
-            <i class="fa-solid fa-money-bill-transfer"></i>
-            <span>Transfers</span>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#remoteDepositModal">
+            <i class="fa-solid fa-camera"></i>
+            <span>Deposit</span>
         </a>
-        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#csbLocationsModal">
-            <i class="fa-solid fa-location-dot"></i>
-            <span>Locations</span>
+        <a href="javascript:void(0)" class="csb-dock-item csb-dock-primary" data-bs-toggle="modal" data-bs-target="#moveMoneyModal" title="Quick Transfer">
+            <div class="csb-dock-icon-circle">
+                <i class="fa-solid fa-right-left"></i>
+            </div>
+            <span style="color: #ffffff; font-weight: 700; margin-top: 2px;">Transfer</span>
+        </a>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#manageCardsModal">
+            <i class="fa-solid fa-credit-card"></i>
+            <span>Cards</span>
         </a>
         <a href="{{ route('user.setting.show') }}" class="csb-dock-item">
             <i class="fa-solid fa-gear"></i>
@@ -2308,23 +2362,27 @@ body {
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
 
     <script>
-    // ── Sidebar Toggle & Drawer ──
+    // ── Global Mobile Sidebar Functions ──
+    window.openMobileSidebar = function() {
+        var sidebar = document.getElementById('csbSidebar');
+        var backdrop = document.getElementById('csbSidebarBackdrop');
+        if (sidebar) sidebar.classList.add('show');
+        if (backdrop) backdrop.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    };
+    window.closeMobileSidebar = function() {
+        var sidebar = document.getElementById('csbSidebar');
+        var backdrop = document.getElementById('csbSidebarBackdrop');
+        if (sidebar) sidebar.classList.remove('show');
+        if (backdrop) backdrop.classList.remove('show');
+        document.body.style.overflow = '';
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
         var sidebar = document.getElementById('csbSidebar');
         var toggleBtn = document.getElementById('sidebarToggleBtn');
         var closeBtn = document.getElementById('csbSidebarCloseBtn');
         var backdrop = document.getElementById('csbSidebarBackdrop');
-
-        function openMobileSidebar() {
-            if (sidebar) sidebar.classList.add('show');
-            if (backdrop) backdrop.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeMobileSidebar() {
-            if (sidebar) sidebar.classList.remove('show');
-            if (backdrop) backdrop.classList.remove('show');
-            document.body.style.overflow = '';
-        }
 
         if (toggleBtn) {
             toggleBtn.addEventListener('click', function (e) {
@@ -2470,7 +2528,12 @@ body {
         $('#csbTxnModalStatus').text(status);
         $('#csbTxnModalMethod').text(method);
         $('#csbBtnDownloadReceipt').attr('href', receiptUrl);
-        $('#csbBtnDisputeTxn').attr('href', disputeUrl);
+        var isOutgoing = (amount || '').trim().indexOf('-') === 0;
+        if (isOutgoing) {
+            $('#csbBtnDisputeTxn').removeClass('d-none').attr('href', disputeUrl);
+        } else {
+            $('#csbBtnDisputeTxn').addClass('d-none');
+        }
         
         $('#csbTxnModalId').val(id || '');
         $('#csbTxnMemberNote').val(note || '');

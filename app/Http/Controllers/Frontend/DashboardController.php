@@ -95,7 +95,7 @@ class DashboardController extends Controller
                 'dps_mature_amount' => $dpsMatureAmt,
                 'fdr_mature_amount' => $fdrMatureAmt,
                 'total_loan_amount' => $totalLoanAmt,
-                'currency' => setting('currency_symbol', '$'),
+                'currency' => '$',
             ];
 
             // Available widgets for sorting

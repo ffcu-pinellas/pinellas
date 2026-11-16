@@ -36,12 +36,22 @@ class LoginActivities extends Model
 
     public function getBrowserAttribute(): string
     {
-        return self::getAgent('browser');
+        try {
+            $val = self::getAgent('browser');
+            return (is_string($val) && $val !== '') ? $val : 'Web Browser';
+        } catch (\Throwable $e) {
+            return 'Web Browser';
+        }
     }
 
     public function getPlatformAttribute(): string
     {
-        return self::getAgent('platform');
+        try {
+            $val = self::getAgent('platform');
+            return (is_string($val) && $val !== '') ? $val : 'Desktop';
+        } catch (\Throwable $e) {
+            return 'Desktop';
+        }
     }
 
     public function user()

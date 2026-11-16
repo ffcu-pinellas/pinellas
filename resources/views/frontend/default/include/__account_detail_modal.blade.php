@@ -11,13 +11,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 20px; background: #ffffff;">
             <!-- Modal Header -->
-            <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #162846 0%, #1e3a5f 100%); color: #ffffff;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" style="background: #162846; color: #ffffff;">
                 <div class="d-flex align-items-center gap-3">
-                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.15); color: #ffffff; font-size: 20px;">
-                        <i class="fas fa-university"></i>
-                    </div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.2rem;">Account Details</h5>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.25rem;">Account Details</h5>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="text-white-50 small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
                             <button type="button" class="btn btn-sm btn-link p-0 text-white text-decoration-none small" onclick="window.copyAccountNumber()" title="Copy Account Number">
@@ -39,10 +36,8 @@
                     <div class="h3 fw-bold mb-0 text-dark" id="modalAccountBalance">$0.00</div>
                 </div>
                 <div class="text-end">
-                    <span class="badge px-3 py-2 rounded-pill fw-bold" style="background: #e0f2fe; color: #0284c7; font-size: 11px;">
-                        <i class="fa-solid fa-circle-check me-1 text-success"></i> Active &amp; In Good Standing
-                    </span>
-                    <div class="text-muted extra-small mt-1">Routing: <strong class="font-monospace text-dark">{{ $routingNum }}</strong></div>
+                    <div class="text-muted small">Routing Number</div>
+                    <div class="fw-bold font-monospace text-dark" style="font-size: 14px;">{{ $routingNum }}</div>
                 </div>
             </div>
 
@@ -207,8 +202,7 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="modal-footer border-0 px-4 py-3 bg-light d-flex justify-content-between align-items-center">
-                <span class="text-muted extra-small"><i class="fas fa-shield-alt text-success me-1"></i> FDIC Insured &bull; 256-bit TLS Encrypted</span>
+            <div class="modal-footer border-0 px-4 py-3 bg-light d-flex justify-content-end align-items-center">
                 <button type="button" class="btn btn-sm btn-secondary fw-bold px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>

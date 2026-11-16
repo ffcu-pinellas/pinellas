@@ -66,11 +66,11 @@
                                                 <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Pay From Account</label>
                                                 <select name="account_type" class="form-select border-2 rounded-3 p-2 fw-600" required>
                                                     <option value="default" @disabled(auth()->user()->isRestricted('checking'))>
-                                                        {{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->balance, 2) }}
+                                                        {{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->balance, 2) }}
                                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                                     </option>
                                                     <option value="savings_primary" @disabled(auth()->user()->isRestricted('savings'))>
-                                                        {{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
+                                                        {{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
                                                         @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                                     </option>
                                                 </select>
@@ -79,7 +79,7 @@
                                             <div class="mb-4">
                                                 <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Amount</label>
                                                 <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border-2 border">
-                                                    <span class="input-group-text bg-white border-0 fw-bold">{{ setting('site_currency', 'global') }}</span>
+                                                    <span class="input-group-text bg-white border-0 fw-bold">$</span>
                                                     <input type="number" step="0.01" class="form-control border-0 fw-bold" name="amount" required placeholder="0.00" style="font-size: 1.5rem;">
                                                 </div>
                                             </div>

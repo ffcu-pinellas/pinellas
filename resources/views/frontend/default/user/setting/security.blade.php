@@ -166,7 +166,7 @@
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark">{{ $device->browser }} on {{ $device->platform }}</div>
-                                        <div class="small text-muted">{{ $device->ip }} • {{ $device->created_at->diffForHumans() }}</div>
+                                        <div class="small text-muted">{{ $device->ip }} • {{ $device->created_at ? $device->created_at->diffForHumans() : 'Active' }}</div>
                                     </div>
                                 </div>
                                 <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
