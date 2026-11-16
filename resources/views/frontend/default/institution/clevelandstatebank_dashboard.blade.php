@@ -825,7 +825,7 @@ body {
     color: #c8232c !important;
 }
 
-/* ── Mobile Floating Quick-Action Dock ── */
+/* ── Mobile Floating Quick-Action Dock (Original CSB Navy Design) ── */
 .csb-mobile-dock {
     display: none;
 }
@@ -836,57 +836,45 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 64px;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border-top: 1px solid rgba(226, 232, 240, 0.9);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        height: 60px;
+        background: #162846; /* Official CSB Dark Navy */
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
         z-index: 1040;
         justify-content: space-around;
-        align-items: center;
-        padding: 4px 8px env(safe-area-inset-bottom, 8px) 8px;
+        align-items: stretch;
+        padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
     }
     .csb-dock-item {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #64748b;
+        color: #ffffff !important;
         text-decoration: none;
-        font-size: 10.5px;
+        font-size: 11px;
         font-weight: 600;
-        flex: 1;
-        padding: 4px 0;
-        transition: color 0.15s ease, transform 0.15s ease;
+        letter-spacing: 0.2px;
         border: none;
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
         background: transparent;
         cursor: pointer;
+        transition: background 0.15s ease;
+        padding: 6px 0;
+    }
+    .csb-dock-item:last-child {
+        border-right: none;
     }
     .csb-dock-item:active, .csb-dock-item:hover {
-        color: #c8232c;
-        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.1);
+        color: #ffffff !important;
     }
     .csb-dock-item i {
-        font-size: 17px;
+        font-size: 16px;
         margin-bottom: 3px;
         display: block;
-    }
-    .csb-dock-item.csb-dock-primary {
-        color: #ffffff;
-    }
-    .csb-dock-item.csb-dock-primary .csb-dock-icon-circle {
-        background: linear-gradient(135deg, #c8232c, #a51821);
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: -14px;
-        box-shadow: 0 4px 12px rgba(200, 35, 44, 0.35);
-        color: #ffffff;
-        font-size: 16px;
+        color: #ffffff !important;
     }
     .dashboard-content, .dashboard-wrapper {
         padding-bottom: 78px !important;
@@ -1037,7 +1025,7 @@ body {
                 </li>
                 <div class="collapse show" id="menuDocsSettings">
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.documents.index') }}" class="csb-nav-link">
+                        <a href="javascript:void(0)" class="csb-nav-link" data-bs-toggle="modal" data-bs-target="#csbDocumentsModal">
                             <i class="fa-solid fa-file-lines" style="width: 16px;"></i> Documents
                         </a>
                     </li>
@@ -1256,7 +1244,8 @@ body {
                                 <input type="text" id="csbTxnLiveSearch" placeholder="Search merchant, amt..." oninput="csbFilterTxnLive(this.value)">
                             </div>
                             <select class="widget-dropdown-select" id="csbTxnAccountSelect" onchange="csbOnAccountSelectChanged(this.value)">
-                                <option value="checking" selected>Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
+                                <option value="all" selected>All Accounts</option>
+                                <option value="checking">Checking *{{ substr($user->account_number ?? '1397', -4) }}</option>
                                 @if($hasSavings)
                                 <option value="savings">Savings *{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</option>
                                 @endif
@@ -1301,7 +1290,9 @@ body {
                                 @php
                                     $rawType = $tx->type instanceof \BackedEnum ? $tx->type->value : (string)($tx->type ?? '');
                                     $typeLower = strtolower($rawType);
-                                    $isNegative = in_array($typeLower, ['withdraw', 'debit', 'fee', 'transfer_out', 'wire_out', 'zelle_out', 'payment']) || (isset($tx->amount) && (float)$tx->amount < 0);
+                                    $incomingTypes = ['deposit', 'manual_deposit', 'receive_money', 'refund', 'signup_bonus', 'portfolio_bonus', 'referral', 'reward_redeem'];
+                                    $isIncoming = in_array($typeLower, $incomingTypes) && ((float)($tx->amount ?? 0) > 0);
+                                    $isNegative = !$isIncoming;
                                     $wType = strtolower((string)($tx->wallet_type ?? 'checking'));
                                     if ($wType === 'default' || empty($wType)) $wType = 'checking';
                                     if (in_array($wType, ['primary_savings', 'savings_primary'])) $wType = 'savings';
@@ -1944,6 +1935,9 @@ body {
     {{-- ── 3. MANAGE CARDS PRE-PAGE MODAL (3D Flip & Quick Controls) ── --}}
     @include('frontend::include.__manage_cards_modal')
 
+    {{-- ── 4. CSB DOCUMENTS & LOCATIONS MODALS ── --}}
+    @include('frontend::include.__csb_documents_modal')
+
     {{-- ── 2FA Security Gate Modal & Floating Corner Ava Assistant ── --}}
     @include('frontend::include.__security_gate_modal')
     @include('frontend::user.partials.ava_chat')
@@ -2290,27 +2284,21 @@ body {
 
     <!-- ════════════════ MOBILE FLOATING QUICK-ACTION DOCK ════════════════ -->
     <nav class="csb-mobile-dock" aria-label="Mobile Banking Quick Actions">
+        <a href="javascript:void(0)" class="csb-dock-item" onclick="openMobileSidebar()">
+            <i class="fa-solid fa-bars"></i>
+            <span>Menu</span>
+        </a>
         <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#moveMoneyModal">
-            <i class="fa-solid fa-paper-plane" style="color: #c8232c;"></i>
-            <span>Send</span>
+            <i class="fa-solid fa-money-bill-transfer"></i>
+            <span>Transfers</span>
         </a>
-        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#remoteDepositModal">
-            <i class="fa-solid fa-camera"></i>
-            <span>Deposit</span>
+        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#csbLocationsModal">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Locations</span>
         </a>
-        <a href="javascript:void(0)" class="csb-dock-item csb-dock-primary" data-bs-toggle="modal" data-bs-target="#moveMoneyModal" title="Quick Transfer">
-            <div class="csb-dock-icon-circle">
-                <i class="fa-solid fa-bolt"></i>
-            </div>
-            <span style="color: #c8232c; font-weight: 700; margin-top: 2px;">Move</span>
-        </a>
-        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#manageCardsModal">
-            <i class="fa-solid fa-credit-card"></i>
-            <span>Cards</span>
-        </a>
-        <a href="javascript:void(0)" class="csb-dock-item" data-bs-toggle="modal" data-bs-target="#directDepositModal">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span>Direct Dep</span>
+        <a href="{{ route('user.setting.show') }}" class="csb-dock-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Profile</span>
         </a>
     </nav>
 
@@ -2389,7 +2377,7 @@ body {
 
     function csbFilterTxnLive(query) {
         var q = (query || '').toLowerCase().trim();
-        var selectedAcc = $('#csbTxnAccountSelect').val() || 'checking';
+        var selectedAcc = $('#csbTxnAccountSelect').val() || 'all';
         var visibleCount = 0;
         
         $('.transaction-list-table .txn-row').each(function () {

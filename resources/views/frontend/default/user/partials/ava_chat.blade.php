@@ -273,8 +273,89 @@
     .dot:nth-child(3) { animation-delay: 0.4s; }
     @keyframes typing { 0% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } 100% { opacity: 0; transform: translateY(0); } }
 
-    @media (max-width: 576px) {
-        #ava-chat-window { width: 90vw; right: -15px; bottom: 85px; }
-        #ava-widget-container { right: 20px; bottom: 20px; }
+    @media (max-width: 768px) {
+        #ava-chat-window {
+            width: calc(100vw - 28px);
+            max-width: 380px;
+            right: 0;
+            bottom: 60px;
+        }
+        #ava-widget-container {
+            right: 14px;
+            bottom: 74px; /* Floating safely above the 60px bottom dock */
+        }
+        #ava-trigger {
+            width: 46px;
+            height: 46px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        #ava-trigger .ava-logo-wrapper i {
+            font-size: 18px !important;
+        }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var container = document.getElementById('ava-widget-container');
+    var trigger = document.getElementById('ava-trigger');
+    if (!container || !trigger) return;
+
+    var isDragging = false;
+    var startX, startY, initialLeft, initialTop;
+    var hasMoved = false;
+
+    function onDragStart(clientX, clientY) {
+        isDragging = true;
+        hasMoved = false;
+        var rect = container.getBoundingClientRect();
+        startX = clientX;
+        startY = clientY;
+        initialLeft = rect.left;
+        initialTop = rect.top;
+    }
+
+    function onDragMove(clientX, clientY) {
+        if (!isDragging) return;
+        var dx = clientX - startX;
+        var dy = clientY - startY;
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+            hasMoved = true;
+            var newLeft = Math.max(10, Math.min(window.innerWidth - 56, initialLeft + dx));
+            var newTop = Math.max(10, Math.min(window.innerHeight - 70, initialTop + dy));
+            container.style.left = newLeft + 'px';
+            container.style.top = newTop + 'px';
+            container.style.right = 'auto';
+            container.style.bottom = 'auto';
+        }
+    }
+
+    function onDragEnd(e) {
+        if (hasMoved && e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        isDragging = false;
+    }
+
+    trigger.addEventListener('touchstart', function(e) {
+        var t = e.touches[0];
+        onDragStart(t.clientX, t.clientY);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', function(e) {
+        if (isDragging) {
+            var t = e.touches[0];
+            onDragMove(t.clientX, t.clientY);
+        }
+    }, { passive: true });
+
+    trigger.addEventListener('touchend', function(e) {
+        if (hasMoved) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        onDragEnd(e);
+    });
+});
+</script>

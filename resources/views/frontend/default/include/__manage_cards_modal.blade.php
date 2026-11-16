@@ -55,12 +55,29 @@
                                     <i class="fa-solid fa-wifi fa-rotate-90 text-white-50"></i>
                                 </div>
                                 <div class="text-center my-1" style="overflow: hidden; width: 100%;">
-                                    <span class="csb-card-num-masked font-monospace text-white" style="font-size: clamp(14px, 4.4vw, 19px); letter-spacing: clamp(1.5px, 0.5vw, 2.5px); white-space: nowrap !important; display: inline-block;">
-                                        •••• •••• •••• {{ substr((string)($userCardRecord->card_number ?? '4000123456789010'), -4) }}
-                                    </span>
-                                    <span class="csb-card-num-full font-monospace text-white d-none" style="font-size: clamp(13px, 4.2vw, 18px); letter-spacing: clamp(1px, 0.4vw, 2px); white-space: nowrap !important; display: inline-block;">
-                                        {{ trim(chunk_split((string)($userCardRecord->card_number ?? '4000123456789010'), 4, ' ')) }}
-                                    </span>
+                                    @php
+                                        $rawCardNum = (string)($userCardRecord->card_number ?? '4000123456789010');
+                                        $c1 = substr($rawCardNum, 0, 4) ?: '4000';
+                                        $c2 = substr($rawCardNum, 4, 4) ?: '1234';
+                                        $c3 = substr($rawCardNum, 8, 4) ?: '5678';
+                                        $c4 = substr($rawCardNum, 12, 4) ?: '9010';
+                                    @endphp
+                                    <div class="csb-card-num-masked" style="width: 100%;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: clamp(13px, 4vw, 18px); letter-spacing: 1.5px; white-space: nowrap !important;">
+                                            <span>••••</span>
+                                            <span>••••</span>
+                                            <span>••••</span>
+                                            <span>{{ $c4 }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="csb-card-num-full d-none" style="width: 100%;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: clamp(12px, 3.8vw, 17px); letter-spacing: 1px; white-space: nowrap !important;">
+                                            <span>{{ $c1 }}</span>
+                                            <span>{{ $c2 }}</span>
+                                            <span>{{ $c3 }}</span>
+                                            <span>{{ $c4 }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end mt-2">
                                     <div class="text-start">
@@ -241,3 +258,4 @@ if (typeof csbResetPin === 'undefined') {
     };
 }
 </script>
+

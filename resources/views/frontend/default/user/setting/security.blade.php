@@ -241,11 +241,11 @@
                 @csrf
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-4">Your username is used to sign in to your accounts. It must be unique and between 6-20 characters.</p>
-                    <input type="hidden" name="first_name" value="{{ $user->first_name }}">
-                    <input type="hidden" name="last_name" value="{{ $user->last_name }}">
+                    <input type="hidden" name="first_name" value="{{ auth()->user()->first_name }}">
+                    <input type="hidden" name="last_name" value="{{ auth()->user()->last_name }}">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase">New Username</label>
-                        <input type="text" class="form-control" name="username" value="{{ $user->username }}" required>
+                        <input type="text" class="form-control" name="username" value="{{ auth()->user()->username }}" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">

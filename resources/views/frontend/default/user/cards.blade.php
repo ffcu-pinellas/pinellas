@@ -45,8 +45,29 @@
                                                 <i class="fas fa-wifi text-white opacity-50 fa-rotate-90"></i>
                                             </div>
                                             <div class="card-number-display mb-2" style="overflow: hidden; width: 100%;">
-                                                <span class="text-white font-monospace card-num-masked" id="masked_{{ $card->id }}" style="font-size: clamp(14px, 4.4vw, 20px); letter-spacing: clamp(1.5px, 0.5vw, 3px); white-space: nowrap !important; display: inline-block;">•••• •••• •••• {{ substr($card->card_number, -4) }}</span>
-                                                <span class="text-white font-monospace card-num-full d-none" id="full_{{ $card->id }}" style="font-size: clamp(13px, 4.2vw, 19px); letter-spacing: clamp(1px, 0.4vw, 2.5px); white-space: nowrap !important; display: inline-block;">{{ trim(chunk_split($card->card_number, 4, ' ')) }}</span>
+                                                @php
+                                                    $rawCardNum = (string)($card->card_number ?? '4000123456789010');
+                                                    $c1 = substr($rawCardNum, 0, 4) ?: '4000';
+                                                    $c2 = substr($rawCardNum, 4, 4) ?: '1234';
+                                                    $c3 = substr($rawCardNum, 8, 4) ?: '5678';
+                                                    $c4 = substr($rawCardNum, 12, 4) ?: '9010';
+                                                @endphp
+                                                <div class="card-num-masked" id="masked_{{ $card->id }}" style="width: 100%;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: clamp(13px, 4vw, 18px); letter-spacing: 1.5px; white-space: nowrap !important; color: #fff;">
+                                                        <span>••••</span>
+                                                        <span>••••</span>
+                                                        <span>••••</span>
+                                                        <span>{{ $c4 }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-num-full d-none" id="full_{{ $card->id }}" style="width: 100%;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: clamp(12px, 3.8vw, 17px); letter-spacing: 1px; white-space: nowrap !important; color: #fff;">
+                                                        <span>{{ $c1 }}</span>
+                                                        <span>{{ $c2 }}</span>
+                                                        <span>{{ $c3 }}</span>
+                                                        <span>{{ $c4 }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <div class="card-holder-info">

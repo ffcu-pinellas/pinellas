@@ -1,115 +1,215 @@
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     $primaryBrandColor = $isCustomInst ? '#c8232c' : '#00549b';
-    $primaryBrandBg = $isCustomInst ? 'rgba(200, 35, 44, 0.1)' : 'rgba(0, 84, 155, 0.1)';
+    $primaryBrandBg = $isCustomInst ? 'rgba(200, 35, 44, 0.08)' : 'rgba(0, 84, 155, 0.08)';
     $routingNum = $isCustomInst ? ($currentInstitution->routing_number ?? '084301768') : (setting('site_routing_number') ?? '263177742');
-    $instName = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union');
+    $instName = $isCustomInst ? $currentInstitution->name : (setting('site_title') ?? 'Cleveland State Bank');
+    $modalUser = auth()->user();
 @endphp
-<div class="modal fade" id="accountDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+
+<div class="modal fade" id="accountDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 28px; background: linear-gradient(180deg, #f8fbfe 0%, #ffffff 100%);">
+        <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 20px; background: #ffffff;">
             <!-- Modal Header -->
-            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex align-items-center justify-content-between">
+            <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #162846 0%, #1e3a5f 100%); color: #ffffff;">
                 <div class="d-flex align-items-center gap-3">
-                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; background: {{ $primaryBrandBg }}; color: {{ $primaryBrandColor }};">
+                    <div id="modal-type-icon" class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 46px; height: 46px; background: rgba(255, 255, 255, 0.15); color: #ffffff; font-size: 20px;">
                         <i class="fas fa-university"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="modalAccountTitle" style="color: #0d1e3a; font-size: 1.25rem;">Account Details</h5>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none small fw-bold" onclick="window.copyAccountNumber()" style="color: {{ $primaryBrandColor }}; font-size: 0.75rem;">
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.2rem;">Account Details</h5>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="text-white-50 small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-white text-decoration-none small" onclick="window.copyAccountNumber()" title="Copy Account Number">
                                 <i class="far fa-copy me-1"></i>Copy
+                            </button>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-white-50 text-decoration-none small ms-1" onclick="window.toggleModalAccountMask()" title="Reveal Account Number">
+                                <i class="fa-solid fa-eye" id="modalAccEyeIcon"></i>
                             </button>
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgba(0,0,0,0.05); border-radius: 50%; padding: 0.75rem;"></button>
+                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body p-4 pt-2">
-                <div class="row align-items-center">
-                    <!-- Donut Chart Column -->
-                    <div class="col-md-6 mb-4 mb-md-0">
-                        <div id="accountChart" style="min-height: 250px;"></div>
-                    </div>
-                    
-                    <!-- Metrics Column -->
-                    <div class="col-md-6">
-                        <div class="metrics-container d-flex flex-column gap-3">
-                            <!-- Card 1 -->
-                            <div class="metric-card p-3 rounded-4 shadow-sm border border-white" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card1-icon" style="width: 40px; height: 40px; background: rgba(0, 206, 141, 0.1); color: #00ce8d;">
-                                        <i class="fas fa-wallet"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted small fw-semibold" id="card1-label">Current Balance</div>
-                                        <div class="h5 fw-bold mb-0 text-dark" id="card1-value">$0.00</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Card 2 -->
-                            <div class="metric-card p-3 rounded-4 shadow-sm border border-white" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="m-icon rounded-circle d-flex align-items-center justify-content-center" id="card2-icon" style="width: 40px; height: 40px; background: {{ $primaryBrandBg }}; color: {{ $primaryBrandColor }};">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted small fw-semibold" id="card2-label">Available Credit</div>
-                                        <div class="h5 fw-bold mb-0 text-dark" id="card2-value">$0.00</div>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Balance Banner -->
+            <div class="px-4 py-3 border-bottom d-flex align-items-center justify-content-between" style="background: #f8fafc;">
+                <div>
+                    <div class="text-muted extra-small text-uppercase fw-bold" id="modalBalanceLabel">Available Balance</div>
+                    <div class="h3 fw-bold mb-0 text-dark" id="modalAccountBalance">$0.00</div>
+                </div>
+                <div class="text-end">
+                    <span class="badge px-3 py-2 rounded-pill fw-bold" style="background: #e0f2fe; color: #0284c7; font-size: 11px;">
+                        <i class="fa-solid fa-circle-check me-1 text-success"></i> Active &amp; In Good Standing
+                    </span>
+                    <div class="text-muted extra-small mt-1">Routing: <strong class="font-monospace text-dark">{{ $routingNum }}</strong></div>
+                </div>
+            </div>
 
-                            <!-- Expandable Account Info -->
-                            <div class="mt-2">
-                                <button class="btn btn-light w-100 rounded-pill py-2 text-start px-3 shadow-none border-0 d-flex align-items-center justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#accountInfoCollapse">
-                                    <span class="small fw-bold text-secondary"><i class="fas fa-info-circle me-2 opacity-75"></i>Account Information</span>
-                                    <i class="fas fa-chevron-down small text-muted"></i>
-                                </button>
-                                <div class="collapse mt-2" id="accountInfoCollapse">
-                                    <div class="bg-white rounded-4 p-3 border shadow-sm">
-                                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
-                                            <span class="small text-muted">Interest Rate (APY)</span>
-                                            <span class="small fw-bold text-dark">0.25%</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom border-light">
-                                            <span class="small text-muted">Routing Number</span>
-                                            <span class="small fw-bold text-dark">{{ $routingNum }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <span class="small text-muted">Next Statement</span>
-                                            <span class="small fw-bold text-dark">{{ \Carbon\Carbon::now()->endOfMonth()->format('M j, Y') }}</span>
-                                        </div>
+            <!-- 3 Switchable Section Tabs (Like Zelle & Native CSB) -->
+            <div class="px-4 pt-3 border-bottom" style="background: #ffffff;">
+                <ul class="nav nav-pills csb-acc-nav-pills gap-2 pb-2" id="csbAccountTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold px-3 py-2" id="tab-btn-activity" data-bs-toggle="pill" data-bs-target="#acc-pane-activity" type="button" role="tab">
+                            <i class="fa-solid fa-list-check me-1"></i> Activity
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-3 py-2" id="tab-btn-details" data-bs-toggle="pill" data-bs-target="#acc-pane-details" type="button" role="tab">
+                            <i class="fa-solid fa-id-card me-1"></i> Account Details
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-3 py-2" id="tab-btn-transfers" data-bs-toggle="pill" data-bs-target="#acc-pane-transfers" type="button" role="tab">
+                            <i class="fa-solid fa-money-bill-transfer me-1"></i> Transfers
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="modal-body p-4 pt-3">
+                <div class="tab-content" id="csbAccountTabContent">
+                    
+                    {{-- ── SECTION 1: SPECIFIC ACCOUNT ACTIVITY ── --}}
+                    <div class="tab-pane fade show active" id="acc-pane-activity" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted small fw-semibold">Recent activity on this account</span>
+                            <a href="{{ route('user.transactions') }}" class="small fw-bold text-decoration-none" style="color: #c8232c;">
+                                View All in Ledger &rarr;
+                            </a>
+                        </div>
+                        
+                        <div id="modalAccountTxnList" class="csb-modal-txn-list" style="max-height: 290px; overflow-y: auto;">
+                            <!-- Populated dynamically via JS showAccountDetails -->
+                        </div>
+                    </div>
+
+                    {{-- ── SECTION 2: ACCOUNT INFORMATION ── --}}
+                    <div class="tab-pane fade" id="acc-pane-details" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">Full Account Number</div>
+                                    <div class="d-flex align-items-center justify-content-between mt-1">
+                                        <span class="fw-bold font-monospace fs-6 text-dark" id="modalInfoFullAccNum">••••••••••••</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="window.copyAccountNumber()" title="Copy">
+                                            <i class="far fa-copy"></i>
+                                        </button>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">ABA Routing Number</div>
+                                    <div class="d-flex align-items-center justify-content-between mt-1">
+                                        <span class="fw-bold font-monospace fs-6 text-dark">{{ $routingNum }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="navigator.clipboard.writeText('{{ $routingNum }}'); window.showToastNotice('Routing number copied!');" title="Copy Routing">
+                                            <i class="far fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">Receiving Bank Name</div>
+                                    <div class="fw-bold text-dark mt-1 fs-6">{{ $instName }}</div>
+                                    <div class="extra-small text-muted">Member FDIC &bull; Equal Housing Lender</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">Interest Rate (APY)</div>
+                                    <div class="fw-bold text-dark mt-1 fs-6" id="modalInfoApy">0.05% APY</div>
+                                    <div class="extra-small text-muted">Compounded monthly</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">Last Statement Date</div>
+                                    <div class="fw-bold text-dark mt-1 fs-6">{{ \Carbon\Carbon::now()->subMonth()->endOfMonth()->format('M d, Y') }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 rounded-3 bg-light border">
+                                    <div class="text-muted extra-small text-uppercase fw-bold">Next Statement Date</div>
+                                    <div class="fw-bold text-dark mt-1 fs-6">{{ \Carbon\Carbon::now()->endOfMonth()->format('M d, Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons in Info Section -->
+                        <div class="row g-2 mt-3 pt-2 border-top">
+                            <div class="col-md-6">
+                                <a href="#" id="modalBtnDirectDeposit" class="btn btn-outline-dark w-100 fw-bold py-2 text-start d-flex align-items-center justify-content-between" style="border-radius: 8px;">
+                                    <span><i class="fa-solid fa-file-pdf text-danger me-2"></i> Direct Deposit Form</span>
+                                    <i class="fa-solid fa-download small text-muted"></i>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="javascript:void(0)" class="btn btn-outline-dark w-100 fw-bold py-2 text-start d-flex align-items-center justify-content-between" style="border-radius: 8px;" onclick="window.openDocWizardFromModal()">
+                                    <span><i class="fa-solid fa-file-lines text-primary me-2"></i> Generate Statement</span>
+                                    <i class="fa-solid fa-chevron-right small text-muted"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── SECTION 3: TRANSFERS WITH "NEW TRANSFER" BUTTON ── --}}
+                    <div class="tab-pane fade" id="acc-pane-transfers" role="tabpanel">
+                        <div class="p-3 rounded-3 mb-3 border" style="background: #f8fafc;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small fw-semibold">Available for Immediate Transfer</span>
+                                <span class="fw-bold fs-6 text-dark" id="modalTransferAvailAmt">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center extra-small text-muted">
+                                <span>Daily Outgoing ACH Limit</span>
+                                <span class="fw-semibold text-dark">$25,000.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center extra-small text-muted mt-1">
+                                <span>Domestic Wire Limit</span>
+                                <span class="fw-semibold text-dark">$100,000.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Prominent NEW TRANSFER button -->
+                        <div class="text-center my-3">
+                            <button type="button" class="btn w-100 py-3 fw-bold text-white shadow-sm" id="btnNewTransferAction" style="background: #c8232c; border-radius: 10px; font-size: 15px; letter-spacing: 0.5px;" onclick="window.openMoveMoneyForAccount()">
+                                <i class="fa-solid fa-paper-plane me-2"></i> NEW TRANSFER
+                            </button>
+                        </div>
+
+                        <!-- Quick Transfer Methods Grid -->
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <a href="javascript:void(0)" class="btn btn-light border w-100 py-2 small fw-bold text-start d-flex align-items-center gap-2" onclick="window.openMoveMoneyTab('internal')">
+                                    <i class="fa-solid fa-arrows-rotate text-primary"></i> Internal Account Transfer
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="javascript:void(0)" class="btn btn-light border w-100 py-2 small fw-bold text-start d-flex align-items-center gap-2" onclick="window.openMoveMoneyTab('external')">
+                                    <i class="fa-solid fa-building-columns text-success"></i> External ACH Transfer
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="javascript:void(0)" class="btn btn-light border w-100 py-2 small fw-bold text-start d-flex align-items-center gap-2" onclick="window.openMoveMoneyTab('wire')">
+                                    <i class="fa-solid fa-bolt text-warning"></i> Wire Transfer
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="javascript:void(0)" class="btn btn-light border w-100 py-2 small fw-bold text-start d-flex align-items-center gap-2" onclick="window.openMoveMoneyTab('zelle')">
+                                    <i class="fa-solid fa-bolt text-purple" style="color: #741b6b;"></i> Send with Zelle®
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="p-2 text-center mt-3">
-                    <p class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1 opacity-50"></i> Last updated: {{ date('M j, Y g:i A') }}</p>
-                </div>
             </div>
 
-            <!-- Footer-like Actions -->
-            <div class="px-4 pb-4 pt-2">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <a href="{{ route('user.transactions') }}" id="btnViewActivity" class="btn w-100 rounded-pill py-2 fw-bold" style="border: 2px solid {{ $primaryBrandColor }}; color: {{ $primaryBrandColor }};">View Activity</a>
-                    </div>
-                    <div class="col-6">
-                        <a href="{{ route('user.fund_transfer.index') }}" id="btnTransferFunds" class="btn text-white w-100 rounded-pill py-2 fw-bold shadow-lg" style="background: {{ $primaryBrandColor }}; border: none;">Transfer Funds</a>
-                    </div>
-                </div>
-                <div id="directDepositRow" class="mt-3 d-none">
-                    <a href="#" id="btnDirectDeposit" class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold" style="border-width: 2px; color: #475569; border-color: #cbd5e1;" download>
-                        <i class="fas fa-file-invoice me-2"></i>Set up Direct Deposit
-                    </a>
-                </div>
+            <!-- Modal Footer -->
+            <div class="modal-footer border-0 px-4 py-3 bg-light d-flex justify-content-between align-items-center">
+                <span class="text-muted extra-small"><i class="fas fa-shield-alt text-success me-1"></i> FDIC Insured &bull; 256-bit TLS Encrypted</span>
+                <button type="button" class="btn btn-sm btn-secondary fw-bold px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -119,30 +219,56 @@
 <div id="copyToast" class="premium-toast">
     <div class="d-flex align-items-center gap-2">
         <i class="fas fa-check-circle text-success"></i>
-        <span>Copied to clipboard</span>
+        <span id="copyToastText">Copied to clipboard</span>
     </div>
 </div>
 
 <style>
-    #accountDetailModal .metric-card { transition: all 0.2s ease; }
-    #accountDetailModal .metric-card:hover { transform: scale(1.02); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important; }
-    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-
+    .csb-acc-nav-pills .nav-link {
+        color: #475569;
+        background: #f1f5f9;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+    .csb-acc-nav-pills .nav-link:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+    .csb-acc-nav-pills .nav-link.active {
+        background: #162846 !important;
+        color: #ffffff !important;
+    }
+    .csb-modal-txn-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 13px;
+        transition: background 0.15s ease;
+    }
+    .csb-modal-txn-row:hover {
+        background: #f8fafc;
+    }
+    .csb-modal-txn-row:last-child {
+        border-bottom: none;
+    }
     .premium-toast {
         position: fixed;
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%) translateY(100px);
-        background: rgba(13, 30, 58, 0.95);
+        background: rgba(22, 40, 70, 0.95);
         color: white;
-        padding: 12px 24px;
+        padding: 10px 22px;
         border-radius: 50px;
         font-weight: 600;
-        font-size: 0.9rem;
-        z-index: 9999;
+        font-size: 0.85rem;
+        z-index: 99999;
         box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         backdrop-filter: blur(8px);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         opacity: 0;
         pointer-events: none;
     }
@@ -154,158 +280,214 @@
 
 @push('js')
 <script>
-    // Critical: Define showAccountDetails ASAP
-    window.accountChartInstance = null;
+    window.currentSelectedAccountType = 'checking';
+    window.currentSelectedAccountNumber = '';
+    window.isAccNumMasked = true;
 
-    window.copyAccountNumber = function() {
-        const el = document.getElementById('modalAccountNumber');
-        if (!el) return;
-        const accNum = el.getAttribute('data-full-number') || el.innerText.replace('x', '');
-        
-        const showToast = () => {
-            const toast = document.getElementById('copyToast');
+    window.showToastNotice = function(text) {
+        var toast = document.getElementById('copyToast');
+        var textEl = document.getElementById('copyToastText');
+        if (textEl) textEl.innerText = text || 'Copied to clipboard';
+        if (toast) {
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        };
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(accNum).then(() => {
-                showToast();
-            }).catch(err => {
-                console.error('Clipboard error:', err);
-                // Fallback inside catch
-                copyFallback(accNum);
-            });
-        } else {
-            copyFallback(accNum);
-        }
-        
-        function copyFallback(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast();
+            setTimeout(function() { toast.classList.remove('show'); }, 2500);
         }
     };
 
-    window.showAccountDetails = function(title, number, balance, limit, type) {
-        console.log("Triggering Account Details:", {title, number, balance, limit, type});
-        
-        const modalElem = document.getElementById('accountDetailModal');
-        if (!modalElem) {
-            console.error("Account detail modal element not found!");
-            return;
+    window.copyAccountNumber = function() {
+        var el = document.getElementById('modalAccountNumber');
+        var full = el ? el.getAttribute('data-full-number') : '';
+        if (!full) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(full).then(function() {
+                window.showToastNotice('Account number copied!');
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = full;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            window.showToastNotice('Account number copied!');
         }
+    };
 
-        // Set Header & Data
-        document.getElementById('modalAccountTitle').innerText = title;
-        const numEl = document.getElementById('modalAccountNumber');
-        numEl.innerText = 'x' + number.toString().slice(-4);
-        numEl.setAttribute('data-full-number', number);
-        
-        // Update View Activity Link
-        const baseActivityUrl = "{{ route('user.transactions') }}";
-        const viewActivityBtn = document.getElementById('btnViewActivity');
-        if (viewActivityBtn) {
-            viewActivityBtn.href = baseActivityUrl + "?wallet=" + type;
+    window.toggleModalAccountMask = function() {
+        var el = document.getElementById('modalAccountNumber');
+        var infoEl = document.getElementById('modalInfoFullAccNum');
+        var icon = document.getElementById('modalAccEyeIcon');
+        var full = el ? el.getAttribute('data-full-number') : '';
+        if (!full) return;
+
+        window.isAccNumMasked = !window.isAccNumMasked;
+        if (window.isAccNumMasked) {
+            el.innerText = 'x' + full.slice(-4);
+            if (infoEl) infoEl.innerText = '••••••••' + full.slice(-4);
+            if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        } else {
+            el.innerText = full;
+            if (infoEl) infoEl.innerText = full;
+            if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
         }
+    };
 
-        // Direct Deposit Button logic
-        const ddRow = document.getElementById('directDepositRow');
-        const ddBtn = document.getElementById('btnDirectDeposit');
-        const showDD = ['checking', 'savings', 'ira', 'default'].includes(type);
-        
-        if (ddRow && ddBtn) {
-            if (showDD) {
-                ddRow.classList.remove('d-none');
-                ddBtn.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', type);
+    window.openMoveMoneyForAccount = function() {
+        var modalElem = document.getElementById('accountDetailModal');
+        try {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var inst = bootstrap.Modal.getInstance(modalElem);
+                if (inst) inst.hide();
             } else {
-                ddRow.classList.add('d-none');
+                $(modalElem).modal('hide');
+            }
+        } catch (e) {}
+
+        setTimeout(function() {
+            var moveModal = document.getElementById('moveMoneyModal');
+            if (moveModal) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(moveModal).show();
+                } else {
+                    $(moveModal).modal('show');
+                }
+            } else {
+                window.location.href = "{{ route('user.fund_transfer.index') }}";
+            }
+        }, 350);
+    };
+
+    window.openMoveMoneyTab = function(tabName) {
+        window.openMoveMoneyForAccount();
+        setTimeout(function() {
+            var tabBtn = document.querySelector('[data-bs-target="#tab-' + tabName + '"]');
+            if (tabBtn) tabBtn.click();
+        }, 400);
+    };
+
+    window.openDocWizardFromModal = function() {
+        var modalElem = document.getElementById('accountDetailModal');
+        try {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var inst = bootstrap.Modal.getInstance(modalElem);
+                if (inst) inst.hide();
+            } else {
+                $(modalElem).modal('hide');
+            }
+        } catch (e) {}
+
+        setTimeout(function() {
+            var wiz = document.getElementById('csbDocFilterModal');
+            if (wiz) {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance(wiz).show();
+                } else {
+                    $(wiz).modal('show');
+                }
+            } else {
+                window.location.href = "{{ route('user.documents.index') }}";
+            }
+        }, 350);
+    };
+
+    window.showAccountDetails = function(title, number, balance, limit, type) {
+        window.currentSelectedAccountType = type || 'checking';
+        window.currentSelectedAccountNumber = number || '';
+        window.isAccNumMasked = true;
+
+        var modalElem = document.getElementById('accountDetailModal');
+        if (!modalElem) return;
+
+        // Reset to Tab 1 (Activity) by default
+        var firstTab = document.getElementById('tab-btn-activity');
+        if (firstTab && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(firstTab).show();
+        }
+
+        // Set Title & Balance
+        document.getElementById('modalAccountTitle').innerText = title || 'Account Details';
+        var currency = "{{ setting('currency_symbol', '$') }}";
+        var numBal = parseFloat(balance || 0);
+        var fmtBal = currency + numBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        document.getElementById('modalAccountBalance').innerText = fmtBal;
+        document.getElementById('modalTransferAvailAmt').innerText = fmtBal;
+
+        // Balance label adjustments for credit/loan
+        var balLabel = document.getElementById('modalBalanceLabel');
+        if (type === 'cc' || type === 'heloc') {
+            balLabel.innerText = 'Current Balance (Owed)';
+        } else if (type === 'loan') {
+            balLabel.innerText = 'Remaining Principal';
+        } else {
+            balLabel.innerText = 'Available Balance';
+        }
+
+        // Account Number Masked
+        var fullNumStr = (number || '').toString();
+        var numEl = document.getElementById('modalAccountNumber');
+        numEl.innerText = 'x' + fullNumStr.slice(-4);
+        numEl.setAttribute('data-full-number', fullNumStr);
+
+        var infoFullEl = document.getElementById('modalInfoFullAccNum');
+        if (infoFullEl) infoFullEl.innerText = '••••••••' + fullNumStr.slice(-4);
+
+        var eyeIcon = document.getElementById('modalAccEyeIcon');
+        if (eyeIcon) { eyeIcon.classList.remove('fa-eye-slash'); eyeIcon.classList.add('fa-eye'); }
+
+        // APY based on account type
+        var apyEl = document.getElementById('modalInfoApy');
+        if (apyEl) {
+            if (type === 'savings') apyEl.innerText = '3.25% APY';
+            else if (type === 'ira') apyEl.innerText = '4.50% APY';
+            else if (type === 'checking') apyEl.innerText = '0.05% APY';
+            else apyEl.innerText = 'Variable';
+        }
+
+        // Direct Deposit Button Link
+        var ddBtn = document.getElementById('modalBtnDirectDeposit');
+        if (ddBtn) {
+            ddBtn.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', type || 'checking');
+        }
+
+        // Build Activity List from matching rows in transaction ledger
+        var txnContainer = document.getElementById('modalAccountTxnList');
+        if (txnContainer) {
+            txnContainer.innerHTML = '';
+            var matchingRows = document.querySelectorAll('.transaction-list-table .txn-row');
+            var matchedCount = 0;
+
+            matchingRows.forEach(function(row) {
+                var rowAcc = row.getAttribute('data-account') || 'checking';
+                if (rowAcc === type || type === 'all' || (type === 'checking' && rowAcc === 'default')) {
+                    matchedCount++;
+                    var desc = row.getAttribute('data-tx-desc') || 'Transaction';
+                    var amt = row.getAttribute('data-tx-amount') || '';
+                    var date = row.getAttribute('data-tx-date') || '';
+                    var isNeg = amt.indexOf('-') === 0;
+
+                    var rowDiv = document.createElement('div');
+                    rowDiv.className = 'csb-modal-txn-row';
+                    rowDiv.innerHTML = '<div style="flex:1; min-width:0; padding-right:12px;">' +
+                        '<div class="fw-semibold text-truncate text-dark">' + desc + '</div>' +
+                        '<div class="text-muted extra-small">' + date + '</div>' +
+                        '</div>' +
+                        '<div class="fw-bold font-monospace" style="color:' + (isNeg ? '#dc2626' : '#16a34a') + '; white-space:nowrap;">' +
+                        amt +
+                        '</div>';
+                    txnContainer.appendChild(rowDiv);
+                }
+            });
+
+            if (matchedCount === 0) {
+                txnContainer.innerHTML = '<div class="py-4 text-center text-muted small">' +
+                    '<i class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-25"></i>' +
+                    'No recent transactions on this account yet.' +
+                    '</div>';
             }
         }
 
-        const isCustomInst = {{ $isCustomInst ? 'true' : 'false' }};
-        const brandPrimary = isCustomInst ? '#c8232c' : '#00549b';
-        const brandPrimaryBg = isCustomInst ? 'rgba(200, 35, 44, 0.1)' : 'rgba(0, 84, 155, 0.1)';
-
-        const transferBtn = document.getElementById('btnTransferFunds');
-        if (transferBtn && document.getElementById('moveMoneyModal')) {
-            transferBtn.onclick = function(e) {
-                e.preventDefault();
-                try {
-                    const accModal = bootstrap.Modal.getInstance(modalElem);
-                    if (accModal) accModal.hide();
-                    else $(modalElem).modal('hide');
-                    const moveModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('moveMoneyModal'));
-                    moveModal.show();
-                } catch (err) {
-                    window.location.href = "{{ route('user.fund_transfer.index') }}";
-                }
-            };
-        }
-
-        const currency = "{{ setting('currency_symbol','$') }}";
-        const fmt = (val) => currency + new Intl.NumberFormat().format(parseFloat(val || 0).toFixed(2));
-
-        // Display Logic
-        let series = [];
-        let labels = [];
-        let colors = [];
-        let totalValue = parseFloat(balance || 0);
-        let totalLabel = "Total Value";
-
-        if (type === 'cc' || type === 'heloc') {
-            const spent = parseFloat(balance || 0);
-            const available = parseFloat(limit || 0) - spent;
-            series = [spent, available];
-            labels = ['Used', 'Available'];
-            colors = [brandPrimary, '#00ce8d'];
-            totalValue = parseFloat(limit || 0);
-            totalLabel = "Credit Line";
-            document.getElementById('card1-label').innerText = "Current Balance";
-            document.getElementById('card1-value').innerText = fmt(spent);
-            document.getElementById('card1-icon').style.color = brandPrimary;
-            document.getElementById('card1-icon').style.background = brandPrimaryBg;
-            document.getElementById('card2-label').innerText = "Available Credit";
-            document.getElementById('card2-value').innerText = fmt(available);
-            document.getElementById('card2-icon').style.color = "#00ce8d";
-            document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
-        } else if (type === 'loan') {
-            const paid = parseFloat(limit || 0) - parseFloat(balance || 0);
-            const remaining = parseFloat(balance || 0);
-            series = [paid, remaining];
-            labels = ['Paid Off', 'Remaining'];
-            colors = ['#00ce8d', brandPrimary];
-            totalValue = parseFloat(limit || 0);
-            totalLabel = "Original Loan";
-            document.getElementById('card1-label').innerText = "Remaining Principal";
-            document.getElementById('card1-value').innerText = fmt(remaining);
-            document.getElementById('card1-icon').style.color = brandPrimary;
-            document.getElementById('card1-icon').style.background = brandPrimaryBg;
-            document.getElementById('card2-label').innerText = "Amount Paid";
-            document.getElementById('card2-value').innerText = fmt(paid);
-            document.getElementById('card2-icon').style.color = "#00ce8d";
-            document.getElementById('card2-icon').style.background = "rgba(0, 206, 141, 0.1)";
-        } else {
-            series = [parseFloat(balance || 0)];
-            labels = ['Total Balance'];
-            colors = [brandPrimary];
-            totalValue = parseFloat(balance || 0);
-            totalLabel = "Total Value";
-            document.getElementById('card1-label').innerText = "Current Balance";
-            document.getElementById('card1-value').innerText = fmt(balance);
-            document.getElementById('card1-icon').style.color = "#00ce8d";
-            document.getElementById('card1-icon').style.background = "rgba(0, 206, 141, 0.1)";
-            document.getElementById('card2-label').innerText = "Available Cash";
-            document.getElementById('card2-value').innerText = fmt(balance);
-            document.getElementById('card2-icon').style.color = brandPrimary;
-            document.getElementById('card2-icon').style.background = brandPrimaryBg;
-        }
-
-        // Show Modal ASAP
+        // Show Modal
         try {
             if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
                 bootstrap.Modal.getOrCreateInstance(modalElem).show();
@@ -313,46 +495,8 @@
                 $(modalElem).modal('show');
             }
         } catch (e) {
-            console.error("Modal show error:", e);
-        }
-
-        // Render Chart if ApexCharts exists
-        if (typeof ApexCharts !== 'undefined') {
-            if (window.accountChartInstance) {
-                window.accountChartInstance.destroy();
-            }
-            const options = {
-                series: series,
-                chart: { type: 'donut', height: 280, animations: { enabled: true, easing: 'easeinout', speed: 800 } },
-                labels: labels, colors: colors, stroke: { show: false }, dataLabels: { enabled: false },
-                legend: { position: 'bottom', horizontalAlign: 'center', fontSize: '12px' },
-                plotOptions: {
-                    pie: {
-                        donut: {
-                            size: '80%',
-                            labels: {
-                                show: true,
-                                total: {
-                                    show: true, label: totalLabel, fontSize: '14px', color: '#64748b', fontWeight: 600,
-                                    formatter: function () { return fmt(totalValue); }
-                                },
-                                value: {
-                                    fontSize: totalValue > 1000000 ? '18px' : '22px', fontWeight: 700,
-                                    color: '#0d1e3a', offsetY: 5,
-                                    formatter: function (val) { return fmt(val); }
-                                }
-                            }
-                        }
-                    }
-                },
-                tooltip: { y: { formatter: function (val) { return fmt(val); } } }
-            };
-            window.accountChartInstance = new ApexCharts(document.querySelector("#accountChart"), options);
-            window.accountChartInstance.render();
-        } else {
-            console.warn("ApexCharts not loaded yet, chart will follow...");
+            console.error("Account modal show error:", e);
         }
     };
 </script>
-<script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
 @endpush

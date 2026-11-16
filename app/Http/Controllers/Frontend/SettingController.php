@@ -23,9 +23,9 @@ class SettingController extends Controller
 
     public function securitySettings()
     {
-        // Explicitly use the model namespace to prevent 500 error
-        $recentDevices = \App\Models\LoginActivities::where('user_id', auth()->id())->latest()->take(5)->get();
-        return view('frontend::user.setting.security', compact('recentDevices'));
+        $user = auth()->user();
+        $recentDevices = \App\Models\LoginActivities::where('user_id', $user->id)->latest()->take(5)->get();
+        return view('frontend::user.setting.security', compact('recentDevices', 'user'));
     }
 
     public function profileUpdate(Request $request)

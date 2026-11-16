@@ -555,7 +555,7 @@
                 </li>
                 <div class="collapse show" id="csbMenuDocsSettings">
                     <li class="csb-nav-item">
-                        <a href="{{ route('user.documents.index') }}" class="csb-nav-link {{ Request::routeIs('user.documents.*') ? 'active' : '' }}">
+                        <a href="javascript:void(0)" class="csb-nav-link" data-bs-toggle="modal" data-bs-target="#csbDocumentsModal">
                             <i class="fa-solid fa-file-lines" style="width: 16px;"></i> Documents
                         </a>
                     </li>
@@ -1031,6 +1031,8 @@
     @include('frontend::user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
     @include('frontend::include.__manage_cards_modal')
+    @include('frontend::include.__csb_documents_modal')
+    @include('frontend::include.__account_detail_modal')
     @stack('modals')
     @include('frontend::user.partials.inactivity_modal')
 </body>

@@ -300,10 +300,11 @@ if (! function_exists('txn_type')) {
             case TxnType::Refund->value:
             case TxnType::Exchange->value:
             case TxnType::Referral->value:
+            case TxnType::SignupBonus->value:
+            case TxnType::RewardRedeem->value:
                 $result = ['green-color', '+'];
                 break;
-            case TxnType::Withdraw->value:
-            case TxnType::Subtract->value:
+            default:
                 $result = ['red-color', '-'];
                 break;
         }
