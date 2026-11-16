@@ -383,11 +383,19 @@ class UserController extends Controller
 
     public function accounts()
     {
-        $user = auth()->user();
+        $user = auth()->user() ?? auth('web')->user();
         $checkingBalance = $user->balance ?? 0;
         $savingsBalance = $user->savings_balance ?? 0;
         $savingsAccountNumber = $user->savings_account_number ?? $user->account_number;
         $savingsAccounts = collect([]);
+
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_accounts';
+            if (view()->exists($customView)) {
+                return view($customView, compact('checkingBalance', 'savingsBalance', 'savingsAccountNumber', 'savingsAccounts', 'user', 'currentInstitution'));
+            }
+        }
         
         return view('frontend::user.accounts', compact('checkingBalance', 'savingsBalance', 'savingsAccountNumber', 'savingsAccounts'));
     }

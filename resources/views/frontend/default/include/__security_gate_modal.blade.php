@@ -270,6 +270,9 @@ if (typeof window.SecurityGate === 'undefined') {
         currentPin: "",
 
         gate: function(target) {
+            if (target && target.jquery) {
+                target = target[0];
+            }
             this.currentTarget = target;
             if (typeof target === 'function') {
                 this.onSuccessCb = target;
@@ -400,7 +403,12 @@ if (typeof window.SecurityGate === 'undefined') {
                 gate_id: this.gateId
             }).done((res) => {
                 if (res.status === 'success') {
+                    if (typeof window.showLoader === 'function') window.showLoader();
                     $('#securityGateModal').modal('hide');
+                    let target = this.currentTarget;
+                    if (target && target.jquery) {
+                        target = target[0];
+                    }
                     if (typeof this.onSuccessCb === 'function') {
                         const cb = this.onSuccessCb;
                         this.onSuccessCb = null;
@@ -409,13 +417,27 @@ if (typeof window.SecurityGate === 'undefined') {
                         const cb = window.SecurityGateOnSuccess;
                         window.SecurityGateOnSuccess = null;
                         cb(res);
-                    } else if (typeof this.currentTarget === 'string') {
-                        window.location.href = this.currentTarget;
-                    } else if (this.currentTarget && this.currentTarget.tagName === 'FORM') {
-                        $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(this.currentTarget);
-                        this.currentTarget.submit();
+                    } else if (typeof target === 'string') {
+                        window.location.href = target;
+                    } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
+                        if (!$(target).find('input[name="security_verified"]').length) {
+                            $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
+                        } else {
+                            $(target).find('input[name="security_verified"]').val('1');
+                        }
+                        target.submit();
                     } else {
-                        window.location.reload();
+                        const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
+                        if (fallbackForm) {
+                            if (!$(fallbackForm).find('input[name="security_verified"]').length) {
+                                $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
+                            } else {
+                                $(fallbackForm).find('input[name="security_verified"]').val('1');
+                            }
+                            fallbackForm.submit();
+                        } else {
+                            window.location.reload();
+                        }
                     }
                 } else {
                     this.handleError(res.message || 'Verification failed.', res.status, res.method);

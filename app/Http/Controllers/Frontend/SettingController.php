@@ -18,12 +18,13 @@ class SettingController extends Controller
 
     public function settings()
     {
-        return view('frontend::user.setting.index');
+        $user = auth()->user() ?? auth('web')->user();
+        return view('frontend::user.setting.index', compact('user'));
     }
 
     public function securitySettings()
     {
-        $user = auth()->user();
+        $user = auth()->user() ?? auth('web')->user();
         if (!$user) {
             return redirect()->route('login');
         }
@@ -32,12 +33,16 @@ class SettingController extends Controller
         } catch (\Throwable $e) {
             $recentDevices = collect();
         }
-        try {
-            return view('frontend::user.setting.security', compact('recentDevices', 'user'));
-        } catch (\Throwable $e) {
-            \Log::error('Security settings render failed: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
-            return redirect()->route('user.setting.show')->with('error', 'Security settings temporarily unavailable.');
+
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_security';
+            if (view()->exists($customView)) {
+                return view($customView, compact('recentDevices', 'user', 'currentInstitution'));
+            }
         }
+
+        return view('frontend::user.setting.security', compact('recentDevices', 'user'));
     }
 
     public function profileUpdate(Request $request)

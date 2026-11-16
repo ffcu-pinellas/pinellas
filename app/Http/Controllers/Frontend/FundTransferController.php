@@ -55,6 +55,14 @@ class FundTransferController extends Controller
         $banks = OthersBank::active()->select('id', 'name')->get();
         $wallets = auth()->user()->wallets->load('currency');
 
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && ! $currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_fund_transfer';
+            if (view()->exists($customView)) {
+                return view($customView, compact('banks', 'code', 'wallets', 'currentInstitution'));
+            }
+        }
+
         return view('frontend::fund_transfer.index', compact('banks', 'code', 'wallets'));
     }
 
@@ -361,6 +369,14 @@ class FundTransferController extends Controller
                     'amount' => $data['amount'],
                     'redirect' => route('user.dashboard')
                 ]);
+            }
+
+            $currentInstitution = app()->bound('institution') ? app('institution') : null;
+            if ($currentInstitution && ! $currentInstitution->is_default) {
+                $customSuccessView = 'frontend::institution.' . $currentInstitution->slug . '_transfer_success';
+                if (view()->exists($customSuccessView)) {
+                    return view($customSuccessView, compact('message', 'responseData', 'currentInstitution'));
+                }
             }
 
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));

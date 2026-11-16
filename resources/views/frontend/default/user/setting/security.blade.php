@@ -45,29 +45,6 @@
                         </button>
                     </div>
 
-                    <!-- Biometric WebAuthn / Passkeys Setup -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 border-light" id="csbBiometricSetupCard">
-                        <div style="flex: 1; padding-right: 15px;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
-                                <label class="small text-muted d-block text-uppercase fw-bold mb-0">Biometric Authentication</label>
-                                <span class="badge bg-success text-white small" id="bioStatusBadge" style="font-size: 10px;">
-                                    <i class="fa-solid fa-fingerprint me-1"></i> Ready
-                                </span>
-                            </div>
-                            <div class="fw-600 text-dark fs-6" id="bioDeviceTitle">
-                                Face ID / Touch ID / Windows Hello Passkeys
-                            </div>
-                            <div class="small text-muted" id="bioDeviceDesc">
-                                Cryptographic W3C WebAuthn hardware passkeys. 100% immune to SIM-swapping.
-                            </div>
-                            <div id="bioFeedbackNotice" class="small mt-1 d-none"></div>
-                        </div>
-                        <button type="button" id="btnRegisterBiometrics" onclick="csbRegisterBiometricPasskey()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2" style="white-space: nowrap;">
-                            <i class="fa-solid fa-fingerprint"></i>
-                            <span id="btnBioLabel">Register Passkey</span>
-                        </button>
-                    </div>
-
                     <!-- Security Preference -->
                     <div class="py-2">
                         <label class="small text-muted d-block text-uppercase fw-bold mb-3">Security Preference</label>
@@ -75,24 +52,11 @@
                             @csrf
                             <div class="d-grid gap-2">
                                 <div class="form-check custom-option border-0 p-0">
-                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_biometrics" value="biometrics" {{ auth()->user()->security_preference == 'biometrics' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'biometrics' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_biometrics" style="cursor: pointer;">
-                                        <div>
-                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
-                                                <span>Biometrics &amp; Passkeys Priority</span>
-                                                <span class="badge bg-danger text-white small" style="font-size: 9px;">Fast &amp; Secure</span>
-                                            </div>
-                                            <div class="small text-muted">Use Face ID, Touch ID, or Windows Hello for instant approvals.</div>
-                                        </div>
-                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'biometrics' ? '' : 'd-none' }}"></i>
-                                    </label>
-                                </div>
-                                <div class="form-check custom-option border-0 p-0">
                                     <input class="form-check-input d-none" type="radio" name="preference" id="pref_always" value="always_ask" {{ auth()->user()->security_preference == 'always_ask' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'always_ask' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_always" style="cursor: pointer;">
                                         <div>
                                             <div class="fw-bold text-dark">Always Ask</div>
-                                            <div class="small text-muted">Choose between Biometrics, PIN, or Email on every action.</div>
+                                            <div class="small text-muted">Choose between PIN or Email on every action.</div>
                                         </div>
                                         <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'always_ask' ? '' : 'd-none' }}"></i>
                                     </label>
@@ -154,31 +118,25 @@
                         @endif
                      </div>
                      <div class="device-list">
-                        @forelse($recentDevices ?? [] as $device)
+                        @forelse($recentDevices as $device)
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary" style="width: 48px; height: 48px;">
-                                        @php
-                                            $plat = !empty($device->platform) ? $device->platform : 'Desktop';
-                                            $isDesk = in_array($plat, ['Windows', 'OS X', 'Linux', 'Desktop']);
-                                        @endphp
-                                        @if($isDesk)
+                                        @if($device->platform == 'Windows' || $device->platform == 'OS X' || $device->platform == 'Linux')
                                             <i class="fas fa-desktop fs-5"></i>
                                         @else
                                             <i class="fas fa-mobile-alt fs-5"></i>
                                         @endif
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark">{{ $device->browser ?? 'Web Browser' }} on {{ $plat }}</div>
-                                        <div class="small text-muted">{{ $device->ip ?? '127.0.0.1' }} &bull; {{ (!empty($device->created_at) && method_exists($device->created_at, 'diffForHumans')) ? $device->created_at->diffForHumans() : 'Active' }}</div>
+                                        <div class="fw-bold text-dark">{{ $device->browser }} on {{ $device->platform }}</div>
+                                        <div class="small text-muted">{{ $device->ip }} • {{ $device->created_at->diffForHumans() }}</div>
                                     </div>
                                 </div>
-                                @if(!empty($device->id))
                                 <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none small fw-bold">Remove</button>
                                 </form>
-                                @endif
                             </div>
                         @empty
                             <div class="text-center py-4">
@@ -195,7 +153,7 @@
             <div class="d-flex gap-3">
                 <i class="fas fa-shield-alt text-info fs-4"></i>
                 <div class="small text-dark">
-                    <strong>Keep your account safe:</strong> {{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union') }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
+                    <strong>Keep your account safe:</strong> {{ setting('site_title') ?? 'FrontField Credit Union' }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
                 </div>
             </div>
         </div>
@@ -247,11 +205,11 @@
                 @csrf
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-4">Your username is used to sign in to your accounts. It must be unique and between 6-20 characters.</p>
-                    <input type="hidden" name="first_name" value="{{ auth()->user()->first_name }}">
-                    <input type="hidden" name="last_name" value="{{ auth()->user()->last_name }}">
+                    <input type="hidden" name="first_name" value="{{ $user->first_name }}">
+                    <input type="hidden" name="last_name" value="{{ $user->last_name }}">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase">New Username</label>
-                        <input type="text" class="form-control" name="username" value="{{ auth()->user()->username }}" required>
+                        <input type="text" class="form-control" name="username" value="{{ $user->username }}" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -304,94 +262,7 @@
 
 @section('script')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (!window.PublicKeyCredential) {
-            $('#bioStatusBadge').removeClass('bg-success').addClass('bg-secondary').html('<i class="fa-solid fa-ban me-1"></i> Not Supported');
-            $('#bioDeviceDesc').text('This browser or device does not support WebAuthn biometric sensors.');
-            $('#btnRegisterBiometrics').prop('disabled', true).addClass('opacity-50');
-        } else {
-            // Check if user has registered
-            if (localStorage.getItem('csb_webauthn_registered') === 'true') {
-                $('#bioStatusBadge').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
-                $('#btnBioLabel').text('Re-Register');
-                $('#btnRegisterBiometrics').removeClass('btn-outline-danger').addClass('btn-outline-success');
-            }
-        }
-    });
-
-    function csbRegisterBiometricPasskey() {
-        if (!window.PublicKeyCredential) {
-            alert('Your device does not support WebAuthn biometric passkeys.');
-            return;
-        }
-
-        var $btn = $('#btnRegisterBiometrics');
-        var origHtml = $btn.html();
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Detecting sensor...');
-
-        // Request challenge from backend
-        $.post("{{ route('security_gate.biometric.challenge') }}", {
-            _token: "{{ csrf_token() }}"
-        })
-        .done(function(res) {
-            if (res.status !== 'success') {
-                $btn.prop('disabled', false).html(origHtml);
-                alert('Could not initialize biometric registration challenge.');
-                return;
-            }
-
-            // Create WebAuthn credential
-            var challengeBytes = Uint8Array.from(atob(res.challenge), c => c.charCodeAt(0));
-            var userIdBytes = new TextEncoder().encode("{{ auth()->id() }}");
-
-            var createOptions = {
-                publicKey: {
-                    challenge: challengeBytes,
-                    rp: { name: "{{ setting('site_title') ?? 'Cleveland State Bank' }}", id: window.location.hostname },
-                    user: {
-                        id: userIdBytes,
-                        name: "{{ auth()->user()->email }}",
-                        displayName: "{{ auth()->user()->full_name ?: auth()->user()->username }}"
-                    },
-                    pubKeyCredParams: [
-                        { type: "public-key", alg: -7 },  // ES256
-                        { type: "public-key", alg: -257 } // RS256
-                    ],
-                    authenticatorSelection: {
-                        authenticatorAttachment: "platform",
-                        userVerification: "preferred"
-                    },
-                    timeout: 60000
-                }
-            };
-
-            navigator.credentials.create(createOptions)
-                .then(function(newCred) {
-                    $btn.prop('disabled', false).removeClass('btn-outline-danger').addClass('btn-outline-success').html('<i class="fa-solid fa-circle-check me-1"></i> Passkey Active');
-                    localStorage.setItem('csb_webauthn_registered', 'true');
-                    $('#bioStatusBadge').removeClass('bg-secondary').addClass('bg-success').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
-                    $('#bioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
-                        .html('<i class="fa-solid fa-check-circle me-1"></i> Passkey registered successfully on this device!');
-                    
-                    // Auto-select biometrics preference
-                    $('#pref_biometrics').prop('checked', true).trigger('change');
-                })
-                .catch(function(err) {
-                    $btn.prop('disabled', false).html(origHtml);
-                    console.log('Biometric registration:', err);
-                    // If platform authenticator error, allow fallback test verification
-                    localStorage.setItem('csb_webauthn_registered', 'true');
-                    $('#bioStatusBadge').html('<i class="fa-solid fa-circle-check me-1"></i> Enabled');
-                    $('#bioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
-                        .html('<i class="fa-solid fa-check-circle me-1"></i> Biometrics enabled for your account.');
-                    $('#pref_biometrics').prop('checked', true).trigger('change');
-                });
-        })
-        .fail(function(xhr) {
-            $btn.prop('disabled', false).html(origHtml);
-            alert('Failed to connect to security challenge service.');
-        });
-    }
+    // Biometric logic removed as per request
 </script>
 @endsection
 

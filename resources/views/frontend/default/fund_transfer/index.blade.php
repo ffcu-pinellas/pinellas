@@ -5,56 +5,34 @@
 @endsection
 
 @section('content')
-@php
-    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
-    $brandPrimary = $isCustomInst ? '#c8232c' : 'var(--bs-primary, #00549b)';
-    $brandMemberTitle = 'Another Member';
-    $brandMemberLabel = $isCustomInst ? ($currentInstitution->name . ' Member') : ((setting('site_title') ?? 'FrontField') . ' Member');
-    $brandMemberDesc = $isCustomInst ? ('Send instantly to a ' . $currentInstitution->name . ' member.') : 'Send instantly to a credit union member.';
-@endphp
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
-        <!-- CSB Institutional Header -->
-        <div class="csb-transfer-hero mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #1b325f 0%, #0d1b2a 100%); color: #ffffff;">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-outline-light rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                            <span class="badge rounded-pill text-uppercase px-2 py-1" style="background: #c8232c; font-size: 10px; letter-spacing: 0.8px;">
-                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured Transfers
-                            </span>
-                            <span class="text-white-50 font-monospace small" style="font-size: 11px;">ABA #084301768</span>
-                        </div>
-                        <h3 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">Move Money &amp; Transfers</h3>
-                    </div>
-                </div>
-                <div class="text-sm-end text-white-50 small d-none d-md-block" style="font-size: 12px; line-height: 1.4;">
-                    <strong class="text-white">Cleveland State Bank</strong><br>
-                    Official NACHA ACH &amp; Real-Time Network
-                </div>
+        <div class="text-center mb-4">
+            <div class="d-flex align-items-center justify-content-center mb-2">
+                <a href="{{ route('user.dashboard') }}" class="back-nav-link m-0 me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h2 class="mb-0">Transfer Funds</h2>
             </div>
+            <p class="text-muted small">Send money to other banks or between your accounts.</p>
         </div>
 
-        <div class="banno-card p-0 mb-4 shadow-sm" style="border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; background: #ffffff;">
-            <!-- Executive Step Header -->
-            <div class="wizard-header px-4 py-3 border-bottom" style="background: #f8fafc;">
+        <div class="banno-card p-0 mb-4 shadow-sm">
+            <div class="wizard-header p-3 p-md-4 border-bottom bg-light">
                 <div class="d-flex justify-content-between align-items-center flex-row">
                     <div class="step-indicator active d-flex align-items-center" data-step="1">
                         <div class="step-circle me-2">1</div>
-                        <span class="d-none d-sm-inline fw-semibold">Transfer Type</span>
+                        <span class="d-none d-sm-inline">Type</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
                     <div class="step-indicator d-flex align-items-center" data-step="2">
                         <div class="step-circle me-2">2</div>
-                        <span class="d-none d-sm-inline fw-semibold">Transfer Details</span>
+                        <span class="d-none d-sm-inline">Details</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
                     <div class="step-indicator d-flex align-items-center" data-step="3">
                         <div class="step-circle me-2">3</div>
-                        <span class="d-none d-sm-inline fw-semibold">Review &amp; Authorize</span>
+                        <span class="d-none d-sm-inline">Review</span>
                     </div>
                 </div>
             </div>
@@ -65,77 +43,50 @@
                 <input type="hidden" name="bank_id" id="resolvedBankId">
                 
                 <!-- Step 1: Transfer Type -->
-                <div class="wizard-step active p-4 p-md-5" id="step1">
-                    <div class="text-center mb-4">
-                        <h4 class="fw-bold text-dark mb-1">Select Transfer Method</h4>
-                        <p class="text-muted small">Choose how you want to route funds securely.</p>
-                    </div>
-
-                    <div class="row g-3 justify-content-center">
-                        <!-- Option 1: Internal -->
-                        <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self">
+                <div class="wizard-step active p-3 p-md-5" id="step1">
+                    <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
+                    <div class="row g-2 g-md-4 justify-content-center px-2 px-md-0">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
-                                    <i class="fa-solid fa-wallet"></i>
+                                <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
+                                    <i class="fas fa-wallet fa-lg"></i>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold text-dark mb-0">Between My Accounts</h6>
-                                        <span class="badge bg-success-subtle text-success small font-monospace" style="font-size: 10px;">Immediate</span>
-                                    </div>
-                                    <p class="small text-muted mb-0">Transfer funds between Checking, Savings, IRA, or Loan pay-downs.</p>
-                                </div>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">My Accounts</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Transfer between checking and savings.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">My Accounts</p>
                             </div>
                         </div>
-
-                        <!-- Option 2: Another Member -->
-                        <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(27, 50, 95, 0.08); color: #1b325f; font-size: 20px;">
-                                    <i class="fa-solid fa-users"></i>
+                                <div class="icon-circle bg-success bg-opacity-10 text-success mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
+                                    <i class="fas fa-users fa-lg"></i>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold text-dark mb-0">{{ $brandMemberTitle }}</h6>
-                                        <span class="badge bg-primary-subtle text-primary small font-monospace" style="font-size: 10px;">Instant Member</span>
-                                    </div>
-                                    <p class="small text-muted mb-0">{{ $brandMemberDesc }} Verified member-to-member routing.</p>
-                                </div>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">Another Member</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Send instantly to a credit union member.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">{{ setting('site_title') ?? 'FrontField' }} Member</p>
                             </div>
                         </div>
-
-                        <!-- Option 3: Zelle -->
-                        <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(116, 20, 202, 0.08); font-size: 20px;">
-                                    <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 18px; filter: brightness(0) saturate(100%) invert(18%) sepia(87%) saturate(3786%) hue-rotate(270deg) brightness(85%) contrast(106%);">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
+                                <div class="icon-circle mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive" style="background-color: rgba(116, 27, 107, 0.1);">
+                                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" class="img-responsive">
                                 </div>
-                                <div style="flex: 1;">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold mb-0" style="color: #7414ca;">Send with Zelle®</h6>
-                                        <span class="badge small font-monospace" style="background: rgba(116, 20, 202, 0.1); color: #7414ca; font-size: 10px;">Minutes</span>
-                                    </div>
-                                    <p class="small text-muted mb-0">Fast, safe and easy way to send money using mobile number or email.</p>
-                                </div>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive" style="color: #741B6B;">Send with Zelle®</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Fast, safe and easy way to send money.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">Pay with Zelle</p>
                             </div>
                         </div>
-
-                        <!-- Option 4: External ACH & Wire -->
-                        <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external">
+                        <div class="col-6 col-md-6 col-xl-3">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(15, 118, 110, 0.08); color: #0f766e; font-size: 20px;">
-                                    <i class="fa-solid fa-building-columns"></i>
+                                <div class="icon-circle bg-info bg-opacity-10 text-info mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
+                                    <i class="fas fa-university fa-lg"></i>
                                 </div>
-                                <div style="flex: 1;">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold text-dark mb-0">External Bank &amp; Wire</h6>
-                                        <span class="badge bg-info-subtle text-info-emphasis small font-monospace" style="font-size: 10px;">ACH / Wire</span>
-                                    </div>
-                                    <p class="small text-muted mb-0">Send via standard ACH (1-3 days) or Same-Day Federal Wire.</p>
-                                </div>
+                                <h6 class="mb-1 mb-md-2 fw-bold title-responsive">External & Wire</h6>
+                                <p class="small text-muted mb-0 d-none d-md-block">Send via ACH (1-3 days) or Same-Day Wire.</p>
+                                <p class="x-small text-muted mb-0 d-md-none">External & Wire</p>
                             </div>
                         </div>
                     </div>
@@ -144,7 +95,7 @@
                 <!-- Step 2: Core Details -->
                 <div class="wizard-step p-4 p-md-5 d-none" id="step2">
                     <div class="d-flex align-items-center mb-4 cursor-pointer text-primary" onclick="goToStep(1)">
-                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Types</span>
+                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Type</span>
                     </div>
 
                     <div class="row g-4">
@@ -153,36 +104,36 @@
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="checkRestriction(); updateAccountOptions()">
                                 @if($wallets->isEmpty())
                                     <option value="default" data-type="checking" data-balance="{{ auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)auth()->user()->balance, 2) }}
+                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ setting('site_currency', 'global') . auth()->user()->balance }}
                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
                                         <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ $wallet->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)$wallet->balance, 2) }}
+                                            Checking (...{{ substr(auth()->user()->account_number, -4) }}) - {{ $wallet->currency->symbol . $wallet->balance }}
                                             @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
                                 @endif
                                 <option value="primary_savings" data-type="savings" data-balance="{{ auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
-                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
+                                    Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->savings_balance, 2) }}
                                     @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                 </option>
                                 @if(auth()->user()->ira_status == 1)
                                 <option value="ira" data-type="ira" data-balance="{{ auth()->user()->ira_balance }}" @disabled(auth()->user()->isRestricted('ira'))>
-                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - ${{ number_format((float)auth()->user()->ira_balance, 2) }}
+                                    IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->ira_balance, 2) }}
                                     @if(auth()->user()->isRestricted('ira')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-type="heloc" data-balance="{{ auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance }}" @disabled(auth()->user()->isRestricted('heloc'))>
-                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - ${{ number_format((float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance), 2) }} (Available)
+                                    HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }} (Available)
                                     @if(auth()->user()->isRestricted('heloc')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
                                 <option value="cc" data-type="cc" data-balance="{{ auth()->user()->cc_credit_limit - auth()->user()->cc_balance }}" @disabled(auth()->user()->isRestricted('cc'))>
-                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - ${{ number_format((float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance), 2) }} (Available)
+                                    Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C) - {{ setting('site_currency', 'global') }} {{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }} (Available)
                                     @if(auth()->user()->isRestricted('cc')) (Restricted) @endif
                                 </option>
                                 @endif
@@ -384,9 +335,9 @@
                                 <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold">Total Deducted</span><span class="h5 mb-0 text-primary fw-bold" id="reviewAmount"></span></div>
                             </div>
 
-                            <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold d-flex align-items-center justify-content-center" id="confirmBtn" onclick="window.csbSubmitTransferForm()">
-                                <span class="spinner-border spinner-border-sm d-none me-2" role="status"></span>
-                                <span class="btn-label"><i class="fas fa-arrow-right me-2"></i> {{ __('Submit Transfer') }}</span>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
                             </button>
                         </div>
                     </div>
@@ -395,153 +346,10 @@
         </div>
     </div>
 </div>
-
-<!-- ════════ TRANSFER CONFIRMATION MODAL ════════ -->
-<div class="modal fade" id="transferConfirmationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
-            <div class="mb-3">
-                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 72px; height: 72px; background: rgba(16, 185, 129, 0.12); color: #10b981; font-size: 32px;">
-                    <i class="fa-solid fa-check"></i>
-                </div>
-                <h4 class="fw-bold text-dark mb-1">Transfer Successful!</h4>
-                <p class="text-muted small mb-0">Your funds transfer request has been submitted sucessfully.</p>
-            </div>
-
-            <div class="p-3 rounded-3 bg-light border text-start mb-3" style="font-size: 13.5px;">
-                <div class="d-flex justify-content-between py-1 border-bottom">
-                    <span class="text-muted">Confirmation Ref</span>
-                    <span class="fw-bold font-monospace text-dark" id="confirmModalRef">TRX000000</span>
-                </div>
-                <div class="d-flex justify-content-between py-1 border-bottom">
-                    <span class="text-muted">Total Amount</span>
-                    <span class="fw-bold text-dark" id="confirmModalAmount">$0.00</span>
-                </div>
-                <div class="d-flex justify-content-between py-1 border-bottom">
-                    <span class="text-muted">Transfer Type</span>
-                    <span class="fw-bold text-dark" id="confirmModalType">Transfer</span>
-                </div>
-                <div class="d-flex justify-content-between py-1 border-bottom">
-                    <span class="text-muted">Recipient / To</span>
-                    <span class="fw-bold text-dark" id="confirmModalTo">—</span>
-                </div>
-                <div class="d-flex justify-content-between py-1 border-bottom">
-                    <span class="text-muted">Effective Date</span>
-                    <span class="text-dark" id="confirmModalDate">—</span>
-                </div>
-                <div class="d-flex justify-content-between py-1">
-                    <span class="text-muted">Status</span>
-                    <span class="badge bg-success-subtle text-success fw-bold">Completed</span>
-                </div>
-            </div>
-
-            <div class="d-flex flex-column gap-2">
-                <a href="{{ route('user.dashboard') }}" class="btn text-white fw-bold py-2 rounded-pill shadow-sm" style="background: {{ $brandPrimary }};">
-                    Done &amp; Return to Dashboard
-                </a>
-                <a href="{{ route('user.transactions') }}" class="btn btn-outline-secondary fw-semibold py-2 rounded-pill">
-                    View in Transaction History
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('style')
 <style>
-    @if($isCustomInst)
-    :root {
-        --primary-color: #c8232c;
-    }
-    .banno-card {
-        border-radius: 20px !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
-        overflow: hidden !important;
-    }
-    .wizard-header {
-        background: linear-gradient(135deg, #2b0407 0%, #4a0307 50%, #1f0205 100%) !important;
-        color: #fff !important;
-        border-bottom: 2px solid #c8232c !important;
-    }
-    .wizard-header .step-indicator {
-        color: rgba(255,255,255,0.65) !important;
-    }
-    .wizard-header .step-circle {
-        background: rgba(255,255,255,0.15) !important;
-        color: #fff !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-    }
-    .wizard-header .step-indicator.active {
-        color: #fff !important;
-    }
-    .wizard-header .step-indicator.active .step-circle {
-        background: #c8232c !important;
-        border-color: #ff6b72 !important;
-        box-shadow: 0 0 14px rgba(200, 35, 44, 0.6) !important;
-        color: #fff !important;
-    }
-    .wizard-header .step-line {
-        background: rgba(255,255,255,0.2) !important;
-    }
-    .transfer-type-card {
-        border: 1.5px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        background: #ffffff !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    .transfer-type-card:hover {
-        transform: translateY(-2px) !important;
-        border-color: #c8232c !important;
-        box-shadow: 0 8px 20px rgba(200, 35, 44, 0.08) !important;
-    }
-    .transfer-type-card.border-primary {
-        border-color: #c8232c !important;
-        border-left: 4px solid #c8232c !important;
-        background: #fff8f8 !important;
-        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.12) !important;
-    }
-    .csb-method-tile {
-        border: 1.5px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        background: #ffffff !important;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    .csb-method-tile:hover {
-        transform: translateY(-2px) !important;
-        border-color: #c8232c !important;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
-    }
-    .csb-method-tile.border-primary {
-        border-color: #c8232c !important;
-        border-left: 4px solid #c8232c !important;
-        background: #fff8f8 !important;
-        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.12) !important;
-    }
-    .btn-primary {
-        background: linear-gradient(135deg, #c8232c 0%, #a81b24 100%) !important;
-        border: none !important;
-        box-shadow: 0 6px 16px rgba(200, 35, 44, 0.3) !important;
-    }
-    .btn-primary:hover, .btn-primary:focus {
-        background: linear-gradient(135deg, #a81b24 0%, #8b0000 100%) !important;
-        box-shadow: 0 8px 22px rgba(200, 35, 44, 0.45) !important;
-        transform: translateY(-1px) !important;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #c8232c !important;
-        box-shadow: 0 0 0 4px rgba(200, 35, 44, 0.12) !important;
-    }
-    #reviewAmount {
-        color: #c8232c !important;
-    }
-    @endif
-    .title-responsive {
-        white-space: normal !important;
-        line-height: 1.25 !important;
-    }
     .wizard-step { transition: all 0.3s ease; }
     .cursor-pointer { cursor: pointer; }
     .transfer-type-card { transition: all 0.25s; border: 2px solid #edeff2 !important; background: #fff; }
@@ -767,14 +575,14 @@
                 if({{ $wallets->isEmpty() ? 'true' : 'false' }}) {
                     var opt = document.createElement('option');
                     opt.value = 'default';
-                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - ${{ number_format((float)auth()->user()->balance, 2) }}';
+                    opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->balance, 2) }}';
                     if(isRestricted) opt.disabled = true;
                     toSelect.add(opt);
                 } else {
                     @foreach($wallets as $wallet)
                         var opt = document.createElement('option');
                         opt.value = '{{ $wallet->currency->code }}';
-                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - ${{ number_format((float)$wallet->balance, 2) }}';
+                        opt.text = 'Checking (...{{ substr(auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' - {{ $wallet->currency->symbol . number_format($wallet->balance, 2) }}';
                         if(isRestricted) opt.disabled = true;
                         toSelect.add(opt);
                     @endforeach
@@ -786,7 +594,7 @@
                 const isRestricted = userRestrictions['primary_savings'];
                 const opt = document.createElement('option');
                 opt.value = 'primary_savings';
-                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)' + (isRestricted ? ' (Restricted)' : '') + ' - ${{ number_format((float)auth()->user()->savings_balance, 2) }}';
+                opt.text = 'Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S)' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->savings_balance, 2) }}';
                 if(isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -797,7 +605,7 @@
                 const isRestricted = userRestrictions['ira'];
                 const opt = document.createElement('option');
                 opt.value = 'ira';
-                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)' + (isRestricted ? ' (Restricted)' : '') + ' - ${{ number_format((float)auth()->user()->ira_balance, 2) }}';
+                opt.text = 'IRA Account (...{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}I)' + (isRestricted ? ' (Restricted)' : '') + ' - {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->ira_balance, 2) }}';
                 if(isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -809,7 +617,7 @@
                 const isRestricted = userRestrictions['heloc'];
                 const opt = document.createElement('option');
                 opt.value = 'heloc';
-                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: ${{ number_format((float)auth()->user()->heloc_balance, 2) }}';
+                opt.text = 'HELOC Account (...{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}H)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->heloc_balance, 2) }}';
                 if(isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -821,7 +629,7 @@
                 const isRestricted = userRestrictions['cc'];
                 const opt = document.createElement('option');
                 opt.value = 'cc';
-                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: ${{ number_format((float)auth()->user()->cc_balance, 2) }}';
+                opt.text = 'Credit Card (...{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}C)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->cc_balance, 2) }}';
                 if(isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -833,7 +641,7 @@
                 const isRestricted = userRestrictions['loan'];
                 const opt = document.createElement('option');
                 opt.value = 'loan';
-                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: ${{ number_format((float)auth()->user()->loan_balance, 2) }}';
+                opt.text = 'Loan Account (...{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }}L)' + (isRestricted ? ' (Restricted)' : '') + ' - Pay Down Balance: {{ setting("site_currency", "global") }} {{ number_format(auth()->user()->loan_balance, 2) }}';
                 if(isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -901,42 +709,18 @@
         const routing = document.querySelector('input[name="manual_data[routing_number]"]').value;
 
         if(!name || !acc1 || routing.length < 9) {
-            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '{{ $brandPrimary }}' });
+            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient information.', icon: 'warning', confirmButtonColor: '#00549b' });
             return;
         }
+        if(!isValidAbaChecksumAch(routing)) { Swal.fire({ title: 'Invalid Routing Number', text: 'The 9-digit ABA routing number failed the Federal Reserve mod-10 checksum. Please verify the number and try again.', icon: 'error', confirmButtonColor: '#00549b' }); return; }
         if(acc1 !== acc2) {
-            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '{{ $brandPrimary }}' });
+            Swal.fire({ title: 'Mismatch', text: 'Account numbers do not match.', icon: 'error', confirmButtonColor: '#00549b' });
             return;
         }
-        if(!isValidAbaChecksumAch(routing)) {
-            var manualWrapEl = document.getElementById('manualBankNameWrap');
-            var manualInputEl = document.getElementById('manualBankNameInput');
-            if (manualWrapEl) manualWrapEl.classList.remove('d-none');
-            const manualName = manualInputEl ? manualInputEl.value.trim() : '';
+        if(!document.getElementById('resolvedBankId').value) {
+            const manualName = document.getElementById('manualBankNameInput').value.trim();
             if(!manualName) {
-                if (manualInputEl) manualInputEl.focus();
-                Swal.fire({
-                    title: 'Institution Name Required',
-                    text: 'Routing number could not be verified automatically. Please enter the financial institution name below to continue.',
-                    icon: 'info',
-                    confirmButtonColor: '{{ $brandPrimary }}'
-                });
-                return;
-            }
-            document.getElementById('resolvedBankName').value = manualName;
-        } else if(!document.getElementById('resolvedBankId').value) {
-            var manualWrapEl = document.getElementById('manualBankNameWrap');
-            var manualInputEl = document.getElementById('manualBankNameInput');
-            if (manualWrapEl) manualWrapEl.classList.remove('d-none');
-            const manualName = manualInputEl ? manualInputEl.value.trim() : '';
-            if(!manualName) {
-                if (manualInputEl) manualInputEl.focus();
-                Swal.fire({
-                    title: 'Receiving institution required',
-                    text: 'We could not verify your routing number automatically. Enter the receiving financial institution\'s name as it appears on your records.',
-                    icon: 'warning',
-                    confirmButtonColor: '{{ $brandPrimary }}'
-                });
+                Swal.fire({ title: 'Receiving institution required', text: 'We could not verify your routing number automatically. Enter the receiving financial institution\'s name as it appears on your records.', icon: 'warning', confirmButtonColor: '#00549b' });
                 return;
             }
             document.getElementById('resolvedBankName').value = manualName;
@@ -1239,11 +1023,7 @@
 
             if(routing.length !== 9) return;
 
-            if(!isValidAbaChecksumAch(routing)) {
-                statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fas fa-circle-info me-1"></i> Routing number unverified. Please provide receiving institution name below.</span>';
-                manualWrap.classList.remove('d-none');
-                return;
-            }
+            if(!isValidAbaChecksumAch(routing)) { statusEl.innerHTML = '<span class="text-danger fw-semibold"><i class="fas fa-times-circle me-1"></i> Invalid ABA routing number checksum. Please double-check the 9 digits.</span>'; return; }
             statusEl.innerHTML = '<span class="text-muted">Verifying ABA routing number…</span>';
             if(lookupTimer) clearTimeout(lookupTimer);
             lookupTimer = setTimeout(() => {
@@ -1274,9 +1054,7 @@
                         statusEl.innerHTML = '<span class="text-success">Receiving institution verified.</span>';
                         manualWrap.classList.add('d-none');
                         manualInput.value = '';
-                    } else if(body.status === 'invalid_checksum') {
-                        statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fas fa-circle-info me-1"></i> Routing unlisted. Enter the receiving institution name below.</span>';
-                        manualWrap.classList.remove('d-none');
+                    } else if(body.status === 'invalid_checksum') { statusEl.innerHTML = '<span class="text-danger fw-semibold">' + (body.message || 'Invalid ABA routing number checksum.') + '</span>';
                     } else if(body.status === 'manual_required') {
                         statusEl.innerHTML = '<span class="text-warning">' + (body.message || 'Enter the receiving institution\'s name to continue.') + '</span>';
                         manualWrap.classList.remove('d-none');
@@ -1295,76 +1073,5 @@
             }, 300);
         });
     });
-
-    window.csbSubmitTransferForm = function() {
-        var form = document.getElementById('transferForm');
-        if (!form) return;
-        var $btn = $('#confirmBtn');
-
-        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
-            SecurityGate.gate(function(res) {
-                doAjaxSubmit();
-            });
-        } else {
-            doAjaxSubmit();
-        }
-
-        function doAjaxSubmit() {
-            $btn.prop('disabled', true);
-            $btn.find('.spinner-border').removeClass('d-none');
-            $btn.find('.btn-label').html('<span class="spinner-border spinner-border-sm me-2" role="status"></span> Submitting Transfer...');
-            if (typeof window.showLoader === 'function') window.showLoader();
-
-            var formData = new FormData(form);
-            formData.append('security_verified', '1');
-
-            $.ajax({
-                url: form.action,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .done(function(data) {
-                if (typeof window.hideLoader === 'function') window.hideLoader();
-                if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(20);
-
-                var tnx = data.trx || data.tnx || ('TRX' + Math.floor(100000 + Math.random() * 900000));
-                $('#confirmModalRef').text(tnx);
-                $('#confirmModalAmount').text(document.getElementById('reviewAmount').innerText);
-                $('#confirmModalType').text(document.getElementById('reviewType').innerText);
-                $('#confirmModalTo').text(document.getElementById('reviewToAccount').innerText);
-                $('#confirmModalDate').text(document.getElementById('reviewDate').innerText);
-
-                var confirmModal = new bootstrap.Modal(document.getElementById('transferConfirmationModal'));
-                confirmModal.show();
-            })
-            .fail(function(xhr) {
-                if (typeof window.hideLoader === 'function') window.hideLoader();
-                $btn.prop('disabled', false);
-                $btn.find('.spinner-border').addClass('d-none');
-                $btn.find('.btn-label').html('<i class="fas fa-arrow-right me-2"></i>Submit Transfer');
-
-                var err = 'Transfer could not be processed. Please verify your details.';
-                if (xhr.responseJSON) {
-                    if (xhr.responseJSON.errors) {
-                        err = Object.values(xhr.responseJSON.errors).flat().join('<br>');
-                    } else if (xhr.responseJSON.message) {
-                        err = xhr.responseJSON.message;
-                    }
-                }
-                Swal.fire({
-                    title: 'Transfer Not Completed',
-                    html: err,
-                    icon: 'error',
-                    confirmButtonColor: '{{ $brandPrimary }}'
-                });
-            });
-        }
-    };
 </script>
 @endsection

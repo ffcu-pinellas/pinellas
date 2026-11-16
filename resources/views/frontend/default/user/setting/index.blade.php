@@ -7,6 +7,7 @@
 @section('content')
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $user = $user ?? auth()->user();
 @endphp
 <div class="row">
     @include('frontend::user.setting.include.__settings_nav')
