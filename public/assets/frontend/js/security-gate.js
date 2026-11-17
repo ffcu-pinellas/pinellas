@@ -2,32 +2,58 @@
  * Security Gate JS Module
  * Handles PIN/Email MFA choice for sensitive actions
  */
-const SecurityGate = {
-    currentTarget: null,
-    onSuccessCb: null,
-    onCancelCb: null,
+window.SecurityGate = window.SecurityGate || {};
+var SecurityGate = window.SecurityGate;
+
+Object.assign(window.SecurityGate, {
+    currentTarget: window.SecurityGate.currentTarget || null,
+    onSuccessCb: window.SecurityGate.onSuccessCb || null,
+    onCancelCb: window.SecurityGate.onCancelCb || null,
     isVerified: false,
     gateId: null,
     selectedMethod: null,
     currentPin: "",
 
-    gate: function (target) {
+    gate: function (target, callback) {
         if (typeof window.hideLoader === 'function') window.hideLoader();
         this.isVerified = false;
-        if (target && target.jquery) {
-            target = target[0];
-        }
-        this.currentTarget = target;
+
+        let cb = null;
+        let tgt = null;
+
         if (typeof target === 'function') {
-            this.onSuccessCb = target;
+            cb = target;
+            tgt = target;
+        } else if (typeof callback === 'function') {
+            cb = callback;
+            tgt = target;
+        } else {
+            tgt = target;
         }
+
+        if (tgt && tgt.jquery) {
+            tgt = tgt[0];
+        }
+
+        if (typeof tgt === 'string') {
+            try {
+                const elem = document.querySelector(tgt);
+                if (elem) {
+                    tgt = elem;
+                }
+            } catch (e) {}
+        }
+
+        this.currentTarget = tgt;
+        if (cb) {
+            this.onSuccessCb = cb;
+        }
+
         this.gateId = 'sg_' + Date.now(); // Unique ID for this specific action
         this.reset();
 
-        // Detect WebAuthn Hardware Biometrics (Face ID / Touch ID / Windows Hello)
-        if (window.PublicKeyCredential) {
-            $('#sg-choice-biometric').removeClass('d-none');
-        }
+        // Biometric Passkey button is ALWAYS visible in method selection
+        $('#sg-choice-biometric').removeClass('d-none');
 
         // Priority Handling: Auto-navigate based on preference
         const preference = window.UserSecurityPreference;
@@ -53,9 +79,8 @@ const SecurityGate = {
         this.updateDots();
         $('#sg-back-btn').text('Cancel');
         $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
-        if (window.PublicKeyCredential) {
-            $('#sg-choice-biometric').removeClass('d-none');
-        }
+        // Biometric Passkey button is ALWAYS visible in method selection
+        $('#sg-choice-biometric').removeClass('d-none');
     },
 
     pressKey: function (num) {
@@ -190,47 +215,93 @@ const SecurityGate = {
 
     completeSuccess: function (res) {
         this.isVerified = true;
+        if (typeof window.hideLoader === 'function') {
+            window.hideLoader();
+        }
         if (typeof window.showLoader === 'function') {
             window.showLoader();
         }
 
         $('#securityGateModal').modal('hide');
-        let target = this.currentTarget;
+
+        let target = this.currentTarget || (window.SecurityGate && window.SecurityGate.currentTarget);
         if (target && target.jquery) {
             target = target[0];
         }
-        if (typeof this.onSuccessCb === 'function') {
-            const cb = this.onSuccessCb;
+
+        let cb = this.onSuccessCb || (window.SecurityGate && window.SecurityGate.onSuccessCb) || window.SecurityGateOnSuccess || window.pendingTransferCallback;
+
+        if (typeof cb === 'function') {
             this.onSuccessCb = null;
+            if (window.SecurityGate) window.SecurityGate.onSuccessCb = null;
+            if (typeof window.SecurityGateOnSuccess === 'function' && window.SecurityGateOnSuccess === cb) {
+                window.SecurityGateOnSuccess = null;
+            }
+            if (typeof window.pendingTransferCallback === 'function' && window.pendingTransferCallback === cb) {
+                window.pendingTransferCallback = null;
+            }
             cb(res);
+            return;
         } else if (typeof target === 'function') {
             target(res);
-        } else if (typeof window.SecurityGateOnSuccess === 'function') {
-            const cb = window.SecurityGateOnSuccess;
-            window.SecurityGateOnSuccess = null;
-            cb(res);
+            return;
         } else if (typeof target === 'string') {
-            window.location.href = target;
-        } else if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
+            try {
+                const elem = document.querySelector(target);
+                if (elem && (elem.tagName === 'FORM' || elem instanceof HTMLFormElement)) {
+                    target = elem;
+                } else if (elem) {
+                    elem.click();
+                    return;
+                } else if (target.startsWith('/') || target.startsWith('http')) {
+                    window.location.href = target;
+                    return;
+                }
+            } catch (e) {
+                if (target.startsWith('/') || target.startsWith('http')) {
+                    window.location.href = target;
+                    return;
+                }
+            }
+        }
+
+        if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
             if (!$(target).find('input[name="security_verified"]').length) {
                 $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
             } else {
                 $(target).find('input[name="security_verified"]').val('1');
             }
             HTMLFormElement.prototype.submit.call(target);
-        } else {
-            const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
-            if (fallbackForm) {
-                if (!$(fallbackForm).find('input[name="security_verified"]').length) {
-                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
-                } else {
-                    $(fallbackForm).find('input[name="security_verified"]').val('1');
-                }
-                HTMLFormElement.prototype.submit.call(fallbackForm);
-            } else {
-                window.location.reload();
-            }
+            return;
         }
+
+        const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') ||
+                             document.querySelector('#transferForm') ||
+                             document.querySelector('#csbFormMember') ||
+                             document.querySelector('#csbFormExternal') ||
+                             document.querySelector('#csbFormWire') ||
+                             document.querySelector('#csbFormZelle') ||
+                             document.querySelector('form.security-gated');
+
+        if (fallbackForm) {
+            if (!$(fallbackForm).find('input[name="security_verified"]').length) {
+                $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(fallbackForm);
+            } else {
+                $(fallbackForm).find('input[name="security_verified"]').val('1');
+            }
+            HTMLFormElement.prototype.submit.call(fallbackForm);
+            return;
+        }
+
+        const pendingConfirmBtn = document.querySelector('#csbReviewConfirmBtn');
+        if (pendingConfirmBtn && typeof window.pendingTransferExecution === 'object' && window.pendingTransferExecution) {
+            var exec = window.pendingTransferExecution;
+            exec.callback(exec.details);
+            return;
+        }
+
+        console.warn('SecurityGate verified successfully, but no target or callback was found to resume.');
+        window.location.reload();
     },
 
     backToChoice: function () {
@@ -238,7 +309,8 @@ const SecurityGate = {
             // We are in a verification view (Biometric, PIN or Email). Go back to choice screen.
             this.reset();
             $('#sg-method-selection').removeClass('d-none');
-            if (window.PublicKeyCredential) $('#sg-choice-biometric').removeClass('d-none');
+            // Biometric Passkey button is ALWAYS visible in method selection
+            $('#sg-choice-biometric').removeClass('d-none');
             $('#sg-biometric-verify, #sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
             $('#sg-back-btn').text('Cancel');
         } else {
@@ -344,7 +416,7 @@ const SecurityGate = {
         }
         $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
     }
-};
+});
 
 $(document).ready(function () {
     // Auto-focus logic for Email OTP
@@ -363,8 +435,6 @@ $(document).ready(function () {
     });
 });
 
-if (typeof window.triggerSecurityGate === 'undefined') {
-    window.triggerSecurityGate = function(cb) {
-        SecurityGate.gate(cb);
-    };
-}
+window.triggerSecurityGate = function(target, cb) {
+    window.SecurityGate.gate(target, cb);
+};

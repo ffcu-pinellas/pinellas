@@ -691,21 +691,33 @@
         var form = document.getElementById('transferForm');
         var $btn = $('#confirmBtn');
         var origHtml = $btn.html();
+
+        // Ensure security_verified hidden input is present on the form
+        if (!$('#transferForm').find('input[name="security_verified"]').length) {
+            $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo('#transferForm');
+        } else {
+            $('#transferForm').find('input[name="security_verified"]').val('1');
+        }
+
+        // Ensure only active fields for selectedType are enabled, inactive are disabled
+        if (selectedType === 'self') {
+            $('#selfFields select, #selfFields input').prop('disabled', false);
+            $('#memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
+        } else if (selectedType === 'member') {
+            $('#memberFields select, #memberFields input').prop('disabled', false);
+            $('#selfFields select, #selfFields input, #externalFields select, #externalFields input').prop('disabled', true);
+        } else if (selectedType === 'external') {
+            $('#externalFields select, #externalFields input').prop('disabled', false);
+            $('#selfFields select, #selfFields input, #memberFields select, #memberFields input').prop('disabled', true);
+        }
+
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Authorizing &amp; Routing Transfer...');
 
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
             SecurityGate.onCancelCb = function() {
                 $btn.prop('disabled', false).html(origHtml);
             };
-            SecurityGate.gate(function() {
-                if (!$('#transferForm').find('input[name="security_verified"]').length) {
-                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo('#transferForm');
-                } else {
-                    $('#transferForm').find('input[name="security_verified"]').val('1');
-                }
-                if (typeof window.showLoader === 'function') window.showLoader();
-                HTMLFormElement.prototype.submit.call(form);
-            });
+            SecurityGate.gate(form);
         } else {
             if (typeof window.showLoader === 'function') window.showLoader();
             HTMLFormElement.prototype.submit.call(form);

@@ -1427,9 +1427,6 @@ body {
                                     <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
                                         <div class="txn-desc d-flex align-items-center gap-1">
                                             <span class="text-truncate">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</span>
-                                            @if(in_array(strtolower($rawStatus), ['pending', '2']))
-                                                <span class="badge bg-warning text-dark extra-small font-monospace px-2 py-0" style="font-size: 10px; font-weight: 700; border-radius: 4px;">Pending</span>
-                                            @endif
                                             @if(!empty($tx->receipt_attachment))
                                                 <i class="fa-solid fa-paperclip text-muted small" title="Receipt attached" style="font-size: 11px;"></i>
                                             @endif
@@ -1439,12 +1436,23 @@ body {
                                         </div>
                                         <div class="txn-date">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</div>
                                     </div>
-                                    <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}" style="flex-shrink: 0; white-space: nowrap;">
-                                        @if($isNegative)
-                                            -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
-                                        @else
-                                            +{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
-                                        @endif
+                                    <div class="text-end" style="flex-shrink: 0; white-space: nowrap;">
+                                        <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}">
+                                            @if($isNegative)
+                                                -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                            @else
+                                                +{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                            @endif
+                                        </div>
+                                        <div class="small" style="font-size: 0.72rem; font-weight: 600; margin-top: 2px;">
+                                            @if(in_array(strtolower($rawStatus), ['pending', '2']))
+                                                <span style="color: #d97706;"><i class="fa-solid fa-clock me-1 small"></i>Pending</span>
+                                            @elseif(in_array(strtolower($rawStatus), ['success', 'completed', '1']))
+                                                <span style="color: #059669;"><i class="fa-solid fa-circle-check me-1 small"></i>Completed</span>
+                                            @else
+                                                <span class="text-danger"><i class="fa-solid fa-circle-xmark me-1 small"></i>Failed</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 @endforeach
@@ -3328,20 +3336,28 @@ body {
         if (typeof pendingTransferCallback === 'function') {
             let cb = pendingTransferCallback;
             pendingTransferCallback = null;
-            cb();
+            cb(res);
         }
     };
 
     function triggerSecurityGate(callback) {
         pendingTransferCallback = callback;
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.onCancelCb = function() {
+                pendingTransferCallback = null;
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+            };
             SecurityGate.gate(function(res) {
-                if (typeof callback === 'function') {
+                if (typeof pendingTransferCallback === 'function') {
+                    let cb = pendingTransferCallback;
+                    pendingTransferCallback = null;
+                    cb(res);
+                } else if (typeof callback === 'function') {
                     callback(res);
                 }
             });
         } else {
-            callback();
+            if (typeof callback === 'function') callback();
         }
     }
 
@@ -3676,7 +3692,7 @@ body {
     }
 
     // ── Generic Transfer Form Submitter (with Loader & AJAX Confirmation) ──
-    function executeTransfer($form, resId, url, details) {
+    function executeTransfer($form, resSelector, url, details) {
         var $btn = $form.find('button[type=submit]');
         var origText = $btn.data('orig') || $btn.html();
         $btn.data('orig', origText);
@@ -3692,6 +3708,7 @@ body {
         }
 
         var formData = new FormData($form[0]);
+        formData.set('security_verified', '1');
 
         $.ajax({
             url: url || "{{ route('user.fund_transfer.transfer') }}",
@@ -3700,6 +3717,7 @@ body {
             processData: false,
             contentType: false,
             headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || '{{ csrf_token() }}',
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             }
@@ -3716,7 +3734,7 @@ body {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Transfer Not Completed',
+                    title: 'Transfer Failed',
                     html: err,
                     confirmButtonColor: '#162846'
                 });

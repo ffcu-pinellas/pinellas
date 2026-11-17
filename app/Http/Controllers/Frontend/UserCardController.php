@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UserCard;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 use App\Traits\NotifyTrait;
@@ -15,28 +16,63 @@ class UserCardController extends Controller
     use NotifyTrait;
     public function toggleStatus(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'card_id' => 'required|exists:user_cards,id',
         ]);
 
+        if ($validator->fails()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+            throw new ValidationException($validator);
+        }
+
         // Security Gate Check - Check both session and request (fallback for some mobile flows)
-        if (!session()->has('security_verified_' . auth()->id()) && !$request->security_verified) {
-             return response()->json(['message' => 'Security verification required.'], 403);
+        $isSecurityVerified = $request->filled('security_verified') ||
+                              $request->input('security_verified') == '1' ||
+                              session()->has('security_verified_' . auth()->id());
+
+        if (!$isSecurityVerified) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Security verification required.'
+                ], 403);
+            }
+            return response()->json(['message' => 'Security verification required.'], 403);
         }
 
         $card = UserCard::where('id', $request->card_id)
                         ->where('user_id', auth()->id())
-                        ->firstOrFail();
+                        ->first();
+
+        if (!$card) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Card not found or access denied.'
+                ], 422);
+            }
+            abort(404, 'Card not found');
+        }
 
         // Toggle status based on current DB value
         $card->status = ($card->status === 'active') ? 'inactive' : 'active';
         $card->save();
 
-        $status = $card->status === 'active' ? 'Unlocked' : 'Locked';
-        $this->telegramNotify("💳 <b>Card {$status}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
+        $status = $card->status === 'active' ? 'unlocked' : 'locked';
+        $telegramStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
+        $this->telegramNotify("💳 <b>Card {$telegramStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['message' => 'Card status updated successfully.']);
+            return response()->json([
+                'status' => 'success',
+                'message' => "Card has been {$status} successfully.",
+                'card_status' => $card->status
+            ]);
         }
 
         try {
@@ -44,20 +80,20 @@ class UserCardController extends Controller
             $this->mailNotify(auth()->user()->email, 'card_status_update', [
                 '[[full_name]]' => auth()->user()->full_name,
                 '[[card_number]]' => "****" . substr($card->card_number, -4),
-                '[[status]]' => $status,
-                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+                '[[status]]' => $telegramStatus,
+                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
             ]);
 
             // Native Push Notification (User)
             $this->pushNotify('new_user', [ // Reusing generic template for now
                 '[[full_name]]' => auth()->user()->full_name,
-                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
             ], route('user.cards'), auth()->id());
 
             // Admin Push Notification
             $this->pushNotify('card_activity_alert', [
                 '[[full_name]]' => auth()->user()->full_name,
-                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . strtolower($status) . ".",
+                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
                 '[[card_number]]' => $card->card_number,
             ], route('admin.cards.index'), null, 'Admin');
         } catch (\Exception $e) {
@@ -126,30 +162,63 @@ class UserCardController extends Controller
             'confirm_pin' => $confirmPin,
         ]);
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'card_id' => 'required|exists:user_cards,id',
             'new_pin' => 'required|numeric|digits:4',
             'confirm_pin' => 'required|same:new_pin',
             'password' => 'nullable|string',
         ]);
 
+        if ($validator->fails()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+            throw new ValidationException($validator);
+        }
+
         $user = auth()->user();
 
         // Security Gate Check
-        $hasSecuritySession = session()->has('security_verified_' . $user->id);
-        $hasRequestFlag = $request->input('security_verified') == '1';
+        $isSecurityVerified = $request->filled('security_verified') ||
+                              $request->input('security_verified') == '1' ||
+                              session()->has('security_verified_' . $user->id);
 
-        if (!$hasSecuritySession && !$hasRequestFlag) {
-             return response()->json(['message' => 'Security verification required.'], 403);
+        if (!$isSecurityVerified) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Security verification required.'
+                ], 403);
+            }
+            return response()->json(['message' => 'Security verification required.'], 403);
         }
 
         if ($request->filled('password') && !Hash::check($request->password, $user->password)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Incorrect account password.'
+                ], 422);
+            }
             throw ValidationException::withMessages(['password' => 'Incorrect account password.']);
         }
 
         $card = UserCard::where('id', $request->card_id)
                         ->where('user_id', $user->id)
-                        ->firstOrFail();
+                        ->first();
+
+        if (!$card) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Card not found or access denied.'
+                ], 422);
+            }
+            abort(404, 'Card not found');
+        }
         
         // Store raw PIN as requested
         $card->pin = $newPin;

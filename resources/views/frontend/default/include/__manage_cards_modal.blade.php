@@ -238,19 +238,34 @@ if (typeof csbToggleCardDetails === 'undefined') {
 
 window.csbToggleCardFreeze = function(btn, cardId) {
     if (!cardId) {
-        if (typeof Swal !== 'undefined') Swal.fire({ icon: 'warning', title: 'Card Notice', text: 'No card found.' });
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ icon: 'warning', title: 'Card Notice', text: 'No card found.' });
+        }
         return;
     }
     var $btn = $(btn);
     var origText = $btn.html();
 
     var proceed = function() {
+        if (typeof window.hideLoader === 'function') window.hideLoader();
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
-        $.post("{{ route('user.cards.toggle-status') }}", {
-            _token: "{{ csrf_token() }}",
-            card_id: cardId,
-            security_verified: 1
+
+        var token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+
+        $.ajax({
+            url: "{{ route('user.cards.toggle-status') }}",
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            data: {
+                _token: token,
+                card_id: cardId,
+                security_verified: 1
+            }
         }).done(function(res) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
@@ -264,9 +279,16 @@ window.csbToggleCardFreeze = function(btn, cardId) {
                 window.location.reload();
             }
         }).fail(function(xhr) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             $btn.prop('disabled', false).html(origText);
+            var errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Could not update card status.';
             if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Card Control Error', text: xhr.responseJSON?.message || 'Could not update card status.', confirmButtonColor: '#162846' });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Card Control Error',
+                    text: errorMsg,
+                    confirmButtonColor: '#162846'
+                });
             }
             var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
             if (cardsModal) cardsModal.show();
@@ -279,6 +301,7 @@ window.csbToggleCardFreeze = function(btn, cardId) {
 
     if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
         SecurityGate.onCancelCb = function() {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             var cm = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
             if (cm) cm.show();
         };
@@ -337,14 +360,27 @@ window.csbSubmitPinReset = function(e) {
     var origText = $btn.html();
 
     var proceed = function() {
+        if (typeof window.hideLoader === 'function') window.hideLoader();
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Authorizing...');
-        $.post("{{ route('user.cards.reset-pin') }}", {
-            _token: "{{ csrf_token() }}",
-            card_id: cardId,
-            new_pin: pin,
-            confirm_pin: confirmPin,
-            security_verified: 1
+
+        var token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+
+        $.ajax({
+            url: "{{ route('user.cards.reset-pin') }}",
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            data: {
+                _token: token,
+                card_id: cardId,
+                new_pin: pin,
+                confirm_pin: confirmPin,
+                security_verified: 1
+            }
         }).done(function(res) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             $btn.prop('disabled', false).html(origText);
             var pinModal = bootstrap.Modal.getInstance(document.getElementById('csbResetPinModal'));
             if (pinModal) pinModal.hide();
@@ -358,11 +394,24 @@ window.csbSubmitPinReset = function(e) {
                     title: 'PIN Updated Successfully',
                     text: res.message || 'Your new 4-digit debit card PIN is now active.',
                     confirmButtonColor: '#162846'
+                }).then(function() {
+                    var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+                    if (cardsModal) cardsModal.show();
                 });
             }
         }).fail(function(xhr) {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             $btn.prop('disabled', false).html(origText);
-            $notice.removeClass('d-none').text(xhr.responseJSON?.message || 'Could not reset card PIN. Please try again.');
+            var errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Could not reset card PIN. Please try again.';
+            $notice.removeClass('d-none').text(errorMsg);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'PIN Reset Error',
+                    text: errorMsg,
+                    confirmButtonColor: '#162846'
+                });
+            }
             var pm = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbResetPinModal'));
             if (pm) pm.show();
         });
@@ -374,6 +423,7 @@ window.csbSubmitPinReset = function(e) {
 
     if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
         SecurityGate.onCancelCb = function() {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
             var pm = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbResetPinModal'));
             if (pm) pm.show();
         };

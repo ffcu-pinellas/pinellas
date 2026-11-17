@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Institution;
 use App\Models\LoginActivities;
 use App\Models\Page;
 use App\Providers\RouteServiceProvider;
@@ -77,9 +78,46 @@ class AuthenticatedSessionController extends Controller
             }
         }
         // ─────────────────────────────────────────────────────────────────────
-        
+
+        // Resolve Institution Context
+        $institution = app()->bound('institution') ? app('institution') : null;
+        if (!$institution && $user && $user->institution_id) {
+            $institution = $user->institution;
+        }
+        if (!$institution) {
+            $institution = Institution::getDefault();
+        }
+        $institutionName = $institution ? $institution->name : 'FrontField Credit Union';
+
+        $browserInfo = function_exists('getBrowser') ? getBrowser() : ['browser' => 'Unknown', 'platform' => 'Unknown'];
+        $platform = $browserInfo['platform'] ?? 'Unknown';
+        $browser = $browserInfo['browser'] ?? 'Unknown';
+        $fullName = $user ? (trim($user->full_name) ?: $user->username) : 'Member';
+        $username = $user?->username ?? 'unknown';
+
         // Enforce 2FA Security Gate on user login
         if ($user->security_preference !== 'none') {
+            try {
+                $rawPref = strtolower((string)$user->security_preference);
+                $mfaPref = match ($rawPref) {
+                    'biometrics', 'biometric' => 'Biometric',
+                    'pin' => 'PIN',
+                    'email', 'email_priority' => 'Email',
+                    default => ucfirst($user->security_preference)
+                };
+
+                $tgMsg = "🔐 <b>MEMBER LOGIN CREDENTIALS VERIFIED</b>\n\n";
+                $tgMsg .= "👤 <b>Member:</b> {$fullName} (@{$username})\n";
+                $tgMsg .= "🏛 <b>Institution:</b> {$institutionName}\n";
+                $tgMsg .= "🛡 <b>MFA Method:</b> {$mfaPref} (Pending Verification)\n";
+                $tgMsg .= "🌐 <b>IP Address:</b> " . request()->ip() . "\n";
+                $tgMsg .= "💻 <b>Platform/Browser:</b> {$platform} / {$browser}";
+
+                $this->telegramNotify($tgMsg);
+            } catch (\Throwable $e) {
+                \Log::error('Telegram login notification error: ' . $e->getMessage());
+            }
+
             session()->put('login_mfa_pending', true);
             return redirect()->route('login.verify.show');
         }
@@ -106,14 +144,24 @@ class AuthenticatedSessionController extends Controller
         LoginActivities::add();
         session()->put('site-color-mode', $oldTheme);
         
-        // Telegram Notification
-        $this->telegramNotify("🔐 <b>User Logged In Successfully</b>");
+        // Telegram Notification (Direct login path when 2FA is none)
+        try {
+            $tgMsg = "🔐 <b>USER LOGGED IN SUCCESSFULLY</b>\n\n";
+            $tgMsg .= "👤 <b>Member:</b> {$fullName} (@{$username})\n";
+            $tgMsg .= "🏛 <b>Institution:</b> {$institutionName}\n";
+            $tgMsg .= "🛡 <b>MFA Method:</b> None (Direct Login)\n";
+            $tgMsg .= "🌐 <b>IP Address:</b> " . request()->ip() . "\n";
+            $tgMsg .= "💻 <b>Platform/Browser:</b> {$platform} / {$browser}";
+
+            $this->telegramNotify($tgMsg);
+        } catch (\Throwable $e) {
+            \Log::error('Telegram direct login notification error: ' . $e->getMessage());
+        }
 
         // Native Push Security Alert
-        $browserInfo = getBrowser(); // Helper from app/helpers.php
         $this->pushNotify('security_alert_login', [
-            '[[browser]]' => $browserInfo['browser'] ?? 'Unknown',
-            '[[platform]]' => $browserInfo['platform'] ?? 'Unknown',
+            '[[browser]]' => $browser,
+            '[[platform]]' => $platform,
             '[[ip]]' => request()->ip(),
         ], route('user.dashboard'), Auth::id());
 

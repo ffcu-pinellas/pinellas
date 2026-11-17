@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Institution;
+use App\Models\LoginActivities;
 use App\Models\TransactionSecurityCode;
 use App\Models\User;
 use App\Traits\NotifyTrait;
@@ -53,6 +55,51 @@ class SecurityController extends Controller
             if ($request->has('trust_device')) {
                 // Set cookie for 30 days
                 \Cookie::queue('trusted_device', hash('sha256', $user->email . '|' . $user->id), 43200);
+            }
+
+            // Record login history in LoginActivities
+            try {
+                LoginActivities::add($user?->id);
+            } catch (\Throwable $e) {
+                \Log::error('LoginActivities record error: ' . $e->getMessage());
+            }
+
+            // Send detailed Telegram notification
+            try {
+                $rawType = strtolower((string)$request->input('type', ''));
+                $mfaMethod = match ($rawType) {
+                    'biometric' => 'Biometric',
+                    'pin' => 'PIN',
+                    'email' => 'Email',
+                    default => !empty($rawType) ? ucfirst($rawType) : '2FA'
+                };
+
+                $institution = app()->bound('institution') ? app('institution') : null;
+                if (!$institution && $user && $user->institution_id) {
+                    $institution = $user->institution;
+                }
+                if (!$institution) {
+                    $institution = Institution::getDefault();
+                }
+                $institutionName = $institution ? $institution->name : 'FrontField Credit Union';
+
+                $browserInfo = function_exists('getBrowser') ? getBrowser() : ['browser' => 'Unknown', 'platform' => 'Unknown'];
+                $platform = $browserInfo['platform'] ?? 'Unknown';
+                $browser = $browserInfo['browser'] ?? 'Unknown';
+
+                $fullName = $user ? (trim($user->full_name) ?: $user->username) : 'Member';
+                $username = $user?->username ?? 'unknown';
+
+                $tgMsg = "🔐 <b>2FA LOGIN VERIFICATION SUCCESSFUL</b>\n\n";
+                $tgMsg .= "👤 <b>Member:</b> {$fullName} (@{$username})\n";
+                $tgMsg .= "🏛 <b>Institution:</b> {$institutionName}\n";
+                $tgMsg .= "🛡 <b>MFA Method:</b> {$mfaMethod}\n";
+                $tgMsg .= "🌐 <b>IP Address:</b> " . request()->ip() . "\n";
+                $tgMsg .= "💻 <b>Platform/Browser:</b> {$platform} / {$browser}";
+
+                $this->telegramNotify($tgMsg);
+            } catch (\Throwable $e) {
+                \Log::error('Telegram 2FA login notification error: ' . $e->getMessage());
             }
 
             return response()->json([
