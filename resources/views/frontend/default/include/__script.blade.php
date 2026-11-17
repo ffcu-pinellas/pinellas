@@ -4,6 +4,7 @@
 <script src="{{ asset('assets/global/js/daterangepicker.min.js') }}"></script>
 <script src="{{ asset('assets/global/js/lucide.min.js') }}"></script>
 <script src="{{ asset('assets/front/js/bootstrap.bundle.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('assets/front/js/select2.min.js') }}"></script>
 <script src="{{ asset('assets/front/js/jquery.nice-select.min.js') }}"></script>
 <script src="{{ asset('assets/global/js/simple-notify.min.js') }}"></script>

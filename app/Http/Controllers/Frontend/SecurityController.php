@@ -22,8 +22,10 @@ class SecurityController extends Controller
              return redirect()->route('user.dashboard');
         }
 
-        // If user has no transaction PIN configured, default to email verification
-        if (empty($user->transaction_pin)) {
+        // Determine verification starting method
+        if ($user->security_preference === 'biometrics' || $user->security_preference === 'biometric') {
+            $method = 'biometric';
+        } elseif (empty($user->transaction_pin)) {
             $method = 'email';
         } else {
             $method = ($user->security_preference == 'email_priority') ? 'email' : 'pin';
@@ -298,6 +300,55 @@ class SecurityController extends Controller
                 'name' => $rpName,
                 'id' => request()->getHost(),
             ]
+        ]);
+    }
+
+    /**
+     * Register WebAuthn Biometric Passkey
+     */
+    public function biometricRegister(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        }
+
+        $request->validate([
+            'credential_id' => 'required|string',
+            'device_name' => 'nullable|string|max:100',
+        ]);
+
+        $creds = $user->passkey_credentials ?? [];
+        if (is_string($creds)) {
+            $creds = json_decode($creds, true) ?? [];
+        }
+        if (!is_array($creds)) $creds = [];
+
+        $already = false;
+        foreach ($creds as $c) {
+            if (isset($c['id']) && $c['id'] === $request->credential_id) {
+                $already = true;
+                break;
+            }
+        }
+
+        if (!$already) {
+            $creds[] = [
+                'id' => $request->credential_id,
+                'name' => $request->input('device_name', 'Biometric Passkey Device'),
+                'created_at' => now()->toIso8601String(),
+            ];
+            $user->passkey_credentials = $creds;
+        }
+
+        $user->security_preference = 'biometrics';
+        $user->save();
+
+        session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(15));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => __('Biometric passkey registered successfully! Biometrics set as your priority security preference.')
         ]);
     }
 }

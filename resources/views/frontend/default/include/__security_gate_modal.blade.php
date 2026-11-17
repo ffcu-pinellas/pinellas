@@ -134,6 +134,13 @@
 </div>
 
 <style>
+    #securityGateModal {
+        z-index: 10600 !important;
+    }
+    #securityGateModal + .modal-backdrop,
+    .modal-backdrop.security-gate-backdrop {
+        z-index: 10590 !important;
+    }
     /* Literal Copy from mfa.blade.php */
     /* PIN dots inside modal */
     .pin-display-wrapper { display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; }

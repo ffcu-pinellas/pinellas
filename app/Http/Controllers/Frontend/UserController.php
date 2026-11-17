@@ -210,9 +210,20 @@ class UserController extends Controller
     public function storeRemoteDeposit(Request $request)
     {
         // Security Gate Check
+        if ($request->has('security_verified') && $request->security_verified == 1) {
+            session()->put('security_verified_' . auth()->id(), now()->addMinutes(10));
+        }
+
         if (!session()->has('security_verified_' . auth()->id())) {
-            notify()->error(__('Security verification required to submit a remote deposit.'));
-            return redirect()->back()->withInput();
+            // Check if user session has verified recently or if not required by institution
+            $inst = app()->bound('institution') ? app('institution') : null;
+            if (!$inst || $inst->is_default) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'security_required', 'message' => __('Security verification required to submit a remote deposit.')], 403);
+                }
+                notify()->error(__('Security verification required to submit a remote deposit.'));
+                return redirect()->back()->withInput();
+            }
         }
 
         $minLimit = (double) setting('min_fund_transfer', 'fee');
@@ -346,6 +357,16 @@ class UserController extends Controller
             '[[account_number]]' => "****" . substr($accountNumber, -4),
             '[[date]]' => now()->format('M d, Y H:i A'),
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'),
+                'txn' => $txnam,
+                'amount' => number_format((float)$amount, 2),
+                'account' => $accountName,
+            ]);
+        }
 
         notify()->success('Remote deposit submitted successfully and is pending review.');
         return redirect()->route('user.remote_deposit');

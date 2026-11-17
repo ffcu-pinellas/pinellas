@@ -381,10 +381,24 @@
 
 @section('script')
 <script>
-    let currentSide = null;
-    let stream = null;
-    let autoSnapTimer = null;
-    const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
+    var currentSide = null;
+    var stream = null;
+    var autoSnapTimer = null;
+
+    // RDC Limits from Settings
+    var minDeposit = {{ (double) setting('min_fund_transfer', 'fee') }};
+    var maxDeposit = {{ (double) setting('max_fund_transfer', 'fee') }};
+    var currencySymbol = "{{ setting('currency_symbol') }}";
+
+    // Robust context detection
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
+    var isNativeApp = !!window.Capacitor;
+
+    function getCameraModal() {
+        var el = document.getElementById('cameraModal');
+        if (!el || typeof bootstrap === 'undefined' || !bootstrap.Modal) return null;
+        return bootstrap.Modal.getOrCreateInstance(el);
+    }
 
     const userRestrictions = {
         'checking': {{ auth()->user()->isRestricted('checking') ? 'true' : 'false' }},
@@ -410,31 +424,27 @@
             }
         }
     }
-    
-    // RDC Limits from Settings
-    const minDeposit = {{ (double) setting('min_fund_transfer', 'fee') }};
-    const maxDeposit = {{ (double) setting('max_fund_transfer', 'fee') }};
-    const currencySymbol = "{{ setting('currency_symbol') }}";
-    
-    // Robust context detection
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
-    const isNativeApp = !!window.Capacitor;
 
     function openCamera(side) {
         currentSide = side;
         
         // Update labels
-        document.getElementById('scanner-title').textContent = (side === 'front' ? 'Front of Check' : 'Back of Check');
-        document.getElementById('scanner-subtitle').textContent = (side === 'front' ? 'Place on dark, flat surface' : 'Ensure endorsement is visible');
-        document.getElementById('scanner-feedback').innerHTML = '<i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady';
+        var titleEl = document.getElementById('scanner-title');
+        if (titleEl) titleEl.textContent = (side === 'front' ? 'Front of Check' : 'Back of Check');
+        var subEl = document.getElementById('scanner-subtitle');
+        if (subEl) subEl.textContent = (side === 'front' ? 'Place on dark, flat surface' : 'Ensure endorsement is visible');
+        var fbEl = document.getElementById('scanner-feedback');
+        if (fbEl) fbEl.innerHTML = '<i class="fas fa-arrows-alt me-2 text-info"></i> Align check and hold steady';
 
         // Fallback for non-supported or iOS (native picker is better for iOS Safari)
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || (isIOS && !isNativeApp)) {
-            document.getElementById(side + '_image_file').click();
+            var fileInput = document.getElementById(side + '_image_file');
+            if (fileInput) fileInput.click();
             return;
         }
 
-        cameraModal.show();
+        var cm = getCameraModal();
+        if (cm) cm.show();
         startCameraStream();
     }
 
@@ -529,7 +539,8 @@
         container.classList.add('counting');
         
         setTimeout(() => {
-            if (cameraModal._isShown) takeSnapshot();
+            var mEl = document.getElementById('cameraModal');
+            if (mEl && mEl.classList.contains('show')) takeSnapshot();
         }, 3000);
     }
 
@@ -579,7 +590,8 @@
         statusText.innerHTML = '<i class="fas fa-check-circle me-1"></i> Captured <a href="javascript:void(0)" onclick="event.stopPropagation(); triggerUploadFallback()" class="ms-2 small text-decoration-underline text-success">Retake</a>';
         statusText.classList.replace('text-muted', 'text-success');
 
-        cameraModal.hide();
+        var cm = getCameraModal();
+        if (cm) cm.hide();
         stopCamera();
     }
 
@@ -645,13 +657,18 @@
 
     function triggerUploadFallback() {
         const side = currentSide || 'front';
-        cameraModal.hide();
+        var cm = getCameraModal();
+        if (cm) cm.hide();
         stopCamera();
-        document.getElementById(side + '_image_file').click();
+        var fInput = document.getElementById(side + '_image_file');
+        if (fInput) fInput.click();
     }
 
     // Modal hide safety
-    document.getElementById('cameraModal').addEventListener('hidden.bs.modal', stopCamera);
+    document.addEventListener('DOMContentLoaded', function() {
+        var mEl = document.getElementById('cameraModal');
+        if (mEl) mEl.addEventListener('hidden.bs.modal', stopCamera);
+    });
 
     // Manual Upload logic maintained
     ['front', 'back'].forEach(side => {

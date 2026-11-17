@@ -117,7 +117,7 @@
             if (val.length !== 9) return;
 
             if (!isValidAbaMod10(val)) {
-                $status.html('<span class="text-danger fw-semibold"><i class="fas fa-times-circle me-1"></i> Invalid ABA routing checksum.</span>');
+                $status.html('<span class="text-danger fw-semibold"><i class="fas fa-times-circle me-1"></i> Invalid Routing Number: Please enter a valid 9-digit US routing number.</span>');
                 return;
             }
 
@@ -145,13 +145,13 @@
                         if ($.fn.niceSelect) $select.niceSelect('update');
                     }
                 } else if (body.status === 'invalid_checksum') {
-                    $status.html(`<span class="text-danger fw-semibold">${body.message || 'Invalid ABA checksum.'}</span>`);
+                    $status.html(`<span class="text-danger fw-semibold">${body.message || 'Please enter a valid 9-digit US routing number.'}</span>`);
                 } else {
-                    $status.html(`<span class="text-warning">${body.message || 'Valid ABA checksum — select institution manually.'}</span>`);
+                    $status.html(`<span class="text-warning">${body.message || 'Routing format valid — select institution manually.'}</span>`);
                 }
             })
             .catch(() => {
-                $status.html('<span class="text-muted">Valid ABA checksum format.</span>');
+                $status.html('<span class="text-muted">Valid routing number format.</span>');
             });
         });
     });

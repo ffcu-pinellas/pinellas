@@ -272,6 +272,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
         Route::post('biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
+        Route::post('biometric/register', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricRegister'])->name('biometric.register');
     });
 });
 
@@ -280,6 +281,7 @@ Route::group(['middleware' => ['auth', 'isActive'], 'prefix' => 'login-verify', 
     Route::get('/', [SecurityController::class, 'showLoginVerify'])->name('show');
     Route::post('/verify', [SecurityController::class, 'verifyLoginMfa'])->name('submit');
     Route::post('/resend', [SecurityController::class, 'resendLoginMfa'])->name('resend');
+    Route::post('/biometric/challenge', [SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
 });
 
 // Translate
@@ -390,7 +392,10 @@ Route::get('deploy/run-migration', function () {
                 $table->string('transaction_pin')->nullable()->after('passcode');
             }
             if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'security_preference')) {
-                $table->enum('security_preference', ['none', 'pin', 'email', 'always_ask'])->default('always_ask')->after('transaction_pin');
+                $table->string('security_preference', 32)->default('always_ask')->after('transaction_pin');
+            }
+            if (!\Illuminate\Support\Facades\Schema::hasColumn('users', 'passkey_credentials')) {
+                $table->longText('passkey_credentials')->nullable();
             }
         });
 

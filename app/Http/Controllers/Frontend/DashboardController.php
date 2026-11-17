@@ -110,12 +110,17 @@ class DashboardController extends Controller
                 $customView = 'frontend::institution.' . $currentInstitution->slug . '_dashboard';
                 if (view()->exists($customView)) {
                     $userCard = null;
+                    $recentCheckDeposits = collect();
                     try {
                         if (\Illuminate\Support\Facades\Schema::hasTable('user_cards')) {
                             $userCard = \App\Models\UserCard::where('user_id', $user->id)->first();
                         }
+                        if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
+                            $recentCheckDeposits = \App\Models\RemoteDeposit::where('user_id', $user->id)->latest()->take(10)->get();
+                        }
                     } catch (\Throwable $ce) {}
                     $dataCount['userCard'] = $userCard;
+                    $dataCount['recentCheckDeposits'] = $recentCheckDeposits;
                     $dataCount['currentInstitution'] = $currentInstitution;
 
                     return view($customView, $dataCount);

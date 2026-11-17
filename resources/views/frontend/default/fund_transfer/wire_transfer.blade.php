@@ -595,7 +595,7 @@
         if (currentWireType === 'domestic') {
             const routing = document.getElementById('wireRoutingNumber').value.trim();
             if (!/^\d{9}$/.test(routing) || !isValidAbaChecksumJs(routing)) {
-                errDiv.innerText = '{{ __("Please enter a valid 9-digit ABA Fedwire routing number (failed mod-10 checksum).") }}';
+                errDiv.innerText = '{{ __("Please enter a valid 9-digit US routing number.") }}';
                 errDiv.classList.remove('d-none');
                 return;
             }
@@ -670,7 +670,7 @@
         if (cleanRouting.length !== 9) return;
 
         if (!isValidAbaChecksumJs(cleanRouting)) {
-            statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-exclamation-triangle me-1"></i> {{ __("Invalid ABA routing checksum. Verify the 9-digit number.") }}</span>';
+            statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-exclamation-triangle me-1"></i> {{ __("Invalid Routing Number: Please enter a valid 9-digit US routing number.") }}</span>';
             return;
         }
 
@@ -708,15 +708,15 @@
                         bankInput.value = body.bank_name;
                     }
                 } else if (body.status === 'invalid_checksum') {
-                    statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-times-circle me-1"></i> ' + (body.message || '{{ __("Invalid ABA routing checksum.") }}') + '</span>';
+                    statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-times-circle me-1"></i> ' + (body.message || '{{ __("Please enter a valid 9-digit US routing number.") }}') + '</span>';
                 } else if (body.status === 'manual_required') {
                     statusEl.innerHTML = '<span class="text-warning extra-small">' + (body.message || '{{ __("Enter the receiving institution\'s name manually.") }}') + '</span>';
                 } else {
-                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA checksum format") }}</span>';
+                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit routing number format") }}</span>';
                 }
             })
             .catch(() => {
-                statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit ABA checksum format") }}</span>';
+                statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit routing number format") }}</span>';
             });
         }, 200);
     }

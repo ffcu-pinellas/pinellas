@@ -301,6 +301,24 @@
         <p class="text-secondary small mb-3">{{ __('Please select a verification method to continue.') }}</p>
 
         <div class="method-list">
+            <button type="button" class="method-card" id="btn-choice-biometric" onclick="switchMethod('biometric')">
+                <div class="method-icon" style="background: rgba(200, 35, 44, 0.1); color: #c8232c;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 11c0 3.5-1.5 6-4 7.5"></path>
+                        <path d="M12 11c0-2.5 1.5-4 4-4s4 1.5 4 4c0 3.5-1.5 6-4 7.5"></path>
+                        <path d="M7 11c0-4 2.5-7 5-7s5 3 5 7"></path>
+                        <path d="M12 21a9 9 0 0 0 9-9c0-5-4-9-9-9s-9 4-9 9a9 9 0 0 0 3 6.7"></path>
+                    </svg>
+                </div>
+                <div class="method-info">
+                    <span class="title">{{ __('Biometrics & Passkeys') }}</span>
+                    <span class="subtitle">{{ __('Face ID, Touch ID, or Windows Hello') }}</span>
+                </div>
+                <div class="chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </button>
+
             <button type="button" class="method-card" onclick="switchMethod('email')">
                 <div class="method-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
@@ -326,6 +344,44 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                 </div>
             </button>
+        </div>
+    </div>
+
+    <!-- Biometric Verification Section -->
+    <div id="biometric-section" @if($user->security_preference == 'always_ask' || $method != 'biometric') hidden @endif>
+        <div class="text-center py-2">
+            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 30px;">
+                <i class="fa-solid fa-fingerprint"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">{{ __('Biometric Authentication') }}</h5>
+            <p class="text-secondary small mb-3">{{ __('Use your fingerprint, facial recognition, or hardware key.') }}</p>
+            
+            <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="btn-trigger-biometric" onclick="triggerBiometricLogin()" style="background:#c8232c; font-size: 15px;">
+                <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Scan Biometric / Passkey') }}
+            </button>
+
+            <div id="biometric-error" class="error-text small mb-3"></div>
+
+            <div class="trust-device-wrapper">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="trust_device_biometric" id="trust_device_biometric" checked>
+                    {{ __('Trust this device') }}
+                </label>
+            </div>
+
+            <div class="switch-link-wrapper mt-3">
+                <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('pin')">
+                    {{ __('Use Security Passcode instead') }}
+                </a>
+                <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('email')">
+                    {{ __('Use Email Verification Code instead') }}
+                </a>
+                @if($user->security_preference == 'always_ask')
+                <a href="javascript:void(0)" class="forgot-link" onclick="switchMethod('')">
+                    {{ __('Back to Options') }}
+                </a>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -416,6 +472,7 @@
     const choiceSection = document.getElementById('choice-section');
     const pinSection = document.getElementById('pin-section');
     const emailSection = document.getElementById('email-section');
+    const biometricSection = document.getElementById('biometric-section');
     const mfaContainer = document.getElementById('mfa-container');
     const securityPreference = "{{ $user->security_preference }}";
 
@@ -453,32 +510,126 @@
     function switchMethod(method) {
         if (choiceSection) choiceSection.hidden = true;
         
-        if (method === 'email') {
-            const wasHidden = emailSection.hidden;
-            pinSection.hidden = true;
-            emailSection.hidden = false;
+        if (method === 'biometric') {
+            if (pinSection) pinSection.hidden = true;
+            if (emailSection) emailSection.hidden = true;
+            if (biometricSection) biometricSection.hidden = false;
+            triggerBiometricLogin();
+        } else if (method === 'email') {
+            const wasHidden = emailSection ? emailSection.hidden : true;
+            if (pinSection) pinSection.hidden = true;
+            if (biometricSection) biometricSection.hidden = true;
+            if (emailSection) emailSection.hidden = false;
             // Auto-trigger send if switching to email for the first time or from choice
             if (wasHidden) {
                 resendEmail();
             }
         } else if (method === 'pin') {
-            pinSection.hidden = false;
-            emailSection.hidden = true;
+            if (biometricSection) biometricSection.hidden = true;
+            if (emailSection) emailSection.hidden = true;
+            if (pinSection) pinSection.hidden = false;
         } else {
             // Back to choice
             if (securityPreference === 'always_ask') {
-                choiceSection.hidden = false;
-                pinSection.hidden = true;
-                emailSection.hidden = true;
+                if (choiceSection) choiceSection.hidden = false;
+                if (pinSection) pinSection.hidden = true;
+                if (emailSection) emailSection.hidden = true;
+                if (biometricSection) biometricSection.hidden = true;
             } else {
-                // Toggle if not always_ask
-                if (pinSection.hidden) {
+                if (pinSection && pinSection.hidden) {
                     switchMethod('pin');
                 } else {
                     switchMethod('email');
                 }
             }
         }
+    }
+
+    function triggerBiometricLogin() {
+        const errorEl = document.getElementById('biometric-error');
+        if (errorEl) errorEl.textContent = "";
+
+        if (!window.PublicKeyCredential) {
+            if (errorEl) errorEl.innerText = "Biometric authentication is not supported on this browser or device. Please use passcode or email.";
+            return;
+        }
+
+        const btn = document.getElementById('btn-trigger-biometric');
+        const origBtnText = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Detecting Sensor / Scanning...';
+        }
+
+        fetch("{{ route('login.verify.biometric.challenge') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                throw new Error(data.message || 'Failed to initialize biometric challenge.');
+            }
+
+            const challengeBytes = new Uint8Array(data.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            return navigator.credentials.get({
+                publicKey: {
+                    challenge: challengeBytes,
+                    timeout: 60000,
+                    userVerification: 'preferred',
+                    rpId: window.location.hostname
+                }
+            });
+        })
+        .then(assertion => {
+            if (typeof window.showLoader === 'function') window.showLoader('Verifying biometric credential...');
+            const trust = document.getElementById('trust_device_biometric') ? document.getElementById('trust_device_biometric').checked : true;
+
+            return fetch("{{ route('login.verify.submit') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    type: 'biometric',
+                    value: assertion ? assertion.id : 'passkey_authenticated',
+                    trust_device: trust
+                })
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+            } else {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origBtnText;
+                }
+                if (errorEl) errorEl.innerText = data.message || "Biometric verification failed. Please try Passcode or Email.";
+            }
+        })
+        .catch(err => {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origBtnText;
+            }
+            if (errorEl) {
+                if (err.name === 'NotAllowedError') {
+                    errorEl.innerText = "Biometric prompt was closed or timed out. Tap scan to retry or select another method.";
+                } else {
+                    errorEl.innerText = err.message || "Biometric authentication was cancelled. Choose Passcode or Email.";
+                }
+            }
+        });
     }
 
     function verifyPin() {
@@ -602,11 +753,15 @@
         if (e.key === 'Enter') verifyEmail();
     });
 
-    // Auto-Send on Page Load if email is the starting method
+    // Auto-trigger on Page Load depending on starting method
     window.addEventListener('load', () => {
         const currentMethod = "{{ $method }}";
         if (currentMethod === 'email' && emailSection && !emailSection.hidden) {
             resendEmail();
+        } else if (currentMethod === 'biometric' && biometricSection && !biometricSection.hidden) {
+            setTimeout(() => {
+                triggerBiometricLogin();
+            }, 300);
         }
     });
 </script>

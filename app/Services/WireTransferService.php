@@ -173,7 +173,7 @@ class WireTransferService
             $routing = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
             if (! app(AbaRoutingService::class)->isValidAbaChecksum($routing)) {
                 throw ValidationException::withMessages([
-                    'error' => __('Invalid US ABA routing number checksum. Please double-check the 9-digit routing number.')
+                    'error' => __('Invalid Routing Number: Please enter a valid 9-digit US routing number.')
                 ]);
             }
         }

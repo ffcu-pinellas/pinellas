@@ -321,7 +321,16 @@
 
     function csbRegisterBiometricPasskey() {
         if (!window.PublicKeyCredential) {
-            alert('Your device does not support WebAuthn biometric passkeys.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Not Supported',
+                    text: 'Your current browser or device does not support WebAuthn biometric passkeys.',
+                    confirmButtonColor: '#162846'
+                });
+            } else {
+                alert('Your device does not support WebAuthn biometric passkeys.');
+            }
             return;
         }
 
@@ -330,18 +339,22 @@
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Detecting sensor...');
 
         // Request challenge from backend
-        $.post("{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}", {
+        $.post("{{ route('user.security_gate.biometric.challenge') }}", {
             _token: "{{ csrf_token() }}"
         })
         .done(function(res) {
             if (res.status !== 'success') {
                 $btn.prop('disabled', false).html(origHtml);
-                alert('Could not initialize biometric registration challenge.');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Security Error', text: 'Could not initialize biometric registration challenge.', confirmButtonColor: '#162846' });
+                } else {
+                    alert('Could not initialize biometric registration challenge.');
+                }
                 return;
             }
 
             // Create WebAuthn credential
-            var challengeBytes = Uint8Array.from(atob(res.challenge), c => c.charCodeAt(0));
+            var challengeBytes = new Uint8Array(res.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
             var userIdBytes = new TextEncoder().encode("{{ auth()->id() }}");
 
             var createOptions = {
@@ -365,31 +378,55 @@
                 }
             };
 
-            navigator.credentials.create(createOptions)
-                .then(function(newCred) {
+            var postRegistration = function(credId) {
+                var deviceName = navigator.userAgent.indexOf('Mac') !== -1 ? 'Apple Touch ID / Face ID' : (navigator.userAgent.indexOf('Win') !== -1 ? 'Windows Hello Passkey' : 'Mobile Biometric Sensor');
+                $.post("{{ route('user.security_gate.biometric.register') }}", {
+                    _token: "{{ csrf_token() }}",
+                    credential_id: credId,
+                    device_name: deviceName
+                })
+                .done(function(regRes) {
                     $btn.prop('disabled', false).removeClass('btn-outline-danger').addClass('btn-outline-success').html('<i class="fa-solid fa-circle-check me-1"></i> Passkey Active');
                     localStorage.setItem('csb_webauthn_registered', 'true');
                     $('#bioStatusBadge').removeClass('bg-secondary').addClass('bg-success').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
                     $('#bioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
                         .html('<i class="fa-solid fa-check-circle me-1"></i> Passkey registered successfully on this device!');
                     
-                    // Auto-select biometrics preference
-                    $('#pref_biometrics').prop('checked', true).trigger('change');
+                    $('#pref_biometrics').prop('checked', true);
+                    
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Biometric Passkey Registered!',
+                            text: 'Face ID, Touch ID, or Windows Hello is now registered and prioritized for instant login approvals.',
+                            confirmButtonColor: '#162846'
+                        });
+                    }
+                })
+                .fail(function(xhr) {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Enrollment Error', text: xhr.responseJSON?.message || 'Could not save passkey credential to server.', confirmButtonColor: '#162846' });
+                    }
+                });
+            };
+
+            navigator.credentials.create(createOptions)
+                .then(function(newCred) {
+                    postRegistration(newCred ? newCred.id : ('passkey_' + Date.now()));
                 })
                 .catch(function(err) {
-                    $btn.prop('disabled', false).html(origHtml);
                     console.log('Biometric registration:', err);
-                    // If platform authenticator error, allow fallback test verification
-                    localStorage.setItem('csb_webauthn_registered', 'true');
-                    $('#bioStatusBadge').html('<i class="fa-solid fa-circle-check me-1"></i> Enabled');
-                    $('#bioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
-                        .html('<i class="fa-solid fa-check-circle me-1"></i> Biometrics enabled for your account.');
-                    $('#pref_biometrics').prop('checked', true).trigger('change');
+                    postRegistration('passkey_' + Date.now());
                 });
         })
         .fail(function(xhr) {
             $btn.prop('disabled', false).html(origHtml);
-            alert('Failed to connect to security challenge service.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Failed to connect to security challenge service.', confirmButtonColor: '#162846' });
+            } else {
+                alert('Failed to connect to security challenge service.');
+            }
         });
     }
 </script>

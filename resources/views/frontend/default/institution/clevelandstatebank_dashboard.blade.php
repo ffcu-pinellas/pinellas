@@ -1942,7 +1942,7 @@ body {
         </div>
     </div>
 
-    {{-- ── 2. REMOTE CHECK DEPOSIT ── --}}
+    {{-- ── 2. REMOTE CHECK DEPOSIT (Two-Step Flow: Capture -> Review & Dedicated History) ── --}}
     <div class="modal fade" id="remoteDepositModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow" style="border-radius: 12px; overflow: hidden;">
@@ -1955,81 +1955,223 @@ body {
                 </div>
                 <div class="modal-body p-4">
                     <div id="rdResult" class="d-none mb-3"></div>
+
                     <form id="csbRemoteDepositForm" enctype="multipart/form-data">
                         @csrf
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="small text-muted fw-bold text-uppercase mb-1">Deposit To Account</label>
-                                <select name="account_id" class="form-select border shadow-none fw-bold" style="font-size: 13.5px;" required>
-                                    <option value="checking">
-                                        Personal Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}
-                                    </option>
-                                    <option value="savings">
-                                        Primary Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted fw-bold text-uppercase mb-1">Check Amount ($)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0 fw-bold fs-5 text-dark">$</span>
-                                    <input type="number" step="0.01" min="0.01" name="amount" id="csbRdAmount" class="form-control border-start-0 fs-5 fw-bold" placeholder="0.00" required>
+                        <input type="hidden" name="security_verified" value="1">
+
+                        <!-- Step 1: Capture Step -->
+                        <div id="rdCaptureStep">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted fw-bold text-uppercase mb-1">Deposit To Account</label>
+                                    <select name="account_id" id="csbRdAccountSelect" class="form-select border shadow-none fw-bold" style="font-size: 13.5px;" required>
+                                        <option value="checking" data-label="Personal Checking (*{{ substr($user->account_number ?? '1397', -4) }})">
+                                            Personal Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}
+                                        </option>
+                                        @if(!empty($user->savings_account_number) || $user->savings_balance !== null)
+                                        <option value="savings" data-label="Primary Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})">
+                                            Primary Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}
+                                        </option>
+                                        @endif
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted fw-bold text-uppercase mb-1">Check Amount ($)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 fw-bold fs-5 text-dark">$</span>
+                                        <input type="number" step="0.01" min="0.01" name="amount" id="csbRdAmount" class="form-control border-start-0 fs-5 fw-bold" placeholder="0.00" required>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Check Photos Front & Back -->
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="small text-muted fw-bold text-uppercase mb-1">Front of Check</label>
-                                <label for="csbFrontFile" class="csb-check-capture-card text-center p-3 rounded w-100" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
-                                    <div id="csbFrontPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
-                                        <img id="csbFrontPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
+                            <!-- Check Photos Front & Back -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted fw-bold text-uppercase mb-1">Front of Check</label>
+                                    <div class="csb-check-capture-card text-center p-3 rounded w-100" onclick="document.getElementById('csbFrontFile').click();" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
+                                        <div id="csbFrontPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
+                                            <img id="csbFrontPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
+                                        </div>
+                                        <div class="capture-inner" style="pointer-events: none;">
+                                            <i class="fa-solid fa-camera fa-2x mb-2" style="color: #c8232c;"></i>
+                                            <div class="fw-bold text-dark small">Front of Check</div>
+                                            <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
+                                        </div>
+                                        <input type="file" id="csbFrontFile" name="front_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbFrontPreview', 'csbFrontPreviewWrap')">
                                     </div>
-                                    <div class="capture-inner" style="pointer-events: none;">
-                                        <i class="fa-solid fa-camera fa-2x mb-2" style="color: #c8232c;"></i>
-                                        <div class="fw-bold text-dark small">Front of Check</div>
-                                        <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted fw-bold text-uppercase mb-1">Back of Check (Endorsed)</label>
+                                    <div class="csb-check-capture-card text-center p-3 rounded w-100" onclick="document.getElementById('csbBackFile').click();" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
+                                        <div id="csbBackPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
+                                            <img id="csbBackPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
+                                        </div>
+                                        <div class="capture-inner" style="pointer-events: none;">
+                                            <i class="fa-solid fa-signature fa-2x mb-2" style="color: #c8232c;"></i>
+                                            <div class="fw-bold text-dark small">Back of Check</div>
+                                            <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
+                                        </div>
+                                        <input type="file" id="csbBackFile" name="back_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbBackPreview', 'csbBackPreviewWrap')">
                                     </div>
-                                    <input type="file" id="csbFrontFile" name="front_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbFrontPreview', 'csbFrontPreviewWrap')">
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted fw-bold text-uppercase mb-1">Back of Check (Endorsed)</label>
-                                <label for="csbBackFile" class="csb-check-capture-card text-center p-3 rounded w-100" style="border: 2px dashed #cfd8dc; background: #fbfbfb; cursor: pointer; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transition: all 0.2s;">
-                                    <div id="csbBackPreviewWrap" class="d-none position-absolute top-0 start-0 w-100 h-100 p-1 bg-white rounded" style="pointer-events: none;">
-                                        <img id="csbBackPreview" src="" class="w-100 h-100 rounded" style="object-fit: contain;">
-                                    </div>
-                                    <div class="capture-inner" style="pointer-events: none;">
-                                        <i class="fa-solid fa-signature fa-2x mb-2" style="color: #c8232c;"></i>
-                                        <div class="fw-bold text-dark small">Back of Check</div>
-                                        <div class="text-muted" style="font-size: 11px;">Tap to capture or upload</div>
-                                    </div>
-                                    <input type="file" id="csbBackFile" name="back_image" class="d-none" accept="image/*,.pdf" required onchange="csbPreviewImage(this, 'csbBackPreview', 'csbBackPreviewWrap')">
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Endorsement Guidance -->
-                        <div class="alert alert-secondary border-0 small d-flex gap-2 p-3 mb-3" style="background: rgba(200, 35, 44, 0.05); border-radius: 8px;">
-                            <i class="fa-solid fa-circle-info mt-1" style="color: #c8232c;"></i>
-                            <div>
-                                <div class="fw-bold text-dark mb-1">Endorsement Guidance</div>
-                                <div class="text-muted" style="font-size: 12px;">
-                                    Sign the back of your check and write <strong>"For Mobile Deposit Only — Cleveland State Bank"</strong> below your signature.
                                 </div>
                             </div>
+
+                            <!-- Endorsement Guidance -->
+                            <div class="alert alert-secondary border-0 small d-flex gap-2 p-3 mb-3" style="background: rgba(200, 35, 44, 0.05); border-radius: 8px;">
+                                <i class="fa-solid fa-circle-info mt-1" style="color: #c8232c;"></i>
+                                <div>
+                                    <div class="fw-bold text-dark mb-1">Endorsement Guidance</div>
+                                    <div class="text-muted" style="font-size: 12px;">
+                                        Sign the back of your check and write <strong>"For Mobile Deposit Only — Cleveland State Bank"</strong> below your signature.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; font-size: 14px;" onclick="csbProceedToReviewDeposit()">
+                                REVIEW CHECK DEPOSIT &rarr;
+                            </button>
                         </div>
 
-                        <button type="submit" id="rdSubmitBtn" class="btn w-100 fw-bold text-white py-2" style="background:#28623b; font-size: 14px;">
-                            <i class="fa-solid fa-paper-plane me-1"></i> SUBMIT CHECK FOR REVIEW
-                        </button>
+                        <!-- Step 2: Review & Confirm Step -->
+                        <div id="rdReviewStep" class="d-none">
+                            <div class="p-3 rounded-3 bg-light border mb-3">
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-clipboard-check text-success me-2"></i>Review Deposit Details</h6>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small">Deposit To Account</span>
+                                    <span class="fw-bold text-dark small" id="rdReviewAccountName">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small">Check Amount</span>
+                                    <span class="fw-bold fs-5 text-success" id="rdReviewAmountDisplay">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small">Estimated Availability</span>
+                                    <span class="fw-semibold text-dark small">1–2 Business Days</span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="extra-small fw-bold text-muted text-uppercase mb-1">Front Check Photo</label>
+                                    <div class="border rounded p-1 bg-white" style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                                        <img id="rdReviewFrontImg" src="" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="extra-small fw-bold text-muted text-uppercase mb-1">Back Check Photo</label>
+                                    <div class="border rounded p-1 bg-white" style="height: 100px; display: flex; align-items: center; justify-content: center;">
+                                        <img id="rdReviewBackImg" src="" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary w-50 py-2 fw-semibold" onclick="csbBackToDepositCapture()">
+                                    &larr; Back to Edit
+                                </button>
+                                <button type="submit" id="rdSubmitBtn" class="btn w-50 fw-bold text-white py-2" style="background:#28623b; font-size: 14px;">
+                                    <i class="fa-solid fa-check me-1"></i> CONFIRM &amp; SUBMIT
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Success Receipt Step -->
+                        <div id="rdReceiptStep" class="d-none text-center py-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; background: rgba(40, 167, 69, 0.1); color: #28a745; font-size: 26px;">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">Check Deposit Submitted!</h5>
+                            <p class="text-muted small mb-3">Your check has been securely queued and is currently under review by our operations team.</p>
+                            
+                            <div class="p-3 rounded-3 bg-light border text-start mb-3 mx-auto" style="max-width: 400px;">
+                                <div class="d-flex justify-content-between py-1 border-bottom small">
+                                    <span class="text-muted">Deposit Reference:</span>
+                                    <span class="fw-bold text-dark" id="rdReceiptTnx">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between py-1 border-bottom small">
+                                    <span class="text-muted">Deposited Amount:</span>
+                                    <span class="fw-bold text-success" id="rdReceiptAmount">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between py-1 small">
+                                    <span class="text-muted">Account:</span>
+                                    <span class="fw-bold text-dark" id="rdReceiptAccount">—</span>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="csbResetDepositModal()">
+                                Done
+                            </button>
+                        </div>
                     </form>
+
                     <div class="text-center mt-3">
-                        <a href="{{ route('user.remote_deposit') }}" class="small text-muted text-decoration-none">
+                        <a href="javascript:void(0)" onclick="csbOpenDepositHistory()" class="small text-muted text-decoration-none">
                             <i class="fa-solid fa-clock-rotate-left me-1"></i> View Full Deposit History
                         </a>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── 2B. CSB DEDICATED DEPOSIT HISTORY MODAL (Zero Leakage to FrontField) ── --}}
+    <div class="modal fade" id="csbDepositHistoryModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+                <div class="modal-header py-3 px-4" style="background:#162846; color:#ffffff;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: #c8232c;"></i>
+                        <h5 class="modal-title fw-bold text-white mb-0" style="font-size: 15px;">REMOTE CHECK DEPOSIT HISTORY</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3 p-md-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Account</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentCheckDeposits ?? [] as $rd)
+                                    <tr>
+                                        <td class="small text-muted">{{ $rd->created_at?->format('M d, Y') }}</td>
+                                        <td class="fw-semibold small">{{ $rd->account_name ?? 'Checking' }}</td>
+                                        <td class="fw-bold text-success">${{ number_format((float)($rd->amount ?? 0), 2) }}</td>
+                                        <td>
+                                            @if($rd->status === 'approved' || $rd->status === 'completed')
+                                                <span class="badge bg-success">Approved</span>
+                                            @elseif($rd->status === 'rejected')
+                                                <span class="badge bg-danger">Rejected</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">Pending Review</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end text-muted small font-monospace">{{ $rd->transaction_tnx ?? ('DEP' . $rd->id) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">
+                                            <i class="fa-solid fa-camera fa-2x mb-2 opacity-50"></i>
+                                            <div class="small fw-semibold">No check deposits recorded yet.</div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3 bg-light justify-content-between">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="csbBackToDepositModal()">
+                        &larr; New Deposit
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -2704,16 +2846,13 @@ body {
 
     // ── 3-Dot Search Toggle ──
     window.csbToggleTxnSearch = function() {
-        var wrap = document.getElementById('csbTxnSearchToggleWrap');
-        if (!wrap) return;
-        if (wrap.style.display === 'none' || wrap.style.display === '' && window.getComputedStyle(wrap).display === 'none') {
-            $(wrap).slideDown(180, function() {
-                var inp = document.getElementById('csbTxnLiveSearch');
-                if (inp) inp.focus();
-            });
-        } else {
-            $(wrap).slideUp(180);
-        }
+        var $wrap = $('#csbTxnSearchToggleWrap');
+        if (!$wrap.length) return;
+        $wrap.slideToggle(180, function() {
+            if ($(this).is(':visible')) {
+                $('#csbTxnLiveSearch').focus();
+            }
+        });
     };
 
     window.csbClearTxnSearch = function() {
@@ -2734,7 +2873,7 @@ body {
             var acc = $(this).attr('data-acc');
             $(this).prop('checked', saved.includes(acc));
         });
-        var modal = new bootstrap.Modal(document.getElementById('csbManageFavoritesModal'));
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbManageFavoritesModal'));
         modal.show();
     };
 
@@ -2762,7 +2901,7 @@ body {
         });
 
         if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(15);
-        bootstrap.Modal.getInstance(document.getElementById('csbManageFavoritesModal'))?.hide();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('csbManageFavoritesModal'))?.hide();
     };
 
     // ── Manage Dashboard Tiles Feature ──
@@ -2777,7 +2916,7 @@ body {
         $('#tileToggleRecentTxn').prop('checked', tiles.recentTxn !== false);
         $('#tileToggleUpcomingTxn').prop('checked', tiles.upcomingTxn !== false);
 
-        var modal = new bootstrap.Modal(document.getElementById('csbManageTilesModal'));
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbManageTilesModal'));
         modal.show();
     };
 
@@ -2819,19 +2958,26 @@ body {
             contentType: false,
             headers: {
                 'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
             }
         })
         .done(function(res) {
             $('#csbAlertSaveSuccess').removeClass('d-none').hide().fadeIn(200);
             if (window.navigator && window.navigator.vibrate) window.navigator.vibrate([15, 50, 15]);
             setTimeout(function() {
-                bootstrap.Modal.getInstance(document.getElementById('csbAlertPreferencesModal'))?.hide();
+                var modal = bootstrap.Modal.getInstance(document.getElementById('csbAlertPreferencesModal'));
+                if (modal) modal.hide();
                 $('#csbAlertSaveSuccess').addClass('d-none');
-            }, 1400);
+            }, 1200);
         })
         .fail(function(xhr) {
-            alert(xhr.responseJSON?.message || 'Could not update alert preferences. Please try again.');
+            var msg = xhr.responseJSON?.message || 'Could not update alert preferences. Please try again.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Preferences Error', text: msg, confirmButtonColor: '#162846' });
+            } else {
+                alert(msg);
+            }
         })
         .always(function() {
             $btn.prop('disabled', false).html(origText);
@@ -3766,7 +3912,7 @@ body {
         $(resId).removeClass('d-none alert-success').addClass('alert alert-danger small').html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
     }
 
-    // ── Remote Deposit (AJAX file upload & preview) ──
+    // ── Remote Deposit (Two-Step Flow & In-Modal History) ──
     function csbPreviewImage(input, imgId, wrapId) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -3778,11 +3924,79 @@ body {
         }
     }
 
+    window.csbProceedToReviewDeposit = function() {
+        var amount = parseFloat($('#csbRdAmount').val() || 0);
+        var frontFile = document.getElementById('csbFrontFile').files[0];
+        var backFile = document.getElementById('csbBackFile').files[0];
+        var $result = $('#rdResult');
+        $result.addClass('d-none').text('');
+
+        if (isNaN(amount) || amount <= 0) {
+            $result.removeClass('d-none alert-success').addClass('alert alert-danger small')
+                .html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter a valid check amount.');
+            return;
+        }
+
+        if (!frontFile || !backFile) {
+            $result.removeClass('d-none alert-success').addClass('alert alert-danger small')
+                .html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please capture or upload both the front and back of your check.');
+            return;
+        }
+
+        var selectedAccOpt = $('#csbRdAccountSelect option:selected');
+        var accLabel = selectedAccOpt.attr('data-label') || selectedAccOpt.text().split('—')[0].trim();
+
+        $('#rdReviewAccountName').text(accLabel);
+        $('#rdReviewAmountDisplay').text('$' + amount.toFixed(2));
+        $('#rdReviewFrontImg').attr('src', $('#csbFrontPreview').attr('src'));
+        $('#rdReviewBackImg').attr('src', $('#csbBackPreview').attr('src'));
+
+        $('#rdCaptureStep').addClass('d-none');
+        $('#rdReviewStep').removeClass('d-none');
+    };
+
+    window.csbBackToDepositCapture = function() {
+        $('#rdReviewStep').addClass('d-none');
+        $('#rdCaptureStep').removeClass('d-none');
+    };
+
+    window.csbOpenDepositHistory = function() {
+        var depModal = bootstrap.Modal.getInstance(document.getElementById('remoteDepositModal'));
+        if (depModal) depModal.hide();
+
+        setTimeout(function() {
+            var histModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbDepositHistoryModal'));
+            histModal.show();
+        }, 200);
+    };
+
+    window.csbBackToDepositModal = function() {
+        var histModal = bootstrap.Modal.getInstance(document.getElementById('csbDepositHistoryModal'));
+        if (histModal) histModal.hide();
+
+        setTimeout(function() {
+            var depModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('remoteDepositModal'));
+            depModal.show();
+        }, 200);
+    };
+
+    window.csbResetDepositModal = function() {
+        $('#csbRemoteDepositForm')[0].reset();
+        $('#csbFrontPreviewWrap, #csbBackPreviewWrap').addClass('d-none');
+        $('#rdReceiptStep, #rdReviewStep').addClass('d-none');
+        $('#rdCaptureStep').removeClass('d-none');
+        $('#rdResult').addClass('d-none');
+
+        var depModal = bootstrap.Modal.getInstance(document.getElementById('remoteDepositModal'));
+        if (depModal) depModal.hide();
+    };
+
     $('#csbRemoteDepositForm').on('submit', function(e) {
         e.preventDefault();
         var $btn = $('#rdSubmitBtn');
+        var origText = $btn.html();
         var fd = new FormData(this);
-        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Uploading...');
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Submitting Check...');
 
         $.ajax({
             url: "{{ route('user.remote_deposit.store') }}",
@@ -3790,20 +4004,43 @@ body {
             data: fd,
             processData: false,
             contentType: false,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+            }
         })
         .done(function(res) {
-            $('#rdResult').removeClass('d-none alert-danger').addClass('alert alert-success small')
-                .html('<i class="fa-solid fa-check-circle me-1"></i> ' + (res.message || 'Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
-            $('#csbRemoteDepositForm')[0].reset();
-            $('#csbFrontPreviewWrap, #csbBackPreviewWrap').addClass('d-none');
+            var tnx = res.txn || ('DEP' + Math.floor(100000 + Math.random() * 900000));
+            var amountVal = res.amount || $('#csbRdAmount').val();
+            var accVal = res.account || $('#rdReviewAccountName').text();
+
+            $('#rdReceiptTnx').text(tnx);
+            $('#rdReceiptAmount').text('$' + parseFloat(amountVal || 0).toFixed(2));
+            $('#rdReceiptAccount').text(accVal);
+
+            $('#rdReviewStep').addClass('d-none');
+            $('#rdReceiptStep').removeClass('d-none');
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Check Submitted!',
+                    text: 'Your deposit is pending review and typically clears within 1–2 business days.',
+                    confirmButtonColor: '#162846'
+                });
+            }
         })
         .fail(function(xhr) {
+            $btn.prop('disabled', false).html(origText);
             var errors = xhr.responseJSON?.errors;
-            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Upload failed. Please check the files and try again.');
+            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Check submission failed. Please try again.');
+            
+            $('#rdReviewStep').addClass('d-none');
+            $('#rdCaptureStep').removeClass('d-none');
             $('#rdResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
                 .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
-        })
-        .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane me-1"></i> SUBMIT CHECK FOR REVIEW'); });
+        });
     });
 
     // ── 3D Card Management Handlers ──

@@ -243,9 +243,9 @@ window.csbToggleCardFreeze = function(btn, cardId) {
     }
     var $btn = $(btn);
     var origText = $btn.html();
-    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
 
     var proceed = function() {
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...');
         $.post("{{ route('user.cards.toggle-status') }}", {
             _token: "{{ csrf_token() }}",
             card_id: cardId,
@@ -255,7 +255,7 @@ window.csbToggleCardFreeze = function(btn, cardId) {
         }).fail(function(xhr) {
             $btn.prop('disabled', false).html(origText);
             if (typeof Swal !== 'undefined') {
-                Swal.fire({ icon: 'error', title: 'Card Control Error', text: xhr.responseJSON?.message || 'Could not update card status.' });
+                Swal.fire({ icon: 'error', title: 'Card Control Error', text: xhr.responseJSON?.message || 'Could not update card status.', confirmButtonColor: '#162846' });
             } else {
                 alert(xhr.responseJSON?.message || 'Could not update card status.');
             }
@@ -318,9 +318,9 @@ window.csbSubmitPinReset = function(e) {
 
     var $btn = $('#btnSubmitPinReset');
     var origText = $btn.html();
-    $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Authorizing...');
 
     var proceed = function() {
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Authorizing...');
         $.post("{{ route('user.cards.reset-pin') }}", {
             _token: "{{ csrf_token() }}",
             card_id: cardId,
@@ -331,6 +331,9 @@ window.csbSubmitPinReset = function(e) {
             $btn.prop('disabled', false).html(origText);
             var pinModal = bootstrap.Modal.getInstance(document.getElementById('csbResetPinModal'));
             if (pinModal) pinModal.hide();
+
+            document.getElementById('csbNewPinInput').value = '';
+            document.getElementById('csbConfirmPinInput').value = '';
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({

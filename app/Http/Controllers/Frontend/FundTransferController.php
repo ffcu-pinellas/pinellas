@@ -451,7 +451,7 @@ class FundTransferController extends Controller
             if (! $meta || empty($meta['bank_name'])) {
                 return response()->json([
                     'status' => 'manual_required',
-                    'message' => __('Valid ABA checksum, but institution directory lookup timed out or is unlisted. Enter the receiving institution\'s name manually.'),
+                    'message' => __('Routing number valid, but institution directory lookup timed out. Enter the receiving institution\'s name manually to continue.'),
                 ]);
             }
 
