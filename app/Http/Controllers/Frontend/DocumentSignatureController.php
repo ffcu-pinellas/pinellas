@@ -40,7 +40,25 @@ class DocumentSignatureController extends Controller
             ->where('status', 'pending')
             ->count();
 
-        return view('frontend::user.documents.index', compact('signatures', 'pendingCount'));
+        $authUser = auth()->user();
+        $docAccounts = [
+            ['id' => 'checking', 'label' => 'Personal Checking (*' . substr($authUser->account_number ?? '1397', -4) . ')'],
+            ['id' => 'savings', 'label' => 'Primary Savings (*' . substr($authUser->savings_account_number ?? $authUser->account_number ?? '1397', -4) . 'S)'],
+        ];
+        if (!empty($authUser->ira_status)) {
+            $docAccounts[] = ['id' => 'ira', 'label' => 'IRA (*' . substr($authUser->ira_account_number ?? $authUser->account_number ?? '1397', -4) . 'I)'];
+        }
+        if (!empty($authUser->heloc_status)) {
+            $docAccounts[] = ['id' => 'heloc', 'label' => 'HELOC (*' . substr($authUser->heloc_account_number ?? $authUser->account_number ?? '1397', -4) . 'H)'];
+        }
+        if (!empty($authUser->cc_status)) {
+            $docAccounts[] = ['id' => 'cc', 'label' => 'Credit Card (*' . substr($authUser->cc_account_number ?? $authUser->account_number ?? '1397', -4) . 'C)'];
+        }
+        if (!empty($authUser->loan_account_status)) {
+            $docAccounts[] = ['id' => 'loan', 'label' => 'Personal Loan (*' . substr($authUser->loan_account_number ?? $authUser->account_number ?? '1397', -4) . 'L)'];
+        }
+
+        return view('frontend::user.documents.index', compact('signatures', 'pendingCount', 'docAccounts'));
     }
 
     public function show(string $token)

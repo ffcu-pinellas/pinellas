@@ -251,20 +251,37 @@ window.csbToggleCardFreeze = function(btn, cardId) {
             card_id: cardId,
             security_verified: 1
         }).done(function(res) {
-            window.location.reload();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Card Status Updated',
+                    text: res.message || 'Your debit card status has been updated successfully.',
+                    confirmButtonColor: '#162846'
+                }).then(function() {
+                    window.location.reload();
+                });
+            } else {
+                window.location.reload();
+            }
         }).fail(function(xhr) {
             $btn.prop('disabled', false).html(origText);
             if (typeof Swal !== 'undefined') {
                 Swal.fire({ icon: 'error', title: 'Card Control Error', text: xhr.responseJSON?.message || 'Could not update card status.', confirmButtonColor: '#162846' });
-            } else {
-                alert(xhr.responseJSON?.message || 'Could not update card status.');
             }
+            var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+            if (cardsModal) cardsModal.show();
         });
     };
 
-    if (typeof triggerSecurityGate === 'function') {
-        triggerSecurityGate(proceed);
-    } else if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+    var cardsModalEl = document.getElementById('manageCardsModal');
+    var cardsModal = cardsModalEl ? bootstrap.Modal.getInstance(cardsModalEl) : null;
+    if (cardsModal) cardsModal.hide();
+
+    if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+        SecurityGate.onCancelCb = function() {
+            var cm = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+            if (cm) cm.show();
+        };
         SecurityGate.gate(proceed);
     } else {
         proceed();
@@ -342,18 +359,24 @@ window.csbSubmitPinReset = function(e) {
                     text: res.message || 'Your new 4-digit debit card PIN is now active.',
                     confirmButtonColor: '#162846'
                 });
-            } else {
-                alert(res.message || 'Card PIN reset successfully.');
             }
         }).fail(function(xhr) {
             $btn.prop('disabled', false).html(origText);
             $notice.removeClass('d-none').text(xhr.responseJSON?.message || 'Could not reset card PIN. Please try again.');
+            var pm = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbResetPinModal'));
+            if (pm) pm.show();
         });
     };
 
-    if (typeof triggerSecurityGate === 'function') {
-        triggerSecurityGate(proceed);
-    } else if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+    var pinModalEl = document.getElementById('csbResetPinModal');
+    var pinModal = pinModalEl ? bootstrap.Modal.getInstance(pinModalEl) : null;
+    if (pinModal) pinModal.hide();
+
+    if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+        SecurityGate.onCancelCb = function() {
+            var pm = bootstrap.Modal.getOrCreateInstance(document.getElementById('csbResetPinModal'));
+            if (pm) pm.show();
+        };
         SecurityGate.gate(proceed);
     } else {
         proceed();

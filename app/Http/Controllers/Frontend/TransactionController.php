@@ -138,16 +138,23 @@ class TransactionController extends Controller
         }
 
         // Map UI account selections to database wallet_type values
+        $isConsolidatedAll = in_array('all', (array) $request->get('accounts', [])) || empty($request->get('accounts'));
         $walletTypes = [];
-        if (in_array('checking', $selectedAccounts)) {
-            $walletTypes[] = 'default';
-            $walletTypes[] = null;
+        if (!$isConsolidatedAll) {
+            if (in_array('checking', $selectedAccounts)) {
+                $walletTypes[] = 'default';
+                $walletTypes[] = 'checking';
+                $walletTypes[] = null;
+            }
+            if (in_array('savings', $selectedAccounts)) {
+                $walletTypes[] = 'savings';
+                $walletTypes[] = 'primary_savings';
+            }
+            if (in_array('ira', $selectedAccounts)) $walletTypes[] = 'ira';
+            if (in_array('heloc', $selectedAccounts)) $walletTypes[] = 'heloc';
+            if (in_array('cc', $selectedAccounts)) $walletTypes[] = 'cc';
+            if (in_array('loan', $selectedAccounts)) $walletTypes[] = 'loan';
         }
-        if (in_array('savings', $selectedAccounts)) $walletTypes[] = 'savings';
-        if (in_array('ira', $selectedAccounts)) $walletTypes[] = 'ira';
-        if (in_array('heloc', $selectedAccounts)) $walletTypes[] = 'heloc';
-        if (in_array('cc', $selectedAccounts)) $walletTypes[] = 'cc';
-        if (in_array('loan', $selectedAccounts)) $walletTypes[] = 'loan';
 
         // Fetch transactions for the selected accounts and date range
         $transactions = Transaction::where('user_id', $user->id)

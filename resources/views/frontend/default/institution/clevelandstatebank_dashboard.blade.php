@@ -1427,6 +1427,9 @@ body {
                                     <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
                                         <div class="txn-desc d-flex align-items-center gap-1">
                                             <span class="text-truncate">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</span>
+                                            @if(in_array(strtolower($rawStatus), ['pending', '2']))
+                                                <span class="badge bg-warning text-dark extra-small font-monospace px-2 py-0" style="font-size: 10px; font-weight: 700; border-radius: 4px;">Pending</span>
+                                            @endif
                                             @if(!empty($tx->receipt_attachment))
                                                 <i class="fa-solid fa-paperclip text-muted small" title="Receipt attached" style="font-size: 11px;"></i>
                                             @endif
@@ -2388,10 +2391,10 @@ body {
     <div class="modal fade" id="csbTransferSuccessModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
             <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
-                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.12); color: #16a34a; font-size: 28px;">
-                    <i class="fa-solid fa-circle-check"></i>
+                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.12); color: #16a34a; font-size: 28px;" id="csbTransferConfirmIconWrap">
+                    <i class="fa-solid fa-circle-check" id="csbTransferConfirmIcon"></i>
                 </div>
-                <h4 class="fw-bold text-dark mb-1">Transfer Successful</h4>
+                <h4 class="fw-bold text-dark mb-1" id="csbTransferConfirmTitle">Transfer Successful</h4>
                 <p class="text-muted small mb-2" id="csbTransferConfirmMsg">Your transfer has been processed and submitted successfully.</p>
                 
                 <div class="display-6 fw-bold text-dark mb-3" id="csbTransferConfirmAmount">$0.00</div>
@@ -2401,7 +2404,7 @@ body {
                         <span class="text-muted">Confirmation Ref</span>
                         <div class="d-flex align-items-center gap-1">
                             <span class="fw-bold font-monospace text-primary" id="csbTransferConfirmTrx">TRX...</span>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="navigator.clipboard.writeText($('#csbTransferConfirmTrx').text()); alert('Confirmation reference copied!');" title="Copy Reference"><i class="fa-regular fa-copy"></i></button>
+                            <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="navigator.clipboard.writeText($('#csbTransferConfirmTrx').text()); Swal.fire({ icon: 'success', title: 'Copied!', text: 'Confirmation reference copied to clipboard.', timer: 1500, showConfirmButton: false });" title="Copy Reference"><i class="fa-regular fa-copy"></i></button>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between py-1 border-bottom">
@@ -2430,7 +2433,7 @@ body {
                     </div>
                     <div class="d-flex justify-content-between pt-1">
                         <span class="text-muted">Status</span>
-                        <span class="badge bg-success-subtle text-success fw-semibold">Completed</span>
+                        <span class="badge bg-success-subtle text-success fw-semibold" id="csbTransferConfirmStatus">Completed</span>
                     </div>
                 </div>
 
@@ -3112,7 +3115,11 @@ body {
         });
         
         if (rows.length <= 1) {
-            alert('No transactions visible to export.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'info', title: 'Export Transactions', text: 'No transactions visible to export.', confirmButtonColor: '#162846' });
+            } else {
+                alert('No transactions visible to export.');
+            }
             return;
         }
         
@@ -3152,7 +3159,14 @@ body {
         $('#csbTxnModalTrx').text(trx);
         $('#csbTxnModalAmount').text(amount);
         $('#csbTxnModalDate').text(date);
-        $('#csbTxnModalStatus').text(status);
+        var sLower = (status || '').toLowerCase();
+        if (sLower === 'pending' || sLower === '2') {
+            $('#csbTxnModalStatus').removeClass('text-success text-danger').addClass('text-warning fw-bold').text('Pending Review');
+        } else if (sLower === 'rejected' || sLower === 'failed' || sLower === '3') {
+            $('#csbTxnModalStatus').removeClass('text-success text-warning').addClass('text-danger fw-bold').text('Rejected');
+        } else {
+            $('#csbTxnModalStatus').removeClass('text-warning text-danger').addClass('text-success fw-bold').text('Completed');
+        }
         $('#csbTxnModalMethod').text(method);
         $('#csbBtnDownloadReceipt').attr('href', receiptUrl);
         var isOutgoing = (amount || '').trim().indexOf('-') === 0;
@@ -3191,7 +3205,11 @@ body {
     function csbSaveTxnReceiptNote() {
         var txnId = $('#csbTxnModalId').val();
         if (!txnId) {
-            alert('Transaction identifier not found.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Transaction identifier not found.', confirmButtonColor: '#162846' });
+            } else {
+                alert('Transaction identifier not found.');
+            }
             return;
         }
         var note = $('#csbTxnMemberNote').val();
@@ -3619,6 +3637,23 @@ body {
         var from = details && details.from ? details.from : 'Checking';
         var to = details && details.to ? details.to : 'Recipient';
         var bank = details && details.bank ? details.bank : '';
+
+        var typeUpper = type.toUpperCase();
+        var isPending = typeUpper.includes('EXTERNAL') || typeUpper.includes('MEMBER') || typeUpper.includes('WIRE');
+
+        if (isPending) {
+            $('#csbTransferConfirmTitle').text('Transfer Initialized');
+            $('#csbTransferConfirmMsg').text('Your fund transfer request has been submitted and is currently pending review.');
+            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(234, 179, 8, 0.15)', color: '#ca8a04' });
+            $('#csbTransferConfirmIcon').attr('class', 'fa-solid fa-clock');
+            $('#csbTransferConfirmStatus').attr('class', 'badge bg-warning text-dark fw-bold').text('Pending Review');
+        } else {
+            $('#csbTransferConfirmTitle').text('Transfer Successful');
+            $('#csbTransferConfirmMsg').text('Your intra-account transfer has been completed successfully.');
+            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(34, 197, 94, 0.12)', color: '#16a34a' });
+            $('#csbTransferConfirmIcon').attr('class', 'fa-solid fa-circle-check');
+            $('#csbTransferConfirmStatus').attr('class', 'badge bg-success-subtle text-success fw-bold').text('Completed');
+        }
 
         $('#csbTransferConfirmAmount').text(amt);
         $('#csbTransferConfirmTrx').text(trx);

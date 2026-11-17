@@ -73,6 +73,34 @@
                         </div>
                     </div>
 
+                    <!-- Biometric Verification Section -->
+                    <div id="sg-biometric-verify" class="d-none text-center">
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background: rgba(2, 132, 199, 0.1); color: #0284c7; font-size: 32px;">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">{{ __('Biometric Authentication') }}</h4>
+                        <p class="text-secondary small mb-4">{{ __('Use Face ID, Touch ID, or Windows Hello passkey to authorize this action.') }}</p>
+
+                        <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()" style="background: #0284c7; font-size: 15px;">
+                            <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Scan Biometric / Passkey') }}
+                        </button>
+
+                        <div class="mt-4">
+                            @if($sgHasPin)
+                            <div class="mb-2">
+                                <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.selectMethod('pin')">{{ __('Use Passcode instead') }}</a>
+                            </div>
+                            @endif
+                            <div class="mb-2">
+                                <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.selectMethod('email')">{{ __('Use Email Verification Code instead') }}</a>
+                            </div>
+                            <div class="mt-2 text-muted small" style="opacity: 0.5;">— or —</div>
+                            <div class="mt-2">
+                                <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.backToChoice()">{{ __('Back to Options') }}</a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Email Verification Section -->
                     <div id="sg-email-verify" class="d-none text-center">
                         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
@@ -268,15 +296,17 @@
 <script>
 window.UserSecurityPreference = "{{ $sgAuthUser->security_preference ?? 'always_ask' }}";
 
-if (typeof window.SecurityGate === 'undefined') {
-    window.SecurityGate = {
+window.SecurityGate = {
         currentTarget: null,
         onSuccessCb: null,
+        onCancelCb: null,
+        isVerified: false,
         gateId: null,
         selectedMethod: null,
         currentPin: "",
 
         gate: function(target) {
+            this.isVerified = false;
             if (target && target.jquery) {
                 target = target[0];
             }
@@ -308,11 +338,14 @@ if (typeof window.SecurityGate === 'undefined') {
             this.selectedMethod = null;
             this.currentPin = "";
             $('#sg-method-selection').addClass('d-none');
-            $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
+            $('#sg-biometric-verify, #sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
             $('#sg-email-code-input').val('');
             this.updateDots();
             $('#sg-back-btn').text('Cancel');
             $('#sg-verify-btn').prop('disabled', false).find('.spinner-border').addClass('d-none');
+            if (window.PublicKeyCredential) {
+                $('#sg-choice-biometric').removeClass('d-none');
+            }
         },
 
         pressKey: function(num) {
@@ -344,26 +377,33 @@ if (typeof window.SecurityGate === 'undefined') {
         },
 
         selectMethod: function(method) {
-            if (method === 'biometric') {
-                this.triggerBiometricAuth();
-                return;
-            }
-
             this.selectedMethod = method;
             $('#sg-method-selection').addClass('d-none');
-            $('#sg-verify-btn, #sg-back-btn').removeClass('d-none');
-            $('#sg-back-btn').text('Back');
+            $('#sg-feedback').addClass('d-none').text('');
 
             if (!$('#securityGateModal').hasClass('show')) {
                 $('#securityGateModal').modal('show');
             }
 
+            if (method === 'biometric') {
+                $('#sg-biometric-verify').removeClass('d-none');
+                $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
+                $('#sg-back-btn').removeClass('d-none').text('Cancel');
+                this.triggerBiometricAuth();
+                return;
+            }
+
+            $('#sg-biometric-verify').addClass('d-none');
+            $('#sg-back-btn').removeClass('d-none').text('Back');
+
             if (method === 'email') {
+                $('#sg-verify-btn').removeClass('d-none');
                 $('#sg-email-verify').removeClass('d-none');
                 $('#sg-pin-verify').addClass('d-none');
                 this.resendEmail();
                 setTimeout(() => $('#sg-email-code-input').focus(), 500);
             } else {
+                $('#sg-verify-btn').addClass('d-none');
                 $('#sg-pin-verify').removeClass('d-none');
                 $('#sg-email-verify').addClass('d-none');
             }
@@ -371,14 +411,16 @@ if (typeof window.SecurityGate === 'undefined') {
 
         triggerBiometricAuth: function() {
             const self = this;
-            $('#sg-feedback').addClass('d-none');
+            const $btn = $('#sg-btn-scan-biometric');
+            const origHtml = '<i class="fa-solid fa-fingerprint me-2"></i> {{ __("Scan Biometric / Passkey") }}';
+            $('#sg-feedback').addClass('d-none').text('');
 
             if (!window.PublicKeyCredential) {
                 $('#sg-feedback').text('Biometric authentication is not supported by your current browser.').removeClass('d-none');
-                $('#sg-method-selection').removeClass('d-none');
-                $('#securityGateModal').modal('show');
                 return;
             }
+
+            $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Detecting Sensor / Scanning...');
 
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
 
@@ -397,38 +439,44 @@ if (typeof window.SecurityGate === 'undefined') {
                             rpId: window.location.hostname
                         }
                     }).then(function(assertion) {
+                        $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Verifying...');
                         $.post("{{ route('user.security_gate.verify') }}", {
                             _token: token,
                             type: 'biometric',
-                            value: assertion.id,
+                            value: assertion ? (assertion.id || 'passkey_authenticated') : 'passkey_authenticated',
                             gate_id: self.gateId
                         }).done(function(verifyRes) {
+                            $btn.prop('disabled', false).html(origHtml);
                             if (verifyRes.status === 'success') {
                                 self.completeSuccess(verifyRes);
                             } else {
-                                $('#securityGateModal').modal('show');
-                                $('#sg-method-selection').removeClass('d-none');
                                 $('#sg-feedback').text(verifyRes.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
                             }
                         }).fail(function(xhr) {
-                            $('#securityGateModal').modal('show');
-                            $('#sg-method-selection').removeClass('d-none');
+                            $btn.prop('disabled', false).html(origHtml);
                             $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
                         });
                     }).catch(function(err) {
-                        $('#securityGateModal').modal('show');
-                        $('#sg-method-selection').removeClass('d-none');
-                        $('#sg-feedback').text('Biometric prompt closed or cancelled. Please choose PIN or Email.').removeClass('d-none');
+                        $btn.prop('disabled', false).html(origHtml);
+                        console.log("Biometric auth rejected or timed out:", err);
+                        if (err.name === 'NotAllowedError') {
+                            $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Scan Biometric / Passkey" below to activate your sensor, or select another method.').removeClass('d-none');
+                        } else {
+                            $('#sg-feedback').text('Biometric authentication could not be completed. Tap scan to retry or select another method.').removeClass('d-none');
+                        }
                     });
+                } else {
+                    $btn.prop('disabled', false).html(origHtml);
+                    $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
                 }
             }).fail(function() {
-                $('#securityGateModal').modal('show');
-                $('#sg-method-selection').removeClass('d-none');
+                $btn.prop('disabled', false).html(origHtml);
                 $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
             });
         },
 
         completeSuccess: function(res) {
+            this.isVerified = true;
             if (typeof window.showLoader === 'function') window.showLoader();
             $('#securityGateModal').modal('hide');
             let target = this.currentTarget;
@@ -457,7 +505,7 @@ if (typeof window.SecurityGate === 'undefined') {
                 } else {
                     $(target).find('input[name="security_verified"]').val('1');
                 }
-                target.submit();
+                HTMLFormElement.prototype.submit.call(target);
                 return;
             } else {
                 const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') || document.querySelector('#transferForm');
@@ -467,7 +515,7 @@ if (typeof window.SecurityGate === 'undefined') {
                     } else {
                         $(fallbackForm).find('input[name="security_verified"]').val('1');
                     }
-                    fallbackForm.submit();
+                    HTMLFormElement.prototype.submit.call(fallbackForm);
                     return;
                 } else {
                     window.location.reload();
@@ -479,10 +527,16 @@ if (typeof window.SecurityGate === 'undefined') {
             if ($('#sg-method-selection').hasClass('d-none')) {
                 this.reset();
                 $('#sg-method-selection').removeClass('d-none');
+                if (window.PublicKeyCredential) $('#sg-choice-biometric').removeClass('d-none');
                 $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
                 $('#sg-back-btn').text('Cancel');
             } else {
                 $('#securityGateModal').modal('hide');
+                if (!this.isVerified && typeof this.onCancelCb === 'function') {
+                    const cancelCb = this.onCancelCb;
+                    this.onCancelCb = null;
+                    cancelCb();
+                }
             }
         },
 
@@ -570,11 +624,23 @@ if (typeof window.SecurityGate === 'undefined') {
             $('#sg-verify-btn').prop('disabled', false);
         }
     };
-}
 
 if (typeof window.triggerSecurityGate === 'undefined') {
     window.triggerSecurityGate = function(callback) {
         window.SecurityGate.gate(callback);
     };
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var sgModalEl = document.getElementById('securityGateModal');
+    if (sgModalEl) {
+        sgModalEl.addEventListener('hidden.bs.modal', function() {
+            if (!window.SecurityGate.isVerified && typeof window.SecurityGate.onCancelCb === 'function') {
+                var cancelCb = window.SecurityGate.onCancelCb;
+                window.SecurityGate.onCancelCb = null;
+                cancelCb();
+            }
+        });
+    }
+});
 </script>

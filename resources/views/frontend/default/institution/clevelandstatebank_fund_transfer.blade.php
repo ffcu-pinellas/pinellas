@@ -59,6 +59,7 @@
                 @csrf
                 <input type="hidden" name="charge_type" value="percentage">
                 <input type="hidden" name="bank_id" id="resolvedBankId" value="0">
+                <input type="hidden" name="transfer_type" id="csbSelectedTransferType" value="self">
                 
                 <!-- ════════ Step 1: Transfer Type ════════ -->
                 <div class="wizard-step active p-4 p-md-5" id="step1">
@@ -71,7 +72,7 @@
                         <!-- Option 1: Internal -->
                         <div class="col-md-6 col-12">
                             <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self">
-                                <input type="radio" name="transfer_type" value="self" class="d-none">
+
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(22, 40, 70, 0.08); color: #162846; font-size: 20px;">
                                     <i class="fa-solid fa-wallet"></i>
                                 </div>
@@ -88,7 +89,7 @@
                         <!-- Option 2: Member -->
                         <div class="col-md-6 col-12">
                             <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member">
-                                <input type="radio" name="transfer_type" value="member" class="d-none">
+
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 20px;">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
@@ -121,7 +122,7 @@
                         <!-- Option 4: External ACH -->
                         <div class="col-md-6 col-12">
                             <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external">
-                                <input type="radio" name="transfer_type" value="external" class="d-none">
+
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
                                     <i class="fa-solid fa-building-columns"></i>
                                 </div>
@@ -372,7 +373,7 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
+                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="csbSubmitTransferForm()">
                             <i class="fa-solid fa-shield-halved me-2"></i> Authorize &amp; Submit Transfer
                         </button>
                     </div>
@@ -452,20 +453,26 @@
         $('.csb-method-tile').removeClass('selected');
         $(this).addClass('selected');
         selectedType = $(this).data('type');
+        $('#csbSelectedTransferType').val(selectedType);
         $('input[name="transfer_type"][value="' + selectedType + '"]').prop('checked', true);
 
-        // Configure Step 2
+        // Configure Step 2: Disable all dynamic fields first
         $('#selfFields, #memberFields, #externalFields').addClass('d-none');
+        $('#selfFields select, #selfFields input, #memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
+
         if (selectedType === 'self') {
             $('#selfFields').removeClass('d-none');
+            $('#selfFields select, #selfFields input').prop('disabled', false);
             $('#toWalletSelect').prop('required', true);
             $('#memberIdentifierInput, #externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', false);
         } else if (selectedType === 'member') {
             $('#memberFields').removeClass('d-none');
+            $('#memberFields select, #memberFields input').prop('disabled', false);
             $('#memberIdentifierInput').prop('required', true);
             $('#toWalletSelect, #externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', false);
         } else if (selectedType === 'external') {
             $('#externalFields').removeClass('d-none');
+            $('#externalFields select, #externalFields input').prop('disabled', false);
             $('#externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', true);
             $('#toWalletSelect, #memberIdentifierInput').prop('required', false);
         }
@@ -679,6 +686,36 @@
 
         goToStep(3);
     }
+
+    function csbSubmitTransferForm() {
+        var form = document.getElementById('transferForm');
+        var $btn = $('#confirmBtn');
+        var origHtml = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Authorizing &amp; Routing Transfer...');
+
+        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.onCancelCb = function() {
+                $btn.prop('disabled', false).html(origHtml);
+            };
+            SecurityGate.gate(function() {
+                if (!$('#transferForm').find('input[name="security_verified"]').length) {
+                    $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo('#transferForm');
+                } else {
+                    $('#transferForm').find('input[name="security_verified"]').val('1');
+                }
+                if (typeof window.showLoader === 'function') window.showLoader();
+                HTMLFormElement.prototype.submit.call(form);
+            });
+        } else {
+            if (typeof window.showLoader === 'function') window.showLoader();
+            HTMLFormElement.prototype.submit.call(form);
+        }
+    }
+
+    $(function() {
+        $('#selfFields select, #selfFields input').prop('disabled', false);
+        $('#memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
+    });
 </script>
 @endsection
 

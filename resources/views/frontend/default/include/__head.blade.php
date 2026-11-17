@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="{{ asset('assets/front/css/aos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/front/css/swiper.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/front/css/styles.css') }}?v=1.3" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('style')
     @yield('style')
     <style>

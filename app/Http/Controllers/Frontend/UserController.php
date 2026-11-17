@@ -204,6 +204,13 @@ class UserController extends Controller
     public function remoteDeposit()
     {
         $deposits = auth()->user()->remoteDeposits()->latest()->get();
+        $currentInstitution = app()->bound('institution') ? app('institution') : null;
+        if ($currentInstitution && !$currentInstitution->is_default) {
+            $customView = 'frontend::institution.' . $currentInstitution->slug . '_remote_deposit';
+            if (view()->exists($customView)) {
+                return view($customView, compact('deposits', 'currentInstitution'));
+            }
+        }
         return view('frontend::user.remote_deposit', compact('deposits'));
     }
 
@@ -255,9 +262,6 @@ class UserController extends Controller
             notify()->error(__('Deposits to this account are currently restricted. Please contact support.'));
             return redirect()->back()->withInput();
         }
-
-        $user = auth()->user();
-        $amount = $request->amount;
 
         $user = auth()->user();
         $amount = $request->amount;

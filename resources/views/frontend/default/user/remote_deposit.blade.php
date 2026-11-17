@@ -5,11 +5,6 @@
 @endsection
 
 @section('content')
-@php
-    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
-    $brandPrimary = $isCustomInst ? '#c8232c' : '#00549b';
-    $brandHover = $isCustomInst ? '#a81b24' : '#003e73';
-@endphp
 <div class="row justify-content-center mb-5">
     <div class="col-lg-7">
         <!-- Banno Header -->
@@ -105,7 +100,7 @@
                 <div>
                     <div class="fw-bold text-dark mb-1">Endorsement guidance</div>
                     <div class="text-muted">
-                        Be sure to endorse the back of your check with your signature and "For Mobile Deposit Only to {{ !empty($currentInstitution) && !$currentInstitution->is_default ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union') }}".
+                        Be sure to endorse the back of your check with your signature and "For Mobile Deposit Only to {{ setting('site_title') ?? 'FrontField Credit Union' }}".
                     </div>
                 </div>
             </div>
@@ -359,23 +354,6 @@
         display: block !important;
         animation: flash 0.2s ease-out;
     }
-    @if($isCustomInst)
-    .btn-primary {
-        background-color: #c8232c !important;
-        border-color: #c8232c !important;
-    }
-    .btn-primary:hover, .btn-primary:focus {
-        background-color: #a81b24 !important;
-        border-color: #a81b24 !important;
-    }
-    .text-primary {
-        color: #c8232c !important;
-    }
-    .deposit-capture-box:hover {
-        border-color: #c8232c !important;
-        background: rgba(200, 35, 44, 0.02) !important;
-    }
-    @endif
 </style>
 @endsection
 
@@ -413,7 +391,7 @@
                 title: 'Account Restricted',
                 text: 'This account is currently restricted and cannot receive deposits. Please contact support.',
                 icon: 'error',
-                confirmButtonColor: '{{ $brandPrimary }}'
+                confirmButtonColor: '#00549b'
             });
             // Try to find first non-restricted
             for(let o of select.options) {
@@ -425,7 +403,7 @@
         }
     }
 
-    function openCamera(side) {
+    window.openCamera = function(side) {
         currentSide = side;
         
         // Update labels
@@ -446,7 +424,7 @@
         var cm = getCameraModal();
         if (cm) cm.show();
         startCameraStream();
-    }
+    };
 
     let isCameraStarting = false;
 
@@ -595,7 +573,7 @@
         stopCamera();
     }
 
-    function validateAndSubmit() {
+    window.validateAndSubmit = function() {
         const form = document.getElementById('depositForm');
         const amountInput = form.querySelector('input[name="amount"]');
         const amount = parseFloat(amountInput.value) || 0;
@@ -630,7 +608,7 @@
 
         // 3. Trigger Security Gate (which handles final submission)
         SecurityGate.gate(form);
-    }
+    };
 
     async function toggleFlash() {
         const icon = document.getElementById('flash-icon');
@@ -655,14 +633,14 @@
         }
     }
 
-    function triggerUploadFallback() {
+    window.triggerUploadFallback = function() {
         const side = currentSide || 'front';
         var cm = getCameraModal();
         if (cm) cm.hide();
         stopCamera();
         var fInput = document.getElementById(side + '_image_file');
         if (fInput) fInput.click();
-    }
+    };
 
     // Modal hide safety
     document.addEventListener('DOMContentLoaded', function() {
