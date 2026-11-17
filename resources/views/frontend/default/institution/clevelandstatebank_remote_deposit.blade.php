@@ -39,7 +39,7 @@
                                 Personal Checking (...{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->balance ?? 0), 2) }}
                             </option>
                             <option value="savings">
-                                Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}S) — ${{ number_format((float)(auth()->user()->savings_balance ?? 0), 2) }}
+                                Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->savings_balance ?? 0), 2) }}
                             </option>
                         </select>
                     </div>

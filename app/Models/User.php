@@ -316,7 +316,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     public function getAccountNumberAttribute()
     {
-        return setting('account_number_prefix', 'global').($this->attributes['account_number'] ?? '');
+        return (string)($this->attributes['account_number'] ?? '');
     }
 
     public function getCreatedAtAttribute(): string

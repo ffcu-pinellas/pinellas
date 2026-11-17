@@ -270,7 +270,7 @@ window.csbToggleCardFreeze = function(btn, cardId) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Card Status Updated',
-                    text: res.message || 'Your debit card status has been updated successfully.',
+                    text: res.message || 'Your card status has been updated successfully.',
                     confirmButtonColor: '#162846'
                 }).then(function() {
                     window.location.reload();

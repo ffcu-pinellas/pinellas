@@ -160,7 +160,7 @@
                                 <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Primary Savings</h5>
                                 <i class="fa-solid fa-star text-warning" style="font-size: 11px;" title="Favorite Account"></i>
                             </div>
-                            <div class="text-muted small font-monospace">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S)</div>
+                            <div class="text-muted small font-monospace">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</div>
                         </div>
                     </div>
                     <div class="dropdown" onclick="event.stopPropagation()">
@@ -235,7 +235,7 @@
                             <div class="d-flex align-items-center gap-1">
                                 <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Individual Retirement (IRA)</h5>
                             </div>
-                            <div class="text-muted small font-monospace">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}I)</div>
+                            <div class="text-muted small font-monospace">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</div>
                         </div>
                     </div>
                     <div class="dropdown" onclick="event.stopPropagation()">
@@ -281,7 +281,7 @@
                             <div class="d-flex align-items-center gap-1">
                                 <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">HELOC Revolving</h5>
                             </div>
-                            <div class="text-muted small font-monospace">Line (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H)</div>
+                            <div class="text-muted small font-monospace">Line (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }})</div>
                         </div>
                     </div>
                     <div class="dropdown" onclick="event.stopPropagation()">
@@ -327,7 +327,7 @@
                             <div class="d-flex align-items-center gap-1">
                                 <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Platinum Rewards Card</h5>
                             </div>
-                            <div class="text-muted small font-monospace">Card (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }}C)</div>
+                            <div class="text-muted small font-monospace">Card (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }})</div>
                         </div>
                     </div>
                     <div class="dropdown" onclick="event.stopPropagation()">
@@ -373,7 +373,7 @@
                             <div class="d-flex align-items-center gap-1">
                                 <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Personal Loan</h5>
                             </div>
-                            <div class="text-muted small font-monospace">Loan (*{{ substr($user->loan_account_number ?? $user->account_number, -4) }}L)</div>
+                            <div class="text-muted small font-monospace">Loan (*{{ substr($user->loan_account_number ?? $user->account_number, -4) }})</div>
                         </div>
                     </div>
                     <div class="dropdown" onclick="event.stopPropagation()">

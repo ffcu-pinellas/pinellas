@@ -165,7 +165,7 @@ class Institution extends Model
                     'secondary_color'        => '#fdf2f2',
                     'accent_color'           => '#c8232c',
                     'routing_number'         => '084301768',
-                    'account_number_prefix'  => 'CSB',
+                    'account_number_prefix'  => '',
                     'regulator_badge'        => 'Member FDIC | Equal Housing Lender',
                     'regulator_type'         => 'fdic',
                     'support_email'          => 'customercare@clevelandstatebank.com',

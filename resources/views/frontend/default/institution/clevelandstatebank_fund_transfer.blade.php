@@ -152,11 +152,11 @@
                                 Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — $ {{ number_format((float)($user->balance ?? 0), 2) }}
                             </option>
                             <option value="primary_savings" data-balance="{{ (float)($user->savings_balance ?? 0) }}" data-name="Savings">
-                                Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S) — $ {{ number_format((float)($user->savings_balance ?? 0), 2) }}
+                                Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — $ {{ number_format((float)($user->savings_balance ?? 0), 2) }}
                             </option>
                             @if($user->ira_status == 1)
                             <option value="ira" data-balance="{{ (float)($user->ira_balance ?? 0) }}" data-name="IRA">
-                                IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}I) — $ {{ number_format((float)($user->ira_balance ?? 0), 2) }}
+                                IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}) — $ {{ number_format((float)($user->ira_balance ?? 0), 2) }}
                             </option>
                             @endif
                         </select>
@@ -183,10 +183,10 @@
                             <div class="mb-4">
                                 <label class="form-label fw-bold text-muted small text-uppercase">To My Account</label>
                                 <select class="form-select shadow-none form-select-lg" name="to_wallet" id="toWalletSelect" style="font-size: 15px; border-radius: 10px;">
-                                    <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}S)</option>
+                                    <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</option>
                                     <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</option>
                                     @if($user->ira_status == 1)
-                                    <option value="ira">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}I)</option>
+                                    <option value="ira">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</option>
                                     @endif
                                     @if($user->heloc_status == 1)
                                     <option value="heloc">HELOC (Pay Down)</option>

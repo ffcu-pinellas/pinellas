@@ -379,7 +379,7 @@
             };
 
             var postRegistration = function(credId) {
-                var deviceName = navigator.userAgent.indexOf('Mac') !== -1 ? 'Apple Touch ID / Face ID' : (navigator.userAgent.indexOf('Win') !== -1 ? 'Windows Hello Passkey' : 'Mobile Biometric Sensor');
+                var deviceName = navigator.userAgent.indexOf('Mac') !== -1 ? 'Apple Touch ID / Face ID' : (navigator.userAgent.indexOf('Win') !== -1 ? 'Windows Hello Passkey' : 'Biometric Passkey');
                 $.post("{{ route('user.security_gate.biometric.register') }}", {
                     _token: "{{ csrf_token() }}",
                     credential_id: credId,

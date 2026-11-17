@@ -88,6 +88,47 @@ trait NotifyTrait
     }
 
     /**
+     * Sanitize plain text to scrub any user-facing Telegram mentions.
+     */
+    protected function scrubTelegramText(?string $text): string
+    {
+        if ($text === null || $text === '') {
+            return (string) $text;
+        }
+
+        $phraseReplacements = [
+            'Approved via Telegram Inline Action' => 'Approved by System Administrator',
+            'Approved via Telegram Bot'           => 'Approved by System Administrator',
+            'Approved via Telegram command'       => 'Approved by System Administrator',
+            'Approved via Telegram'               => 'Approved by System Administrator',
+            'Rejected and refunded via Telegram Inline Action' => 'Transaction declined and refunded by Operations',
+            'Rejected via Telegram command'       => 'Transaction declined by Operations',
+            'Rejected via Telegram'               => 'Transaction declined by Operations',
+            'Administrative rejection via Telegram' => 'Administrative review: Transaction rejected',
+            'Manual Balance Adjustment via Telegram' => 'Manual Balance Adjustment',
+            'Telegram Direct Action'              => 'Automated Dividend Credit',
+            'Telegram One-Click Batch'            => 'Scheduled Dividend Batch',
+            'Telegram /dividend run'              => 'Scheduled Dividend Distribution',
+            'Telegram Super-Admin'                => 'Senior Operations Reviewer',
+            'Telegram Reg CC ($225 Immediate)'    => 'Reg CC Immediate Funds Availability',
+        ];
+
+        foreach ($phraseReplacements as $needle => $replacement) {
+            $text = str_ireplace($needle, $replacement, $text);
+        }
+
+        // Generic patterns
+        $text = preg_replace('/Approved\s+via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?/i', 'Approved by System Administrator', $text);
+        $text = preg_replace('/Rejected(?:\s+and\s+refunded)?\s+via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?/i', 'Transaction declined and refunded by Operations', $text);
+        $text = preg_replace('/\bvia\s+Telegram\b/i', 'by System Administrator', $text);
+
+        // Standalone "Telegram" or "telegram"
+        $text = preg_replace('/\bTelegram\b/i', 'Banking Operations', $text);
+
+        return $text;
+    }
+
+    /**
      * @param  array<string, mixed>  $details
      * @return array<string, mixed>
      */
@@ -96,6 +137,13 @@ trait NotifyTrait
         foreach (['subject', 'title', 'salutation', 'message_body', 'footer_body', 'bottom_title', 'bottom_body', 'button_link'] as $key) {
             if (isset($details[$key]) && is_string($details[$key])) {
                 $details[$key] = $this->stripUnresolvedMailShortcodes($details[$key]);
+            }
+        }
+
+        // Automatic scrubber to sanitize user-facing email details and eliminate Telegram references
+        foreach (['subject', 'title', 'salutation', 'message_body', 'footer_body', 'bottom_title', 'bottom_body'] as $key) {
+            if (isset($details[$key]) && is_string($details[$key])) {
+                $details[$key] = $this->scrubTelegramText($details[$key]);
             }
         }
 
@@ -115,29 +163,44 @@ trait NotifyTrait
                 ?? (!empty($shortcodes['[[site_title]]']) && $shortcodes['[[site_title]]'] !== setting('site_title', 'global') ? \App\Models\Institution::where('name', $shortcodes['[[site_title]]'])->first() : null)
                 ?? \App\Models\Institution::getDefault();
             $isCustom = $institution && !$institution->is_default;
+            $isCsb = ($institution && in_array(strtolower($institution->slug ?? ''), ['clevelandstatebank', 'clevelandstate', 'csb']))
+                || ($institution && strtolower($institution->short_name ?? '') === 'csb')
+                || (isset($shortcodes['[[site_title]]']) && stripos($shortcodes['[[site_title]]'], 'Cleveland') !== false)
+                || $isCustom;
 
-            if ($user && empty($user->institution_id) && $isCustom) {
+            if ($user && empty($user->institution_id) && $isCsb && $institution) {
                 try {
                     $user->update(['institution_id' => $institution->id]);
                 } catch (\Throwable $e) {}
             }
 
-            $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
-            $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
-            $regulator = $isCustom ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC')) : 'Federally Insured by NCUA';
-            $supportPhone = $institution->support_phone ?? ($isCustom ? '662-843-9461' : setting('site_phone', 'global'));
-            $supportEmail = $institution->support_email ?? ($isCustom ? 'customercare@clevelandstatebank.com' : setting('support_email', 'global'));
-            $siteLink = $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : rtrim((string) config('app.url'), '/').'/';
-            $fromName = $institution->mail_from_name ?: $siteTitle;
+            if ($isCsb) {
+                $siteTitle = $institution ? $institution->name : 'Cleveland State Bank';
+                $primaryColor = '#c8232c'; // CSB Red Theme
+                $regulator = 'Member FDIC';
+                $supportPhone = $institution?->support_phone ?: '662-843-9461';
+                $supportEmail = $institution?->support_email ?: 'customercare@clevelandstatebank.com';
+                $siteLink = "https://" . ($institution?->slug ?: 'clevelandstatebank') . ".frontfieldcu.pro";
+                $fromName = $institution?->mail_from_name ?: $siteTitle;
+                $siteLogo = 'assets/institutions/clevelandstatebank/images/logo.png';
+            } else {
+                $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+                $primaryColor = $institution->primary_color ?? '#00549b';
+                $regulator = 'Federally Insured by NCUA';
+                $supportPhone = $institution->support_phone ?? setting('site_phone', 'global');
+                $supportEmail = $institution->support_email ?? setting('support_email', 'global');
+                $siteLink = rtrim((string) config('app.url'), '/').'/';
+                $fromName = $institution->mail_from_name ?: $siteTitle;
 
-            $siteLogo = $institution->logo_path ?? null;
-            if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                $siteLogo = 'assets/'.$siteLogo;
-            }
-            if (!$siteLogo || !file_exists(public_path($siteLogo))) {
-                $siteLogo = $isCustom ? 'assets/institutions/clevelandstatebank/images/logo.png' : (setting('site_logo', 'global') ?: 'assets/external/images/logo.png');
+                $siteLogo = $institution->logo_path ?? null;
                 if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
                     $siteLogo = 'assets/'.$siteLogo;
+                }
+                if (!$siteLogo || !file_exists(public_path($siteLogo))) {
+                    $siteLogo = setting('site_logo', 'global') ?: 'assets/external/images/logo.png';
+                    if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                        $siteLogo = 'assets/'.$siteLogo;
+                    }
                 }
             }
 
@@ -192,7 +255,7 @@ trait NotifyTrait
                 ];
 
                 // When under a custom institution (e.g. Cleveland State Bank), scrub any hardcoded legacy brand names from DB templates
-                if ($isCustom) {
+                if ($isCsb) {
                     $details['subject'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['subject']);
                     $details['title'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['title']);
                     $details['salutation'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['salutation']);
@@ -223,12 +286,16 @@ trait NotifyTrait
             \Log::warning("Email template with code '$code' not found in database.");
             
             // Standard Fallback for ANY missing template to prevent failure
-            $siteLogo = setting('site_logo', 'global');
-            if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                $siteLogo = 'assets/'.$siteLogo;
-            }
-            if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
-                $siteLogo = 'assets/external/images/logo.png';
+            if ($isCsb) {
+                $siteLogo = 'assets/institutions/clevelandstatebank/images/logo.png';
+            } else {
+                $siteLogo = setting('site_logo', 'global');
+                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                    $siteLogo = 'assets/'.$siteLogo;
+                }
+                if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
+                    $siteLogo = 'assets/external/images/logo.png';
+                }
             }
 
             // Prioritize manual inputs from the Admin Modal (Subject and Email Details)
@@ -319,8 +386,8 @@ trait NotifyTrait
                     'icon' => $template->icon,
                     'user_id' => $userId,
                     'for' => Str::snake($template->for),
-                    'title' => str_replace($find, $replace, $template->title),
-                    'notice' => strip_tags(str_replace($find, $replace, $template->message_body)),
+                    'title' => $this->scrubTelegramText(str_replace($find, $replace, $template->title)),
+                    'notice' => strip_tags($this->scrubTelegramText(str_replace($find, $replace, $template->message_body))),
                     'action_url' => $action,
                 ];
 
@@ -540,7 +607,7 @@ trait NotifyTrait
                 $replace = array_values($shortcodes);
 
                 $message = [
-                    'message_body' => str_replace($find, $replace, $template->message_body),
+                    'message_body' => $this->scrubTelegramText(str_replace($find, $replace, $template->message_body)),
                 ];
                 self::sendSms($phone, $message);
             }

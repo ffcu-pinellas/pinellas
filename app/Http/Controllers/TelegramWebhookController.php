@@ -371,13 +371,13 @@ class TelegramWebhookController extends Controller
                 $disputeService = app(\App\Services\DisputeService::class);
 
                 if ($actionPrefix === 'dsp_prov') {
-                    $res = $disputeService->issueProvisionalCredit($disputeId, null, 'Telegram');
+                    $res = $disputeService->issueProvisionalCredit($disputeId, null, 'Bank Operations');
                     $toast = $res['success'] ? '💳 Provisional credit posted!' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 } elseif ($actionPrefix === 'dsp_win') {
-                    $res = $disputeService->resolveAsFraud($disputeId, null, 'Telegram');
+                    $res = $disputeService->resolveAsFraud($disputeId, null, 'Bank Operations');
                     $toast = $res['success'] ? '✅ Claim upheld (fraud confirmed).' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 } else {
-                    $res = $disputeService->denyDispute($disputeId, null, 'Telegram');
+                    $res = $disputeService->denyDispute($disputeId, null, 'Bank Operations');
                     $toast = $res['success'] ? '❌ Claim denied.' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 }
 
@@ -428,7 +428,7 @@ class TelegramWebhookController extends Controller
                     return response()->json(['status' => 'not_found'], 200);
                 }
                 $divService = new \App\Services\DividendService();
-                $res = $divService->processSingleUser($targetUser, 'Telegram Direct Action');
+                $res = $divService->processSingleUser($targetUser, 'Automated Dividend Credit');
                 if ($res['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "✅ " . $res['message'], true);
                     $targetUser->refresh();
@@ -443,7 +443,7 @@ class TelegramWebhookController extends Controller
             // 7. Batch Dividend Execution from Preview: div_exec_all
             if ($data === 'div_exec_all') {
                 $divService = new \App\Services\DividendService();
-                $res = $divService->processBatch(null, 'Telegram One-Click Batch');
+                $res = $divService->processBatch(null, 'Scheduled Dividend Batch');
                 if ($res['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "🎉 " . $res['message'], true);
                     $updatedText = $originalText . "\n\n───────────────────\n✅ <b>BATCH EXECUTED SUCCESSFULLY</b>\n💰 Total Paid: " . setting('currency_symbol', '$') . number_format($res['total_amount'], 2) . "\n👥 Members: {$res['processed_count']}\n🕒 " . now()->format('Y-m-d H:i:s');
@@ -688,7 +688,7 @@ class TelegramWebhookController extends Controller
             $timestamp = Carbon::now()->format('Y-m-d H:i:s');
 
             if ($action === 'appr') {
-                $result = $this->approvalService->approve($txn, 'Approved via Telegram Inline Action');
+                $result = $this->approvalService->approve($txn, 'Approved by System Administrator');
 
                 if ($result['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "✅ Transaction {$tnx} APPROVED!", true);
@@ -700,7 +700,7 @@ class TelegramWebhookController extends Controller
                     $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $result['message'], true);
                 }
             } elseif ($action === 'rejc') {
-                $result = $this->approvalService->reject($txn, 'Rejected and refunded via Telegram Inline Action');
+                $result = $this->approvalService->reject($txn, 'Transaction declined and refunded by Operations');
 
                 if ($result['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "❌ Transaction {$tnx} REJECTED & REFUNDED!", true);
@@ -838,7 +838,7 @@ class TelegramWebhookController extends Controller
                     if (!$targetTnx) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/reject TRX12345678 [optional reason]</code>");
                     } else {
-                        $reason = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : 'Rejected via Telegram command';
+                        $reason = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : 'Transaction declined by Operations';
                         $this->handleDirectRejection($botToken, $chatId, trim($targetTnx), $reason);
                     }
                     break;
@@ -1149,7 +1149,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $result = $this->approvalService->approve($txn, 'Approved via /approve command');
+        $result = $this->approvalService->approve($txn, 'Approved by System Administrator');
 
         if ($result['success']) {
             $this->sendMessage($botToken, $chatId, "✅ <b>SUCCESS:</b> Transaction <code>{$tnx}</code> has been APPROVED!");
@@ -1781,7 +1781,7 @@ class TelegramWebhookController extends Controller
         // 2. Direct Batch Execution: /dividend run
         if ($subCommand === 'run' || $subCommand === 'commit') {
             $this->sendMessage($botToken, $chatId, "⏳ Processing monthly dividend distribution batch...");
-            $res = $divService->processBatch(null, 'Telegram /dividend run', $instId);
+            $res = $divService->processBatch(null, 'Scheduled Dividend Distribution', $instId);
             if ($res['success']) {
                 $this->sendMessage($botToken, $chatId, "🎉 <b>DIVIDENDS PROCESSED!</b>\n" . $res['message']);
             } else {
@@ -2445,7 +2445,7 @@ class TelegramWebhookController extends Controller
         $target = $parts[1];
         $walletArg = strtolower($parts[2]);
         $amountArg = $parts[3];
-        $reason = isset($parts[4]) ? trim(implode(' ', array_slice($parts, 4))) : 'Manual Balance Adjustment via Telegram';
+        $reason = isset($parts[4]) ? trim(implode(' ', array_slice($parts, 4))) : 'Manual Balance Adjustment';
 
         $user = $this->findUserByIdentifier($target);
         if (!$user) {

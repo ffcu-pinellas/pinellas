@@ -64,8 +64,8 @@ class UserCardController extends Controller
         $card->save();
 
         $status = $card->status === 'active' ? 'unlocked' : 'locked';
-        $telegramStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
-        $this->telegramNotify("💳 <b>Card {$telegramStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
+        $displayStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
+        $this->telegramNotify("💳 <b>Card {$displayStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -80,7 +80,7 @@ class UserCardController extends Controller
             $this->mailNotify(auth()->user()->email, 'card_status_update', [
                 '[[full_name]]' => auth()->user()->full_name,
                 '[[card_number]]' => "****" . substr($card->card_number, -4),
-                '[[status]]' => $telegramStatus,
+                '[[status]]' => $displayStatus,
                 '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
             ]);
 

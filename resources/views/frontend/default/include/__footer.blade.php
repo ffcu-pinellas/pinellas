@@ -84,17 +84,19 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @if(!empty($footerContent['contact_telegram_link']) && !empty($footerContent['contact_telegram_title']) && !str_contains(strtolower($footerContent['contact_telegram_title']), 'telegram'))
                                     <div class="single-item">
                                         <h6 class="title">{{ $footerContent['contact_telegram_title'] }}</h6>
                                         <div class="footer-info-item">
                                             <div class="footer-info-icon">
-                                                <span><i class="fa-brands fa-telegram"></i></span>
+                                                <span><i class="fa-solid fa-headset"></i></span>
                                             </div>
                                             <div class="footer-info-text">
                                                 <span><a href="{{ $footerContent['contact_telegram_link'] }}" target="_blank">{{ $footerContent['contact_telegram_link'] }}</a></span>
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

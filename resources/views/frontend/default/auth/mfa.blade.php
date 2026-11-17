@@ -357,7 +357,7 @@
             <p class="text-secondary small mb-3">{{ __('Use your fingerprint, facial recognition, or hardware key.') }}</p>
             
             <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="btn-trigger-biometric" onclick="triggerBiometricLogin()" style="background:#c8232c; font-size: 15px;">
-                <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Scan Biometric / Passkey') }}
+                <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
             </button>
 
             <div id="biometric-error" class="error-text small mb-3"></div>
@@ -558,7 +558,7 @@
         const origBtnText = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Detecting Sensor / Scanning...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...';
         }
 
         fetch("{{ route('login.verify.biometric.challenge') }}", {

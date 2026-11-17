@@ -122,7 +122,7 @@ class RemoteDepositReviewService
     /**
      * Clear the full check amount immediately.
      */
-    public function clearFullCheck(int $depositId, string $reviewerLabel = 'Telegram Super-Admin'): array
+    public function clearFullCheck(int $depositId, string $reviewerLabel = 'Senior Operations Reviewer'): array
     {
         $result = DB::transaction(function () use ($depositId, $reviewerLabel) {
             $deposit = RemoteDeposit::with('user')->lockForUpdate()->find($depositId);
@@ -205,7 +205,7 @@ class RemoteDepositReviewService
             return ['success' => false, 'message' => "Remote Deposit #{$depositId} not found."];
         }
         if ((float) $depositCheck->amount <= $immediateCap) {
-            return $this->clearFullCheck($depositId, 'Telegram Reg CC ($225 Immediate)');
+            return $this->clearFullCheck($depositId, 'Reg CC Immediate Funds Availability');
         }
 
         $releaseDate = Carbon::now()->addWeekdays(max(1, $holdBusinessDays));

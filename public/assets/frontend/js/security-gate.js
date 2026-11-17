@@ -150,7 +150,7 @@ Object.assign(window.SecurityGate, {
     triggerBiometricAuth: function () {
         const self = this;
         const $btn = $('#sg-btn-scan-biometric');
-        const origHtml = '<i class="fa-solid fa-fingerprint me-2"></i> Scan Biometric / Passkey';
+        const origHtml = '<i class="fa-solid fa-fingerprint me-2"></i> Confirm with Face ID / Touch ID';
         $('#sg-feedback').addClass('d-none').text('');
 
         if (!window.PublicKeyCredential) {
@@ -158,7 +158,7 @@ Object.assign(window.SecurityGate, {
             return;
         }
 
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Detecting Sensor / Scanning...');
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...');
 
         const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
 
@@ -198,7 +198,7 @@ Object.assign(window.SecurityGate, {
                     $btn.prop('disabled', false).html(origHtml);
                     console.log("Biometric auth rejected or timed out:", err);
                     if (err.name === 'NotAllowedError') {
-                        $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Scan Biometric / Passkey" below to activate your sensor, or select another method.').removeClass('d-none');
+                        $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Confirm with Face ID / Touch ID" below to try again, or choose another method.').removeClass('d-none');
                     } else {
                         $('#sg-feedback').text('Biometric authentication could not be completed. Tap scan to retry or select another method.').removeClass('d-none');
                     }

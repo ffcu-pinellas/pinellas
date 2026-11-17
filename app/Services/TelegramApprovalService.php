@@ -53,7 +53,7 @@ class TelegramApprovalService
 
             $transaction->update([
                 'status' => TxnStatus::Success,
-                'action_message' => $adminNote ?? 'Approved via Telegram Bot',
+                'action_message' => $adminNote ?? 'Approved by System Administrator',
             ]);
 
             // Handle Member-to-Member / Internal Transfers credit to recipient
@@ -180,7 +180,7 @@ class TelegramApprovalService
                 ];
             }
 
-            $reason = $rejectionReason ?? 'Administrative rejection via Telegram';
+            $reason = $rejectionReason ?? 'Administrative review: Transaction rejected';
             $transaction->update([
                 'status' => TxnStatus::Failed,
                 'action_message' => $reason,
