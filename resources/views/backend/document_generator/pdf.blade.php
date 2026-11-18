@@ -5,8 +5,8 @@
     $docTitle = $docInst ? $docInst->name : (setting('site_title') ?? 'FrontField Credit Union');
     $docPrimary = $docInst->primary_color ?? ($docIsCustom ? '#c8232c' : '#00549b');
     $docRegulator = $docIsCustom
-        ? ('Member ' . ($docInst->regulator_type ? strtoupper($docInst->regulator_type) : 'FDIC') . '. Equal Housing Lender.')
-        : 'Federally Insured by NCUA. Equal Housing Lender.';
+        ? ('Member ' . ($docInst->regulator_type ? strtoupper($docInst->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
+        : 'Federally Insured by NCUA • Equal Housing Lender';
     $docAddress = $docIsCustom
         ? ($docInst->mailing_address ?: 'Corporate Offices • P.O. Box 278')
         : 'Corporate Offices • P.O. Box 2300';
@@ -16,9 +16,15 @@
     $docPhone = $docIsCustom
         ? ($docInst->support_phone ?: '662-843-9461')
         : (setting('site_phone') ?: '216 230 1837');
-    $docDomain = $docIsCustom
-        ? "{$docInst->slug}.frontfieldcu.pro"
-        : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+    $customDocDomain = $docInst?->custom_domain;
+    if ($customDocDomain && !str_ends_with(strtolower($customDocDomain), '.frontfieldcu.pro')) {
+        $docDomain = $customDocDomain;
+    } elseif ($docIsCustom) {
+        $docDomain = 'clevelandstatebank.com';
+    } else {
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+        $docDomain = !str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro' ? $appHost : 'frontfieldcu.pro';
+    }
 @endphp
 <!DOCTYPE html>
 <html>
@@ -157,7 +163,7 @@
             <strong>{{ $docTitle }}</strong><br>
             {{ $docAddress }}<br>
             {{ $docCityStateZip }}<br>
-            {{ $docPhone }} | {{ $docDomain }}
+            {{ $docPhone }}@if(!empty($docDomain) && !str_contains(strtolower($docDomain), 'frontfieldcu.pro')) | {{ $docDomain }}@endif
         </div>
         <div class="clear"></div>
     </div>

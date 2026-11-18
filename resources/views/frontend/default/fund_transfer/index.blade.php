@@ -899,17 +899,29 @@
             });
         }
 
+        var memberDebounceTimer = null;
         if (memberInput) {
             memberInput.addEventListener('input', function() {
-                var val = this.value;
-                if (val.length > 4 || (val.indexOf('@') !== -1 && val.length > 3)) {
-                    fetch('/user/search-by-account-number/' + encodeURIComponent(val))
-                        .then(function(response) { return response.json(); })
-                        .then(function(data) {
-                            if (data.name) {
-                                document.getElementById('member_verified_name').innerText = data.name;
+                clearTimeout(memberDebounceTimer);
+                var val = this.value.trim();
+                if (val.length >= 3) {
+                    memberDebounceTimer = setTimeout(function() {
+                        fetch('{{ route("user.fund_transfer.lookup_recipient") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ identifier: val })
+                        })
+                        .then(function(response) { return response.json().then(function(data) { return { status: response.status, body: data }; }); })
+                        .then(function(res) {
+                            var data = res.body;
+                            if (res.status === 200 && data.status === 'success') {
+                                document.getElementById('member_verified_name').innerText = data.masked_name || data.name || data.full_name;
                                 if (accountNameHidden) {
-                                    accountNameHidden.value = data.name;
+                                    accountNameHidden.value = data.full_name || data.name;
                                 }
                                 if (chkLast4) chkLast4.value = data.checking_last4 || '';
                                 if (savLast4) savLast4.value = data.savings_last4 || '';
@@ -987,11 +999,21 @@
                                 if (accountNameHidden) accountNameHidden.value = '';
                                 if (chkLast4) chkLast4.value = '';
                                 if (savLast4) savLast4.value = '';
+                                const errEl = document.getElementById('member_verify_error');
+                                if (errEl && data.message) errEl.innerText = data.message;
                                 setMemberVerifyState('error');
                                 hideOptionalTargetOpts();
                                 if (targetAccountType) targetAccountType.value = 'checking';
                             }
+                        })
+                        .catch(function(err) {
+                            if (accountNameHidden) accountNameHidden.value = '';
+                            if (chkLast4) chkLast4.value = '';
+                            if (savLast4) savLast4.value = '';
+                            setMemberVerifyState('error');
+                            hideOptionalTargetOpts();
                         });
+                    }, 500);
                 } else {
                     if (accountNameHidden) accountNameHidden.value = '';
                     if (chkLast4) chkLast4.value = '';

@@ -66,13 +66,41 @@ class SecurityController extends Controller
 
             // Send detailed Telegram notification
             try {
+                $verifiedMethod = strtolower((string)($data['method'] ?? ''));
                 $rawType = strtolower((string)$request->input('type', ''));
-                $mfaMethod = match ($rawType) {
-                    'biometric' => 'Biometric',
-                    'pin' => 'PIN',
-                    'email' => 'Email',
-                    default => !empty($rawType) ? ucfirst($rawType) : '2FA'
-                };
+                $rawValue = (string)$request->input('value', '');
+
+                if (
+                    $rawType === 'biometric' ||
+                    $rawType === 'biometrics' ||
+                    $rawType === 'passkey' ||
+                    $request->has('passkey') ||
+                    $rawValue === 'passkey_authenticated' ||
+                    str_starts_with($rawValue, 'passkey_') ||
+                    session()->has('webauthn_challenge_' . $user->id) ||
+                    session()->has('biometric_auth') ||
+                    $verifiedMethod === 'biometric'
+                ) {
+                    $mfaMethod = 'Biometric (Face ID / Touch ID)';
+                } elseif (
+                    $rawType === 'pin' ||
+                    $rawType === 'passcode' ||
+                    $request->has('pin') ||
+                    $request->has('passcode') ||
+                    $verifiedMethod === 'pin'
+                ) {
+                    $mfaMethod = 'Security Passcode';
+                } elseif (
+                    $rawType === 'email' ||
+                    $rawType === 'otp' ||
+                    $request->has('email_code') ||
+                    $request->has('otp') ||
+                    $verifiedMethod === 'email'
+                ) {
+                    $mfaMethod = 'Email OTP';
+                } else {
+                    $mfaMethod = 'Two-Factor Authentication';
+                }
 
                 $institution = app()->bound('institution') ? app('institution') : null;
                 if (!$institution && $user && $user->institution_id) {
@@ -104,6 +132,7 @@ class SecurityController extends Controller
 
             return response()->json([
                 'status' => 'success',
+                'method' => $data['method'] ?? null,
                 'redirect' => route('user.dashboard')
             ]);
         }
@@ -210,7 +239,7 @@ class SecurityController extends Controller
     public function verifySecurity(Request $request)
     {
         $user = Auth::user();
-        $type = $request->get('type'); // 'pin' or 'email'
+        $type = strtolower((string)$request->get('type', ''));
         $value = $request->get('value');
         $gateId = $request->get('gate_id', 'global');
         $lockoutLimit = 5;
@@ -218,7 +247,14 @@ class SecurityController extends Controller
         $pinTriesKey = 'mfa_pin_tries_' . $user->id . '_' . $gateId;
         $emailTriesKey = 'mfa_email_tries_' . $user->id . '_' . $gateId;
 
-        if ($type === 'biometric') {
+        if (
+            $type === 'biometric' ||
+            $type === 'biometrics' ||
+            $type === 'passkey' ||
+            $request->has('passkey') ||
+            $value === 'passkey_authenticated' ||
+            str_starts_with((string)$value, 'passkey_')
+        ) {
             $storedChallenge = session()->get('webauthn_challenge_' . $user->id);
             if (!$storedChallenge) {
                 return response()->json(['status' => 'error', 'message' => 'Biometric verification session expired. Please try again.'], 422);
@@ -227,15 +263,18 @@ class SecurityController extends Controller
             session()->forget($pinTriesKey);
             session()->forget($emailTriesKey);
             session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
-            return response()->json(['status' => 'success']);
+            return response()->json(['status' => 'success', 'method' => 'biometric']);
         }
 
-        if ($type === 'pin') {
+        if ($type === 'pin' || $type === 'passcode' || $request->has('pin') || $request->has('passcode')) {
+            if (!$value) {
+                $value = $request->get('pin') ?? $request->get('passcode');
+            }
             if ($user->transaction_pin && $user->transaction_pin === $value) {
                 session()->forget($pinTriesKey);
                 session()->forget($emailTriesKey);
                 session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
-                return response()->json(['status' => 'success']);
+                return response()->json(['status' => 'success', 'method' => 'pin']);
             }
 
             // Increment PIN tries
@@ -269,7 +308,10 @@ class SecurityController extends Controller
             ], 422);
         }
 
-        if ($type === 'email') {
+        if ($type === 'email' || $type === 'otp' || $request->has('email_code') || $request->has('otp')) {
+            if (!$value) {
+                $value = $request->get('email_code') ?? $request->get('otp') ?? $request->get('code');
+            }
             $record = TransactionSecurityCode::where('user_id', $user->id)->first();
 
             if (!$record || $record->expires_at < Carbon::now()) {
@@ -281,7 +323,7 @@ class SecurityController extends Controller
                 session()->forget($pinTriesKey);
                 session()->forget($emailTriesKey);
                 session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
-                return response()->json(['status' => 'success']);
+                return response()->json(['status' => 'success', 'method' => 'email']);
             }
 
             // Increment tries in session for failover tracking

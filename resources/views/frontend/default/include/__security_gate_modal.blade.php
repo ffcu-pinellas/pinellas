@@ -1,5 +1,11 @@
 @php
     $sgAuthUser = $user ?? auth('web')->user() ?? auth()->user();
+    $currentInst = app()->bound('institution') ? app('institution') : ($sgAuthUser?->institution ?? null);
+    $isCustomInst = $currentInst && !$currentInst->is_default;
+    $isCsb = ($isCustomInst && ($currentInst->slug === 'clevelandstatebank' || str_contains(request()->getHost(), 'clevelandstatebank')))
+             || (isset($sgAuthUser) && $sgAuthUser->institution && $sgAuthUser->institution->slug === 'clevelandstatebank')
+             || str_contains(request()->getHost(), 'clevelandstatebank');
+
     $sgUserEmail = $sgAuthUser->email ?? '';
     $sgAtPos = strpos($sgUserEmail, '@');
     $sgMaskedEmail = ($sgAtPos !== false)
@@ -11,10 +17,22 @@
 <!-- Security Gate Modal -->
 <div class="modal fade" id="securityGateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; @if($isCsb) border-top: 4px solid #c8232c !important; @endif">
             <div class="modal-header border-0 pb-0">
+                @if($isCsb)
+                <div class="d-flex align-items-center justify-content-between w-100 pt-2 px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill fw-bold" style="font-size: 10px;">
+                            <i class="fa-solid fa-shield-halved me-1"></i>FDIC
+                        </span>
+                        <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">{{ __('Security Verification') }}</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                @else
                 <h5 class="fw-bold text-dark pt-3 px-3">{{ __('Multi-Factor Authentication Verification') }}</h5>
                 <button type="button" class="btn-close me-2 mt-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                @endif
             </div>
             
             <div class="modal-body p-0" id="sg-modal-body">
@@ -28,7 +46,7 @@
                         
                         <div class="method-list">
                             <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('biometric')" id="sg-choice-biometric">
-                                <div class="method-icon" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                                <div class="method-icon" style="background: {{ $isCsb ? 'rgba(200, 35, 44, 0.1)' : 'rgba(2, 132, 199, 0.1)' }}; color: {{ $isCsb ? '#c8232c' : '#0284c7' }};">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 11c0 3.5-1.5 6-4 7.5"></path>
                                         <path d="M12 11c0-2.5 1.5-4 4-4s4 1.5 4 4c0 3.5-1.5 6-4 7.5"></path>
@@ -75,6 +93,17 @@
 
                     <!-- Biometric Verification Section -->
                     <div id="sg-biometric-verify" class="d-none text-center">
+                        @if($isCsb)
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle csb-sg-pulse" style="width: 72px; height: 72px; background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 32px; border: 2px solid rgba(200, 35, 44, 0.25);">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <h4 class="fw-bold mb-1" style="color: #162846;">{{ __('Biometric Authentication') }}</h4>
+                        <p class="text-secondary small mb-4">{{ __('Use Face ID, Touch ID, or Windows Hello passkey to authorize this action.') }}</p>
+
+                        <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()" style="background: linear-gradient(135deg, #c8232c 0%, #a81c24 100%); font-size: 15px; border: none; box-shadow: 0 4px 14px rgba(200, 35, 44, 0.28);">
+                            <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
+                        </button>
+                        @else
                         <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background: rgba(2, 132, 199, 0.1); color: #0284c7; font-size: 32px;">
                             <i class="fa-solid fa-fingerprint"></i>
                         </div>
@@ -84,6 +113,7 @@
                         <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()" style="background: #0284c7; font-size: 15px;">
                             <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
                         </button>
+                        @endif
 
                         <div class="mt-4">
                             @if($sgHasPin)
@@ -111,7 +141,7 @@
                             <input type="text" id="sg-email-code-input" class="input-box otp-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
                         
-                        <button type="button" class="primary-btn w-100 mb-3" id="sg-verify-btn" onclick="SecurityGate.submitVerification()">{{ __('Verify Code') }}</button>
+                        <button type="button" class="primary-btn w-100 mb-3" id="sg-verify-btn" onclick="SecurityGate.submitVerification()" @if($isCsb) style="background: linear-gradient(135deg, #c8232c 0%, #a81c24 100%) !important; border-radius: 10px !important;" @endif>{{ __('Verify Code') }}</button>
 
                         <div class="mt-4">
                             <div class="mb-2">
@@ -162,6 +192,34 @@
 </div>
 
 <style>
+@if($isCsb)
+    @keyframes csbSgPulse {
+        0% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0.28); }
+        70% { box-shadow: 0 0 0 14px rgba(200, 35, 44, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0); }
+    }
+    .csb-sg-pulse {
+        animation: csbSgPulse 2.4s infinite ease-in-out;
+    }
+    #securityGateModal .pin-dot.filled {
+        background-color: #c8232c !important;
+        border-color: #c8232c !important;
+    }
+    #securityGateModal .pin-dot {
+        border-color: #162846 !important;
+    }
+    #securityGateModal .key-btn.backspace {
+        color: #c8232c !important;
+    }
+    #securityGateModal .method-card:hover {
+        border-color: #c8232c !important;
+        border-left-color: #c8232c !important;
+        background: #fdf2f2 !important;
+    }
+    #securityGateModal .forgot-link {
+        color: #c8232c !important;
+    }
+@endif
     #securityGateModal {
         z-index: 10600 !important;
     }

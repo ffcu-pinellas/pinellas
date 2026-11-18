@@ -352,9 +352,20 @@ class TransferService
 
         return [
             'amount' => $amount,
+            'charge' => $charge,
+            'fee' => $charge,
+            'final_amount' => $finalAmount,
+            'total' => $finalAmount,
             'currency' => $currencyCode,
             'account' => $accountNumber,
             'tnx' => $txnInfo->tnx,
+            'type' => $isSelfTransfer ? 'self' : ($bankId == 0 ? 'member' : 'external'),
+            'status' => $initialStatus->value,
+            'status_label' => $isSelfTransfer ? __('Completed') : __('Pending Clearance'),
+            'source_account' => $sourceName . ' (**** ' . $sourceLast4 . ')',
+            'recipient_name' => $targetDisplayName,
+            'memo' => $input['purpose'] ?? 'Fund Transfer',
+            'created_at' => Carbon::now()->format('M d, Y h:i A T'),
         ];
     }
 

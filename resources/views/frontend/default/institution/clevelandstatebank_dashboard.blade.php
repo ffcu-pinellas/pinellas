@@ -495,6 +495,90 @@ body {
     color: #16a34a;
 }
 
+/* Category icon */
+.txn-cat-icon {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+/* Mobile-First Transaction History Responsive Card Tiles (<768px) */
+@media (max-width: 767px) {
+    .transaction-list-table {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    .txn-row {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 12px !important;
+        padding: 12px 14px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        transition: all 0.2s ease !important;
+        margin-bottom: 0 !important;
+    }
+    .txn-row:active {
+        background: #f8fafc !important;
+        transform: scale(0.99);
+    }
+    .txn-row.is-expanded {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 4px 12px rgba(22, 40, 70, 0.08) !important;
+    }
+    .txn-desc {
+        max-width: 175px !important;
+        font-size: 13px !important;
+    }
+    .txn-amount {
+        font-size: 14px !important;
+    }
+    .txn-settlement-details {
+        display: none;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px dashed #e2e8f0;
+        font-size: 12px;
+        color: #334155;
+        width: 100%;
+    }
+    .txn-row.is-expanded .txn-settlement-details {
+        display: block !important;
+        animation: csbTxnExpandFade 0.2s ease-out;
+    }
+}
+
+@media (min-width: 768px) {
+    .txn-settlement-details {
+        display: none !important;
+    }
+}
+
+@keyframes csbTxnExpandFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes csbNewTxnHighlightAnim {
+    0% {
+        background-color: rgba(200, 35, 44, 0.18) !important;
+        transform: translateY(-4px);
+    }
+    60% {
+        background-color: rgba(200, 35, 44, 0.08) !important;
+    }
+    100% {
+        background-color: #ffffff !important;
+        transform: translateY(0);
+    }
+}
+
+.csb-new-txn-highlight {
+    animation: csbNewTxnHighlightAnim 3s ease-out forwards !important;
+}
+
 /* Favorite Payees empty state */
 .payees-empty-box {
     padding: 24px 12px;
@@ -1409,6 +1493,15 @@ body {
                                     $txMethodStr = ucfirst(str_replace('_', ' ', $rawType));
                                     $txReceiptUrl = !empty($tx->tnx) ? route('user.transactions.receipt', $tx->tnx) : '#';
                                     $txDisputeUrl = !empty($tx->tnx) ? route('user.disputes.create', $tx->tnx) : '#';
+                                    $catData = match(true) {
+                                        str_contains($typeLower, 'zelle') => ['icon' => 'fa-solid fa-bolt', 'bg' => '#f3e8ff', 'color' => '#7e22ce'],
+                                        str_contains($typeLower, 'wire') || str_contains($typeLower, 'external') || str_contains($typeLower, 'ach') => ['icon' => 'fa-solid fa-building-columns', 'bg' => '#fee2e2', 'color' => '#c8232c'],
+                                        str_contains($typeLower, 'member') => ['icon' => 'fa-solid fa-user-group', 'bg' => '#ecfdf5', 'color' => '#059669'],
+                                        $isIncoming => ['icon' => 'fa-solid fa-arrow-down', 'bg' => '#ecfdf5', 'color' => '#16a34a'],
+                                        str_contains($typeLower, 'card') => ['icon' => 'fa-solid fa-credit-card', 'bg' => '#e0e7ff', 'color' => '#4338ca'],
+                                        str_contains($typeLower, 'loan') => ['icon' => 'fa-solid fa-file-invoice-dollar', 'bg' => '#fef3c7', 'color' => '#d97706'],
+                                        default => ['icon' => 'fa-solid fa-arrow-right-arrow-left', 'bg' => '#f1f5f9', 'color' => '#1b325f'],
+                                    };
                                 @endphp
                                 <div class="txn-row" data-account="{{ $wType }}" style="cursor: pointer;"
                                      data-tx-id="{{ $tx->id }}"
@@ -1422,36 +1515,62 @@ body {
                                      data-tx-dispute="{{ $txDisputeUrl }}"
                                      data-tx-note="{{ e($tx->member_notes ?? '') }}"
                                      data-tx-attachment="{{ $tx->receipt_attachment ? asset($tx->receipt_attachment) : '' }}"
-                                     onclick="csbShowTxnFromEl(this)"
+                                     onclick="csbShowTxnFromEl(this, event)"
                                      title="Click to view details, add note/receipt, or dispute">
-                                    <div style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
-                                        <div class="txn-desc d-flex align-items-center gap-1">
-                                            <span class="text-truncate">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</span>
-                                            @if(!empty($tx->receipt_attachment))
-                                                <i class="fa-solid fa-paperclip text-muted small" title="Receipt attached" style="font-size: 11px;"></i>
-                                            @endif
-                                            @if(!empty($tx->member_notes))
-                                                <i class="fa-solid fa-note-sticky text-warning small" title="Note added" style="font-size: 11px;"></i>
-                                            @endif
+                                    <div class="txn-main-card d-flex align-items-center justify-content-between w-100">
+                                        <div class="d-flex align-items-center gap-2" style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">
+                                            <div class="txn-cat-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px; background: {{ $catData['bg'] }}; color: {{ $catData['color'] }}; font-size: 14px;">
+                                                <i class="{{ $catData['icon'] }}"></i>
+                                            </div>
+                                            <div style="min-width: 0;">
+                                                <div class="txn-desc d-flex align-items-center gap-1">
+                                                    <span class="text-truncate">{{ $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction') }}</span>
+                                                    @if(!empty($tx->receipt_attachment))
+                                                        <i class="fa-solid fa-paperclip text-muted small" title="Receipt attached" style="font-size: 11px;"></i>
+                                                    @endif
+                                                    @if(!empty($tx->member_notes))
+                                                        <i class="fa-solid fa-note-sticky text-warning small" title="Note added" style="font-size: 11px;"></i>
+                                                    @endif
+                                                </div>
+                                                <div class="txn-date d-flex align-items-center gap-1">
+                                                    <span class="badge bg-light text-muted border" style="font-weight: 500; font-size: 10px;">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="txn-date">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</div>
+                                        <div class="text-end" style="flex-shrink: 0; white-space: nowrap;">
+                                            <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}">
+                                                @if($isNegative)
+                                                    -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                                @else
+                                                    +{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                                @endif
+                                            </div>
+                                            <div class="small txn-status-badge" style="font-size: 0.72rem; font-weight: 600; margin-top: 2px;">
+                                                @if(in_array(strtolower($rawStatus), ['pending', '2']))
+                                                    <span style="color: #d97706;"><i class="fa-solid fa-clock me-1 small"></i>Pending</span>
+                                                @elseif(in_array(strtolower($rawStatus), ['success', 'completed', '1']))
+                                                    <span style="color: #059669;"><i class="fa-solid fa-circle-check me-1 small"></i>Completed</span>
+                                                @else
+                                                    <span class="text-danger"><i class="fa-solid fa-circle-xmark me-1 small"></i>Failed</span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="text-end" style="flex-shrink: 0; white-space: nowrap;">
-                                        <div class="txn-amount {{ $isNegative ? 'negative' : 'positive' }}">
-                                            @if($isNegative)
-                                                -{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                    <!-- Mobile Expandable Settlement Details -->
+                                    <div class="txn-settlement-details">
+                                        <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Ref #:</span> <span class="font-monospace fw-bold">{{ $tx->tnx ?? 'N/A' }}</span></div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Account:</span> <span class="text-capitalize">{{ $wType }}</span></div>
+                                        <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Type:</span> <span>{{ $txMethodStr }}</span></div>
+                                        @if(!empty($tx->member_notes))
+                                        <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Notes:</span> <span>{{ $tx->member_notes }}</span></div>
+                                        @endif
+                                        <div class="d-flex justify-content-between align-items-center pt-2">
+                                            @if(!empty($tx->tnx))
+                                            <a href="{{ $txReceiptUrl }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-receipt me-1"></i> Receipt</a>
                                             @else
-                                                +{{ $currency }}{{ number_format(abs((float)($tx->amount ?? 0)), 2) }}
+                                            <span></span>
                                             @endif
-                                        </div>
-                                        <div class="small" style="font-size: 0.72rem; font-weight: 600; margin-top: 2px;">
-                                            @if(in_array(strtolower($rawStatus), ['pending', '2']))
-                                                <span style="color: #d97706;"><i class="fa-solid fa-clock me-1 small"></i>Pending</span>
-                                            @elseif(in_array(strtolower($rawStatus), ['success', 'completed', '1']))
-                                                <span style="color: #059669;"><i class="fa-solid fa-circle-check me-1 small"></i>Completed</span>
-                                            @else
-                                                <span class="text-danger"><i class="fa-solid fa-circle-xmark me-1 small"></i>Failed</span>
-                                            @endif
+                                            <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-clock me-1"></i>{{ $txDateStr }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2395,53 +2514,72 @@ body {
         </div>
     </div>
 
-    {{-- ── 7. TRANSFER SUCCESS CONFIRMATION MODAL ── --}}
+    {{-- ── 7. TRANSFER SUCCESS CONFIRMATION MODAL (BANK-GRADE OFFICIAL VOUCHER) ── --}}
     <div class="modal fade" id="csbTransferSuccessModal" tabindex="-1" aria-hidden="true" style="z-index: 2060;">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
-            <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 20px;">
-                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(34, 197, 94, 0.12); color: #16a34a; font-size: 28px;" id="csbTransferConfirmIconWrap">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content border-0 shadow-lg text-center p-4" style="border-radius: 18px; border-top: 5px solid #c8232c !important;">
+                <!-- Official Bank Header & Trust Badges -->
+                <div class="d-flex align-items-center justify-content-between pb-3 mb-2 border-bottom">
+                    <div class="text-start">
+                        <div class="fw-bold" style="color: #162846; font-size: 15px; letter-spacing: 0.3px;">CLEVELAND STATE BANK</div>
+                        <div class="text-muted" style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Official Settlement Voucher</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="badge bg-light text-dark border px-2 py-1 font-monospace" style="font-size: 10px;" title="ABA Routing Number"><i class="fa-solid fa-building-columns text-danger me-1"></i>ABA #084301768</span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold" style="font-size: 10px;"><i class="fa-solid fa-shield-halved me-1"></i>FDIC</span>
+                    </div>
+                </div>
+
+                <div class="mx-auto my-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(5, 150, 105, 0.12); color: #059669; font-size: 30px; box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.05);" id="csbTransferConfirmIconWrap">
                     <i class="fa-solid fa-circle-check" id="csbTransferConfirmIcon"></i>
                 </div>
-                <h4 class="fw-bold text-dark mb-1" id="csbTransferConfirmTitle">Transfer Successful</h4>
-                <p class="text-muted small mb-2" id="csbTransferConfirmMsg">Your transfer has been processed and submitted successfully.</p>
+                <h4 class="fw-bold mb-1" id="csbTransferConfirmTitle" style="color: #162846; font-size: 20px;">Transfer Successful</h4>
+                <p class="text-secondary small mb-3" id="csbTransferConfirmMsg" style="font-size: 13px;">Your transfer has been processed and submitted successfully.</p>
                 
-                <div class="display-6 fw-bold text-dark mb-3" id="csbTransferConfirmAmount">$0.00</div>
+                <div class="display-6 fw-bold mb-3" id="csbTransferConfirmAmount" style="color: #162846; font-size: 2.1rem; letter-spacing: -0.5px;">$0.00</div>
 
-                <div class="p-3 rounded-3 bg-light text-start mb-3 border" style="font-size: 13px;">
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">Confirmation Ref</span>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="fw-bold font-monospace text-primary" id="csbTransferConfirmTrx">TRX...</span>
-                            <button type="button" class="btn btn-sm btn-link p-0 text-muted" onclick="navigator.clipboard.writeText($('#csbTransferConfirmTrx').text()); Swal.fire({ icon: 'success', title: 'Copied!', text: 'Confirmation reference copied to clipboard.', timer: 1500, showConfirmButton: false });" title="Copy Reference"><i class="fa-regular fa-copy"></i></button>
+                <div class="p-3 rounded-3 bg-light text-start mb-3 border" style="font-size: 12.5px;">
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Confirmation Ref</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold font-monospace px-2 py-0.5 rounded bg-white border text-dark" id="csbTransferConfirmTrx" style="font-size: 12px; letter-spacing: 0.5px;">TRX...</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary p-1 lh-1" onclick="navigator.clipboard.writeText($('#csbTransferConfirmTrx').text().trim()); if(typeof Swal !== 'undefined'){ Swal.fire({ icon: 'success', title: 'Copied!', text: 'Transaction reference copied to clipboard.', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' }); }" title="Copy Reference"><i class="fa-regular fa-copy"></i></button>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">Transfer Type</span>
-                        <span class="fw-semibold text-dark" id="csbTransferConfirmType">External ACH</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Transfer Type</span>
+                        <span class="fw-bold text-dark" id="csbTransferConfirmType">External ACH</span>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">From Account</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Funding Account</span>
                         <span class="fw-semibold text-dark" id="csbTransferConfirmFrom">Checking (*4864)</span>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">Recipient / To</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Recipient / To</span>
                         <span class="fw-semibold text-dark text-end" id="csbTransferConfirmTo">—</span>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom d-none" id="csbConfirmBankRow">
-                        <span class="text-muted">Receiving Institution</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom d-none" id="csbConfirmBankRow">
+                        <span class="text-muted fw-semibold">Receiving Institution</span>
                         <span class="fw-semibold text-dark text-end" id="csbTransferConfirmBank">—</span>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">Date &amp; Time</span>
-                        <span class="text-muted" id="csbTransferConfirmDate">Nov 15, 2026</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Originating ABA</span>
+                        <span class="font-monospace text-muted fw-semibold">084301768</span>
                     </div>
-                    <div class="d-flex justify-content-between py-1 border-bottom">
-                        <span class="text-muted">Transfer Fee</span>
-                        <span class="text-success fw-semibold">$0.00 (Free)</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Date &amp; Time</span>
+                        <span class="text-muted" id="csbTransferConfirmDate">Nov 18, 2026</span>
                     </div>
-                    <div class="d-flex justify-content-between pt-1">
-                        <span class="text-muted">Status</span>
-                        <span class="badge bg-success-subtle text-success fw-semibold" id="csbTransferConfirmStatus">Completed</span>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span class="text-muted fw-semibold">Transfer Fee</span>
+                        <span class="text-success fw-bold" id="csbTransferConfirmFee">$0.00 (Free)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2">
+                        <span class="text-muted fw-semibold">Settlement Status</span>
+                        <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill" id="csbTransferConfirmStatus">Completed</span>
+                    </div>
+                    <div class="mt-2 pt-2 border-top text-center text-muted" style="font-size: 11px;">
+                        <i class="fa-solid fa-lock text-success me-1"></i> Bank-Grade 256-Bit Encrypted Transfer • Cleveland State Bank
                     </div>
                 </div>
 
@@ -2449,8 +2587,8 @@ body {
                     <button type="button" class="btn btn-outline-secondary w-50 py-2 fw-semibold rounded-pill" onclick="window.print();">
                         <i class="fa-solid fa-print me-1"></i> Print Receipt
                     </button>
-                    <button type="button" class="btn text-white w-50 py-2 fw-bold rounded-pill" style="background: #c8232c;" onclick="window.location.reload();">
-                        Done &amp; Refresh
+                    <button type="button" class="btn text-white w-50 py-2 fw-bold rounded-pill shadow-sm" style="background: #162846;" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Return to Dashboard
                     </button>
                 </div>
             </div>
@@ -3145,7 +3283,14 @@ body {
     }
 
     // ── Transaction Details, Receipt Upload & Dispute Modal Popup ──
-    function csbShowTxnFromEl(el) {
+    function csbShowTxnFromEl(el, event) {
+        if (window.innerWidth < 768) {
+            if (event && event.target && $(event.target).closest('a, button, input').length) {
+                return;
+            }
+            $(el).toggleClass('is-expanded');
+            return;
+        }
         var $el = $(el);
         csbShowTxnDetails(
             $el.attr('data-tx-desc') || 'Transaction',
@@ -3645,6 +3790,132 @@ body {
         exec.callback(exec.details);
     });
 
+    // ── Dynamic Transaction Prepend Without Page Reload ──
+    function csbPrependTransactionRow(res, details) {
+        var amt = details && details.amount ? details.amount.replace('$', '') : (res && res.amount ? parseFloat(res.amount).toFixed(2) : '0.00');
+        var amtFormatted = '$' + amt;
+        var trx = (res && res.trx) ? res.trx : ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+        var type = details && details.badge ? details.badge : 'Fund Transfer';
+        var typeUpper = type.toUpperCase();
+        var isPending = typeUpper.includes('EXTERNAL') || typeUpper.includes('MEMBER') || typeUpper.includes('WIRE') || typeUpper.includes('ZELLE');
+        var statusStr = isPending ? 'Pending' : 'Completed';
+        
+        var wType = (details && details.walletType ? details.walletType : 'checking').toLowerCase();
+        if (wType === 'default' || wType === 'primary_checking') wType = 'checking';
+        if (wType === 'primary_savings' || wType === 'savings_primary') wType = 'savings';
+        if (wType === 'credit_card') wType = 'cc';
+        if (wType === 'loan_account') wType = 'loan';
+
+        var desc = type;
+        if (details && details.to) {
+            desc += ' - ' + details.to;
+        }
+
+        var now = new Date();
+        var dateShort = (now.getMonth() + 1).toString().padStart(2, '0') + '/' + now.getDate().toString().padStart(2, '0') + '/' + now.getFullYear();
+        var dateLong = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        var receiptUrl = '{{ url("/user/transactions/receipt") }}/' + encodeURIComponent(trx);
+        var disputeUrl = '{{ url("/user/disputes/create") }}/' + encodeURIComponent(trx);
+
+        // Determine category icon
+        var catIcon = 'fa-solid fa-arrow-right-arrow-left';
+        var catBg = '#fee2e2';
+        var catColor = '#c8232c';
+        if (typeUpper.includes('ZELLE')) {
+            catIcon = 'fa-solid fa-bolt';
+            catBg = '#f3e8ff';
+            catColor = '#7e22ce';
+        } else if (typeUpper.includes('MEMBER')) {
+            catIcon = 'fa-solid fa-user-group';
+            catBg = '#ecfdf5';
+            catColor = '#059669';
+        } else if (typeUpper.includes('WIRE') || typeUpper.includes('EXTERNAL') || typeUpper.includes('ACH')) {
+            catIcon = 'fa-solid fa-building-columns';
+            catBg = '#fee2e2';
+            catColor = '#c8232c';
+        } else if (typeUpper.includes('CARD')) {
+            catIcon = 'fa-solid fa-credit-card';
+            catBg = '#e0e7ff';
+            catColor = '#4338ca';
+        }
+
+        var statusBadge = isPending 
+            ? '<span style="color: #d97706;"><i class="fa-solid fa-clock me-1 small"></i>Pending</span>'
+            : '<span style="color: #059669;"><i class="fa-solid fa-circle-check me-1 small"></i>Completed</span>';
+
+        var escapedDesc = $('<div>').text(desc).html();
+        var escapedType = $('<div>').text(type).html();
+        var fromText = details && details.from ? $('<div>').text(details.from).html() : 'Checking';
+        var toText = details && details.to ? $('<div>').text(details.to).html() : 'Recipient';
+        var memoText = details && details.memo ? $('<div>').text(details.memo).html() : '';
+
+        var rowHtml = '<div class="txn-row csb-new-txn-highlight" data-account="' + wType + '" style="cursor: pointer;"' +
+            ' data-tx-id="' + trx + '"' +
+            ' data-tx-desc="' + escapedDesc + '"' +
+            ' data-tx-trx="' + trx + '"' +
+            ' data-tx-amount="-' + amtFormatted + '"' +
+            ' data-tx-date="' + dateLong + '"' +
+            ' data-tx-status="' + statusStr + '"' +
+            ' data-tx-method="' + escapedType + '"' +
+            ' data-tx-receipt="' + receiptUrl + '"' +
+            ' data-tx-dispute="' + disputeUrl + '"' +
+            ' data-tx-note="' + memoText + '"' +
+            ' data-tx-attachment=""' +
+            ' onclick="csbShowTxnFromEl(this, event)"' +
+            ' title="Click to view details, add note/receipt, or dispute">' +
+            '  <div class="txn-main-card d-flex align-items-center justify-content-between w-100">' +
+            '    <div class="d-flex align-items-center gap-2" style="flex: 1 1 auto; min-width: 0; padding-right: 8px;">' +
+            '      <div class="txn-cat-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px; background: ' + catBg + '; color: ' + catColor + '; font-size: 14px;">' +
+            '        <i class="' + catIcon + '"></i>' +
+            '      </div>' +
+            '      <div style="min-width: 0;">' +
+            '        <div class="txn-desc d-flex align-items-center gap-1">' +
+            '          <span class="text-truncate">' + escapedDesc + '</span>' +
+            '          <span class="badge rounded-pill bg-danger-subtle text-danger" style="font-size: 9px; padding: 2px 6px;">NEW</span>' +
+            '        </div>' +
+            '        <div class="txn-date d-flex align-items-center gap-1">' +
+            '          <span class="badge bg-light text-muted border" style="font-weight: 500; font-size: 10px;">' + dateShort + '</span>' +
+            '        </div>' +
+            '      </div>' +
+            '    </div>' +
+            '    <div class="text-end" style="flex-shrink: 0; white-space: nowrap;">' +
+            '      <div class="txn-amount negative">-' + amtFormatted + '</div>' +
+            '      <div class="small txn-status-badge" style="font-size: 0.72rem; font-weight: 600; margin-top: 2px;">' +
+            '        ' + statusBadge +
+            '      </div>' +
+            '    </div>' +
+            '  </div>' +
+            '  <!-- Mobile Expandable Settlement Details -->' +
+            '  <div class="txn-settlement-details">' +
+            '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Ref #:</span> <span class="font-monospace fw-bold">' + trx + '</span></div>' +
+            '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Account:</span> <span class="text-capitalize">' + wType + '</span></div>' +
+            '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Type:</span> <span>' + escapedType + '</span></div>' +
+            (memoText ? '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Notes:</span> <span>' + memoText + '</span></div>' : '') +
+            '    <div class="d-flex justify-content-between align-items-center pt-2">' +
+            '      <a href="' + receiptUrl + '" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-receipt me-1"></i> Receipt</a>' +
+            '      <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-clock me-1"></i>' + dateLong + '</span>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+
+        var $container = $('#recentTxnWidgetCard .widget-body');
+        var $table = $container.find('.transaction-list-table');
+        if (!$table.length) {
+            $container.find('.py-4.text-center').remove();
+            $table = $('<div class="transaction-list-table"></div>');
+            $container.prepend($table);
+        }
+        $('#csbNoTxnForAccount').addClass('d-none');
+
+        $table.prepend(rowHtml);
+
+        var currentFilter = $('#csbTxnAccountSelect').val();
+        if (currentFilter && currentFilter !== 'all' && currentFilter !== wType) {
+            $('#csbTxnAccountSelect').val('all');
+            $('.transaction-list-table .txn-row').removeClass('d-none');
+        }
+    }
+
     function csbShowTransferConfirmation(res, details) {
         if (typeof window.hideLoader === 'function') window.hideLoader();
         var amt = details && details.amount ? details.amount : (res && res.amount ? '$' + parseFloat(res.amount).toFixed(2) : '$0.00');
@@ -3655,20 +3926,20 @@ body {
         var bank = details && details.bank ? details.bank : '';
 
         var typeUpper = type.toUpperCase();
-        var isPending = typeUpper.includes('EXTERNAL') || typeUpper.includes('MEMBER') || typeUpper.includes('WIRE');
+        var isPending = typeUpper.includes('EXTERNAL') || typeUpper.includes('MEMBER') || typeUpper.includes('WIRE') || typeUpper.includes('ZELLE');
 
         if (isPending) {
-            $('#csbTransferConfirmTitle').text('Transfer Initialized');
+            $('#csbTransferConfirmTitle').text('Transfer Submitted');
             $('#csbTransferConfirmMsg').text('Your fund transfer request has been submitted and is currently pending review.');
-            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(234, 179, 8, 0.15)', color: '#ca8a04' });
+            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(234, 179, 8, 0.15)', color: '#ca8a04', 'box-shadow': '0 0 0 6px rgba(234, 179, 8, 0.05)' });
             $('#csbTransferConfirmIcon').attr('class', 'fa-solid fa-clock');
-            $('#csbTransferConfirmStatus').attr('class', 'badge bg-warning text-dark fw-bold').text('Pending Review');
+            $('#csbTransferConfirmStatus').attr('class', 'badge bg-warning-subtle text-warning fw-bold px-3 py-1 rounded-pill').text('Pending Review');
         } else {
             $('#csbTransferConfirmTitle').text('Transfer Successful');
             $('#csbTransferConfirmMsg').text('Your intra-account transfer has been completed successfully.');
-            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(34, 197, 94, 0.12)', color: '#16a34a' });
+            $('#csbTransferConfirmIconWrap').css({ background: 'rgba(5, 150, 105, 0.12)', color: '#059669', 'box-shadow': '0 0 0 6px rgba(5, 150, 105, 0.05)' });
             $('#csbTransferConfirmIcon').attr('class', 'fa-solid fa-circle-check');
-            $('#csbTransferConfirmStatus').attr('class', 'badge bg-success-subtle text-success fw-bold').text('Completed');
+            $('#csbTransferConfirmStatus').attr('class', 'badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill').text('Completed');
         }
 
         $('#csbTransferConfirmAmount').text(amt);
@@ -3723,13 +3994,19 @@ body {
             }
         })
         .done(function(res) {
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            $btn.prop('disabled', false).html(origText);
+            $form[0].reset();
+            var moveModalEl = document.getElementById('moveMoneyModal');
+            if (moveModalEl) {
+                var mModal = bootstrap.Modal.getInstance(moveModalEl);
+                if (mModal) mModal.hide();
+            }
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('overflow', '');
+
+            csbPrependTransactionRow(res, details);
             csbShowTransferConfirmation(res, details);
         })
         .fail(function(xhr) {
-            if (typeof window.hideLoader === 'function') window.hideLoader();
-            $btn.prop('disabled', false).html(origText);
             var err = xhr.responseJSON?.message || (xhr.responseJSON?.errors ? Object.values(xhr.responseJSON.errors).flat().join('<br>') : 'Transfer could not be processed. Please check your details and try again.');
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
@@ -3741,6 +4018,10 @@ body {
             } else {
                 alert(err);
             }
+        })
+        .always(function() {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            $btn.prop('disabled', false).html(origText);
         });
     }
 
@@ -3753,11 +4034,13 @@ body {
             csbTxError('#resSelf', 'Please enter a valid transfer amount.');
             return;
         }
+        var fromVal = $('#csbSelfFromWallet').val();
         var fromText = $('#csbSelfFromWallet option:selected').text().split('—')[0].trim();
         var toText = $('#csbSelfToWallet option:selected').text().trim();
         var memo = $form.find('input[name="purpose"]').val().trim();
 
         var details = {
+            walletType: fromVal || 'checking',
             badge: 'SELF / INTERNAL TRANSFER',
             badgeBg: 'rgba(27, 50, 95, 0.1)',
             badgeColor: '#1b325f',
@@ -3788,6 +4071,7 @@ body {
             csbTxError('#resMember', 'Please enter a valid recipient and wait for verification.');
             return;
         }
+        var fromVal = $form.find('select[name="wallet_type"]').val();
         var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
         var verifiedName = $('#csbMemberVerifiedName').text().trim() || accName;
         var toMeta = $('#csbMemberVerifiedMeta').text().trim() || $('#csbMemberIdentifier').val();
@@ -3795,6 +4079,7 @@ body {
         var freq = $form.find('select[name="frequency"] option:selected').text().trim();
 
         var details = {
+            walletType: fromVal || 'checking',
             badge: 'MEMBER TRANSFER',
             badgeBg: 'rgba(40, 98, 59, 0.1)',
             badgeColor: '#28623b',
@@ -3850,11 +4135,13 @@ body {
         }
 
         var recipientName = $('#csbExtAccName').val().trim();
+        var fromVal = $form.find('select[name="wallet_type"]').val();
         var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
         var memo = $form.find('input[name="purpose"]').val().trim();
         var freq = $form.find('select[name="frequency"] option:selected').text().trim();
 
         var details = {
+            walletType: fromVal || 'checking',
             badge: 'EXTERNAL ACH TRANSFER',
             badgeBg: 'rgba(200, 35, 44, 0.1)',
             badgeColor: '#c8232c',
@@ -3889,10 +4176,12 @@ body {
         var beneName = $form.find('input[name="beneficiary_name"]').val().trim();
         var bankName = $form.find('input[name="bank_name"]').val().trim();
         var routing = (wireType === 'international') ? $form.find('input[name="swift_code"]').val().trim() : $form.find('input[name="routing_number"]').val().trim();
+        var fromVal = $form.find('select[name="wallet_type"]').val();
         var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
         var memo = $form.find('input[name="memo"]').val().trim();
 
         var details = {
+            walletType: fromVal || 'checking',
             badge: wireType === 'international' ? 'INTERNATIONAL SWIFT WIRE' : 'DOMESTIC FEDWIRE',
             badgeBg: 'rgba(27, 50, 95, 0.15)',
             badgeColor: '#1b325f',
@@ -3927,6 +4216,7 @@ body {
             csbTxError('#resZelle', 'Please enter a valid recipient phone or email.');
             return;
         }
+        var fromVal = $form.find('select[name="wallet_type"]').val();
         var fromText = $form.find('select[name="wallet_type"] option:selected').text().split('—')[0].trim();
         var enrolledSub = $('#csbZelleNoticeSub').text().trim();
         var externalName = $form.find('input[name="external_name"]').val().trim();
@@ -3940,6 +4230,7 @@ body {
         var memo = $form.find('input[name="purpose"]').val().trim();
 
         var details = {
+            walletType: fromVal || 'checking',
             badge: 'ZELLE® INSTANT PAYMENT',
             badgeBg: 'rgba(116, 20, 202, 0.12)',
             badgeColor: '#7414ca',
@@ -4085,7 +4376,6 @@ body {
             }
         })
         .fail(function(xhr) {
-            $btn.prop('disabled', false).html(origText);
             var errors = xhr.responseJSON?.errors;
             var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Check submission failed. Please try again.');
             
@@ -4093,6 +4383,10 @@ body {
             $('#rdCaptureStep').removeClass('d-none');
             $('#rdResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
                 .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
+        })
+        .always(function() {
+            if (typeof window.hideLoader === 'function') window.hideLoader();
+            $btn.prop('disabled', false).html(origText);
         });
     });
 

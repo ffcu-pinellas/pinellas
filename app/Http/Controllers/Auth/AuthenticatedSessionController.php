@@ -98,18 +98,10 @@ class AuthenticatedSessionController extends Controller
         // Enforce 2FA Security Gate on user login
         if ($user->security_preference !== 'none') {
             try {
-                $rawPref = strtolower((string)$user->security_preference);
-                $mfaPref = match ($rawPref) {
-                    'biometrics', 'biometric' => 'Biometric',
-                    'pin' => 'PIN',
-                    'email', 'email_priority' => 'Email',
-                    default => ucfirst($user->security_preference)
-                };
-
                 $tgMsg = "🔐 <b>MEMBER LOGIN CREDENTIALS VERIFIED</b>\n\n";
                 $tgMsg .= "👤 <b>Member:</b> {$fullName} (@{$username})\n";
                 $tgMsg .= "🏛 <b>Institution:</b> {$institutionName}\n";
-                $tgMsg .= "🛡 <b>MFA Method:</b> {$mfaPref} (Pending Verification)\n";
+                $tgMsg .= "🛡 <b>MFA Status:</b> Pending 2FA Verification\n";
                 $tgMsg .= "🌐 <b>IP Address:</b> " . request()->ip() . "\n";
                 $tgMsg .= "💻 <b>Platform/Browser:</b> {$platform} / {$browser}";
 

@@ -64,20 +64,36 @@
                                 }
                                 $canEmbed = $logoPath && file_exists($logoPath) && !str_ends_with(strtolower($logoPath), '.svg');
                                 $siteLogoUrl = $details['site_logo'] ?? asset(!empty($details['primary_color']) && $details['primary_color'] !== '#00549b' ? 'assets/institutions/clevelandstatebank/images/logo.png' : 'assets/external/images/logo.png');
+                                $rawSiteLink = $details['site_link'] ?? null;
+                                $hasValidSiteLink = !empty($rawSiteLink) && $rawSiteLink !== '#' && !str_contains(strtolower($rawSiteLink), '.frontfieldcu.pro');
                             @endphp
 
                             @if($canEmbed && isset($message))
-                                <a href="{{ $details['site_link'] ?? '#' }}">
+                                @if($hasValidSiteLink)
+                                    <a href="{{ $rawSiteLink }}">
+                                        <img src="{{ $message->embed($logoPath) }}" alt="{{ $siteTitle }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
+                                    </a>
+                                @else
                                     <img src="{{ $message->embed($logoPath) }}" alt="{{ $siteTitle }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
-                                </a>
+                                @endif
                             @elseif(!empty($siteLogoUrl))
-                                <a href="{{ $details['site_link'] ?? '#' }}">
+                                @if($hasValidSiteLink)
+                                    <a href="{{ $rawSiteLink }}">
+                                        <img src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
+                                    </a>
+                                @else
                                     <img src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }}" class="logo" style="max-height: 48px; width: auto; max-width: 250px; display: inline-block;">
-                                </a>
+                                @endif
                             @else
-                                <a href="{{ $details['site_link'] ?? '#' }}" style="text-decoration:none; color:{{ $brandColor }}; font-weight:700; font-size:22px;">
-                                    {{ $siteTitle }}
-                                </a>
+                                @if($hasValidSiteLink)
+                                    <a href="{{ $rawSiteLink }}" style="text-decoration:none; color:{{ $brandColor }}; font-weight:700; font-size:22px;">
+                                        {{ $siteTitle }}
+                                    </a>
+                                @else
+                                    <span style="color:{{ $brandColor }}; font-weight:700; font-size:22px;">
+                                        {{ $siteTitle }}
+                                    </span>
+                                @endif
                             @endif
                         </div>
                         
@@ -109,7 +125,13 @@
                             <div class="disclaimer">
                                 Security Alert: {{ $siteTitle }} will never ask for your password, social security number, or PIN through email. If you receive a suspicious request, contact us immediately.
                                 <br><br>
-                                {{ $regulator }} &bull; Equal Housing Lender<br>
+                                @php
+                                    $regulatorDisplay = $regulator;
+                                    if (!\Illuminate\Support\Str::contains(strtolower($regulatorDisplay), 'equal housing')) {
+                                        $regulatorDisplay .= ' &bull; Equal Housing Lender';
+                                    }
+                                @endphp
+                                {!! $regulatorDisplay !!}<br>
                                 &copy; {{ date('Y') }} {{ $siteTitle }}. All Rights Reserved.
                             </div>
                         </div>
@@ -122,7 +144,9 @@
                          <div class="content" style="padding: 30px 40px; text-align: left;">
                             <h3 class="bottom-title">{{ $details['bottom_title'] }}</h3>
                             <div style="font-size: 14px; margin-bottom: 15px;">{!! $details['bottom_body'] ?? '' !!}</div>
-                            <a href="{{ $details['site_link'] ?? '#' }}" class="bottom-link">Learn More &rarr;</a>
+                            @if($hasValidSiteLink)
+                                <a href="{{ $rawSiteLink }}" class="bottom-link">Learn More &rarr;</a>
+                            @endif
                         </div>
                     </div>
                     @endif

@@ -241,7 +241,7 @@ class TransactionController extends Controller
         $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
         $regulatorBadge = $isCustom
             ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
-            : 'Federally Insured by NCUA. Equal Housing Lender.';
+            : 'Federally Insured by NCUA • Equal Housing Lender';
         $contactAddress = $isCustom
             ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
             : 'Corporate Offices • P.O. Box 2300';
@@ -251,9 +251,24 @@ class TransactionController extends Controller
         $contactPhone = $isCustom
             ? ($institution->support_phone ?: '662-843-9461')
             : (setting('site_phone', 'global') ?: '216 230 1837');
-        $homeDomain = $isCustom
-            ? "{$institution->slug}.frontfieldcu.pro"
-            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+        $customDomain = $institution?->custom_domain;
+        if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+            $homeDomain = $customDomain;
+            $siteLink = 'https://' . ltrim($customDomain, 'https://');
+        } elseif ($isCustom) {
+            $homeDomain = 'clevelandstatebank.com';
+            $siteLink = '#';
+        } else {
+            $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+            $homeDomain = !str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro' ? $appHost : 'frontfieldcu.pro';
+            $siteLink = route('home');
+        }
+
+        $instLogo = $institution?->logo_path;
+        if ($instLogo && !\Illuminate\Support\Str::startsWith($instLogo, ['assets/', 'storage/'])) {
+            $instLogo = 'assets/' . $instLogo;
+        }
+        $siteLogoUrl = $instLogo ? asset($instLogo) : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null));
 
         $pdf = Pdf::loadView('frontend::user.transaction.statement_pdf', compact(
             'transactions', 'user', 'from_date', 'to_date', 'selectedAccounts', 'maskedAccounts', 
@@ -276,9 +291,9 @@ class TransactionController extends Controller
                 'primary_color' => $primaryColor,
                 'regulator_type' => $regulatorBadge,
                 'support_phone' => $contactPhone,
-                'site_logo' => $isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null),
+                'site_logo' => $siteLogoUrl,
                 'site_title' => $siteTitle,
-                'site_link' => $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home'),
+                'site_link' => $siteLink,
                 'attachment' => [
                     'data' => $pdf->output(),
                     'filename' => $filename
@@ -431,8 +446,8 @@ class TransactionController extends Controller
         $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?? 'FrontField FCU');
         $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
         $regulatorBadge = $isCustom
-            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . '. Equal Housing Lender.')
-            : 'Federally insured by NCUA. Equal Housing Lender.';
+            ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
+            : 'Federally Insured by NCUA • Equal Housing Lender';
         $contactAddress = $isCustom
             ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
             : 'Corporate Offices • P.O. Box 2300';
@@ -442,6 +457,21 @@ class TransactionController extends Controller
         $contactPhone = $isCustom
             ? ($institution->support_phone ?: '662-843-9461')
             : (setting('site_phone', 'global') ?: '216 230 1837');
+
+        $customDomain = $institution?->custom_domain;
+        if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+            $siteLink = 'https://' . ltrim($customDomain, 'https://');
+        } elseif ($isCustom) {
+            $siteLink = '#';
+        } else {
+            $siteLink = route('home');
+        }
+
+        $instLogo = $institution?->logo_path;
+        if ($instLogo && !\Illuminate\Support\Str::startsWith($instLogo, ['assets/', 'storage/'])) {
+            $instLogo = 'assets/' . $instLogo;
+        }
+        $siteLogoUrl = $instLogo ? asset($instLogo) : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null));
 
         $pdf = Pdf::loadView('frontend::user.transaction.receipt_pdf', compact(
             'transaction', 'user', 'logoBase64', 'siteTitle', 'primaryColor', 
@@ -462,9 +492,9 @@ class TransactionController extends Controller
             'primary_color' => $primaryColor,
             'regulator_type' => $regulatorBadge,
             'support_phone' => $contactPhone,
-            'site_logo' => $isCustom ? asset('assets/institutions/clevelandstatebank/images/logo.png') : (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : null),
+            'site_logo' => $siteLogoUrl,
             'site_title' => $siteTitle,
-            'site_link' => $isCustom ? "https://{$institution->slug}.frontfieldcu.pro" : route('home'),
+            'site_link' => $siteLink,
             'attachment' => [
                 'data' => $pdf->output(),
                 'filename' => $filename

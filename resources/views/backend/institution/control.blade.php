@@ -279,15 +279,61 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <form method="POST" action="{{ route('admin.institutions.update', $selectedInstitution->id) }}">
+                    <form method="POST" action="{{ route('admin.institutions.update', $selectedInstitution->id) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
+                        <input type="hidden" name="redirect_to" value="control">
                         <input type="hidden" name="name" value="{{ $selectedInstitution->name }}">
                         <input type="hidden" name="short_name" value="{{ $selectedInstitution->short_name }}">
-                        <input type="hidden" name="primary_color" value="{{ $selectedInstitution->primary_color }}">
-                        <input type="hidden" name="primary_hover" value="{{ $selectedInstitution->primary_hover }}">
-                        <input type="hidden" name="secondary_color" value="{{ $selectedInstitution->secondary_color }}">
+                        <input type="hidden" name="primary_hover" value="{{ $selectedInstitution->primary_hover ?? '#a81c24' }}">
+                        <input type="hidden" name="secondary_color" value="{{ $selectedInstitution->secondary_color ?? '#fdf2f2' }}">
+
+                        {{-- Branding & Logo Upload --}}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">{{ __('Institution Logo') }}</label>
+                            <div class="d-flex align-items-center gap-3 mb-2 p-2 bg-light rounded border">
+                                @php
+                                    $currentLogo = $selectedInstitution->logo_path;
+                                    if ($currentLogo && !\Illuminate\Support\Str::startsWith($currentLogo, ['assets/', 'storage/'])) {
+                                        $currentLogo = file_exists(public_path('storage/' . $currentLogo)) ? 'storage/' . $currentLogo : 'assets/' . $currentLogo;
+                                    }
+                                    if (!$currentLogo || !file_exists(public_path($currentLogo))) {
+                                        $currentLogo = $selectedInstitution->is_default ? 'assets/external/images/logo.png' : 'assets/institutions/clevelandstatebank/images/logo.png';
+                                    }
+                                @endphp
+                                <img src="{{ asset($currentLogo) }}" alt="{{ $selectedInstitution->name }}" style="height: 36px; max-width: 160px; object-fit: contain;">
+                                <span class="small text-muted">{{ __('Active Logo') }}</span>
+                            </div>
+                            <input type="file" name="logo_file" class="form-control form-control-sm" accept="image/*">
+                        </div>
+
+                        {{-- Primary Brand Color & Custom Domain --}}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">{{ __('Primary Color') }}</label>
+                                <div class="input-group">
+                                    <input type="color" name="primary_color" id="primary_color_picker" class="form-control form-control-color" value="{{ old('primary_color', $selectedInstitution->primary_color ?? '#c8232c') }}" style="width: 45px;" oninput="document.getElementById('primary_color_text').value=this.value">
+                                    <input type="text" id="primary_color_text" class="form-control font-monospace text-uppercase" value="{{ old('primary_color', $selectedInstitution->primary_color ?? '#c8232c') }}" oninput="document.getElementById('primary_color_picker').value=this.value">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">{{ __('Custom Domain') }}</label>
+                                <input type="text" name="custom_domain" class="form-control" value="{{ old('custom_domain', $selectedInstitution->custom_domain) }}" placeholder="e.g. clevelandstatebank.com">
+                            </div>
+                        </div>
+
+                        {{-- Outgoing Email Branding --}}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">{{ __('Email From Name') }}</label>
+                                <input type="text" name="mail_from_name" class="form-control" value="{{ old('mail_from_name', $selectedInstitution->mail_from_name) }}" placeholder="{{ $selectedInstitution->name }}">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold text-muted">{{ __('Email From Address') }}</label>
+                                <input type="email" name="mail_from_address" class="form-control" value="{{ old('mail_from_address', $selectedInstitution->mail_from_address) }}" placeholder="support@{{ $selectedInstitution->slug }}.com">
+                            </div>
+                        </div>
 
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-muted">{{ __('ABA Routing Number') }}</label>

@@ -519,9 +519,15 @@ class UserController extends Controller
         $contactCityStateZip = $isCustom
             ? ($institution->mailing_city_state_zip ?: 'Cleveland, MS 38732')
             : 'Cleveland, OH 44166';
-        $homeDomain = $isCustom
-            ? "{$institution->slug}.frontfieldcu.pro"
-            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+        $customDomain = $institution?->custom_domain;
+        if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+            $homeDomain = $customDomain;
+        } elseif ($isCustom) {
+            $homeDomain = 'clevelandstatebank.com';
+        } else {
+            $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+            $homeDomain = !str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro' ? $appHost : 'frontfieldcu.pro';
+        }
 
         $accountTitle = match($type) {
             'savings' => 'Savings Account',

@@ -1079,4 +1079,97 @@ class FundTransferController extends Controller
             return redirect()->back()->withInput();
         }
     }
+
+    /**
+     * Real-time recipient lookup for Member Transfers
+     */
+    public function lookupRecipient(Request $request)
+    {
+        $identifier = trim((string)$request->input('identifier', ''));
+        if (empty($identifier) || strlen($identifier) < 3) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('Please enter at least 3 characters.')
+            ], 422);
+        }
+
+        $authUser = auth()->user();
+        $sanitizedNumber = sanitizeAccountNumber($identifier);
+
+        $query = User::where(function($q) use ($identifier, $sanitizedNumber) {
+            $q->where('email', $identifier)
+              ->orWhere('username', $identifier)
+              ->orWhere('account_number', $sanitizedNumber)
+              ->orWhere('savings_account_number', $sanitizedNumber)
+              ->orWhere('ira_account_number', $sanitizedNumber)
+              ->orWhere('heloc_account_number', $sanitizedNumber)
+              ->orWhere('cc_account_number', $sanitizedNumber)
+              ->orWhere('loan_account_number', $sanitizedNumber);
+        });
+
+        // Strict institution isolation
+        if ($authUser && $authUser->institution_id) {
+            $query->where('institution_id', $authUser->institution_id);
+        } else {
+            $query->whereNull('institution_id');
+        }
+
+        $target = $query->first();
+        if (!$target) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('No active member was found with that information.')
+            ], 404);
+        }
+
+        // Prevent sending to self via member transfer
+        if ($target->id === $authUser->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => __('For transfers between your own accounts, please select Internal Transfer.')
+            ], 422);
+        }
+
+        // Name masking: "John Doe" -> "J*** D***"
+        $nameParts = explode(' ', trim($target->full_name));
+        $maskedParts = array_map(function($p) {
+            $len = mb_strlen($p);
+            return $len <= 1 ? $p : mb_substr($p, 0, 1) . str_repeat('*', min(max($len - 1, 3), 5));
+        }, $nameParts);
+        $maskedName = implode(' ', $maskedParts);
+
+        // Determine matched account type if typed specific number
+        $matchedAccountType = 'Checking';
+        if ($sanitizedNumber === $target->savings_account_number) {
+            $matchedAccountType = 'Savings';
+        } elseif ($sanitizedNumber === $target->ira_account_number) {
+            $matchedAccountType = 'IRA';
+        } elseif ($sanitizedNumber === $target->heloc_account_number) {
+            $matchedAccountType = 'HELOC';
+        } elseif ($sanitizedNumber === $target->cc_account_number) {
+            $matchedAccountType = 'Credit Card';
+        } elseif ($sanitizedNumber === $target->loan_account_number) {
+            $matchedAccountType = 'Loan';
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'masked_name' => $maskedName,
+            'full_name' => $target->full_name,
+            'account_type' => $matchedAccountType,
+            'checking_last4' => substr($target->account_number, -4),
+            'savings_last4' => $target->savings_account_number ? substr($target->savings_account_number, -4) : '',
+            'has_savings' => !empty($target->savings_account_number),
+            'has_ira' => ($target->ira_status == 1 && !empty($target->ira_account_number)),
+            'has_heloc' => ($target->heloc_status == 1 && !empty($target->heloc_account_number)),
+            'has_cc' => ($target->cc_status == 1 && !empty($target->cc_account_number)),
+            'has_loan' => ($target->loan_account_status == 1 && !empty($target->loan_account_number)),
+            'checking_restricted' => (bool)$target->isRestricted('checking'),
+            'savings_restricted' => (bool)$target->isRestricted('savings'),
+            'ira_restricted' => (bool)$target->isRestricted('ira'),
+            'heloc_restricted' => (bool)$target->isRestricted('heloc'),
+            'cc_restricted' => (bool)$target->isRestricted('cc'),
+            'loan_restricted' => (bool)$target->isRestricted('loan'),
+        ]);
+    }
 }

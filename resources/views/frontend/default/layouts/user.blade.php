@@ -407,6 +407,26 @@
             pointer-events: none;
         }
 
+        /* ── FrontField Skeleton Shimmer Classes ── */
+        @keyframes ffcuShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .ffcu-skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e0eaf3 37%, #f1f5f9 63%);
+            background-size: 400% 100%;
+            animation: ffcuShimmer 1.4s ease infinite;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .ffcu-skeleton-text {
+            height: 12px;
+            border-radius: 4px;
+        }
+        .ffcu-skeleton-circle {
+            border-radius: 50%;
+        }
+
         @keyframes mainFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -674,9 +694,6 @@
                 </a>
                 <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="sidebar-nav-item {{ Request::routeIs('user.fund_transfer.transfer.wire') ? 'active' : '' }}">
                     <i class="fas fa-paper-plane"></i> <span>Wire Transfer</span>
-                </a>
-                <a href="{{ route('user.fund_transfer.member') }}" class="sidebar-nav-item">
-                    <i class="fas fa-users"></i> <span>Member Transfers</span>
                 </a>
                 <a href="{{ route('user.remote_deposit') }}" class="sidebar-nav-item {{ Request::routeIs('user.remote_deposit') ? 'active' : '' }}">
                     <i class="fas fa-mobile-alt"></i> <span>Remote deposits</span>
@@ -991,8 +1008,44 @@
                 return;
             }
             form.setAttribute('data-submitting', 'true');
+
+            // Standardize submit button state
+            var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                form._origBtnHtml = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                if (submitBtn.tagName === 'BUTTON') {
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+                }
+            }
+
             showLoader();
         });
+
+        // Standardized button processing helpers for AJAX operations
+        window.setButtonProcessing = function(btn, text) {
+            if (!btn) return;
+            btn.dataset.origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> ' + (text || 'Processing...');
+        };
+
+        window.restoreButtonProcessing = function(btn) {
+            if (!btn) return;
+            btn.disabled = false;
+            if (btn.dataset.origHtml) {
+                btn.innerHTML = btn.dataset.origHtml;
+            }
+        };
+
+        // Standardized AJAX completion hook
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document).ajaxComplete(function() {
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+            });
+        }
 
         // Session Refresh (Prevent 419)
         function refreshSession() {
@@ -1002,7 +1055,14 @@
 
         window.addEventListener('pageshow', function() {
             hideLoader();
-            document.querySelectorAll('form').forEach(f => f.removeAttribute('data-submitting'));
+            document.querySelectorAll('form').forEach(f => {
+                f.removeAttribute('data-submitting');
+                var submitBtn = f.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn && f._origBtnHtml) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = f._origBtnHtml;
+                }
+            });
         });
 
         (function() {

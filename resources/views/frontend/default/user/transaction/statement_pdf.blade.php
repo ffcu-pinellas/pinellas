@@ -196,7 +196,7 @@
             <strong>{{ $siteTitle }}</strong><br>
             {{ $contactAddress ?? 'Corporate Offices • P.O. Box 2300' }}<br>
             {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}<br>
-            {{ $contactPhone ?? '216 230 1837' }} | {{ $homeDomain }}
+            {{ $contactPhone ?? '216 230 1837' }}@if(!empty($homeDomain) && !str_contains(strtolower($homeDomain), 'frontfieldcu.pro')) | {{ $homeDomain }}@endif
         </div>
         <div class="clear"></div>
     </div>
@@ -322,7 +322,7 @@
     <div class="footer-notice">
         This statement is an official record of your account activity. Please review it carefully. 
         Report any discrepancies within 60 days. <br>
-        <strong>{{ $regulatorBadge ?? ($siteTitle . ' is Federally Insured by NCUA. Equal Housing Lender.') }}</strong>
+        <strong>{{ $regulatorBadge ?? ($siteTitle . ' is Federally Insured by NCUA • Equal Housing Lender') }}</strong>
     </div>
 </body>
 </html>

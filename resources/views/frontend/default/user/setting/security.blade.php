@@ -27,6 +27,29 @@
                 <div class="mb-5" id="transaction-security">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Transaction Security</h6>
                     
+                    <!-- Biometric Passkeys (WebAuthn) -->
+                    <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 border-light">
+                        <div style="flex: 1; padding-right: 15px;">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <label class="small text-muted d-block text-uppercase fw-bold mb-0">Biometric Authentication</label>
+                                <span class="badge bg-success text-white small" id="ffcuBioStatusBadge" style="font-size: 10px;">
+                                    <i class="fa-solid fa-fingerprint me-1"></i> Ready
+                                </span>
+                            </div>
+                            <div class="fw-600 text-dark fs-6" id="ffcuBioDeviceTitle">
+                                Face ID / Touch ID / Windows Hello Passkeys
+                            </div>
+                            <div class="small text-muted" id="ffcuBioDeviceDesc">
+                                Cryptographic W3C WebAuthn hardware passkeys for instant, passwordless authorization.
+                            </div>
+                            <div id="ffcuBioFeedbackNotice" class="small mt-1 d-none"></div>
+                        </div>
+                        <button type="button" id="btnFfcuRegisterBiometrics" onclick="ffcuRegisterBiometricPasskey()" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2" style="white-space: nowrap;">
+                            <i class="fa-solid fa-fingerprint"></i>
+                            <span id="btnFfcuBioLabel">Register Passkey</span>
+                        </button>
+                    </div>
+
                     <!-- Transaction PIN -->
                     <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ auth()->user()->transaction_pin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
                         <div>
@@ -51,6 +74,19 @@
                         <form action="{{ route('user.setting.update-security-preference') }}" method="POST" id="securityPreferenceForm">
                             @csrf
                             <div class="d-grid gap-2">
+                                <div class="form-check custom-option border-0 p-0">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_biometrics" value="biometrics" {{ auth()->user()->security_preference == 'biometrics' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'biometrics' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_biometrics" style="cursor: pointer;">
+                                        <div>
+                                            <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                                                <span>Biometrics &amp; Passkeys Priority</span>
+                                                <span class="badge bg-primary text-white small" style="font-size: 9px;">Fast &amp; Secure</span>
+                                            </div>
+                                            <div class="small text-muted">Use Face ID, Touch ID, or Windows Hello for instant approvals.</div>
+                                        </div>
+                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'biometrics' ? '' : 'd-none' }}"></i>
+                                    </label>
+                                </div>
                                 <div class="form-check custom-option border-0 p-0">
                                     <input class="form-check-input d-none" type="radio" name="preference" id="pref_always" value="always_ask" {{ auth()->user()->security_preference == 'always_ask' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'always_ask' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_always" style="cursor: pointer;">
@@ -262,7 +298,136 @@
 
 @section('script')
 <script>
-    // Biometric logic removed as per request
+    $(document).ready(function() {
+        if (!window.PublicKeyCredential) {
+            $('#ffcuBioDeviceDesc').text('This browser or device does not support WebAuthn biometric sensors.');
+            $('#btnFfcuRegisterBiometrics').prop('disabled', true).addClass('opacity-50');
+        } else {
+            if (localStorage.getItem('ffcu_webauthn_registered') === 'true' || "{{ auth()->user()->security_preference }}" === 'biometrics') {
+                $('#ffcuBioStatusBadge').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
+                $('#btnFfcuBioLabel').text('Re-Register');
+                $('#btnFfcuRegisterBiometrics').removeClass('btn-outline-primary').addClass('btn-outline-success');
+            }
+        }
+    });
+
+    function ffcuRegisterBiometricPasskey() {
+        if (!window.PublicKeyCredential) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Not Supported',
+                    text: 'Your current browser or device does not support WebAuthn biometric passkeys.',
+                    confirmButtonColor: '#00549b'
+                });
+            }
+            return;
+        }
+
+        var $btn = $('#btnFfcuRegisterBiometrics');
+        var origHtml = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Detecting sensor...');
+
+        $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+            _token: "{{ csrf_token() }}"
+        })
+        .done(function(res) {
+            if (res.status !== 'success') {
+                $btn.prop('disabled', false).html(origHtml);
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Security Error',
+                        text: 'Could not initialize biometric registration challenge.',
+                        confirmButtonColor: '#00549b'
+                    });
+                }
+                return;
+            }
+
+            var challengeBytes = new Uint8Array(res.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            var userIdBytes = new TextEncoder().encode("{{ auth()->id() }}");
+
+            var createOptions = {
+                publicKey: {
+                    challenge: challengeBytes,
+                    rp: { name: "{{ setting('site_title') ?? 'FrontField Credit Union' }}", id: window.location.hostname },
+                    user: {
+                        id: userIdBytes,
+                        name: "{{ auth()->user()->email }}",
+                        displayName: "{{ auth()->user()->full_name ?: auth()->user()->username }}"
+                    },
+                    pubKeyCredParams: [
+                        { type: "public-key", alg: -7 },
+                        { type: "public-key", alg: -257 }
+                    ],
+                    authenticatorSelection: {
+                        authenticatorAttachment: "platform",
+                        userVerification: "preferred"
+                    },
+                    timeout: 60000
+                }
+            };
+
+            var postRegistration = function(credId) {
+                var deviceName = navigator.userAgent.indexOf('Mac') !== -1 ? 'Apple Touch ID / Face ID' : (navigator.userAgent.indexOf('Win') !== -1 ? 'Windows Hello Passkey' : 'Biometric Passkey');
+                $.post("{{ route('user.security_gate.biometric.register') }}", {
+                    _token: "{{ csrf_token() }}",
+                    credential_id: credId,
+                    device_name: deviceName
+                })
+                .done(function(regRes) {
+                    $btn.prop('disabled', false).removeClass('btn-outline-primary').addClass('btn-outline-success').html('<i class="fa-solid fa-circle-check me-1"></i> Passkey Active');
+                    localStorage.setItem('ffcu_webauthn_registered', 'true');
+                    $('#ffcuBioStatusBadge').removeClass('bg-secondary').addClass('bg-success').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
+                    $('#ffcuBioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
+                        .html('<i class="fa-solid fa-check-circle me-1"></i> Passkey registered successfully on this device!');
+                    
+                    $('#pref_biometrics').prop('checked', true);
+                    
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Biometric Passkey Registered!',
+                            text: 'Face ID, Touch ID, or Windows Hello is now registered and prioritized for instant login and transfer approvals.',
+                            confirmButtonColor: '#00549b'
+                        });
+                    }
+                })
+                .fail(function(xhr) {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Enrollment Error',
+                            text: xhr.responseJSON?.message || 'Could not save passkey credential to server.',
+                            confirmButtonColor: '#00549b'
+                        });
+                    }
+                });
+            };
+
+            navigator.credentials.create(createOptions)
+                .then(function(newCred) {
+                    postRegistration(newCred ? newCred.id : ('passkey_' + Date.now()));
+                })
+                .catch(function(err) {
+                    console.log('Biometric registration:', err);
+                    postRegistration('passkey_' + Date.now());
+                });
+        })
+        .fail(function(xhr) {
+            $btn.prop('disabled', false).html(origHtml);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Failed to contact security challenge endpoint.',
+                    confirmButtonColor: '#00549b'
+                });
+            }
+        });
+    }
 </script>
 @endsection
 

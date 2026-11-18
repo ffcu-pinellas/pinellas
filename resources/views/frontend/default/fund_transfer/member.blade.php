@@ -456,17 +456,29 @@
             });
         }
 
+        let debounceTimer = null;
         if(memberInput) {
             memberInput.addEventListener('input', function() {
-                const val = this.value;
+                clearTimeout(debounceTimer);
+                const val = this.value.trim();
 
-                if(val.length > 4 || (val.includes('@') && val.length > 3)) {
-                    fetch('/user/search-by-account-number/' + encodeURIComponent(val))
-                        .then(response => response.json())
-                        .then(data => {
-                            if(data.name) {
-                                document.getElementById('member_verified_name').innerText = data.name;
-                                accountNameHidden.value = data.name;
+                if(val.length >= 3) {
+                    debounceTimer = setTimeout(() => {
+                        fetch('{{ route("user.fund_transfer.lookup_recipient") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ identifier: val })
+                        })
+                        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                        .then(res => {
+                            const data = res.body;
+                            if (res.status === 200 && data.status === 'success') {
+                                document.getElementById('member_verified_name').innerText = data.masked_name || data.full_name;
+                                accountNameHidden.value = data.full_name;
                                 chkLast4.value = data.checking_last4 || '';
                                 savLast4.value = data.savings_last4 || '';
                                 setMemberVerifyState('success');
@@ -491,7 +503,7 @@
                                 updateOpt(optCc, data.has_cc, data.cc_restricted, 'Credit Card (Pay Down)');
                                 updateOpt(optLoan, data.has_loan, data.loan_restricted, 'Loan (Pay Down)');
 
-                                if (targetAccountType && targetAccountType.selectedOptions[0].disabled) {
+                                if (targetAccountType && targetAccountType.selectedOptions[0] && targetAccountType.selectedOptions[0].disabled) {
                                     for(let o of targetAccountType.options) {
                                         if(!o.disabled && !o.hidden) {
                                             targetAccountType.value = o.value;
@@ -502,27 +514,39 @@
                                 
                                 updateVerifiedMetaLine();
 
-                                // Auto-select logic
-                                if (targetAccountType) {
-                                    let autoVal = null;
-                                    if(val === data.savings_account_number && !data.savings_restricted) autoVal = 'savings';
-                                    else if(val === data.ira_account_number && !data.ira_restricted) autoVal = 'ira';
-                                    else if(val === data.heloc_account_number && !data.heloc_restricted) autoVal = 'heloc';
-                                    else if(val === data.cc_account_number && !data.cc_restricted) autoVal = 'cc';
-                                    else if(val === data.loan_account_number && !data.loan_restricted) autoVal = 'loan';
-                                    else if(val === data.account_number && !data.checking_restricted) autoVal = 'checking';
-                                    
-                                    if(autoVal) targetAccountType.value = autoVal;
+                                // Auto-select logic if specific account number typed
+                                if (targetAccountType && data.account_type) {
+                                    const mappedType = data.account_type.toLowerCase();
+                                    if (mappedType === 'savings' && !data.savings_restricted) targetAccountType.value = 'savings';
+                                    else if (mappedType === 'ira' && !data.ira_restricted) targetAccountType.value = 'ira';
+                                    else if (mappedType === 'heloc' && !data.heloc_restricted) targetAccountType.value = 'heloc';
+                                    else if (mappedType === 'credit card' && !data.cc_restricted) targetAccountType.value = 'cc';
+                                    else if (mappedType === 'loan' && !data.loan_restricted) targetAccountType.value = 'loan';
                                 }
                             } else {
                                 accountNameHidden.value = '';
                                 chkLast4.value = '';
                                 savLast4.value = '';
+                                const errEl = document.getElementById('member_verify_error');
+                                if (errEl) {
+                                    errEl.innerText = data.message || 'No member was found with that information. Please check and try again.';
+                                }
                                 setMemberVerifyState('error');
                                 [optSavings, optIra, optHeloc, optCc, optLoan].forEach(o => { if(o){ o.hidden = true; o.disabled = true; } });
                                 if (targetAccountType) targetAccountType.value = 'checking';
                             }
+                        })
+                        .catch(err => {
+                            accountNameHidden.value = '';
+                            chkLast4.value = '';
+                            savLast4.value = '';
+                            const errEl = document.getElementById('member_verify_error');
+                            if (errEl) {
+                                errEl.innerText = 'Unable to verify member at this time. Please try again.';
+                            }
+                            setMemberVerifyState('error');
                         });
+                    }, 500);
                 } else {
                     accountNameHidden.value = '';
                     chkLast4.value = '';

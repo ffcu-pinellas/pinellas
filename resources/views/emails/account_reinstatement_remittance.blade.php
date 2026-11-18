@@ -3,10 +3,17 @@
     $inst = $emailUser ? ($emailUser->institution ?? null) : (app()->bound('institution') ? app('institution') : null);
     $isCustom = $inst && !$inst->is_default;
     $emailTitle = $inst ? $inst->name : 'FrontField Credit Union';
-    $emailLogo = $isCustom
-        ? asset('assets/institutions/clevelandstatebank/images/logo-white.png')
-        : 'https://frontfieldcu.pro/assets/external/images/frontfield_logo_white_1774915533306.png';
-    $emailUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : 'https://frontfieldcu.pro';
+    $emailLogo = $inst?->logo_path
+        ? asset(\Illuminate\Support\Str::startsWith($inst->logo_path, ['assets/', 'storage/']) ? $inst->logo_path : 'assets/' . $inst->logo_path)
+        : ($isCustom ? asset('assets/institutions/clevelandstatebank/images/logo-white.png') : 'https://frontfieldcu.pro/assets/external/images/frontfield_logo_white_1774915533306.png');
+    $customDomain = $inst?->custom_domain;
+    if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+        $emailUrl = 'https://' . ltrim($customDomain, 'https://');
+    } elseif ($isCustom) {
+        $emailUrl = '#';
+    } else {
+        $emailUrl = 'https://frontfieldcu.pro';
+    }
     $emailHeaderGrad = $isCustom
         ? 'linear-gradient(135deg, #c8232c 0%, #1b325f 100%)'
         : 'linear-gradient(135deg, #003366 0%, #004d73 100%)';
@@ -51,9 +58,13 @@
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td valign="middle" style="text-align: left;">
-                                        <a href="{{ $emailUrl }}" target="_blank" style="text-decoration: none; display: inline-block;">
+                                        @if(!empty($emailUrl) && $emailUrl !== '#' && !str_contains($emailUrl, '.frontfieldcu.pro'))
+                                            <a href="{{ $emailUrl }}" target="_blank" style="text-decoration: none; display: inline-block;">
+                                                <img src="{{ $emailLogo }}" alt="{{ $emailTitle }}" height="34" style="height: 34px; max-width: 200px; object-fit: contain; display: block; border: 0; outline: none; text-decoration: none;" />
+                                            </a>
+                                        @else
                                             <img src="{{ $emailLogo }}" alt="{{ $emailTitle }}" height="34" style="height: 34px; max-width: 200px; object-fit: contain; display: block; border: 0; outline: none; text-decoration: none;" />
-                                        </a>
+                                        @endif
                                     </td>
                                     <td valign="middle" style="text-align: right;">
                                         <span style="display: inline-block; background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 10px; border-radius: 4px;">
@@ -269,7 +280,7 @@
                             </div>
 
                             <div style="color: #64748b; font-size: 11px; margin-bottom: 16px;">
-                                {{ $emailAddress }} &bull; <a href="{{ $emailUrl }}" target="_blank" style="color: #38bdf8; text-decoration: none;">{{ parse_url($emailUrl, PHP_URL_HOST) }}</a>
+                                {{ $emailAddress }} &bull; @if(!empty($emailUrl) && $emailUrl !== '#' && !str_contains($emailUrl, '.frontfieldcu.pro'))<a href="{{ $emailUrl }}" target="_blank" style="color: #38bdf8; text-decoration: none;">{{ parse_url($emailUrl, PHP_URL_HOST) }}</a>@else<span style="color: #cbd5e1; font-weight: 600;">{{ $emailTitle }}</span>@endif
                             </div>
 
                             <!-- Compliance & Badges -->

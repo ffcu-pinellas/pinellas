@@ -236,11 +236,21 @@
             return;
         }
 
+        var $btn = $('#csbSubmitBtn');
+        var origHtml = $btn.html();
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Processing Deposit...');
+
+        if (typeof window.showLoader === 'function') window.showLoader();
+
         // Trigger Security Gate
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.onCancelCb = function() {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                $btn.prop('disabled', false).html(origHtml);
+            };
             SecurityGate.gate(form);
         } else {
-            form.submit();
+            HTMLFormElement.prototype.submit.call(form);
         }
     }
 </script>

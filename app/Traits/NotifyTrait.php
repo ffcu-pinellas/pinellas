@@ -174,33 +174,44 @@ trait NotifyTrait
                 } catch (\Throwable $e) {}
             }
 
-            if ($isCsb) {
-                $siteTitle = $institution ? $institution->name : 'Cleveland State Bank';
-                $primaryColor = '#c8232c'; // CSB Red Theme
-                $regulator = 'Member FDIC';
-                $supportPhone = $institution?->support_phone ?: '662-843-9461';
-                $supportEmail = $institution?->support_email ?: 'customercare@clevelandstatebank.com';
-                $siteLink = "https://" . ($institution?->slug ?: 'clevelandstatebank') . ".frontfieldcu.pro";
-                $fromName = $institution?->mail_from_name ?: $siteTitle;
-                $siteLogo = 'assets/institutions/clevelandstatebank/images/logo.png';
-            } else {
-                $siteTitle = $institution ? $institution->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
-                $primaryColor = $institution->primary_color ?? '#00549b';
-                $regulator = 'Federally Insured by NCUA';
-                $supportPhone = $institution->support_phone ?? setting('site_phone', 'global');
-                $supportEmail = $institution->support_email ?? setting('support_email', 'global');
-                $siteLink = rtrim((string) config('app.url'), '/').'/';
-                $fromName = $institution->mail_from_name ?: $siteTitle;
+            $siteTitle = $institution ? $institution->name : ($isCsb ? 'Cleveland State Bank' : (setting('site_title', 'global') ?: 'FrontField Credit Union'));
+            $primaryColor = $institution?->primary_color ?: ($isCsb ? '#c8232c' : '#00549b');
+            $regulator = $isCsb
+                ? ($institution?->regulator_badge ?: 'Member FDIC')
+                : ($institution?->regulator_badge ?: 'Federally Insured by NCUA');
+            $supportPhone = $institution?->support_phone ?: ($isCsb ? '216-230-1837' : (setting('site_phone', 'global') ?: setting('support_phone', 'global')));
+            $supportEmail = $institution?->support_email ?: ($isCsb ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
+            $fromName = $institution?->mail_from_name ?: ($isCsb ? 'Cleveland State Bank' : ($institution?->name ?: setting('site_title', 'global')));
+            $fromAddress = $institution?->mail_from_address ?: ($isCsb ? 'support@clevelandstatebank.com' : setting('support_email', 'global'));
 
-                $siteLogo = $institution->logo_path ?? null;
-                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                    $siteLogo = 'assets/'.$siteLogo;
+            // Dynamic Logo Resolution from $institution->logo_path
+            $siteLogo = $institution?->logo_path;
+            if ($siteLogo) {
+                if (!Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                    $siteLogo = file_exists(public_path('storage/' . $siteLogo)) ? 'storage/' . $siteLogo : 'assets/' . $siteLogo;
                 }
-                if (!$siteLogo || !file_exists(public_path($siteLogo))) {
-                    $siteLogo = setting('site_logo', 'global') ?: 'assets/external/images/logo.png';
-                    if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                        $siteLogo = 'assets/'.$siteLogo;
-                    }
+            }
+            if (!$siteLogo || !file_exists(public_path($siteLogo))) {
+                $siteLogo = $isCsb
+                    ? 'assets/institutions/clevelandstatebank/images/logo.png'
+                    : (setting('site_logo', 'global') ?: 'assets/external/images/logo.png');
+                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                    $siteLogo = 'assets/' . $siteLogo;
+                }
+            }
+
+            // User-facing Clean Site Link
+            $customDomain = $institution?->custom_domain;
+            if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+                $siteLink = 'https://' . ltrim($customDomain, 'https://');
+            } elseif ($isCsb) {
+                $siteLink = '#';
+            } else {
+                $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+                if (!str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro') {
+                    $siteLink = rtrim((string) config('app.url'), '/') . '/';
+                } else {
+                    $siteLink = 'https://frontfieldcu.pro/';
                 }
             }
 
@@ -251,7 +262,7 @@ trait NotifyTrait
                     'support_phone' => $supportPhone,
                     'support_email' => $supportEmail,
                     'from_name' => $fromName,
-                    'from_email' => $supportEmail,
+                    'from_email' => $fromAddress,
                 ];
 
                 // When under a custom institution (e.g. Cleveland State Bank), scrub any hardcoded legacy brand names from DB templates
@@ -261,14 +272,18 @@ trait NotifyTrait
                     $details['salutation'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['salutation']);
                     $details['message_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['message_body']);
                     $details['footer_body'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['footer_body']);
+                    $details['footer_body'] = str_ireplace('NCUA', 'FDIC', $details['footer_body']);
+                } else {
+                    $details['footer_body'] = str_ireplace('FDIC', 'NCUA', $details['footer_body']);
+                    $details['message_body'] = str_ireplace('FDIC', 'NCUA', $details['message_body']);
                 }
 
                 $details = $this->sanitizeMailTemplateDetails($details);
 
                 if ($code == 'email_verification') {
-                    $fromAddress = config('mail.from.address') ?: 'notifications@frontfieldcu.pro';
+                    $senderAddress = $fromAddress ?: (config('mail.from.address') ?: 'notifications@frontfieldcu.pro');
                     $msg = (new MailMessage)
-                        ->from($fromAddress, $fromName)
+                        ->from($senderAddress, $fromName)
                         ->replyTo($supportEmail, $fromName)
                         ->subject($details['subject'])
                         ->view('backend.mail.user-mail-send', ['details' => $details]);
@@ -286,15 +301,17 @@ trait NotifyTrait
             \Log::warning("Email template with code '$code' not found in database.");
             
             // Standard Fallback for ANY missing template to prevent failure
-            if ($isCsb) {
-                $siteLogo = 'assets/institutions/clevelandstatebank/images/logo.png';
-            } else {
-                $siteLogo = setting('site_logo', 'global');
-                if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
-                    $siteLogo = 'assets/'.$siteLogo;
-                }
-                if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
-                    $siteLogo = 'assets/external/images/logo.png';
+            if (!$siteLogo || !file_exists(public_path($siteLogo))) {
+                if ($isCsb) {
+                    $siteLogo = 'assets/institutions/clevelandstatebank/images/logo.png';
+                } else {
+                    $siteLogo = setting('site_logo', 'global');
+                    if ($siteLogo && !Str::startsWith($siteLogo, ['assets/', 'storage/'])) {
+                        $siteLogo = 'assets/'.$siteLogo;
+                    }
+                    if (!$siteLogo || Str::contains($siteLogo, 'fav') || !file_exists(public_path($siteLogo))) {
+                        $siteLogo = 'assets/external/images/logo.png';
+                    }
                 }
             }
 
@@ -314,7 +331,7 @@ trait NotifyTrait
                 'support_phone' => $supportPhone,
                 'support_email' => $supportEmail,
                 'from_name' => $fromName,
-                'from_email' => $supportEmail,
+                'from_email' => $fromAddress,
                 'title' => ($manualSubject && $manualMessage) ? 'Official Notification' : 'Account Alert',
                 'salutation' => 'Hello ' . ($shortcodes['[[full_name]]'] ?? 'Member'),
                 'footer_body' => $siteTitle,

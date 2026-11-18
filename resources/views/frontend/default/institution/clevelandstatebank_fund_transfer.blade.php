@@ -715,6 +715,7 @@
 
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
             SecurityGate.onCancelCb = function() {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
                 $btn.prop('disabled', false).html(origHtml);
             };
             SecurityGate.gate(form);

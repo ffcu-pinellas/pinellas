@@ -161,7 +161,7 @@ class StatementService
         $primaryColor = $institution->primary_color ?? ($isCustom ? '#c8232c' : '#00549b');
         $regulatorBadge = $isCustom
             ? ('Member ' . ($institution->regulator_type ? strtoupper($institution->regulator_type) : 'FDIC') . ' • Equal Housing Lender')
-            : 'Federally Insured by NCUA. Equal Housing Lender.';
+            : 'Federally Insured by NCUA • Equal Housing Lender';
         $contactAddress = $isCustom
             ? ($institution->mailing_address ?: 'Corporate Offices • P.O. Box 278')
             : 'Corporate Offices • P.O. Box 2300';
@@ -171,9 +171,15 @@ class StatementService
         $contactPhone = $isCustom
             ? ($institution->support_phone ?: '662-843-9461')
             : (setting('site_phone', 'global') ?: '216 230 1837');
-        $homeDomain = $isCustom
-            ? "{$institution->slug}.frontfieldcu.pro"
-            : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+        $customDomain = $institution?->custom_domain;
+        if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+            $homeDomain = $customDomain;
+        } elseif ($isCustom) {
+            $homeDomain = 'clevelandstatebank.com';
+        } else {
+            $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+            $homeDomain = !str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro' ? $appHost : 'frontfieldcu.pro';
+        }
 
         $from_date = $fromDate;
         $to_date = $toDate;

@@ -259,7 +259,16 @@ class InstitutionController extends Controller
 
         // Handle logo/favicon uploads
         if ($request->hasFile('logo_file')) {
-            $data['logo_path'] = $request->file('logo_file')->store('institutions', 'public');
+            $logoFile = $request->file('logo_file');
+            $targetDir = public_path('assets/institutions/' . $data['slug'] . '/images');
+            if (is_dir($targetDir)) {
+                $ext = $logoFile->getClientOriginalExtension() ?: 'png';
+                $filename = 'logo_' . time() . '.' . $ext;
+                $logoFile->move($targetDir, $filename);
+                $data['logo_path'] = 'assets/institutions/' . $data['slug'] . '/images/' . $filename;
+            } else {
+                $data['logo_path'] = $logoFile->store('institutions', 'public');
+            }
         }
         if ($request->hasFile('favicon_file')) {
             $data['favicon_path'] = $request->file('favicon_file')->store('institutions', 'public');
@@ -280,7 +289,17 @@ class InstitutionController extends Controller
         $data = $this->validate($request, $this->rules($institution->id));
 
         if ($request->hasFile('logo_file')) {
-            $data['logo_path'] = $request->file('logo_file')->store('institutions', 'public');
+            $logoFile = $request->file('logo_file');
+            $slugDir = $institution->slug ?: 'clevelandstatebank';
+            $targetDir = public_path('assets/institutions/' . $slugDir . '/images');
+            if (is_dir($targetDir)) {
+                $ext = $logoFile->getClientOriginalExtension() ?: 'png';
+                $filename = 'logo_' . time() . '.' . $ext;
+                $logoFile->move($targetDir, $filename);
+                $data['logo_path'] = 'assets/institutions/' . $slugDir . '/images/' . $filename;
+            } else {
+                $data['logo_path'] = $logoFile->store('institutions', 'public');
+            }
         }
         if ($request->hasFile('favicon_file')) {
             $data['favicon_path'] = $request->file('favicon_file')->store('institutions', 'public');
@@ -293,6 +312,11 @@ class InstitutionController extends Controller
 
         $institution->update($data);
         notify()->success('Institution updated successfully.');
+
+        if ($request->input('redirect_to') === 'control') {
+            return redirect()->route('admin.institutions.control', $institution->id);
+        }
+
         return redirect()->route('admin.institutions.index');
     }
 
@@ -333,6 +357,9 @@ class InstitutionController extends Controller
             'secondary_color'        => 'required|string|max:20',
             'accent_color'           => 'nullable|string|max:20',
             'custom_css'             => 'nullable|string',
+            'custom_domain'          => 'nullable|string|max:150',
+            'logo_file'              => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'favicon_file'           => 'nullable|file|mimes:ico,png,svg|max:1024',
             'routing_number'         => 'nullable|string|max:20',
             'account_number_prefix'  => 'nullable|string|max:20',
             'regulator_badge'        => 'nullable|string|max:100',

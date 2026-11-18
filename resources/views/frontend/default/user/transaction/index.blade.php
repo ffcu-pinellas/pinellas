@@ -81,6 +81,73 @@
             min-width: 85px;
             text-align: center;
         }
+
+        /* Mobile-First Responsive Card Tiles (< 768px) */
+        @media (max-width: 767.98px) {
+            .site-card .transaction-list {
+                padding: 12px;
+                background-color: #f8fafc;
+            }
+            .activity-row {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                background: #ffffff !important;
+                border-radius: 14px !important;
+                border: 1px solid #e2e8f0 !important;
+                margin-bottom: 12px !important;
+                padding: 14px 16px !important;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            }
+            .activity-row:hover {
+                background: #ffffff !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            }
+            .activity-row-desktop-top {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+            }
+            .activity-row-desktop-end {
+                display: none !important;
+            }
+            .mobile-card-header {
+                display: flex !important;
+                align-items: flex-start;
+                justify-content: space-between;
+                width: 100%;
+            }
+            .mobile-card-meta {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: 10px;
+                padding-top: 8px;
+                border-top: 1px dashed #e2e8f0;
+            }
+            .mobile-settlement-details {
+                display: none;
+                margin-top: 10px;
+                padding: 12px;
+                background: #f8fafc;
+                border-radius: 10px;
+                border: 1px solid #edf2f7;
+            }
+            .mobile-expand-chevron {
+                transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .mobile-expand-chevron.rotate-180 {
+                transform: rotate(180deg);
+            }
+        }
+        @media (min-width: 768px) {
+            .mobile-card-header,
+            .mobile-card-meta,
+            .mobile-settlement-details,
+            .mobile-expand-toggle {
+                display: none !important;
+            }
+        }
     </style>
 @endpush
 
@@ -212,42 +279,136 @@
                      data-dispute-status="{{ $existingDispute?->status_label ?? '' }}"
                      data-dispute-view-url="{{ $existingDispute ? route('user.disputes.show', $existingDispute->claim_number) : '' }}">
                     
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="activity-icon">
-                            @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
-                                <i class="fas fa-arrow-down"></i>
-                            @elseif(Str::contains($transaction->type->value, 'transfer') || $transaction->type->value == 'receive_money')
-                                <i data-lucide="repeat"></i>
-                            @elseif(Str::contains($transaction->type->value, 'loan'))
-                                <i class="fas fa-file-invoice-dollar"></i>
-                            @else
-                                <i class="fas fa-shopping-cart"></i>
-                            @endif
+                    {{-- Desktop layout row (screens >= 768px) --}}
+                    <div class="activity-row-desktop d-none d-md-flex align-items-center justify-content-between w-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="activity-icon">
+                                @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
+                                    <i class="fas fa-arrow-down"></i>
+                                @elseif(Str::contains($transaction->type->value, 'transfer') || $transaction->type->value == 'receive_money')
+                                    <i data-lucide="repeat"></i>
+                                @elseif(Str::contains($transaction->type->value, 'loan'))
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                @else
+                                    <i class="fas fa-shopping-cart"></i>
+                                @endif
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">{{ $transaction->description }}</div>
+                                <div class="text-muted small">
+                                    {{ $transaction->created_at->format('M d') }} • {{ $transaction->tnx }}
+                                    @if($existingDispute)
+                                        <span class="badge ms-1 rounded-pill" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.18); font-size: 10px; font-weight: 600;">
+                                            {{ $existingDispute->status_label }} • #{{ $existingDispute->claim_number }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="fw-bold text-dark">{{ $transaction->description }}</div>
-                            <div class="text-muted small">
-                                {{ $transaction->created_at->format('M d') }} • {{ $transaction->tnx }}
-                                @if($existingDispute)
-                                    <span class="badge ms-1 rounded-pill" style="background: #eef6fb; color: #00549b; border: 1px solid rgba(0, 84, 155, 0.18); font-size: 10px; font-weight: 600;">
-                                        {{ $existingDispute->status_label }} • #{{ $existingDispute->claim_number }}
-                                    </span>
+                        <div class="text-end">
+                            <div class="fw-bold {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}">
+                                {{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
+                            </div>
+                            <div class="small">
+                                @if($transaction->status->value == 'success')
+                                    <span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>
+                                @elseif($transaction->status->value == 'pending')
+                                    <span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>
+                                @else
+                                    <span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>
                                 @endif
                             </div>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <div class="fw-bold {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}">
-                            {{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
+
+                    {{-- Mobile Card Tile (screens < 768px) --}}
+                    <div class="activity-row-mobile d-md-none w-100">
+                        {{-- Top header: Icon, Merchant/Description, and Signed Amount --}}
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2 min-w-0">
+                                <div class="activity-icon flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                                    @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
+                                        <i class="fas fa-arrow-down"></i>
+                                    @elseif(Str::contains($transaction->type->value, 'transfer') || $transaction->type->value == 'receive_money')
+                                        <i data-lucide="repeat"></i>
+                                    @elseif(Str::contains($transaction->type->value, 'loan'))
+                                        <i class="fas fa-file-invoice-dollar"></i>
+                                    @else
+                                        <i class="fas fa-shopping-cart"></i>
+                                    @endif
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.92rem;">{{ $transaction->description }}</div>
+                                    <div class="text-muted extra-small" style="font-size: 0.75rem;">{{ ucwords(str_replace('_', ' ', $transaction->type->value)) }}</div>
+                                </div>
+                            </div>
+                            <div class="text-end flex-shrink-0">
+                                <div class="fw-bolder {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}" style="font-size: 1rem;">
+                                    {{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="small">
-                            @if($transaction->status->value == 'success')
-                                <span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>
-                            @elseif($transaction->status->value == 'pending')
-                                <span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>
-                            @else
-                                <span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>
+
+                        {{-- Metadata badges: Timestamp & Status badge & Expand indicator --}}
+                        <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light">
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.72rem;">
+                                    <i class="far fa-calendar-alt me-1"></i> {{ $transaction->created_at->format('M d, Y h:i A') }}
+                                </span>
+                                @if($transaction->status->value == 'success')
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold" style="font-size: 0.72rem;">
+                                        <i class="fas fa-check-circle me-1"></i> Completed
+                                    </span>
+                                @elseif($transaction->status->value == 'pending')
+                                    <span class="badge bg-warning bg-opacity-15 text-warning fw-bold" style="font-size: 0.72rem;">
+                                        <i class="fas fa-clock me-1"></i> Pending
+                                    </span>
+                                @else
+                                    <span class="badge bg-danger bg-opacity-10 text-danger fw-bold" style="font-size: 0.72rem;">
+                                        <i class="fas fa-times-circle me-1"></i> Failed
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="text-muted small d-flex align-items-center gap-1 cursor-pointer">
+                                <span class="extra-small text-muted" style="font-size: 0.72rem;">Details</span>
+                                <i class="fas fa-chevron-down mobile-expand-chevron" style="font-size: 0.7rem;"></i>
+                            </div>
+                        </div>
+
+                        {{-- Expandable Settlement Details --}}
+                        <div class="mobile-settlement-details">
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                <span class="text-muted extra-small">Reference / Tracking #</span>
+                                <span class="font-monospace fw-bold text-dark extra-small">{{ $transaction->tnx }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                <span class="text-muted extra-small">Channel / Method</span>
+                                <span class="fw-semibold text-dark extra-small">{{ $transaction->method ?: 'System Network' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                <span class="text-muted extra-small">Account Category</span>
+                                <span class="fw-semibold text-dark extra-small text-uppercase">{{ str_replace('_', ' ', $transaction->wallet_type ?: 'Checking') }}</span>
+                            </div>
+                            @if($existingDispute)
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                <span class="text-muted extra-small">Dispute Status</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary extra-small">{{ $existingDispute->status_label }} (#{{ $existingDispute->claim_number }})</span>
+                            </div>
                             @endif
+                            <div class="d-flex justify-content-end gap-2 mt-2 pt-1">
+                                <a href="{{ route('user.transactions.receipt', $transaction->tnx) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 extra-small" onclick="event.stopPropagation();">
+                                    <i class="fas fa-file-pdf me-1"></i> Receipt
+                                </a>
+                                @if($isEligibleDispute)
+                                <a href="{{ route('user.disputes.create', $transaction->tnx) }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 extra-small" onclick="event.stopPropagation();">
+                                    <i class="fas fa-shield-alt me-1"></i> Dispute
+                                </a>
+                                @elseif($existingDispute)
+                                <a href="{{ route('user.disputes.show', $existingDispute->claim_number) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 extra-small" onclick="event.stopPropagation();">
+                                    <i class="fas fa-eye me-1"></i> View Claim
+                                </a>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -491,8 +652,26 @@
                 }
             });
 
-            // Modal detail population
+            // Mobile-first expandable card settlement details
+            $('.activity-row').on('click', function(e) {
+                if (window.innerWidth < 768) {
+                    if ($(e.target).closest('a, button').length) {
+                        return;
+                    }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var $details = $(this).find('.mobile-settlement-details');
+                    var $chevron = $(this).find('.mobile-expand-chevron');
+                    $details.slideToggle(200);
+                    $chevron.toggleClass('rotate-180');
+                }
+            });
+
+            // Modal detail population (desktop only)
             $('#trxViewDetailsBox').on('show.bs.modal', function (event) {
+                if (window.innerWidth < 768) {
+                    return false;
+                }
                 var button = $(event.relatedTarget);
                 var modal = $(this);
                 modal.find('.modal-title-val').text(button.data('title'));

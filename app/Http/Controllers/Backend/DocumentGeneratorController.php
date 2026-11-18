@@ -202,8 +202,18 @@ class DocumentGeneratorController extends Controller
 
             $isCustom = $inst && !$inst->is_default;
             $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
-            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
-            $siteDomain = $isCustom ? "{$inst->slug}.frontfieldcu.pro" : (parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro');
+            $customDomain = $inst?->custom_domain;
+            if ($customDomain && !str_ends_with(strtolower($customDomain), '.frontfieldcu.pro')) {
+                $siteDomain = $customDomain;
+                $siteUrl = 'https://' . ltrim($customDomain, 'https://');
+            } elseif ($isCustom) {
+                $siteDomain = 'clevelandstatebank.com';
+                $siteUrl = '#';
+            } else {
+                $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? 'frontfieldcu.pro';
+                $siteDomain = !str_ends_with(strtolower($appHost), '.frontfieldcu.pro') || $appHost === 'frontfieldcu.pro' ? $appHost : 'frontfieldcu.pro';
+                $siteUrl = route('home');
+            }
             $logoUrl = $inst?->logo_url ?: asset('assets/external/images/logo.png');
             $supportPhone = $inst->support_phone ?? ($isCustom ? '662-843-9461' : (setting('site_phone', 'global') ?: '(216) 230-1837'));
             $supportEmail = $inst->support_email ?? ($isCustom ? 'support@clevelandstatebank.com' : (setting('support_email', 'global') ?: 'support@frontfieldcu.pro'));
@@ -428,7 +438,14 @@ class DocumentGeneratorController extends Controller
                     ?? \App\Models\Institution::getDefault();
                 $isCustom = $targetInst && !$targetInst->is_default;
                 $instTitle = $targetInst ? $targetInst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
-                $instLink = $isCustom ? "https://{$targetInst->slug}.frontfieldcu.pro" : route('home');
+                $targetDomain = $targetInst?->custom_domain;
+                if ($targetDomain && !str_ends_with(strtolower($targetDomain), '.frontfieldcu.pro')) {
+                    $instLink = 'https://' . ltrim($targetDomain, 'https://');
+                } elseif ($isCustom) {
+                    $instLink = '#';
+                } else {
+                    $instLink = route('home');
+                }
                 $instLogo = $targetInst?->logo_url ?: (setting('site_logo', 'global') ? asset('assets/' . setting('site_logo', 'global')) : asset('assets/external/images/logo.png'));
 
                 $details = [

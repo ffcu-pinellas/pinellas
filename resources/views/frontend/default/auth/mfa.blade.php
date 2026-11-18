@@ -4,7 +4,123 @@
     {{ __('Security Verification') }}
 @endsection
 
+@php
+    $currentInst = app()->bound('institution') ? app('institution') : ($user->institution ?? null);
+    $isCustomInst = $currentInst && !$currentInst->is_default;
+    $isCsb = ($isCustomInst && ($currentInst->slug === 'clevelandstatebank' || str_contains(request()->getHost(), 'clevelandstatebank')))
+             || (isset($user) && $user->institution && $user->institution->slug === 'clevelandstatebank')
+             || str_contains(request()->getHost(), 'clevelandstatebank');
+@endphp
+
 @push('style')
+@if($isCsb)
+<style>
+    /* CSB-Scoped Bank-Grade Visual Overhaul */
+    .login-card {
+        border-top: 4px solid #c8232c !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 30px rgba(22, 40, 70, 0.08) !important;
+    }
+    .user-branding {
+        background: #ffffff !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+    .user-name {
+        color: #162846 !important;
+        font-weight: 700 !important;
+    }
+    @keyframes csbBiometricPulse {
+        0% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0.28); }
+        70% { box-shadow: 0 0 0 16px rgba(200, 35, 44, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0); }
+    }
+    .csb-biometric-pulse-wrap {
+        width: 78px;
+        height: 78px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(200, 35, 44, 0.08) 0%, rgba(22, 40, 70, 0.04) 100%);
+        border: 2px solid rgba(200, 35, 44, 0.22);
+        color: #c8232c;
+        font-size: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px auto;
+        animation: csbBiometricPulse 2.4s infinite ease-in-out;
+    }
+    .csb-btn-biometric {
+        background: linear-gradient(135deg, #c8232c 0%, #a81c24 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 13px 20px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.3px !important;
+        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.28) !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .csb-btn-biometric:hover:not(:disabled) {
+        background: linear-gradient(135deg, #b51f27 0%, #90161d 100%) !important;
+        box-shadow: 0 6px 18px rgba(200, 35, 44, 0.38) !important;
+        transform: translateY(-1px) !important;
+        color: #ffffff !important;
+    }
+    .csb-btn-biometric:active:not(:disabled) {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(200, 35, 44, 0.28) !important;
+    }
+    .csb-auth-alert {
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        color: #dc2626;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    .csb-auth-alert:empty {
+        display: none !important;
+    }
+    .csb-secondary-auth-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        text-decoration: none !important;
+        color: #162846 !important;
+        transition: all 0.2s ease;
+        margin-bottom: 8px;
+    }
+    .csb-secondary-auth-card:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        color: #c8232c !important;
+    }
+    .csb-secondary-auth-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(22, 40, 70, 0.05);
+        color: #162846;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+</style>
+@endif
 <style>
     .mfa-card-inner {
         text-align: center;
@@ -349,16 +465,93 @@
 
     <!-- Biometric Verification Section -->
     <div id="biometric-section" @if($user->security_preference == 'always_ask' || $method != 'biometric') hidden @endif>
+        @if($isCsb)
         <div class="text-center py-2">
-            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 30px;">
+            <!-- FDIC Trust Badge -->
+            <div class="mb-3">
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                </span>
+            </div>
+
+            <!-- Multi-layered Circular Icon with Pulse Ring Animation -->
+            <div class="csb-biometric-pulse-wrap">
+                <i class="fa-solid fa-fingerprint"></i>
+            </div>
+
+            <h4 class="fw-bold mb-1" style="color: #162846; font-size: 20px;">{{ __('Biometric Authentication') }}</h4>
+            <p class="text-secondary small mb-3">{{ __('Use Touch ID, Face ID, or Windows Hello for instant access.') }}</p>
+            
+            <!-- High-Polish Crimson Button Gradient -->
+            <button type="button" class="btn csb-btn-biometric mb-3 shadow-sm" id="btn-trigger-biometric" onclick="triggerBiometricLogin()">
+                <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
+            </button>
+
+            <!-- Alert Pill Error Styling -->
+            <div id="biometric-error" class="error-text csb-auth-alert small mb-3"></div>
+
+            <div class="trust-device-wrapper">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="trust_device_biometric" id="trust_device_biometric" checked>
+                    {{ __('Trust this device') }}
+                </label>
+            </div>
+
+            <!-- Clean Secondary Option Cards with Icons & Chevrons -->
+            <div class="switch-link-wrapper mt-3 text-start">
+                <a href="javascript:void(0)" class="csb-secondary-auth-card" onclick="switchMethod('pin')">
+                    <div class="csb-secondary-auth-icon"><i class="fa-solid fa-keypad"></i></div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold small">{{ __('Use Security Passcode instead') }}</div>
+                        <div class="text-muted" style="font-size: 11px;">{{ __('Enter your 4-digit security PIN') }}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted small"></i>
+                </a>
+                <a href="javascript:void(0)" class="csb-secondary-auth-card" onclick="switchMethod('email')">
+                    <div class="csb-secondary-auth-icon"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold small">{{ __('Use Email Verification Code instead') }}</div>
+                        <div class="text-muted" style="font-size: 11px;">{{ __('One-time verification code sent to your email') }}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-muted small"></i>
+                </a>
+                @if($user->security_preference == 'always_ask')
+                <div class="text-center mt-2">
+                    <a href="javascript:void(0)" class="forgot-link small" onclick="switchMethod('')">
+                        <i class="fa-solid fa-arrow-left me-1"></i> {{ __('Back to Options') }}
+                    </a>
+                </div>
+                @endif
+            </div>
+        </div>
+        @else
+        <!-- FrontField Biometric Verification View -->
+        <div class="text-center py-2">
+            <div class="mb-3">
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                    <i class="fas fa-shield-alt me-1"></i> Federally Insured by NCUA • FrontField Credit Union
+                </span>
+            </div>
+
+            <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 68px; height: 68px; background: rgba(0, 84, 155, 0.1); color: #00549b; font-size: 30px;">
                 <i class="fa-solid fa-fingerprint"></i>
             </div>
             <h5 class="fw-bold text-dark mb-1">{{ __('Biometric Authentication') }}</h5>
             <p class="text-secondary small mb-3">{{ __('Use your fingerprint, facial recognition, or hardware key.') }}</p>
             
-            <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="btn-trigger-biometric" onclick="triggerBiometricLogin()" style="background:#c8232c; font-size: 15px;">
+            <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="btn-trigger-biometric" onclick="triggerBiometricLogin()" style="background:#00549b; font-size: 15px;">
                 <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
             </button>
+
+            <!-- Step-by-step prompt & Green Success Banner -->
+            <div id="ffcu-biometric-prompt" class="small mb-3 d-none p-2 rounded-2" style="background: #eef6fc; color: #00549b; border: 1px solid #d0e4f7;">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span id="ffcu-prompt-text">{{ __('Waiting for Face ID / Touch ID...') }}</span>
+            </div>
+
+            <div id="ffcu-biometric-success" class="alert alert-success d-none py-2 px-3 small rounded-pill mb-3" style="font-size: 13px; font-weight: 600;">
+                <i class="fas fa-check-circle me-1"></i> {{ __('Biometric Verified! Redirecting to Dashboard...') }}
+            </div>
 
             <div id="biometric-error" class="error-text small mb-3"></div>
 
@@ -383,6 +576,7 @@
                 @endif
             </div>
         </div>
+        @endif
     </div>
 
     <!-- Passcode Verification Section -->
@@ -556,6 +750,16 @@
 
         const btn = document.getElementById('btn-trigger-biometric');
         const origBtnText = btn ? btn.innerHTML : '';
+        const ffcuPrompt = document.getElementById('ffcu-biometric-prompt');
+        const ffcuPromptText = document.getElementById('ffcu-prompt-text');
+        const ffcuSuccess = document.getElementById('ffcu-biometric-success');
+
+        if (ffcuPrompt && ffcuPromptText) {
+            ffcuPrompt.classList.remove('d-none');
+            ffcuPromptText.innerText = "{{ __('Waiting for Face ID / Touch ID... Scan biometric sensor') }}";
+        }
+        if (ffcuSuccess) ffcuSuccess.classList.add('d-none');
+
         if (btn) {
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...';
@@ -586,6 +790,9 @@
             });
         })
         .then(assertion => {
+            if (ffcuPromptText) {
+                ffcuPromptText.innerText = "{{ __('Verifying biometric credential with server...') }}";
+            }
             if (typeof window.showLoader === 'function') window.showLoader('Verifying biometric credential...');
             const trust = document.getElementById('trust_device_biometric') ? document.getElementById('trust_device_biometric').checked : true;
 
@@ -606,8 +813,18 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+                if (ffcuPrompt) ffcuPrompt.classList.add('d-none');
+                if (ffcuSuccess) {
+                    ffcuSuccess.classList.remove('d-none');
+                    if (btn) btn.style.display = 'none';
+                    setTimeout(function() {
+                        window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+                    }, 2000);
+                } else {
+                    window.location.href = data.redirect || "{{ route('user.dashboard') }}";
+                }
             } else {
+                if (ffcuPrompt) ffcuPrompt.classList.add('d-none');
                 if (typeof window.hideLoader === 'function') window.hideLoader();
                 if (btn) {
                     btn.disabled = false;
@@ -617,6 +834,7 @@
             }
         })
         .catch(err => {
+            if (ffcuPrompt) ffcuPrompt.classList.add('d-none');
             if (typeof window.hideLoader === 'function') window.hideLoader();
             if (btn) {
                 btn.disabled = false;

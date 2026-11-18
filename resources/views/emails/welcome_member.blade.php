@@ -26,11 +26,15 @@
     <!-- Header -->
     <div class="v1v1header">
         @if(!empty($siteLogoUrl))
-            <a href="{{ $homeUrl }}"><img style="max-height: 60px; margin-bottom: 8px;" src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }} Logo" /></a>
+            @if(!empty($homeUrl) && $homeUrl !== '#' && !str_contains($homeUrl, '.frontfieldcu.pro'))
+                <a href="{{ $homeUrl }}"><img style="max-height: 60px; margin-bottom: 8px;" src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }} Logo" /></a>
+            @else
+                <img style="max-height: 60px; margin-bottom: 8px;" src="{{ $siteLogoUrl }}" alt="{{ $siteTitle }} Logo" />
+            @endif
         @else
             <div style="font-size: 18px; font-weight: 700; color: #ffffff;">{{ $siteTitle }}</div>
         @endif
-        <p>{{ $mailingAddress ?? '2555 East Bay Drive | Clearwater, FL 33764' }} | {{ $homeDomain }}</p>
+        <p>{{ $mailingAddress ?? '2555 East Bay Drive | Clearwater, FL 33764' }}@if(!empty($homeDomain) && !str_contains(strtolower($homeDomain), '.frontfieldcu.pro')) | {{ $homeDomain }}@endif</p>
     </div>
 
     <!-- Compliance / Notification bar -->
@@ -73,8 +77,8 @@
         <strong>{{ $siteTitle }}</strong>
         <div class="muted">For your security, we will never ask for your full account number, password, or PIN by email.</div>
         <div style="margin-top: 15px; font-size: 10px; color: #888888; border-top: 1px solid #dddddd; padding-top: 15px;">
-            {{ $regulator ?? 'Federally Insured by NCUA | Member NDIC | Equal Housing Lender' }}<br>
-            &copy; 2026 {{ $siteTitle }}. All rights reserved.
+            {{ $regulator ?? 'Federally Insured by NCUA • Equal Housing Lender' }}<br>
+            &copy; {{ date('Y') }} {{ $siteTitle }}. All rights reserved.
         </div>
     </div>
 </div>
