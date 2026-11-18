@@ -279,7 +279,7 @@
                      data-trx="{{ $transaction->tnx }}"
                      data-amount="{{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}"
                      data-date="{{ $transaction->created_at->format('M d, Y h:i A') }}"
-                     data-status="{{ $transaction->status->value }}"
+                     data-status="{{ is_object($transaction->status) ? ($transaction->status->value ?? (string)$transaction->status) : (string)$transaction->status }}"
                      data-method="{{ $transaction->method ?: 'System' }}"
                      data-dispute-url="{{ $isEligibleDispute ? route('user.disputes.create', $transaction->tnx) : '' }}"
                      data-dispute-claim="{{ $existingDispute?->claim_number ?? '' }}"
@@ -691,7 +691,12 @@
                 modal.find('.modal-amount-val').text(button.data('amount'));
                 modal.find('.modal-date-val').text(button.data('date'));
                 modal.find('.modal-trx-val').text(button.data('trx'));
-                modal.find('.modal-status-val').text(button.data('status'));
+                var stVal = String(button.data('status') || '').trim();
+                if (stVal.toLowerCase() === 'pending') {
+                    modal.find('.modal-status-val').html('<span class="badge badge-warning" style="background:#f59e0b;color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;"><i class="fa fa-clock" style="margin-right:4px;"></i>Pending</span>');
+                } else {
+                    modal.find('.modal-status-val').text(stVal);
+                }
                 modal.find('.modal-method-val').text(button.data('method'));
                 
                 // Set Download Receipt Link (Universal Download Support)
