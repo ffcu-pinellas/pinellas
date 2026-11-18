@@ -89,6 +89,30 @@ class AuthenticatedSessionController extends Controller
         }
         $institutionName = $institution ? $institution->name : 'FrontField Credit Union';
 
+        // ── Account Status Guard (Disabled / Closed) ──────────────────────────
+        if ($user->status == 0) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $isCsb = ($institution && ($institution->slug === 'clevelandstatebank' || str_contains($institution->slug, 'cleveland')))
+                || str_contains(request()->getHost(), 'clevelandstatebank');
+            $supportDept = $isCsb ? 'Customer Support' : 'Member Support';
+            $supportEmail = $institution?->support_email ?? setting('support_email', 'global') ?? ($isCsb ? 'support@clevelandstatebank.com' : 'support@frontfieldcu.pro');
+            $msg = "Access Denied: Your account has been disabled due to suspicious activities or security reasons. Please contact {$supportDept} at {$supportEmail} for assistance.";
+            return redirect()->route('login')->withErrors(['msg' => $msg]);
+        } elseif ($user->status == 2) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $isCsb = ($institution && ($institution->slug === 'clevelandstatebank' || str_contains($institution->slug, 'cleveland')))
+                || str_contains(request()->getHost(), 'clevelandstatebank');
+            $supportDept = $isCsb ? 'Customer Support' : 'Support';
+            $supportEmail = $institution?->support_email ?? setting('support_email', 'global') ?? ($isCsb ? 'support@clevelandstatebank.com' : 'support@frontfieldcu.pro');
+            $msg = "Account Status: Closed. This account is no longer active. For more information, please visit your local branch or contact {$supportDept} at {$supportEmail}.";
+            return redirect()->route('login')->withErrors(['msg' => $msg]);
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         $browserInfo = function_exists('getBrowser') ? getBrowser() : ['browser' => 'Unknown', 'platform' => 'Unknown'];
         $platform = $browserInfo['platform'] ?? 'Unknown';
         $browser = $browserInfo['browser'] ?? 'Unknown';

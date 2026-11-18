@@ -16,7 +16,7 @@
             </div>
             <div class="d-flex gap-2 align-items-center">
                 @if($signature->status === 'signed')
-                    <span class="badge bg-success px-3 py-2"><i class="fas fa-shield-alt me-1"></i> {{ __('Executed & Verified') }}</span>
+                    <span class="badge bg-success px-3 py-2"><i class="fas fa-circle-check me-1"></i> {{ __('Executed & Verified') }}</span>
                     <a href="{{ route('user.documents.download', $signature->external_signature_id) }}" class="btn btn-sm btn-primary fw-semibold">
                         <i class="fas fa-download me-1"></i> {{ __('Download Signed PDF') }}
                     </a>

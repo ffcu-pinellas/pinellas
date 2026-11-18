@@ -66,7 +66,7 @@
                 <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="csbDocFilterForm" onsubmit="handleDocFilterSubmit(event)">
+                <form id="csbDocFilterForm" data-no-loader="true" onsubmit="handleDocFilterSubmit(event)">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted text-uppercase">Account</label>
                         <select class="form-select shadow-none" id="csbFilterAccount" required>
@@ -269,7 +269,37 @@ function handleDocFilterSubmit(e) {
             if (toDate) url += "&to_date=" + encodeURIComponent(toDate);
         }
 
-        window.location.href = url;
+        if (typeof window.showLoader === 'function') {
+            window.showLoader('Generating Statement PDF...');
+        }
+
+        fetch(url)
+            .then(function(res) {
+                if (!res.ok) throw new Error('Download failed');
+                return res.blob();
+            })
+            .then(function(blob) {
+                var blobUrl = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'CSB_Official_Statement.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            })
+            .catch(function(err) {
+                console.error(err);
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+                window.location.href = url; // Fallback
+            })
+            .finally(function() {
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+            });
     } else if (type === 'direct_deposit') {
         var depType = (acc === 'all') ? 'checking' : acc;
         window.location.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', depType);

@@ -57,7 +57,7 @@
 
                     {{-- Wire Type Switcher --}}
                     <div class="mb-3">
-                        <label class="form-label extra-small text-uppercase fw-bold text-muted mb-2 d-block">{{ __('Select Wire Transfer Classification') }}</label>
+                        <label class="form-label extra-small text-uppercase fw-bold text-muted mb-2 d-block">{{ __('Select Wire Transfer Type') }}</label>
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <label class="wire-type-card p-3 border rounded-3 d-flex align-items-center cursor-pointer h-100 position-relative transition-all active" id="cardDomestic">
@@ -256,7 +256,7 @@
                                 <strong class="text-dark small" id="revSourceAccount">-</strong>
                             </div>
                             <div class="col-sm-6 text-sm-end">
-                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Wire Classification') }}</span>
+                                <span class="text-muted extra-small text-uppercase d-block">{{ __('Transfer Type') }}</span>
                                 <span class="badge bg-primary px-2 py-1 rounded-pill small" id="revWireType">Domestic Fedwire</span>
                             </div>
 
@@ -299,7 +299,7 @@
 
                     {{-- Professional Financial Settlement Notice --}}
                     <div class="alert alert-info border-0 rounded-2 extra-small d-flex align-items-start gap-2 mb-3 p-3">
-                        <i class="fas fa-shield-alt fs-6 text-primary mt-1"></i>
+                        <i class="fas fa-building-columns fs-6 text-primary mt-1"></i>
                         <div>
                             <strong>{{ __('Settlement Policy Notice:') }}</strong><br>
                             {{ __('Funds (transfer principal and applicable wire processing fees) are debited immediately upon order authorization and placed into a pending settlement hold until clearing and final funds dispatch.') }}

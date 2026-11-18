@@ -6,14 +6,17 @@
 
 @section('content')
 @php
-    $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
+    $userInst = auth()->user()?->institution;
+    $activeInst = (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution : $userInst;
+    $isCustomInst = ($activeInst && ($activeInst->slug === 'clevelandstatebank' || $activeInst->id == 2)) || (auth()->user()?->institution_id == 2);
+
     $wireLogo = $isCustomInst
-        ? ($currentInstitution->dark_logo_path ? asset('assets/' . $currentInstitution->dark_logo_path) : asset('assets/institutions/clevelandstatebank/images/logo-white.png'))
+        ? asset('assets/institutions/clevelandstatebank/images/logo-white.png')
         : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
-    $wireTitle = $isCustomInst ? $currentInstitution->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+    $wireTitle = $isCustomInst ? ($activeInst ? $activeInst->name : 'Cleveland State Bank') : (setting('site_title', 'global') ?? 'FrontField Credit Union');
     $wireHeaderGradient = $isCustomInst ? 'linear-gradient(135deg, #c8232c 0%, #1b325f 100%)' : 'linear-gradient(135deg, #00549b 0%, #002d5a 100%)';
     $wireDisclaimer = $isCustomInst 
-        ? "Member FDIC. {$currentInstitution->name} routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes."
+        ? "Member FDIC. " . ($activeInst ? $activeInst->name : 'Cleveland State Bank') . " routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes."
         : 'Federally insured by NCUA. FrontField Credit Union routes wire transfers via the Federal Reserve Fedwire® Funds Service and SWIFT messaging networks. All wire transfers are subject to federal regulatory review and clearing timeframes.';
 @endphp
 <div class="row justify-content-center">
@@ -23,10 +26,10 @@
             {{-- Official Financial Wire Header --}}
             <div class="receipt-header" style="background: {{ $wireHeaderGradient }}; padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between;">
                 <div class="d-flex align-items-center gap-3">
-                    <img src="{{ $wireLogo }}" alt="{{ $wireTitle }}" style="height: 28px;">
+                    <img src="{{ $wireLogo }}" alt="{{ $wireTitle }}" style="height: 28px; max-width: 170px; object-fit: contain;" onerror="this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}'">
                     <div style="width: 1px; height: 20px; background-color: rgba(255,255,255,0.25);"></div>
                     <div class="d-flex align-items-center gap-1 text-white">
-                        <i class="fas fa-shield-alt text-warning small"></i>
+                        <i class="fa-solid fa-building-columns text-warning small"></i>
                         <span class="fw-bold extra-small text-uppercase tracking-wide" style="letter-spacing: 0.5px;">{{ __('Fedwire / SWIFT Settlement') }}</span>
                     </div>
                 </div>
@@ -40,9 +43,9 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <span class="badge bg-warning bg-opacity-25 text-dark px-3 py-1 rounded-pill extra-small fw-bold font-monospace mb-1">
-                            <i class="fas fa-clock text-warning me-1"></i> {{ __('SETTLEMENT PENDING') }}
+                            <i class="fas fa-clock text-warning me-1"></i> {{ __('PENDING') }}
                         </span>
-                        <h4 class="fw-bold text-dark m-0">{{ __('Wire Transfer Settlement Advisory') }}</h4>
+                        <h4 class="fw-bold text-dark m-0">{{ __('Wire Transfer Confirmation Receipt') }}</h4>
                     </div>
                     <button type="button" onclick="window.print();" class="btn btn-outline-primary rounded-pill btn-sm px-3 py-1 fw-semibold shadow-xs print-action-btn">
                         <i class="fas fa-file-pdf me-1"></i> {{ __('Print / Save PDF') }}
@@ -50,9 +53,9 @@
                 </div>
 
                 {{-- Financial Settlement Hold Advisory --}}
-                <div class="p-3 rounded-2 mb-3 settlement-advisory-box" style="background-color: #f8fafc; border-left: 4px solid #00549b; border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                <div class="p-3 rounded-2 mb-3 settlement-advisory-box" style="background-color: #f8fafc; border-left: 4px solid {{ $isCustomInst ? '#c8232c' : '#00549b' }}; border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
                     <div class="d-flex align-items-start gap-2">
-                        <i class="fas fa-info-circle text-primary mt-1 small"></i>
+                        <i class="fas fa-info-circle {{ $isCustomInst ? 'text-danger' : 'text-primary' }} mt-1 small"></i>
                         <div>
                             <strong class="text-dark extra-small d-block mb-1">{{ __('Order Acknowledged & Funds Reserved') }}</strong>
                             <p class="text-muted mb-0 extra-small" style="line-height: 1.5;">
@@ -65,24 +68,24 @@
                 {{-- Transaction Data Table --}}
                 <div class="transaction-details-list">
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Settlement Status') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Status') }}</span>
                         <div class="text-end">
-                            <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-bold extra-small">{{ __('Pending Clearance') }}</span>
+                            <span class="badge bg-warning text-dark px-2 py-1 rounded-pill fw-bold extra-small">{{ __('Pending') }}</span>
                         </div>
                     </div>
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Confirmation / Tracking #') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Confirmation #') }}</span>
                         <span class="fw-bold text-dark font-monospace text-end small">{{ $receipt['tnx'] ?? 'TRX' }}</span>
                     </div>
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Order Date & Time') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Date & Time') }}</span>
                         <span class="fw-bold text-dark text-end extra-small">{{ $receipt['created_at'] ?? now()->format('M d, Y h:i A T') }}</span>
                     </div>
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Wire Classification') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Transfer Type') }}</span>
                         <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill fw-bold extra-small">{{ $receipt['wire_type'] ?? 'Domestic Wire (Fedwire)' }}</span>
                     </div>
 
@@ -123,23 +126,23 @@
 
                     @if(!empty($receipt['memo']))
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Payment Reference / Memo') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Memo / Note') }}</span>
                         <span class="text-dark text-end extra-small">{{ $receipt['memo'] }}</span>
                     </div>
                     @endif
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Wire Principal Amount') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Transfer Amount') }}</span>
                         <span class="fw-bold text-dark text-end small">{{ $receipt['amount'] ?? '$0.00' }}</span>
                     </div>
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Wire Settlement Fee') }}</span>
+                        <span class="text-muted extra-small text-uppercase fw-semibold">{{ __('Transfer Fee') }}</span>
                         <span class="fw-bold text-primary text-end extra-small">{{ $receipt['fee'] ?? '$0.00' }}</span>
                     </div>
 
                     <div class="detail-item py-2 d-flex justify-content-between align-items-center bg-light px-3 rounded-2 mt-2">
-                        <span class="text-dark fw-bold text-uppercase extra-small">{{ __('Total Funds Debited') }}</span>
+                        <span class="text-dark fw-bold text-uppercase extra-small">{{ __('Total Amount') }}</span>
                         <span class="fw-bolder text-dark text-end fs-6">{{ $receipt['total'] ?? '$0.00' }}</span>
                     </div>
                 </div>
@@ -147,7 +150,7 @@
                 {{-- Action Buttons --}}
                 <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-3 pt-3 border-top receipt-actions">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold btn-sm" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i> {{ __('Print Wire Advisory') }}
+                        <i class="fas fa-print me-1"></i> {{ __('Print Receipt') }}
                     </button>
                     <a href="{{ route('user.fund_transfer.transfer.wire') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold btn-sm">
                         <i class="fas fa-plus me-1"></i> {{ __('Send Another Wire') }}

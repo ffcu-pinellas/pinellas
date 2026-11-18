@@ -28,9 +28,9 @@
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Transaction Security</h6>
                     
                     <!-- Biometric Passkeys (WebAuthn) -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 border-light">
-                        <div style="flex: 1; padding-right: 15px;">
-                            <div class="d-flex align-items-center gap-2 mb-1">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 border-light">
+                        <div style="flex: 1; min-width: 0; width: 100%;">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                 <label class="small text-muted d-block text-uppercase fw-bold mb-0">Biometric Authentication</label>
                                 <span class="badge bg-success text-white small" id="ffcuBioStatusBadge" style="font-size: 10px;">
                                     <i class="fa-solid fa-fingerprint me-1"></i> Ready
@@ -40,19 +40,19 @@
                                 Face ID / Touch ID / Windows Hello Passkeys
                             </div>
                             <div class="small text-muted" id="ffcuBioDeviceDesc">
-                                Cryptographic W3C WebAuthn hardware passkeys for instant, passwordless authorization.
+                                Face ID, Touch ID, or Passkey. Fast and secure sign-in.
                             </div>
                             <div id="ffcuBioFeedbackNotice" class="small mt-1 d-none"></div>
                         </div>
-                        <button type="button" id="btnFfcuRegisterBiometrics" onclick="ffcuRegisterBiometricPasskey()" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2" style="white-space: nowrap;">
+                        <button type="button" id="btnFfcuRegisterBiometrics" onclick="ffcuRegisterBiometricPasskey()" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 w-100 w-sm-auto" style="white-space: nowrap;">
                             <i class="fa-solid fa-fingerprint"></i>
                             <span id="btnFfcuBioLabel">Register Passkey</span>
                         </button>
                     </div>
 
                     <!-- Transaction PIN -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ auth()->user()->transaction_pin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
-                        <div>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ auth()->user()->transaction_pin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
+                        <div style="flex: 1; min-width: 0; width: 100%;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Transaction PIN</label>
                             <div class="fw-600 text-dark fs-5">
                                 @if(auth()->user()->transaction_pin)
@@ -63,7 +63,7 @@
                             </div>
                             <div class="small text-muted">Used for Extra Security on sensitive actions.</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ auth()->user()->transaction_pin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ auth()->user()->transaction_pin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0 w-100 w-sm-auto text-center" style="white-space: nowrap;">
                             {{ auth()->user()->transaction_pin ? 'Change PIN' : 'Set Up Now' }}
                         </button>
                     </div>
@@ -125,19 +125,19 @@
                 <!-- Login Credentials -->
                 <div class="mb-5" id="login-credentials">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Login Credentials</h6>
-                    <div class="d-flex justify-content-between align-items-center mb-4 py-2">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4 py-2">
                         <div>
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Username</label>
                             <div class="fw-600 text-dark fs-5">{{ auth()->user()->username }}</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#changeUsernameModal" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold">Change</button>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#changeUsernameModal" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold flex-shrink-0 w-100 w-sm-auto text-center">Change</button>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center py-2">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 py-2">
                         <div>
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Password</label>
                             <div class="fw-600 text-dark fs-5">••••••••••••</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold">Update</button>
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#changePasswordModal" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold flex-shrink-0 w-100 w-sm-auto text-center">Update</button>
                     </div>
                 </div>
 
@@ -299,6 +299,11 @@
 @section('script')
 <script>
     $(document).ready(function() {
+        if (window.innerWidth < 992 && (window.location.search.includes('focus=true') || window.location.pathname.includes('security'))) {
+            if (typeof showSecurityDetails === 'function') {
+                showSecurityDetails();
+            }
+        }
         if (!window.PublicKeyCredential) {
             $('#ffcuBioDeviceDesc').text('This browser or device does not support WebAuthn biometric sensors.');
             $('#btnFfcuRegisterBiometrics').prop('disabled', true).addClass('opacity-50');

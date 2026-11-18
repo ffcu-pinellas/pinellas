@@ -196,7 +196,7 @@
             <strong>{{ $siteTitle }}</strong><br>
             {{ $contactAddress ?? 'Corporate Offices • P.O. Box 2300' }}<br>
             {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}<br>
-            {{ $contactPhone ?? '216 230 1837' }}@if(!empty($homeDomain) && !str_contains(strtolower($homeDomain), 'frontfieldcu.pro')) | {{ $homeDomain }}@endif
+            {{ $contactPhone ?? '216 230 1837' }}
         </div>
         <div class="clear"></div>
     </div>

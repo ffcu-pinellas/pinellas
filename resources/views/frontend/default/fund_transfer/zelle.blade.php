@@ -25,14 +25,22 @@
                         </a>
                         <div class="d-flex align-items-center gap-3">
                             @php
-                                $instZelleLogo = (!empty($currentInstitution) && !$currentInstitution->is_default)
-                                    ? $currentInstitution->logo_white_url
-                                    : asset('assets/external/images/frontfield_logo_white_1774915533306.png');
-                                $instZelleTitle = (!empty($currentInstitution) && !$currentInstitution->is_default)
-                                    ? $currentInstitution->name
-                                    : (setting('site_title', 'global') ?? 'FrontField Credit Union');
+                                $userInst = auth()->user()?->institution;
+                                $activeInst = (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution : $userInst;
+                                $isCsb = ($activeInst && ($activeInst->slug === 'clevelandstatebank' || $activeInst->id == 2)) || (auth()->user()?->institution_id == 2);
+
+                                if ($isCsb) {
+                                    $instZelleLogo = asset('assets/institutions/clevelandstatebank/images/logo-white.png');
+                                    $instZelleTitle = $activeInst ? $activeInst->name : 'Cleveland State Bank';
+                                } elseif ($activeInst && method_exists($activeInst, 'getLogoWhiteUrlAttribute')) {
+                                    $instZelleLogo = $activeInst->logo_white_url;
+                                    $instZelleTitle = $activeInst->name;
+                                } else {
+                                    $instZelleLogo = asset('assets/external/images/frontfield_logo_white_1774915533306.png');
+                                    $instZelleTitle = setting('site_title', 'global') ?? 'FrontField Credit Union';
+                                }
                             @endphp
-                            <img src="{{ $instZelleLogo }}" alt="{{ $instZelleTitle }}" style="height: 30px; max-width: 180px; object-fit: contain;">
+                            <img src="{{ $instZelleLogo }}" alt="{{ $instZelleTitle }}" style="height: 30px; max-width: 180px; object-fit: contain;" onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}';">
                             <div style="width: 1px; height: 22px; background-color: rgba(255,255,255,0.4);"></div>
                             <img src="{{ asset('assets/external/images/Zelle-logo-no-tagline-white.png') }}" alt="Zelle" style="height: 24px; width: auto; object-fit: contain;">
                         </div>
@@ -413,7 +421,7 @@
 
             if (data.status === 'success' || data.status === 'internal') {
                 window.verifiedName = data.name;
-                document.getElementById('noticeIcon').className = 'fas fa-shield-check';
+                document.getElementById('noticeIcon').className = 'fas fa-circle-check';
                 document.getElementById('noticeTitle').innerText = 'Enrolled with Zelle®';
                 document.getElementById('noticeSub').innerHTML = `You are sending money to <strong>${data.name}</strong>`;
                 document.getElementById('externalNameGroup').classList.add('d-none');
@@ -495,7 +503,14 @@
         }
 
         Swal.fire({
-            title: '<div class="pt-3" style="color: #4a1144; font-size: 1.5rem;">Review Payment</div>',
+            title: `
+                <div class="d-flex align-items-center justify-content-center gap-2 pt-2 mb-2">
+                    <img src="{{ $instZelleLogo }}" alt="{{ $instZelleTitle }}" style="height: 24px; max-width: 140px; object-fit: contain;" onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}';">
+                    <span style="color: #cbd5e1; font-size: 14px;">|</span>
+                    <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" style="height: 20px; object-fit: contain;">
+                </div>
+                <div style="color: #4a1144; font-size: 1.4rem; font-weight: 700;">Review Payment</div>
+            `,
             html: `
                 <div class="px-2">
                     <div class="text-center mb-4">

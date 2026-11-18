@@ -97,6 +97,13 @@
                 margin-bottom: 12px !important;
                 padding: 14px 16px !important;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                overflow: hidden !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .activity-row-mobile {
+                width: 100% !important;
+                overflow: hidden !important;
             }
             .activity-row:hover {
                 background: #ffffff !important;
@@ -313,7 +320,7 @@
                                 @if($transaction->status->value == 'success')
                                     <span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>
                                 @elseif($transaction->status->value == 'pending')
-                                    <span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>
+                                    <span style="color: #b45309; font-weight: 600;"><i class="fa-regular fa-clock me-1 small"></i>Pending</span>
                                 @else
                                     <span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>
                                 @endif
@@ -322,11 +329,11 @@
                     </div>
 
                     {{-- Mobile Card Tile (screens < 768px) --}}
-                    <div class="activity-row-mobile d-md-none w-100">
+                    <div class="activity-row-mobile d-md-none w-100" style="overflow: hidden;">
                         {{-- Top header: Icon, Merchant/Description, and Signed Amount --}}
-                        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                            <div class="d-flex align-items-center gap-2 min-w-0">
-                                <div class="activity-icon flex-shrink-0" style="width: 38px; height: 38px; font-size: 0.9rem;">
+                        <div class="d-flex align-items-center justify-content-between mb-2" style="width: 100%; gap: 10px;">
+                            <div class="d-flex align-items-center gap-2" style="flex: 1 1 0%; min-width: 0; overflow: hidden;">
+                                <div class="activity-icon flex-shrink-0" style="width: 38px; height: 38px; min-width: 38px; font-size: 0.9rem;">
                                     @if ($transaction->type->value == 'deposit' || $transaction->type->value == 'manual_deposit')
                                         <i class="fas fa-arrow-down"></i>
                                     @elseif(Str::contains($transaction->type->value, 'transfer') || $transaction->type->value == 'receive_money')
@@ -337,13 +344,13 @@
                                         <i class="fas fa-shopping-cart"></i>
                                     @endif
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.92rem;">{{ $transaction->description }}</div>
-                                    <div class="text-muted extra-small" style="font-size: 0.75rem;">{{ ucwords(str_replace('_', ' ', $transaction->type->value)) }}</div>
+                                <div style="flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                                    <div class="fw-bold text-dark text-truncate d-block" style="font-size: 0.90rem; max-width: 100%;" title="{{ $transaction->description }}">{{ $transaction->description }}</div>
+                                    <div class="text-muted extra-small text-truncate" style="font-size: 0.75rem;">{{ ucwords(str_replace('_', ' ', $transaction->type->value)) }}</div>
                                 </div>
                             </div>
-                            <div class="text-end flex-shrink-0">
-                                <div class="fw-bolder {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}" style="font-size: 1rem;">
+                            <div class="text-end flex-shrink-0" style="white-space: nowrap; margin-left: auto;">
+                                <div class="fw-bolder {{ isPlusTransaction($transaction->type) ? 'text-success' : 'text-dark' }}" style="font-size: 0.98rem; font-variant-numeric: tabular-nums;">
                                     {{ isPlusTransaction($transaction->type) ? '+' : '-' }}{{ setting('currency_symbol','global').number_format($transaction->amount, 2) }}
                                 </div>
                             </div>
@@ -360,8 +367,8 @@
                                         <i class="fas fa-check-circle me-1"></i> Completed
                                     </span>
                                 @elseif($transaction->status->value == 'pending')
-                                    <span class="badge bg-warning bg-opacity-15 text-warning fw-bold" style="font-size: 0.72rem;">
-                                        <i class="fas fa-clock me-1"></i> Pending
+                                    <span class="badge fw-bold" style="background-color: #fef3c7 !important; color: #b45309 !important; border: 1px solid #fde68a !important; font-size: 0.72rem; padding: 4px 8px; border-radius: 50px;">
+                                        <i class="fa-regular fa-clock me-1" style="color: #b45309;"></i> Pending
                                     </span>
                                 @else
                                     <span class="badge bg-danger bg-opacity-10 text-danger fw-bold" style="font-size: 0.72rem;">
@@ -638,6 +645,9 @@
                 setTimeout(function() {
                     $btn.prop('disabled', false).html(originalHtml);
                     $('#eStatementModal').modal('hide');
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
                 }, 4000);
             });
 

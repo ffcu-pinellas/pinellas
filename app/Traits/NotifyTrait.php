@@ -41,6 +41,8 @@ trait NotifyTrait
                     }
                     $shortcodes[$formattedKey] = $formattedValue;
                 }
+            } elseif (is_string($value) && !str_contains($key, 'url') && !str_contains($key, 'link') && !str_contains($key, 'email') && !str_contains($key, 'site_title')) {
+                $shortcodes[$key] = $this->scrubTelegramText($value);
             }
         }
 
@@ -97,19 +99,32 @@ trait NotifyTrait
         }
 
         $phraseReplacements = [
-            'Approved via Telegram Inline Action' => 'Approved by System Administrator',
-            'Approved via Telegram Bot'           => 'Approved by System Administrator',
-            'Approved via Telegram command'       => 'Approved by System Administrator',
-            'Approved via Telegram'               => 'Approved by System Administrator',
-            'Rejected and refunded via Telegram Inline Action' => 'Transaction declined and refunded by Operations',
-            'Rejected via Telegram command'       => 'Transaction declined by Operations',
-            'Rejected via Telegram'               => 'Transaction declined by Operations',
-            'Administrative rejection via Telegram' => 'Administrative review: Transaction rejected',
+            'Approved via Telegram Inline Action' => 'Approved',
+            'Approved via Telegram Bot'           => 'Approved',
+            'Approved via Telegram command'       => 'Approved',
+            'Approved via Telegram'               => 'Approved',
+            'Approved by authorized administrator' => 'Approved',
+            'Approved by authorized admin'        => 'Approved',
+            'Approved by System Administrator'    => 'Approved',
+            'Approved by Administrator'           => 'Approved',
+            'Approved by Admin'                   => 'Approved',
+            'Rejected and refunded via Telegram Inline Action' => 'Declined and refunded',
+            'Rejected and refunded via Telegram'  => 'Declined and refunded',
+            'Rejected via Telegram Inline Action' => 'Declined',
+            'Rejected via Telegram Bot'           => 'Declined',
+            'Rejected via Telegram command'       => 'Declined',
+            'Rejected via Telegram'               => 'Declined',
+            'Administrative rejection via Telegram' => 'Declined',
+            'Administrative review: Transaction rejected' => 'Declined',
+            'Transaction declined and refunded by Operations' => 'Declined and refunded',
+            'Transaction declined by Operations'  => 'Declined',
+            'declined and refunded by Operations' => 'Declined and refunded',
+            'declined by Operations'              => 'Declined',
             'Manual Balance Adjustment via Telegram' => 'Manual Balance Adjustment',
             'Telegram Direct Action'              => 'Automated Dividend Credit',
             'Telegram One-Click Batch'            => 'Scheduled Dividend Batch',
             'Telegram /dividend run'              => 'Scheduled Dividend Distribution',
-            'Telegram Super-Admin'                => 'Senior Operations Reviewer',
+            'Telegram Super-Admin'                => 'Operations Review',
             'Telegram Reg CC ($225 Immediate)'    => 'Reg CC Immediate Funds Availability',
         ];
 
@@ -117,15 +132,27 @@ trait NotifyTrait
             $text = str_ireplace($needle, $replacement, $text);
         }
 
-        // Generic patterns
-        $text = preg_replace('/Approved\s+via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?/i', 'Approved by System Administrator', $text);
-        $text = preg_replace('/Rejected(?:\s+and\s+refunded)?\s+via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?/i', 'Transaction declined and refunded by Operations', $text);
-        $text = preg_replace('/\bvia\s+Telegram\b/i', 'by System Administrator', $text);
+        // Generic patterns for approvals -> Approved
+        $text = preg_replace('/Approved\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?)/i', 'Approved', $text);
+
+        // Generic patterns for rejections -> Declined and refunded / Declined
+        $text = preg_replace('/(?:Rejected|Declined)\s+and\s+refunded(?:\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+Operations|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?))?/i', 'Declined and refunded', $text);
+        $text = preg_replace('/(?:Rejected|Declined)(?:\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+Operations|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?))?/i', 'Declined', $text);
+
+        // Scrub any leftover "via Telegram" or "by administrator"
+        $text = preg_replace('/\bvia\s+Telegram\b/i', '', $text);
+        $text = preg_replace('/\bby\s+(?:(?:authorized|system)\s+)?administrator\b/i', '', $text);
+        $text = preg_replace('/\bauthorized\s+administrator\b/i', 'Operations', $text);
+        $text = preg_replace('/\bsystem\s+administrator\b/i', 'Operations', $text);
+        $text = preg_replace('/\badministrator\b/i', 'Staff', $text);
 
         // Standalone "Telegram" or "telegram"
         $text = preg_replace('/\bTelegram\b/i', 'Banking Operations', $text);
 
-        return $text;
+        // Collapse extra whitespace
+        $text = preg_replace('/\s{2,}/', ' ', $text);
+
+        return trim($text);
     }
 
     /**

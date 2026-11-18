@@ -31,14 +31,38 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Get configured Telegram credentials.
+     * Get configured Telegram credentials with multi-institution failover.
      */
-    protected function getCredentials(): array
+    protected function getCredentials(?\App\Models\Institution $institution = null): array
     {
-        $botToken = Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN');
-        $chatId = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
+        $botToken = (!empty($institution?->telegram_bot_token))
+            ? $institution->telegram_bot_token
+            : (Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN'));
+
+        $chatId = (!empty($institution?->telegram_chat_id))
+            ? $institution->telegram_chat_id
+            : (Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID'));
 
         return [$botToken, (string) $chatId];
+    }
+
+    /**
+     * Apply institution scope to a query, ensuring FrontField default includes NULL institution_id.
+     */
+    protected function applyInstitutionScope($query, ?\App\Models\Institution $inst, string $column = 'institution_id')
+    {
+        if (!$inst) {
+            return $query;
+        }
+
+        if ($inst->is_default) {
+            return $query->where(function ($q) use ($inst, $column) {
+                $q->where($column, $inst->id)
+                  ->orWhereNull($column);
+            });
+        }
+
+        return $query->where($column, $inst->id);
     }
 
     /**
@@ -104,7 +128,20 @@ class TelegramWebhookController extends Controller
     public function handleWebhook(Request $request): JsonResponse
     {
         $payload = $request->all();
-        [$botToken, $configuredChatId] = $this->getCredentials();
+
+        // 1. Resolve institution context from query parameter or route (e.g. ?inst=clevelandstatebank)
+        $targetSlug = $request->query('inst') ?? $request->route('institution');
+        $chatInst = null;
+        if ($targetSlug) {
+            try {
+                \App\Models\Institution::ensureSchema();
+                $chatInst = \App\Models\Institution::where('slug', $targetSlug)
+                    ->orWhere('short_name', strtoupper($targetSlug))
+                    ->first();
+            } catch (\Throwable $e) {}
+        }
+
+        [$botToken, $configuredChatId] = $this->getCredentials($chatInst);
 
         if (!$botToken) {
             Log::warning('Telegram Webhook called but TELEGRAM_BOT_TOKEN is not configured.');
@@ -139,6 +176,14 @@ class TelegramWebhookController extends Controller
                 Log::warning("Unauthorized Telegram button click from ID: {$fromId}");
                 $this->answerCallbackQuery($botToken, $callbackId, '⛔ Unauthorized access denied.', true);
                 return response()->json(['status' => 'unauthorized'], 200);
+            }
+
+            // Resolve chat institution and bot token if dedicated bot token exists
+            if (!$chatInst) {
+                $chatInst = $this->resolveChatInstitution($chatId);
+            }
+            if (!empty($chatInst?->telegram_bot_token)) {
+                $botToken = $chatInst->telegram_bot_token;
             }
 
             // =================================================================
@@ -441,12 +486,21 @@ class TelegramWebhookController extends Controller
             }
 
             // 7. Batch Dividend Execution from Preview: div_exec_all
-            if ($data === 'div_exec_all') {
+            if ($data === 'div_exec_all' || str_starts_with($data, 'div_exec_all:')) {
                 $divService = new \App\Services\DividendService();
-                $res = $divService->processBatch(null, 'Scheduled Dividend Batch');
+                $scopedInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                $instId = $scopedInst ? $scopedInst->id : null;
+                if (str_starts_with($data, 'div_exec_all:')) {
+                    $rawId = substr($data, strlen('div_exec_all:'));
+                    if (is_numeric($rawId) && (int)$rawId > 0) {
+                        $instId = (int)$rawId;
+                    }
+                }
+                $res = $divService->processBatch(null, 'Scheduled Dividend Batch', $instId);
                 if ($res['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "🎉 " . $res['message'], true);
-                    $updatedText = $originalText . "\n\n───────────────────\n✅ <b>BATCH EXECUTED SUCCESSFULLY</b>\n💰 Total Paid: " . setting('currency_symbol', '$') . number_format($res['total_amount'], 2) . "\n👥 Members: {$res['processed_count']}\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $instLabel = $scopedInst ? " [{$scopedInst->short_name}]" : "";
+                    $updatedText = $originalText . "\n\n───────────────────\n✅ <b>BATCH EXECUTED SUCCESSFULLY{$instLabel}</b>\n💰 Total Paid: " . setting('currency_symbol', '$') . number_format($res['total_amount'], 2) . "\n👥 Members: {$res['processed_count']}\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
                 } else {
                     $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $res['message'], true);
@@ -688,25 +742,25 @@ class TelegramWebhookController extends Controller
             $timestamp = Carbon::now()->format('Y-m-d H:i:s');
 
             if ($action === 'appr') {
-                $result = $this->approvalService->approve($txn, 'Approved by System Administrator');
+                $result = $this->approvalService->approve($txn, 'Approved');
 
                 if ($result['success']) {
                     $this->answerCallbackQuery($botToken, $callbackId, "✅ Transaction {$tnx} APPROVED!", true);
 
                     // Update Telegram message
-                    $updatedText = $originalText . "\n\n───────────────────\n✅ <b>STATUS: APPROVED via Telegram</b>\n🕒 <b>Settlement Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
+                    $updatedText = $originalText . "\n\n───────────────────\n✅ <b>STATUS: APPROVED</b>\n🕒 <b>Settlement Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
                     $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
                 } else {
                     $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $result['message'], true);
                 }
             } elseif ($action === 'rejc') {
-                $result = $this->approvalService->reject($txn, 'Transaction declined and refunded by Operations');
+                $result = $this->approvalService->reject($txn, 'Declined and refunded');
 
                 if ($result['success']) {
-                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Transaction {$tnx} REJECTED & REFUNDED!", true);
+                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Transaction {$tnx} DECLINED & REFUNDED!", true);
 
                     // Update Telegram message
-                    $updatedText = $originalText . "\n\n───────────────────\n❌ <b>STATUS: REJECTED & REFUNDED</b>\n🕒 <b>Processed Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
+                    $updatedText = $originalText . "\n\n───────────────────\n❌ <b>STATUS: DECLINED & REFUNDED</b>\n🕒 <b>Processed Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
                     $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
                 } else {
                     $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $result['message'], true);
@@ -736,6 +790,14 @@ class TelegramWebhookController extends Controller
 
             $parts = explode(' ', $text);
             $command = strtolower($parts[0]);
+
+            // Resolve chat institution and bot token if dedicated bot token exists
+            if (!$chatInst) {
+                $chatInst = $this->resolveChatInstitution($chatId);
+            }
+            if (!empty($chatInst?->telegram_bot_token)) {
+                $botToken = $chatInst->telegram_bot_token;
+            }
 
             switch ($command) {
                 case '/start':
@@ -838,7 +900,7 @@ class TelegramWebhookController extends Controller
                     if (!$targetTnx) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/reject TRX12345678 [optional reason]</code>");
                     } else {
-                        $reason = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : 'Transaction declined by Operations';
+                        $reason = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : 'Declined and refunded';
                         $this->handleDirectRejection($botToken, $chatId, trim($targetTnx), $reason);
                     }
                     break;
@@ -848,7 +910,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/unlock &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/unlock 25</code> or <code>/unlock @john_doe</code>");
                     } else {
-                        $user = $this->findUserByIdentifier($target);
+                        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify the ID or username.");
                         } else {
@@ -863,7 +926,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/user &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/user 25</code> or <code>/user @john_doe</code>");
                     } else {
-                        $user = $this->findUserByIdentifier($target);
+                        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please check ID, username, or email.");
                         } else {
@@ -903,7 +967,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/export &lt;user_id_or_username&gt; [limit]</code>\n<i>Example:</i> <code>/export 2</code> or <code>/export @Kalyn_Mickle009 50</code>");
                     } else {
-                        $user = $this->findUserByIdentifier($target);
+                        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -919,7 +984,8 @@ class TelegramWebhookController extends Controller
                     if (!$target || empty($statusArg)) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/setstatus &lt;user_id_or_username&gt; &lt;active|disabled|closed&gt;</code>\n<i>Example:</i> <code>/setstatus 25 active</code>");
                     } else {
-                        $user = $this->findUserByIdentifier($target);
+                        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -944,7 +1010,8 @@ class TelegramWebhookController extends Controller
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/status &lt;TRX_or_User&gt; [optional_new_status]</code>\n<i>Examples:</i>\n• <code>/status TRX12345678</code>\n• <code>/status @john_doe</code>\n• <code>/status 25 active</code>");
                     } elseif (!empty($extraArg)) {
                         // User passed two arguments e.g. /status 25 active -> route to setstatus
-                        $user = $this->findUserByIdentifier($target);
+                        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -1098,7 +1165,7 @@ class TelegramWebhookController extends Controller
             ->where('status', TxnStatus::Pending);
 
         if ($chatInst) {
-            $pendingQuery->whereHas('user', fn($q) => $q->where('institution_id', $chatInst->id));
+            $pendingQuery->whereHas('user', fn($q) => $this->applyInstitutionScope($q, $chatInst));
         }
 
         $pendingTxns = $pendingQuery->latest()
@@ -1149,7 +1216,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $result = $this->approvalService->approve($txn, 'Approved by System Administrator');
+        $result = $this->approvalService->approve($txn, 'Approved');
 
         if ($result['success']) {
             $this->sendMessage($botToken, $chatId, "✅ <b>SUCCESS:</b> Transaction <code>{$tnx}</code> has been APPROVED!");
@@ -1193,7 +1260,8 @@ class TelegramWebhookController extends Controller
         }
 
         // 2. Check if target is a member identifier (ID, @username, email, account#)
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if ($user) {
             $card = $this->renderUserCard($user);
             $this->sendMessage($botToken, $chatId, $card['text'], $card['keyboard']);
@@ -1440,34 +1508,49 @@ class TelegramWebhookController extends Controller
     }
 
     /**
-     * Find member by ID, @username, email, or account number.
+     * Find member by ID, @username, email, or account number with optional institution scoping.
      */
-    protected function findUserByIdentifier(string $identifier): ?User
+    protected function findUserByIdentifier(string $identifier, ?\App\Models\Institution $inst = null): ?User
     {
         $identifier = trim($identifier);
         $clean = ltrim($identifier, '@');
 
+        $query = User::query();
+        if ($inst) {
+            $this->applyInstitutionScope($query, $inst);
+        }
+
         // 1. By Numeric ID
         if (is_numeric($clean)) {
-            $user = User::find($clean);
+            $user = (clone $query)->where('id', $clean)->first();
             if ($user) return $user;
         }
 
         // 2. By Username
-        $user = User::where('username', $clean)->first();
+        $user = (clone $query)->where('username', $clean)->first();
         if ($user) return $user;
 
         // 3. By Email
-        $user = User::where('email', $identifier)->first();
+        $user = (clone $query)->where('email', $identifier)->first();
         if ($user) return $user;
 
         // 4. By Account Number (raw or with prefix)
         $prefix = setting('account_number_prefix', 'global') ?? '';
         $rawAccount = !empty($prefix) ? str_replace($prefix, '', $clean) : $clean;
 
-        return User::where('account_number', $clean)
-            ->orWhere('account_number', $rawAccount)
-            ->first();
+        $user = (clone $query)->where(function ($q) use ($clean, $rawAccount) {
+            $q->where('account_number', $clean)
+              ->orWhere('account_number', $rawAccount);
+        })->first();
+
+        if ($user) return $user;
+
+        // Fallback to global search if scoped search yielded nothing
+        if ($inst) {
+            return $this->findUserByIdentifier($identifier, null);
+        }
+
+        return null;
     }
 
     /**
@@ -1593,13 +1676,24 @@ class TelegramWebhookController extends Controller
      */
     public function setupWebhook(Request $request): JsonResponse
     {
-        [$botToken, $chatId] = $this->getCredentials();
+        $instSlug = $request->query('inst') ?? $request->route('institution');
+        $institution = null;
+        if ($instSlug) {
+            try {
+                \App\Models\Institution::ensureSchema();
+                $institution = \App\Models\Institution::where('slug', $instSlug)
+                    ->orWhere('short_name', strtoupper($instSlug))
+                    ->first();
+            } catch (\Throwable $e) {}
+        }
+
+        [$botToken, $chatId] = $this->getCredentials($institution);
 
         if (!$botToken) {
             return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured.'], 400);
         }
 
-        $webhookUrl = url('api/telegram/webhook');
+        $webhookUrl = $institution ? (url('api/telegram/webhook') . '?inst=' . $institution->slug) : url('api/telegram/webhook');
         $secretToken = $this->getWebhookSecret(true, $request->boolean('regenerate'));
 
         try {
@@ -1613,6 +1707,7 @@ class TelegramWebhookController extends Controller
             return response()->json([
                 'success' => $response->successful(),
                 'webhook_url' => $webhookUrl,
+                'institution' => $institution ? $institution->name : 'Global Default',
                 'secret_token_configured' => true,
                 'secret_fingerprint' => substr(hash('sha256', $secretToken), 0, 12),
                 'telegram_response' => $response->json(),
@@ -1625,9 +1720,21 @@ class TelegramWebhookController extends Controller
     /**
      * Helper to inspect current Telegram webhook status.
      */
-    public function webhookInfo(): JsonResponse
+    public function webhookInfo(Request $request = null): JsonResponse
     {
-        [$botToken, $chatId] = $this->getCredentials();
+        $request = $request ?? request();
+        $instSlug = $request->query('inst') ?? $request->route('institution');
+        $institution = null;
+        if ($instSlug) {
+            try {
+                \App\Models\Institution::ensureSchema();
+                $institution = \App\Models\Institution::where('slug', $instSlug)
+                    ->orWhere('short_name', strtoupper($instSlug))
+                    ->first();
+            } catch (\Throwable $e) {}
+        }
+
+        [$botToken, $chatId] = $this->getCredentials($institution);
 
         if (!$botToken) {
             return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured.'], 400);
@@ -1640,6 +1747,7 @@ class TelegramWebhookController extends Controller
 
             return response()->json([
                 'success' => $response->successful(),
+                'institution' => $institution ? $institution->name : 'Global Default',
                 'secret_token_configured' => $secret !== '',
                 'secret_fingerprint' => $secret !== '' ? substr(hash('sha256', $secret), 0, 12) : null,
                 'telegram_info' => $response->json(),
@@ -1767,9 +1875,10 @@ class TelegramWebhookController extends Controller
 
             $keyboard = [];
             if ($preview['eligible_count'] > 0) {
+                $cbData = $instId ? "div_exec_all:{$instId}" : 'div_exec_all';
                 $keyboard = [
                     [
-                        ['text' => "🚀 Execute Payout Now ({$instLabel})", 'callback_data' => 'div_exec_all']
+                        ['text' => "🚀 Execute Payout Now ({$instLabel})", 'callback_data' => $cbData]
                     ]
                 ];
             }
@@ -1797,7 +1906,7 @@ class TelegramWebhookController extends Controller
                 $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/dividend toggle &lt;user_id_or_username&gt;</code>");
                 return;
             }
-            $user = $this->findUserByIdentifier($target);
+            $user = $this->findUserByIdentifier($target, $chatInst);
             if (!$user) {
                 $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                 return;
@@ -1816,7 +1925,7 @@ class TelegramWebhookController extends Controller
                 $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/dividend setapy &lt;user&gt; &lt;rate_percentage&gt;</code>\n<i>Example:</i> <code>/dividend setapy 2 4.25</code>");
                 return;
             }
-            $user = $this->findUserByIdentifier($target);
+            $user = $this->findUserByIdentifier($target, $chatInst);
             if (!$user) {
                 $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                 return;
@@ -1827,7 +1936,7 @@ class TelegramWebhookController extends Controller
         }
 
         // 5. Individual Member Dividend Lookup / Credit: /dividend <user>
-        $user = $this->findUserByIdentifier($subCommand);
+        $user = $this->findUserByIdentifier($subCommand, $chatInst);
         if ($user) {
             $calc = $divService->calculateUserDividend($user);
             if ($calc['eligible']) {
@@ -1888,7 +1997,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify user ID or username.");
             return;
@@ -2384,7 +2494,7 @@ class TelegramWebhookController extends Controller
         });
 
         if ($chatInst) {
-            $searchQuery->where('institution_id', $chatInst->id);
+            $this->applyInstitutionScope($searchQuery, $chatInst);
         }
 
         $results = $searchQuery->limit(6)->get();
@@ -2447,7 +2557,8 @@ class TelegramWebhookController extends Controller
         $amountArg = $parts[3];
         $reason = isset($parts[4]) ? trim(implode(' ', array_slice($parts, 4))) : 'Manual Balance Adjustment';
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
             return;
@@ -2542,7 +2653,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
             return;
@@ -2669,7 +2781,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
             return;
@@ -2815,7 +2928,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
             return;
@@ -2851,10 +2965,14 @@ class TelegramWebhookController extends Controller
         // 2. Listing: /schedule list [username]
         if ($sub === 'list') {
             \App\Models\ScheduledTransaction::ensureSchema();
+            $chatInst = $this->resolveChatInstitution($chatId);
             $query = \App\Models\ScheduledTransaction::with('user')->where('status', 1)->latest();
+            if ($chatInst) {
+                $query->whereHas('user', fn($u) => $this->applyInstitutionScope($u, $chatInst));
+            }
             $targetUserStr = $parts[2] ?? null;
             if ($targetUserStr) {
-                $user = $this->findUserByIdentifier($targetUserStr);
+                $user = $this->findUserByIdentifier($targetUserStr, $chatInst);
                 if ($user) {
                     $query->where('user_id', $user->id);
                 }
@@ -2926,7 +3044,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
             return;
@@ -3031,7 +3150,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
             return;
@@ -3154,7 +3274,8 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = $this->findUserByIdentifier($target);
+        $chatInst = $this->resolveChatInstitution($chatId);
+        $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
             return;
@@ -3333,7 +3454,7 @@ class TelegramWebhookController extends Controller
             $query = \App\Models\TransactionDispute::with('user.institution')->latest();
 
             if ($chatInst) {
-                $query->whereHas('user', fn($u) => $u->where('institution_id', $chatInst->id));
+                $query->whereHas('user', fn($u) => $this->applyInstitutionScope($u, $chatInst));
             }
 
             if ($mode !== 'all') {
@@ -3430,15 +3551,23 @@ class TelegramWebhookController extends Controller
             $keyboard = [];
 
             foreach ($institutions as $inst) {
-                $memberCount = \App\Models\User::where('institution_id', $inst->id)->count();
-                $totalDeposits = \App\Models\User::where('institution_id', $inst->id)->sum('balance');
+                $memberQuery = \App\Models\User::query();
+                $this->applyInstitutionScope($memberQuery, $inst);
+                $memberCount = $memberQuery->count();
+
+                $depositQuery = \App\Models\User::query();
+                $this->applyInstitutionScope($depositQuery, $inst);
+                $totalDeposits = $depositQuery->sum('balance');
+
                 $statusIcon = $inst->is_active ? '🟢' : '🔴';
                 $isDef = $inst->is_default ? ' [PRIMARY ROOT]' : '';
+
+                $domainUrl = method_exists($inst, 'baseUrl') ? $inst->baseUrl() : "https://{$inst->slug}";
 
                 $msg .= "{$statusIcon} <b>{$inst->name} ({$inst->short_name})</b>{$isDef}\n";
                 $msg .= "   🔢 Routing: <code>{$inst->routing_number}</code>\n";
                 $msg .= "   👥 Members: <b>{$memberCount}</b> | Assets: <b>{$currencySymbol}" . number_format($totalDeposits, 2) . "</b>\n";
-                $msg .= "   🔗 Domain: <code>{$inst->slug}.frontfieldcu.pro</code>\n\n";
+                $msg .= "   🔗 Domain: <code>{$domainUrl}</code>\n\n";
 
                 $keyboard[] = [
                     ['text' => "👉 Scope Telegram to {$inst->short_name}", 'callback_data' => 'scope_set:' . $inst->slug]

@@ -94,15 +94,54 @@
                     <!-- Biometric Verification Section -->
                     <div id="sg-biometric-verify" class="d-none text-center">
                         @if($isCsb)
-                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle csb-sg-pulse" style="width: 72px; height: 72px; background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 32px; border: 2px solid rgba(200, 35, 44, 0.25);">
-                            <i class="fa-solid fa-fingerprint"></i>
-                        </div>
-                        <h4 class="fw-bold mb-1" style="color: #162846;">{{ __('Biometric Authentication') }}</h4>
-                        <p class="text-secondary small mb-4">{{ __('Use Face ID, Touch ID, or Windows Hello passkey to authorize this action.') }}</p>
+                        <div class="text-center py-2">
+                            <!-- FDIC Trust Badge -->
+                            <div class="mb-3">
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                                </span>
+                            </div>
 
-                        <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()" style="background: linear-gradient(135deg, #c8232c 0%, #a81c24 100%); font-size: 15px; border: none; box-shadow: 0 4px 14px rgba(200, 35, 44, 0.28);">
-                            <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
-                        </button>
+                            <!-- Multi-layered Circular Icon with Pulse Ring Animation -->
+                            <div class="csb-biometric-pulse-wrap">
+                                <i class="fa-solid fa-fingerprint"></i>
+                            </div>
+
+                            <h4 class="fw-bold mb-1" style="color: #162846; font-size: 20px;">{{ __('Biometric Authentication') }}</h4>
+                            <p class="text-secondary small mb-3">{{ __('Use Face ID, Touch ID, or Windows Hello for instant access.') }}</p>
+
+                            <!-- High-Polish Crimson Button Gradient -->
+                            <button type="button" class="btn csb-btn-biometric mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()">
+                                <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
+                            </button>
+
+                            <!-- Clean Secondary Option Cards with Icons & Chevrons -->
+                            <div class="switch-link-wrapper mt-3 text-start">
+                                @if($sgHasPin)
+                                <a href="javascript:void(0)" class="csb-secondary-auth-card" onclick="SecurityGate.selectMethod('pin')">
+                                    <div class="csb-secondary-auth-icon"><i class="fa-solid fa-keypad"></i></div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small">{{ __('Use Security Passcode instead') }}</div>
+                                        <div class="text-muted" style="font-size: 11px;">{{ __('Enter your 4-digit security PIN') }}</div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-muted small"></i>
+                                </a>
+                                @endif
+                                <a href="javascript:void(0)" class="csb-secondary-auth-card" onclick="SecurityGate.selectMethod('email')">
+                                    <div class="csb-secondary-auth-icon"><i class="fa-solid fa-envelope"></i></div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small">{{ __('Use Email Verification Code instead') }}</div>
+                                        <div class="text-muted" style="font-size: 11px;">{{ __('One-time verification code sent to your email') }}</div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-muted small"></i>
+                                </a>
+                                <div class="text-center mt-2">
+                                    <a href="javascript:void(0)" class="forgot-link small" onclick="SecurityGate.backToChoice()">
+                                        <i class="fa-solid fa-arrow-left me-1"></i> {{ __('Back to Options') }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                         @else
                         <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width: 72px; height: 72px; background: rgba(2, 132, 199, 0.1); color: #0284c7; font-size: 32px;">
                             <i class="fa-solid fa-fingerprint"></i>
@@ -113,7 +152,6 @@
                         <button type="button" class="btn text-white w-100 py-3 fw-bold rounded-pill mb-3 shadow-sm" id="sg-btn-scan-biometric" onclick="SecurityGate.triggerBiometricAuth()" style="background: #0284c7; font-size: 15px;">
                             <i class="fa-solid fa-fingerprint me-2"></i> {{ __('Confirm with Face ID / Touch ID') }}
                         </button>
-                        @endif
 
                         <div class="mt-4">
                             @if($sgHasPin)
@@ -129,10 +167,18 @@
                                 <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.backToChoice()">{{ __('Back to Options') }}</a>
                             </div>
                         </div>
+                        @endif
                     </div>
 
                     <!-- Email Verification Section -->
                     <div id="sg-email-verify" class="d-none text-center">
+                        @if($isCsb)
+                        <div class="mb-3">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                            </span>
+                        </div>
+                        @endif
                         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
                         <p class="text-secondary small mb-1">{{ __('We\'ve sent a verification code to') }}</p>
                         <p class="fw-bold text-dark small mb-4">{{ $sgMaskedEmail }}</p>
@@ -149,13 +195,20 @@
                             </div>
                             <div class="mt-2 text-muted small" style="opacity: 0.5;">— or —</div>
                             <div class="mt-2">
-                                <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.backToChoice()">{{ __('Use Passcode instead') }}</a>
+                                <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.backToChoice()">{{ __('Back to Options') }}</a>
                             </div>
                         </div>
                     </div>
 
                     <!-- PIN Verification Section -->
                     <div id="sg-pin-verify" class="d-none text-center">
+                        @if($isCsb)
+                        <div class="mb-3">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
+                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                            </span>
+                        </div>
+                        @endif
                         <h4 class="fw-bold text-dark mb-2">{{ __('Verification Required') }}</h4>
                         <p class="text-secondary small mb-4">{{ __('Enter your 4-digit passcode to continue.') }}</p>
 
@@ -179,6 +232,9 @@
                         
                         <div class="switch-link-wrapper mt-3">
                             <a href="javascript:void(0)" class="forgot-link" onclick="SecurityGate.selectMethod('email')">{{ __('Use Email Verification Code instead') }}</a>
+                            <div class="mt-2">
+                                <a href="javascript:void(0)" class="forgot-link small" onclick="SecurityGate.backToChoice()">{{ __('Back to Options') }}</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -193,13 +249,92 @@
 
 <style>
 @if($isCsb)
-    @keyframes csbSgPulse {
+    @keyframes csbBiometricPulse {
         0% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0.28); }
-        70% { box-shadow: 0 0 0 14px rgba(200, 35, 44, 0); }
+        70% { box-shadow: 0 0 0 16px rgba(200, 35, 44, 0); }
         100% { box-shadow: 0 0 0 0 rgba(200, 35, 44, 0); }
     }
-    .csb-sg-pulse {
-        animation: csbSgPulse 2.4s infinite ease-in-out;
+    .csb-biometric-pulse-wrap {
+        width: 78px;
+        height: 78px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(200, 35, 44, 0.08) 0%, rgba(22, 40, 70, 0.04) 100%);
+        border: 2px solid rgba(200, 35, 44, 0.22);
+        color: #c8232c;
+        font-size: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px auto;
+        animation: csbBiometricPulse 2.4s infinite ease-in-out;
+    }
+    .csb-btn-biometric {
+        background: linear-gradient(135deg, #c8232c 0%, #a81c24 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 13px 20px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.3px !important;
+        box-shadow: 0 4px 14px rgba(200, 35, 44, 0.28) !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .csb-btn-biometric:hover:not(:disabled) {
+        background: linear-gradient(135deg, #b51f27 0%, #90161d 100%) !important;
+        box-shadow: 0 6px 18px rgba(200, 35, 44, 0.38) !important;
+        transform: translateY(-1px) !important;
+        color: #ffffff !important;
+    }
+    .csb-btn-biometric:active:not(:disabled) {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(200, 35, 44, 0.28) !important;
+    }
+    .csb-auth-alert {
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        color: #dc2626;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    .csb-secondary-auth-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        text-decoration: none !important;
+        color: #162846 !important;
+        transition: all 0.2s ease;
+        margin-bottom: 8px;
+    }
+    .csb-secondary-auth-card:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        color: #c8232c !important;
+    }
+    .csb-secondary-auth-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(22, 40, 70, 0.05);
+        color: #162846;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
     }
     #securityGateModal .pin-dot.filled {
         background-color: #c8232c !important;
@@ -365,6 +500,7 @@ Object.assign(window.SecurityGate, {
         gateId: null,
         selectedMethod: null,
         currentPin: "",
+        cachedChallenge: null,
 
         gate: function(target, callback) {
             if (typeof window.hideLoader === 'function') window.hideLoader();
@@ -403,6 +539,7 @@ Object.assign(window.SecurityGate, {
 
             this.gateId = 'sg_' + Date.now();
             this.reset();
+            this.prepareBiometricChallenge();
 
             // Biometric Passkey button is ALWAYS visible in method selection
             $('#sg-choice-biometric').removeClass('d-none');
@@ -424,6 +561,7 @@ Object.assign(window.SecurityGate, {
             if (typeof window.hideLoader === 'function') window.hideLoader();
             this.selectedMethod = null;
             this.currentPin = "";
+            this.cachedChallenge = null;
             $('#sg-method-selection').addClass('d-none');
             $('#sg-biometric-verify, #sg-email-verify, #sg-pin-verify, #sg-verify-btn, #sg-feedback').addClass('d-none');
             $('#sg-email-code-input').val('');
@@ -475,7 +613,7 @@ Object.assign(window.SecurityGate, {
                 $('#sg-biometric-verify').removeClass('d-none');
                 $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
                 $('#sg-back-btn').removeClass('d-none').text('Cancel');
-                this.triggerBiometricAuth();
+                this.prepareBiometricChallenge();
                 return;
             }
 
@@ -495,6 +633,73 @@ Object.assign(window.SecurityGate, {
             }
         },
 
+        prepareBiometricChallenge: function() {
+            const self = this;
+            const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+            if (!token) return;
+
+            $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+                _token: token,
+                gate_id: this.gateId
+            }).done(function(res) {
+                if (res && res.status === 'success' && res.challenge) {
+                    self.cachedChallenge = res.challenge;
+                }
+            }).fail(function() {
+                self.cachedChallenge = null;
+            });
+        },
+
+        executeBiometricAssertion: function(challengeStr) {
+            const self = this;
+            const $btn = $('#sg-btn-scan-biometric');
+            const origHtml = '<i class="fa-solid fa-fingerprint me-2"></i> {{ __("Confirm with Face ID / Touch ID") }}';
+            const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+
+            try {
+                const challengeBytes = new Uint8Array(challengeStr.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+                navigator.credentials.get({
+                    publicKey: {
+                        challenge: challengeBytes,
+                        timeout: 60000,
+                        userVerification: 'preferred',
+                        rpId: window.location.hostname
+                    }
+                }).then(function(assertion) {
+                    $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Verifying...');
+                    $.post("{{ route('user.security_gate.verify') }}", {
+                        _token: token,
+                        type: 'biometric',
+                        value: assertion ? (assertion.id || 'passkey_authenticated') : 'passkey_authenticated',
+                        gate_id: self.gateId
+                    }).done(function(verifyRes) {
+                        $btn.prop('disabled', false).html(origHtml);
+                        if (verifyRes.status === 'success') {
+                            self.completeSuccess(verifyRes);
+                        } else {
+                            $('#sg-feedback').text(verifyRes.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
+                        }
+                    }).fail(function(xhr) {
+                        $btn.prop('disabled', false).html(origHtml);
+                        $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
+                    });
+                }).catch(function(err) {
+                    $btn.prop('disabled', false).html(origHtml);
+                    console.log("Biometric auth rejected or timed out:", err);
+                    if (err.name === 'NotAllowedError') {
+                        $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Confirm with Face ID / Touch ID" below to try again, or choose another method.').removeClass('d-none');
+                    } else {
+                        $('#sg-feedback').text('Biometric authentication could not be completed. Tap button to retry or select another method.').removeClass('d-none');
+                    }
+                });
+            } catch (e) {
+                $btn.prop('disabled', false).html(origHtml);
+                console.error("Biometric assertion exception:", e);
+                $('#sg-feedback').text('Biometric verification error. Please choose PIN or Email instead.').removeClass('d-none');
+            }
+        },
+
         triggerBiometricAuth: function() {
             const self = this;
             const $btn = $('#sg-btn-scan-biometric');
@@ -502,11 +707,19 @@ Object.assign(window.SecurityGate, {
             $('#sg-feedback').addClass('d-none').text('');
 
             if (!window.PublicKeyCredential) {
-                $('#sg-feedback').text('Biometric authentication is not supported by your current browser.').removeClass('d-none');
+                $('#sg-feedback').text('Biometric authentication is not supported by your current browser. Please choose PIN or Email.').removeClass('d-none');
                 return;
             }
 
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...');
+
+            // If challenge was already pre-fetched, execute immediately inside user gesture activation
+            if (this.cachedChallenge) {
+                const ch = this.cachedChallenge;
+                this.cachedChallenge = null;
+                this.executeBiometricAssertion(ch);
+                return;
+            }
 
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
 
@@ -514,43 +727,8 @@ Object.assign(window.SecurityGate, {
                 _token: token,
                 gate_id: this.gateId
             }).done(function(res) {
-                if (res.status === 'success') {
-                    const challengeBytes = new Uint8Array(res.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-
-                    navigator.credentials.get({
-                        publicKey: {
-                            challenge: challengeBytes,
-                            timeout: 60000,
-                            userVerification: 'preferred',
-                            rpId: window.location.hostname
-                        }
-                    }).then(function(assertion) {
-                        $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Verifying...');
-                        $.post("{{ route('user.security_gate.verify') }}", {
-                            _token: token,
-                            type: 'biometric',
-                            value: assertion ? (assertion.id || 'passkey_authenticated') : 'passkey_authenticated',
-                            gate_id: self.gateId
-                        }).done(function(verifyRes) {
-                            $btn.prop('disabled', false).html(origHtml);
-                            if (verifyRes.status === 'success') {
-                                self.completeSuccess(verifyRes);
-                            } else {
-                                $('#sg-feedback').text(verifyRes.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
-                            }
-                        }).fail(function(xhr) {
-                            $btn.prop('disabled', false).html(origHtml);
-                            $('#sg-feedback').text(xhr.responseJSON?.message || 'Biometric verification failed. Please try PIN or Email.').removeClass('d-none');
-                        });
-                    }).catch(function(err) {
-                        $btn.prop('disabled', false).html(origHtml);
-                        console.log("Biometric auth rejected or timed out:", err);
-                        if (err.name === 'NotAllowedError') {
-                            $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Confirm with Face ID / Touch ID" below to try again, or choose another method.').removeClass('d-none');
-                        } else {
-                            $('#sg-feedback').text('Biometric authentication could not be completed. Tap scan to retry or select another method.').removeClass('d-none');
-                        }
-                    });
+                if (res.status === 'success' && res.challenge) {
+                    self.executeBiometricAssertion(res.challenge);
                 } else {
                     $btn.prop('disabled', false).html(origHtml);
                     $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');

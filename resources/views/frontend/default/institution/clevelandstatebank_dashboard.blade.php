@@ -288,7 +288,104 @@ body {
     color: #1e293b;
 }
 
-/* ── Account Cards / Tiles ── */
+/* ── CSB 3D Flip Account Tiles (Parity with 0.2s cubic-bezier(0.4, 0, 0.2, 1)) ── */
+.csb-account-card {
+    perspective: 1000px;
+    min-height: 105px;
+    height: 105px;
+    cursor: pointer;
+    flex: 1 1 280px;
+    max-width: 360px;
+    margin-bottom: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+.csb-account-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+    border-radius: 8px;
+}
+
+/* Flip on hover (desktop) or when is-flipped class is present (mobile tap) */
+.csb-account-card:hover .csb-account-card-inner,
+.csb-account-card.is-flipped .csb-account-card-inner {
+    transform: rotateX(180deg);
+}
+
+.csb-account-card-front,
+.csb-account-card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    box-sizing: border-box;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.csb-account-card-front {
+    z-index: 2;
+    transform: rotateX(0deg);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.csb-account-card-back {
+    transform: rotateX(180deg);
+    background: linear-gradient(135deg, #162846 0%, #0b1a30 100%) !important;
+    border: 1px solid rgba(200, 35, 44, 0.45);
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(22, 40, 70, 0.15);
+}
+
+.csb-account-card-back .ledger-title {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.csb-account-card-back .ledger-badge {
+    background: rgba(200, 35, 44, 0.25);
+    color: #fca5a5;
+    font-size: 9.5px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.csb-account-card-back .ledger-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.csb-account-card-back .ledger-meta {
+    font-size: 10.5px;
+    color: #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .account-tile-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -303,8 +400,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    font-size: 14px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
 }
 
 .tile-name {
@@ -323,13 +420,14 @@ body {
 .tile-account-no {
     color: #64748b;
     font-weight: 500;
-    font-size: 13px;
+    font-size: 12.5px;
 }
 
 .tile-balance {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
     color: #1e293b;
+    line-height: 1.1;
 }
 
 /* ── Buttons Row ── */
@@ -690,12 +788,15 @@ body {
     .account-tiles-grid::-webkit-scrollbar {
         display: none;
     }
-    .account-tiles-grid .account-tile-card {
+    .account-tiles-grid .account-tile-card,
+    .account-tiles-grid .csb-account-card {
         flex: 0 0 270px !important;
         max-width: 270px !important;
         min-width: 270px !important;
         scroll-snap-align: start;
         margin-bottom: 0 !important;
+        min-height: 105px !important;
+        height: 105px !important;
     }
     .txn-desc {
         max-width: calc(100vw - 190px) !important;
@@ -717,10 +818,13 @@ body {
     gap: 20px;
     margin-bottom: 24px;
 }
-.account-tiles-grid .account-tile-card {
+.account-tiles-grid .account-tile-card,
+.account-tiles-grid .csb-account-card {
     flex: 1 1 280px;
     max-width: 360px;
     margin-bottom: 0;
+}
+.account-tiles-grid .account-tile-card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .account-tiles-grid .account-tile-card:hover {
@@ -1118,7 +1222,7 @@ body {
         </button>
 
         <a href="{{ route('user.dashboard') }}" style="display: flex; align-items: center; text-decoration: none;">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank / Grenada State Bank" class="csb-header-logo-img">
+            <img src="{{ (app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" alt="Cleveland State Bank" class="csb-header-logo-img">
         </a>
     </header>
 
@@ -1295,94 +1399,201 @@ body {
 
             <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
             <div class="account-tiles-grid">
-                <!-- Checking Card Tile -->
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', {{ $checkingBal }}, 0, 'checking')">
-                    <div class="tile-header">
-                        <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
-                    </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($checkingBal, 2) }}
+                <!-- Checking Card 3D Flip Tile -->
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Checking', '{{ $user->account_number }}', {{ $checkingBal }}, 0, 'checking')">
+                    <div class="csb-account-card-inner">
+                        <!-- Front Face: Available Balance -->
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($checkingBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
+                            </div>
+                        </div>
+                        <!-- Back Face: Ledger Balance & Routing -->
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">POSTED</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format($checkingBal, 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Primary Savings Card Tile -->
+                <!-- Primary Savings 3D Flip Tile -->
                 @if($hasSavings)
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}', {{ $savingsBal }}, 0, 'savings')">
-                    <div class="tile-header">
-                        <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
-                    </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($savingsBal, 2) }}
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Primary Savings', '{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}', {{ $savingsBal }}, 0, 'savings')">
+                    <div class="csb-account-card-inner">
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($savingsBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
+                            </div>
+                        </div>
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">POSTED</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format($savingsBal, 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
 
-                <!-- IRA Card Tile -->
+                <!-- IRA 3D Flip Tile -->
                 @if($hasIra)
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('IRA Account', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $iraBal }}, 0, 'ira')">
-                    <div class="tile-header">
-                        <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
-                    </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($iraBal, 2) }}
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'IRA Account', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $iraBal }}, 0, 'ira')">
+                    <div class="csb-account-card-inner">
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($iraBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
+                            </div>
+                        </div>
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">POSTED</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format($iraBal, 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
 
-                <!-- HELOC Card Tile -->
+                <!-- HELOC 3D Flip Tile -->
                 @if($hasHeloc)
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
-                    <div class="tile-header">
-                        <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
+                    <div class="csb-account-card-inner">
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($helocBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Balance</span>
+                            </div>
+                        </div>
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">APPROVED</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format((float)($user->heloc_credit_limit ?? 0), 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($helocBal, 2) }}
-                    </div>
-                    @if((float)($user->heloc_credit_limit ?? 0) > 0)
-                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
-                        Avail Credit: {{ $currency }}{{ number_format(max(0, (float)$user->heloc_credit_limit - $helocBal), 2) }}
-                    </div>
-                    @endif
                 </div>
                 @endif
 
-                <!-- Credit Card Tile -->
+                <!-- Credit Card 3D Flip Tile -->
                 @if($hasCc)
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
-                    <div class="tile-header">
-                        <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}</span>
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
+                    <div class="csb-account-card-inner">
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($ccBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Current Balance</span>
+                            </div>
+                        </div>
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">ACTIVE</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format($ccLimit, 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($ccBal, 2) }}
-                    </div>
-                    @if($ccLimit > 0)
-                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
-                        Avail Credit: {{ $currency }}{{ number_format($ccAvailable, 2) }}
-                    </div>
-                    @endif
                 </div>
                 @endif
 
-                <!-- Loan Account Tile -->
+                <!-- Loan Account 3D Flip Tile -->
                 @if($hasLoan)
-                <div class="account-tile-card" role="button" onclick="window.showAccountDetails('Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
-                    <div class="tile-header">
-                        <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
-                        <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}</span>
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
+                    <div class="csb-account-card-inner">
+                        <div class="csb-account-card-front">
+                            <div class="tile-header">
+                                <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
+                                <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="tile-balance">
+                                    {{ $currency }}{{ number_format($loanBal, 2) }}
+                                </div>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Principal Due</span>
+                            </div>
+                        </div>
+                        <div class="csb-account-card-back">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="ledger-title">LEDGER BALANCE</span>
+                                <span class="ledger-badge">INSTALLMENT</span>
+                            </div>
+                            <div class="ledger-amount">
+                                {{ $currency }}{{ number_format($loanOrig, 2) }}
+                            </div>
+                            <div class="ledger-meta">
+                                <span>Routing: 084301768</span>
+                                <span>Holds: $0.00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="tile-balance">
-                        {{ $currency }}{{ number_format($loanBal, 2) }}
-                    </div>
-                    @if($loanOrig > 0)
-                    <div class="small text-muted" style="font-size: 11px; margin-top: 4px;">
-                        Original: {{ $currency }}{{ number_format($loanOrig, 2) }}
-                    </div>
-                    @endif
                 </div>
                 @endif
             </div>
@@ -1564,12 +1775,33 @@ body {
                                         @if(!empty($tx->member_notes))
                                         <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Notes:</span> <span>{{ $tx->member_notes }}</span></div>
                                         @endif
-                                        <div class="d-flex justify-content-between align-items-center pt-2">
-                                            @if(!empty($tx->tnx))
-                                            <a href="{{ $txReceiptUrl }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-receipt me-1"></i> Receipt</a>
-                                            @else
-                                            <span></span>
-                                            @endif
+                                        @php
+                                            $txRawStatusLower = strtolower($rawStatus);
+                                            $txIsSettled = in_array($txRawStatusLower, ['success', 'completed', '1'], true);
+                                            $txDisputableTypes = \App\Services\DisputeService::DEBIT_DISPUTABLE_TYPES;
+                                            $txIsDisputableDebit = $isNegative && (
+                                                in_array($typeLower, $txDisputableTypes, true) ||
+                                                str_contains($typeLower, 'transfer') ||
+                                                str_contains($typeLower, 'wire') ||
+                                                str_contains($typeLower, 'zelle') ||
+                                                str_contains($typeLower, 'bill')
+                                            );
+                                            $txWithin90Days = (!$tx->created_at || $tx->created_at->gte(now()->subDays(\App\Services\DisputeService::REG_E_WINDOW_DAYS)));
+                                            $txIsEligibleForDispute = $txIsSettled && $txIsDisputableDebit && $txWithin90Days && !str_starts_with(strtoupper((string)($tx->tnx ?? '')), 'RECON-');
+                                        @endphp
+                                        <div class="d-flex justify-content-between align-items-center pt-2 gap-2 flex-wrap">
+                                            <div class="d-flex align-items-center gap-2">
+                                                @if(!empty($tx->tnx))
+                                                <a href="{{ $txReceiptUrl }}" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-receipt me-1"></i> Receipt
+                                                </a>
+                                                @endif
+                                                @if($txIsEligibleForDispute)
+                                                <a href="{{ $txDisputeUrl }}" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px; font-weight: 600;" onclick="event.stopPropagation();" title="File a Regulation E Dispute for this transaction">
+                                                    <i class="fa-solid fa-flag me-1"></i> Dispute
+                                                </a>
+                                                @endif
+                                            </div>
                                             <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-clock me-1"></i>{{ $txDateStr }}</span>
                                         </div>
                                     </div>
@@ -2003,7 +2235,7 @@ body {
                                 @csrf
                                 <div class="p-3 mb-3 text-center rounded-3" style="background: linear-gradient(135deg, #1b325f 0%, #7414ca 100%); color:#fff;">
                                     <div class="d-flex align-items-center justify-content-center gap-3 mb-1">
-                                        <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" 
+                                        <img src="{{ (app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}" 
                                              alt="Cleveland State Bank" 
                                              style="height:26px; filter:brightness(0) invert(1);"
                                              onerror="this.onerror=null; this.src='{{ asset('assets/institutions/clevelandstatebank/images/logo-white.png') }}';">
@@ -2280,7 +2512,7 @@ body {
                                             @elseif($rd->status === 'rejected')
                                                 <span class="badge bg-danger">Rejected</span>
                                             @else
-                                                <span class="badge bg-warning text-dark">Pending Review</span>
+                                                <span class="badge bg-warning text-dark">Pending</span>
                                             @endif
                                         </td>
                                         <td class="text-end text-muted small font-monospace">{{ $rd->transaction_tnx ?? ('DEP' . $rd->id) }}</td>
@@ -3282,6 +3514,39 @@ body {
         document.body.removeChild(link);
     }
 
+    // ── CSB 3D Flip Account Tile Tap & Modal Handler ──
+    window.csbHandleTileTap = function(el, event, title, acct, bal, limit, type) {
+        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 768);
+        if (isTouch) {
+            if (!el.classList.contains('is-flipped')) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                document.querySelectorAll('.csb-account-card.is-flipped').forEach(function(card) {
+                    if (card !== el) card.classList.remove('is-flipped');
+                });
+                el.classList.add('is-flipped');
+                return;
+            } else {
+                el.classList.remove('is-flipped');
+                if (typeof window.showAccountDetails === 'function') {
+                    window.showAccountDetails(title, acct, bal, limit, type);
+                }
+                return;
+            }
+        }
+        if (typeof window.showAccountDetails === 'function') {
+            window.showAccountDetails(title, acct, bal, limit, type);
+        }
+    };
+
+    $(document).on('click touchstart', function(e) {
+        if (!$(e.target).closest('.csb-account-card').length) {
+            $('.csb-account-card.is-flipped').removeClass('is-flipped');
+        }
+    });
+
     // ── Transaction Details, Receipt Upload & Dispute Modal Popup ──
     function csbShowTxnFromEl(el, event) {
         if (window.innerWidth < 768) {
@@ -3323,7 +3588,7 @@ body {
         $('#csbTxnModalMethod').text(method);
         $('#csbBtnDownloadReceipt').attr('href', receiptUrl);
         var isOutgoing = (amount || '').trim().indexOf('-') === 0;
-        if (isOutgoing) {
+        if (isOutgoing && disputeUrl && disputeUrl !== '#') {
             $('#csbBtnDisputeTxn').removeClass('d-none').attr('href', disputeUrl);
         } else {
             $('#csbBtnDisputeTxn').addClass('d-none');
@@ -3891,8 +4156,11 @@ body {
             '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Account:</span> <span class="text-capitalize">' + wType + '</span></div>' +
             '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Type:</span> <span>' + escapedType + '</span></div>' +
             (memoText ? '    <div class="d-flex justify-content-between py-1 border-bottom"><span class="text-muted">Notes:</span> <span>' + memoText + '</span></div>' : '') +
-            '    <div class="d-flex justify-content-between align-items-center pt-2">' +
-            '      <a href="' + receiptUrl + '" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;"><i class="fa-solid fa-receipt me-1"></i> Receipt</a>' +
+            '    <div class="d-flex justify-content-between align-items-center pt-2 gap-2 flex-wrap">' +
+            '      <div class="d-flex align-items-center gap-2">' +
+            '        <a href="' + receiptUrl + '" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 11px;" onclick="event.stopPropagation();"><i class="fa-solid fa-receipt me-1"></i> Receipt</a>' +
+            (disputeUrl && disputeUrl !== '#' ? '        <a href="' + disputeUrl + '" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px; font-weight: 600;" onclick="event.stopPropagation();"><i class="fa-solid fa-flag me-1"></i> Dispute</a>' : '') +
+            '      </div>' +
             '      <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-clock me-1"></i>' + dateLong + '</span>' +
             '    </div>' +
             '  </div>' +
@@ -3930,10 +4198,10 @@ body {
 
         if (isPending) {
             $('#csbTransferConfirmTitle').text('Transfer Submitted');
-            $('#csbTransferConfirmMsg').text('Your fund transfer request has been submitted and is currently pending review.');
+            $('#csbTransferConfirmMsg').text('Your fund transfer request has been submitted and is currently pending.');
             $('#csbTransferConfirmIconWrap').css({ background: 'rgba(234, 179, 8, 0.15)', color: '#ca8a04', 'box-shadow': '0 0 0 6px rgba(234, 179, 8, 0.05)' });
             $('#csbTransferConfirmIcon').attr('class', 'fa-solid fa-clock');
-            $('#csbTransferConfirmStatus').attr('class', 'badge bg-warning-subtle text-warning fw-bold px-3 py-1 rounded-pill').text('Pending Review');
+            $('#csbTransferConfirmStatus').attr('class', 'badge bg-warning text-dark fw-bold px-3 py-1 rounded-pill').text('Pending');
         } else {
             $('#csbTransferConfirmTitle').text('Transfer Successful');
             $('#csbTransferConfirmMsg').text('Your intra-account transfer has been completed successfully.');

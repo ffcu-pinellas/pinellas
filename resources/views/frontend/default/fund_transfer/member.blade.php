@@ -173,7 +173,7 @@
 
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
+                                <i class="fas fa-lock me-2"></i> Submit Transfer
                             </button>
                         </div>
                     </div>

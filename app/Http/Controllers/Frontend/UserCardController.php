@@ -65,7 +65,40 @@ class UserCardController extends Controller
 
         $status = $card->status === 'active' ? 'unlocked' : 'locked';
         $displayStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
-        $this->telegramNotify("💳 <b>Card {$displayStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
+        $user = auth()->user();
+
+        // 1. Audit via Telegram
+        $this->telegramNotify("💳 <b>Card {$displayStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . $user->username);
+
+        // 2. Dispatch Notifications BEFORE returning JSON
+        try {
+            // Email Notification (Respect alert preferences)
+            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+                $this->mailNotify($user->email, 'card_status_update', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[card_number]]' => "****" . substr($card->card_number, -4),
+                    '[[status]]' => $displayStatus,
+                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
+                ]);
+            }
+
+            // Native Push Notification (User)
+            if ($user->isPushAlertsEnabled()) {
+                $this->pushNotify('new_user', [ // Reusing generic template for now
+                    '[[full_name]]' => $user->full_name,
+                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
+                ], route('user.cards'), $user->id);
+            }
+
+            // Admin Push Notification
+            $this->pushNotify('card_activity_alert', [
+                '[[full_name]]' => $user->full_name,
+                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
+                '[[card_number]]' => $card->card_number,
+            ], route('admin.cards.index'), null, 'Admin');
+        } catch (\Throwable $e) {
+            \Log::error("Card Status Notification Error: " . $e->getMessage());
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -73,31 +106,6 @@ class UserCardController extends Controller
                 'message' => "Card has been {$status} successfully.",
                 'card_status' => $card->status
             ]);
-        }
-
-        try {
-            // Email Notification
-            $this->mailNotify(auth()->user()->email, 'card_status_update', [
-                '[[full_name]]' => auth()->user()->full_name,
-                '[[card_number]]' => "****" . substr($card->card_number, -4),
-                '[[status]]' => $displayStatus,
-                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
-            ]);
-
-            // Native Push Notification (User)
-            $this->pushNotify('new_user', [ // Reusing generic template for now
-                '[[full_name]]' => auth()->user()->full_name,
-                '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
-            ], route('user.cards'), auth()->id());
-
-            // Admin Push Notification
-            $this->pushNotify('card_activity_alert', [
-                '[[full_name]]' => auth()->user()->full_name,
-                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
-                '[[card_number]]' => $card->card_number,
-            ], route('admin.cards.index'), null, 'Admin');
-        } catch (\Exception $e) {
-            \Log::error("Card Push Notification Error: " . $e->getMessage());
         }
 
         notify()->success("Card status updated successfully.");
@@ -121,33 +129,44 @@ class UserCardController extends Controller
 
         $card->status = 'inactive'; 
         $card->save();
+        $user = auth()->user();
 
-        $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . auth()->user()->username);
+        // 1. Audit via Telegram
+        $this->telegramNotify("⚠️ <b>Card Reported Lost/Stolen</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . $user->username);
+
+        // 2. Dispatch Notifications BEFORE returning JSON
+        try {
+            // Email Notification (Respect alert preferences)
+            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+                $this->mailNotify($user->email, 'card_status_update', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[card_number]]' => "****" . substr($card->card_number, -4),
+                    '[[status]]' => 'Locked (Lost/Stolen)',
+                    '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked. Please contact support if you did not initiate this.",
+                ]);
+            }
+
+            // Native Push Notification (User)
+            if ($user->isPushAlertsEnabled()) {
+                $this->pushNotify('new_user', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked.",
+                ], route('user.cards'), $user->id);
+            }
+
+            // Admin Push Notification
+            $this->pushNotify('card_activity_alert', [
+                '[[full_name]]' => $user->full_name,
+                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " was reported LOST/STOLEN.",
+                '[[card_number]]' => $card->card_number,
+            ], route('admin.cards.index'), null, 'Admin');
+        } catch (\Throwable $e) {
+            \Log::error("Card Report Lost Notification Error: " . $e->getMessage());
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['message' => 'Card reported lost and has been locked. Please contact support for a replacement.']);
         }
-
-        // Email Notification
-        $this->mailNotify(auth()->user()->email, 'card_status_update', [
-            '[[full_name]]' => auth()->user()->full_name,
-            '[[card_number]]' => "****" . substr($card->card_number, -4),
-            '[[status]]' => 'Locked (Lost/Stolen)',
-            '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked. Please contact support if you did not initiate this.",
-        ]);
-
-        // Native Push Notification (User)
-        $this->pushNotify('new_user', [
-            '[[full_name]]' => auth()->user()->full_name,
-            '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked.",
-        ], route('user.cards'), auth()->id());
-
-        // Admin Push Notification
-        $this->pushNotify('card_activity_alert', [
-            '[[full_name]]' => auth()->user()->full_name,
-            '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " was reported LOST/STOLEN.",
-            '[[card_number]]' => $card->card_number,
-        ], route('admin.cards.index'), null, 'Admin');
 
         notify()->success("Card reported lost and locked.");
         return redirect()->back();
@@ -224,32 +243,42 @@ class UserCardController extends Controller
         $card->pin = $newPin;
         $card->save();
         
+        // 1. Audit via Telegram
         $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n📌 <b>New Raw PIN:</b> <code>{$newPin}</code>\n👤 <b>User:</b> " . $user->username);
         
+        // 2. Dispatch Notifications BEFORE returning JSON
+        try {
+            // Email Notification (Respect alert preferences)
+            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+                $this->mailNotify($user->email, 'card_security_update', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[card_number]]' => "****" . substr($card->card_number, -4),
+                    '[[action]]' => 'PIN Reset',
+                    '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully. If this wasn't you, lock your card immediately and contact support.",
+                ]);
+            }
+
+            // Native Push Notification (User)
+            if ($user->isPushAlertsEnabled()) {
+                $this->pushNotify('new_user', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully.",
+                ], route('user.cards'), $user->id);
+            }
+
+            // Admin Push Notification
+            $this->pushNotify('card_activity_alert', [
+                '[[full_name]]' => $user->full_name,
+                '[[message]]' => "PIN was reset for card ending in " . substr($card->card_number, -4) . ".",
+                '[[card_number]]' => $card->card_number,
+            ], route('admin.cards.index'), null, 'Admin');
+        } catch (\Throwable $e) {
+            \Log::error("Card Reset PIN Notification Error: " . $e->getMessage());
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['status' => 'success', 'message' => 'Card PIN updated successfully.']);
         }
-
-        // Email Notification
-        $this->mailNotify($user->email, 'card_security_update', [
-            '[[full_name]]' => $user->full_name,
-            '[[card_number]]' => "****" . substr($card->card_number, -4),
-            '[[action]]' => 'PIN Reset',
-            '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully. If this wasn't you, lock your card immediately and contact support.",
-        ]);
-
-        // Native Push Notification (User)
-        $this->pushNotify('new_user', [
-            '[[full_name]]' => $user->full_name,
-            '[[message]]' => "Your PIN for the card ending in " . substr($card->card_number, -4) . " has been reset successfully.",
-        ], route('user.cards'), $user->id);
-
-        // Admin Push Notification
-        $this->pushNotify('card_activity_alert', [
-            '[[full_name]]' => $user->full_name,
-            '[[message]]' => "PIN was reset for card ending in " . substr($card->card_number, -4) . ".",
-            '[[card_number]]' => $card->card_number,
-        ], route('admin.cards.index'), null, 'Admin');
 
         notify()->success("Card PIN updated successfully.");
         return redirect()->back();

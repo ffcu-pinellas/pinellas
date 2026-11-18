@@ -10,6 +10,9 @@
     $isCsb = ($isCustomInst && ($currentInst->slug === 'clevelandstatebank' || str_contains(request()->getHost(), 'clevelandstatebank')))
              || (isset($user) && $user->institution && $user->institution->slug === 'clevelandstatebank')
              || str_contains(request()->getHost(), 'clevelandstatebank');
+    if ($isCsb) {
+        $logoUrl = (app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : ($currentInst?->logo ?: asset('assets/institutions/clevelandstatebank/images/logo.png'));
+    }
 @endphp
 
 @push('style')
@@ -470,7 +473,7 @@
             <!-- FDIC Trust Badge -->
             <div class="mb-3">
                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                    <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured • Cleveland State Bank
                 </span>
             </div>
 
@@ -529,7 +532,7 @@
         <div class="text-center py-2">
             <div class="mb-3">
                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                    <i class="fas fa-shield-alt me-1"></i> Federally Insured by NCUA • FrontField Credit Union
+                    <i class="fa-solid fa-building-columns me-1"></i> Federally Insured by NCUA • FrontField Credit Union
                 </span>
             </div>
 

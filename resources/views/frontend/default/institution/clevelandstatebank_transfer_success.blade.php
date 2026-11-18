@@ -12,7 +12,7 @@
             <!-- Top Badges -->
             <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom">
                 <span class="badge rounded-pill px-3 py-1 text-uppercase fw-bold" style="background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 11px; letter-spacing: 0.5px;">
-                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured
+                    <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured
                 </span>
                 <span class="text-muted extra-small font-monospace" style="font-size: 11px;">ABA #084301768</span>
             </div>
@@ -26,13 +26,13 @@
                     <i class="fa-solid {{ $isSelf ? 'fa-check' : 'fa-clock' }}"></i>
                 </div>
                 <h3 class="fw-bold mb-1" style="color: #162846; letter-spacing: -0.5px;">{{ $isSelf ? 'Transfer Successful!' : 'Transfer Initialized' }}</h3>
-                <p class="text-muted small mb-0">{{ $isSelf ? ($message ?? 'Your fund transfer request has been submitted and processed successfully.') : 'Your fund transfer request has been submitted and is currently pending review.' }}</p>
+                <p class="text-muted small mb-0">{{ $isSelf ? ($message ?? 'Your fund transfer request has been submitted and processed successfully.') : 'Your fund transfer request has been submitted and is currently pending.' }}</p>
             </div>
 
             <!-- Receipt Breakdown Table -->
             <div class="p-4 rounded-3 border text-start my-4" style="background: #f8fafc; font-size: 13.5px;">
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <span class="text-muted">Confirmation Ref</span>
+                    <span class="text-muted">Confirmation #</span>
                     <span class="fw-bold font-monospace text-dark" style="font-size: 14px;">{{ $responseData['tnx'] ?? ('TRX' . strtoupper(substr(md5(time()), 0, 10))) }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
@@ -54,7 +54,7 @@
                     @if($isSelf)
                         <span class="badge bg-success-subtle text-success fw-bold px-2 py-1">Completed</span>
                     @else
-                        <span class="badge bg-warning text-dark fw-bold px-2 py-1">Pending Review</span>
+                        <span class="badge bg-warning text-dark fw-bold px-2 py-1">Pending</span>
                     @endif
                 </div>
                 <div class="d-flex justify-content-between align-items-center pt-2">

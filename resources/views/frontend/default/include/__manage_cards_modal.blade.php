@@ -191,7 +191,7 @@
                     </div>
 
                     <div class="alert alert-light border small text-muted mb-4" style="font-size: 12px;">
-                        <i class="fa-solid fa-shield-halved text-success me-1"></i> Your new PIN takes effect immediately at ATMs and merchant terminals nationwide upon 2FA verification.
+                        <i class="fa-solid fa-lock text-success me-1"></i> Your new PIN takes effect immediately at ATMs and merchant terminals nationwide upon 2FA verification.
                     </div>
 
                     <div class="d-grid gap-2">

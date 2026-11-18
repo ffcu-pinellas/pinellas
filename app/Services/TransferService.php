@@ -361,7 +361,7 @@ class TransferService
             'tnx' => $txnInfo->tnx,
             'type' => $isSelfTransfer ? 'self' : ($bankId == 0 ? 'member' : 'external'),
             'status' => $initialStatus->value,
-            'status_label' => $isSelfTransfer ? __('Completed') : __('Pending Clearance'),
+            'status_label' => $isSelfTransfer ? __('Completed') : __('Pending'),
             'source_account' => $sourceName . ' (**** ' . $sourceLast4 . ')',
             'recipient_name' => $targetDisplayName,
             'memo' => $input['purpose'] ?? 'Fund Transfer',

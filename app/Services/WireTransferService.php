@@ -329,11 +329,11 @@ class WireTransferService
                 </div>
                 <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #1e293b;">
                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Tracking / Confirmation #</td>
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Confirmation #</td>
                         <td style="padding: 10px 18px; font-weight: 700; text-align: right; font-family: monospace; color: #0f172a;">' . $txnInfo->tnx . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Wire Classification</td>
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Transfer Type</td>
                         <td style="padding: 10px 18px; font-weight: 600; text-align: right; color: #00549b;">' . $wireTypeLabel . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -357,15 +357,15 @@ class WireTransferService
                         <td style="padding: 10px 18px; font-weight: 700; font-family: monospace; text-align: right;">' . htmlspecialchars($manualField['account_number']) . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Wire Principal Amount</td>
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Transfer Amount</td>
                         <td style="padding: 10px 18px; font-weight: 700; text-align: right; color: #0f172a;">' . $currencySymbol . number_format($amount, 2) . '</td>
                     </tr>
                     <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Processing & Clearing Fee</td>
+                        <td style="padding: 10px 18px; color: #64748b; font-weight: 500;">Transfer Fee</td>
                         <td style="padding: 10px 18px; font-weight: 600; text-align: right; color: #00549b;">' . $currencySymbol . number_format($charge, 2) . '</td>
                     </tr>
                     <tr style="background-color: #f8fafc;">
-                        <td style="padding: 12px 18px; font-weight: 700; color: #0f172a; font-size: 14px;">Total Funds Debited</td>
+                        <td style="padding: 12px 18px; font-weight: 700; color: #0f172a; font-size: 14px;">Total Amount</td>
                         <td style="padding: 12px 18px; font-weight: 800; font-size: 16px; text-align: right; color: #00549b;">' . $currencySymbol . number_format($finalAmount, 2) . '</td>
                     </tr>
                 </table>
@@ -388,7 +388,7 @@ class WireTransferService
             '[[charge]]' => $currencySymbol . number_format($charge, 2),
             '[[amount]]' => $currencySymbol . number_format($amount, 2),
             '[[total_amount]]' => $currencySymbol . number_format($finalAmount, 2),
-            '[[status]]' => 'Pending Clearance',
+            '[[status]]' => 'Pending',
             '[[tnx]]' => $txnInfo->tnx,
             '[[txn]]' => $txnInfo->tnx,
             '[[transaction_id]]' => (string) $txnInfo->id,

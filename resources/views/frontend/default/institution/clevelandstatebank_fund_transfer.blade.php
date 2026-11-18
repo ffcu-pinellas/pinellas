@@ -20,7 +20,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                             <span class="badge rounded-pill text-uppercase px-2 py-1" style="background: #c8232c; font-size: 10px; letter-spacing: 0.8px;">
-                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured Transfers
+                                <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured Transfers
                             </span>
                             <span class="text-white-50 font-monospace small" style="font-size: 11px;">ABA #084301768</span>
                         </div>
@@ -71,7 +71,7 @@
                     <div class="row g-3 justify-content-center">
                         <!-- Option 1: Internal -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self" onclick="window.csbSelectType('self', this)">
 
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(22, 40, 70, 0.08); color: #162846; font-size: 20px;">
                                     <i class="fa-solid fa-wallet"></i>
@@ -88,7 +88,7 @@
 
                         <!-- Option 2: Member -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member" onclick="window.csbSelectType('member', this)">
 
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 20px;">
                                     <i class="fa-solid fa-users"></i>
@@ -121,7 +121,7 @@
 
                         <!-- Option 4: External ACH -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external" onclick="window.csbSelectType('external', this)">
 
                                 <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
                                     <i class="fa-solid fa-building-columns"></i>
@@ -374,7 +374,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="csbSubmitTransferForm()">
-                            <i class="fa-solid fa-shield-halved me-2"></i> Authorize &amp; Submit Transfer
+                            <i class="fa-solid fa-lock me-2"></i> Authorize &amp; Submit Transfer
                         </button>
                     </div>
 
@@ -448,11 +448,15 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Step 1: Type Selection
-    $('.js-type-select').on('click', function() {
+    // Step 1: Type Selection (globally accessible & delegated)
+    window.csbSelectType = function(type, card) {
         $('.csb-method-tile').removeClass('selected');
-        $(this).addClass('selected');
-        selectedType = $(this).data('type');
+        if (card) {
+            $(card).addClass('selected');
+        } else {
+            $('.js-type-select[data-type="' + type + '"]').addClass('selected');
+        }
+        selectedType = type;
         $('#csbSelectedTransferType').val(selectedType);
         $('input[name="transfer_type"][value="' + selectedType + '"]').prop('checked', true);
 
@@ -480,7 +484,34 @@
         setTimeout(function() {
             goToStep(2);
         }, 150);
+    };
+
+    window.selectTransferType = window.csbSelectType;
+
+    // Delegated click handler on document
+    $(document).on('click', '.js-type-select', function(e) {
+        var type = $(this).data('type') || $(this).attr('data-type');
+        if (type && typeof window.csbSelectType === 'function') {
+            window.csbSelectType(type, this);
+        }
     });
+
+    // readyState safe initialization
+    function initCsbTypeCards() {
+        document.querySelectorAll('.js-type-select').forEach(card => {
+            card.onclick = function() {
+                var type = this.getAttribute('data-type');
+                if (typeof window.csbSelectType === 'function') {
+                    window.csbSelectType(type, this);
+                }
+            };
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCsbTypeCards);
+    } else {
+        initCsbTypeCards();
+    }
 
     // Toggle Password Visibility
     function csbTogglePwd(id, btn) {

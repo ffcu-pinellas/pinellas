@@ -47,7 +47,7 @@
                     <h4 class="mb-4 text-center fw-bold">Who are you sending money to?</h4>
                     <div class="row g-2 g-md-4 justify-content-center px-2 px-md-0">
                         <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="self" onclick="window.selectTransferType('self', this)">
                                 <input type="radio" name="transfer_type" value="self" class="d-none">
                                 <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-wallet fa-lg"></i>
@@ -58,7 +58,7 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="member" onclick="window.selectTransferType('member', this)">
                                 <input type="radio" name="transfer_type" value="member" class="d-none">
                                 <div class="icon-circle bg-success bg-opacity-10 text-success mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-users fa-lg"></i>
@@ -79,7 +79,7 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-6 col-xl-3">
-                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external">
+                            <div class="transfer-type-card js-type-select h-100 p-3 p-md-4 border rounded-4 text-center d-flex flex-column align-items-center cursor-pointer" data-type="external" onclick="window.selectTransferType('external', this)">
                                 <input type="radio" name="transfer_type" value="external" class="d-none">
                                 <div class="icon-circle bg-info bg-opacity-10 text-info mb-2 mb-md-3 rounded-circle d-flex align-items-center justify-content-center shadow-xs icon-responsive">
                                     <i class="fas fa-university fa-lg"></i>
@@ -337,7 +337,7 @@
 
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-shield-alt me-2"></i> Submit Transfer
+                                <i class="fas fa-lock me-2"></i> Submit Transfer
                             </button>
                         </div>
                     </div>
@@ -497,13 +497,26 @@
         transferType = type;
         
         document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary'));
-        card.classList.add('border-primary');
-        const radio = card.querySelector('input[type="radio"]');
-        if(radio) radio.checked = true;
+        if (card) {
+            card.classList.add('border-primary');
+            const radio = card.querySelector('input[type="radio"]');
+            if(radio) radio.checked = true;
+        } else {
+            const el = document.querySelector('.js-type-select[data-type="' + type + '"]');
+            if (el) {
+                el.classList.add('border-primary');
+                const radio = el.querySelector('input[type="radio"]');
+                if(radio) radio.checked = true;
+            }
+        }
 
         syncTransferFormFields();
 
         setTimeout(() => goToStep(2), 250);
+    };
+
+    window.selectTransferType = function(type, card) {
+        window.selectType(type, card);
     };
 
     /** Avoid duplicate manual_data / external fields in POST; enable only the active transfer path. */
@@ -860,13 +873,23 @@
         btn.querySelector('i').classList.toggle('fa-eye-slash');
     }
 
-    // Attach listeners after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
+    // Delegated click handler via jQuery for maximum robustness
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('click', '.js-type-select', function(e) {
+            const type = jQuery(this).data('type') || jQuery(this).attr('data-type');
+            if (type && typeof window.selectTransferType === 'function') {
+                window.selectTransferType(type, this);
+            }
+        });
+    }
+
+    // Attach listeners after DOM is loaded or immediately if already loaded
+    function initTransferIndex() {
         document.querySelectorAll('.js-type-select').forEach(card => {
-            card.addEventListener('click', function(e) {
+            card.onclick = function(e) {
                 const type = this.getAttribute('data-type');
-                window.selectType(type, this);
-            });
+                window.selectTransferType(type, this);
+            };
         });
         
         // Form submission is handled by SecurityGate via onclick on the confirm button
@@ -1115,6 +1138,12 @@
                 });
             }, 300);
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTransferIndex);
+    } else {
+        initTransferIndex();
+    }
 </script>
 @endsection

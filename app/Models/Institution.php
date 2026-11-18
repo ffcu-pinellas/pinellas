@@ -308,6 +308,11 @@ class Institution extends Model
     /**
      * Resolves absolute, valid logo URL preventing double 'assets/' prefixes or 404s.
      */
+    public function getLogoAttribute(): string
+    {
+        return $this->getLogoUrlAttribute();
+    }
+
     public function getLogoUrlAttribute(): string
     {
         if (!$this->logo_path) {
@@ -342,6 +347,9 @@ class Institution extends Model
     public function getLogoWhiteUrlAttribute(): string
     {
         $raw = $this->dark_logo_path ?: $this->logo_path;
+        if (!$raw && !$this->is_default) {
+            $raw = 'assets/institutions/clevelandstatebank/images/logo-white.png';
+        }
         if (!$raw) {
             return asset(setting('site_logo', 'global'));
         }
@@ -354,6 +362,9 @@ class Institution extends Model
         }
         if (file_exists(public_path('storage/' . $clean))) {
             return asset('storage/' . $clean);
+        }
+        if (!$this->is_default) {
+            return asset('assets/institutions/clevelandstatebank/images/logo-white.png');
         }
         return asset('assets/' . $clean);
     }

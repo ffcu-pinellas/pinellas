@@ -11,6 +11,7 @@ use App\Traits\NotifyTrait;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
 class SecurityController extends Controller
@@ -24,8 +25,13 @@ class SecurityController extends Controller
              return redirect()->route('user.dashboard');
         }
 
+        // Verify Device Trust
+        $expectedToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+        $trustedCookie = request()->cookie('trusted_device');
+        $isRecognizedDevice = ($trustedCookie && hash_equals($expectedToken, $trustedCookie));
+
         // Determine verification starting method
-        if ($user->security_preference === 'biometrics' || $user->security_preference === 'biometric') {
+        if ($isRecognizedDevice && ($user->security_preference === 'biometrics' || $user->security_preference === 'biometric')) {
             $method = 'biometric';
         } elseif (empty($user->transaction_pin)) {
             $method = 'email';
@@ -33,8 +39,9 @@ class SecurityController extends Controller
             $method = ($user->security_preference == 'email_priority') ? 'email' : 'pin';
         }
         $maskedEmail = substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@'));
+        $isNewDevice = !$isRecognizedDevice;
 
-        return view('frontend::auth.mfa', compact('user', 'method', 'maskedEmail'));
+        return view('frontend::auth.mfa', compact('user', 'method', 'maskedEmail', 'isNewDevice'));
     }
 
     public function resendLoginMfa(Request $request)
@@ -53,8 +60,9 @@ class SecurityController extends Controller
             session()->put('login_mfa_authenticated', true);
 
             if ($request->has('trust_device')) {
-                // Set cookie for 30 days
-                \Cookie::queue('trusted_device', hash('sha256', $user->email . '|' . $user->id), 43200);
+                // Set cookie for 30 days with consistent keyed SHA-256 token
+                $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+                \Cookie::queue('trusted_device', $deviceToken, 43200);
             }
 
             // Record login history in LoginActivities
@@ -255,11 +263,19 @@ class SecurityController extends Controller
             $value === 'passkey_authenticated' ||
             str_starts_with((string)$value, 'passkey_')
         ) {
-            $storedChallenge = session()->get('webauthn_challenge_' . $user->id);
+            $storedChallenge = session()->get('webauthn_challenge_' . $user->id)
+                ?? Cache::get('webauthn_challenge_' . $user->id)
+                ?? TransactionSecurityCode::where('user_id', $user->id)->where('type', 'biometric')->where('expires_at', '>', now())->latest()->value('code');
+
             if (!$storedChallenge) {
                 return response()->json(['status' => 'error', 'message' => 'Biometric verification session expired. Please try again.'], 422);
             }
             session()->forget('webauthn_challenge_' . $user->id);
+            Cache::forget('webauthn_challenge_' . $user->id);
+            try {
+                TransactionSecurityCode::where('user_id', $user->id)->where('type', 'biometric')->delete();
+            } catch (\Throwable $e) {}
+
             session()->forget($pinTriesKey);
             session()->forget($emailTriesKey);
             session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(10));
@@ -373,6 +389,17 @@ class SecurityController extends Controller
         $user = Auth::user();
         $challenge = bin2hex(random_bytes(32));
         session()->put('webauthn_challenge_' . $user->id, $challenge);
+        session()->save();
+        Cache::put('webauthn_challenge_' . $user->id, $challenge, 300);
+
+        try {
+            TransactionSecurityCode::updateOrCreate(
+                ['user_id' => $user->id, 'type' => 'biometric'],
+                ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('TransactionSecurityCode biometric challenge persistence warning: ' . $e->getMessage());
+        }
 
         $inst = $user->institution;
         $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Cleveland State Bank');
@@ -432,6 +459,10 @@ class SecurityController extends Controller
 
         $user->security_preference = 'biometrics';
         $user->save();
+
+        // Queue trusted device cookie upon passkey registration
+        $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+        \Cookie::queue('trusted_device', $deviceToken, 43200);
 
         session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(15));
 

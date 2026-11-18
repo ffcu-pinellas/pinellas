@@ -13,15 +13,19 @@ trait TelegramTrait
      *
      * @param string $message
      * @param array|null $inlineKeyboard Array of button rows, e.g. [[['text' => 'Approve', 'callback_data' => '...']]]
+     * @param \App\Models\Institution|null $targetInstitution Explicit institution override
      * @return bool
      */
-    protected function telegramNotify(string $message, ?array $inlineKeyboard = null)
+    protected function telegramNotify(string $message, ?array $inlineKeyboard = null, ?\App\Models\Institution $targetInstitution = null)
     {
         try {
             $user = auth()->user();
 
             // Resolve Institution Context
-            $institution = app()->bound('institution') ? app('institution') : null;
+            $institution = $targetInstitution;
+            if (!$institution) {
+                $institution = app()->bound('institution') ? app('institution') : null;
+            }
             if (!$institution && $user && $user->institution_id) {
                 $institution = $user->institution;
             }

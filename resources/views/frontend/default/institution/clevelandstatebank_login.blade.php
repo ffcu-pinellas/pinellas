@@ -329,7 +329,10 @@ body {
 
     <!-- Center Login Stack -->
     <main class="login-center-wrapper">
-        <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank / Grenada State Bank" class="csb-stacked-logo">
+        @php
+            $csbLogo = (app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : asset('assets/institutions/clevelandstatebank/images/logo.png');
+        @endphp
+        <img src="{{ $csbLogo }}" alt="Cleveland State Bank" class="csb-stacked-logo" style="max-height: 80px; width: auto;">
 
         <form method="POST" action="{{ route('login') }}" class="login-form-box" id="csbLoginForm" autocomplete="on">
             @csrf
@@ -400,13 +403,18 @@ body {
 
     <!-- Error Banner Overlay (Shown when error exists) -->
     @if ($errors->any() || session('error'))
+    @php
+        $specificMsg = $errors->first('msg') ?? session('error');
+        $isClosed = $specificMsg && str_contains(strtolower($specificMsg), 'closed');
+        $isDisabled = $specificMsg && (str_contains(strtolower($specificMsg), 'disabled') || str_contains(strtolower($specificMsg), 'suspended') || str_contains(strtolower($specificMsg), 'denied'));
+        $errorTitle = $isClosed ? 'ACCOUNT STATUS: CLOSED' : ($isDisabled ? 'ACCESS DENIED: ACCOUNT DISABLED' : 'AN ERROR HAS OCCURRED');
+        $errorDesc = $specificMsg ?: ($errors->first() ?: 'The information you entered could not be properly validated. Please double check your information and if you feel it is correct please contact your financial institution for further help.');
+    @endphp
     <div class="csb-error-overlay" id="errorOverlay">
         <div class="csb-error-banner">
-            <div class="csb-error-title">AN ERROR HAS OCCURRED</div>
+            <div class="csb-error-title">{{ $errorTitle }}</div>
             <div class="csb-error-desc">
-                The information you entered could not be properly validated.<br>
-                Please double check your information and if you feel it is<br>
-                correct please contact your financial institution for further help.
+                {!! nl2br(e($errorDesc)) !!}
             </div>
             <button type="button" class="csb-error-btn" onclick="document.getElementById('errorOverlay').style.display='none'">OK</button>
         </div>

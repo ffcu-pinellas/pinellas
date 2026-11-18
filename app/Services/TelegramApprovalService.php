@@ -53,7 +53,7 @@ class TelegramApprovalService
 
             $transaction->update([
                 'status' => TxnStatus::Success,
-                'action_message' => $adminNote ?? 'Approved by System Administrator',
+                'action_message' => $adminNote ?? 'Approved',
             ]);
 
             // Handle Member-to-Member / Internal Transfers credit to recipient
@@ -180,7 +180,7 @@ class TelegramApprovalService
                 ];
             }
 
-            $reason = $rejectionReason ?? 'Administrative review: Transaction rejected';
+            $reason = $rejectionReason ?? 'Declined and refunded';
             $transaction->update([
                 'status' => TxnStatus::Failed,
                 'action_message' => $reason,
@@ -227,7 +227,7 @@ class TelegramApprovalService
             $inst = $user->institution ?? null;
             $isCustom = $inst && !$inst->is_default;
             $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
-            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+            $siteUrl = $inst ? (method_exists($inst, 'baseUrl') ? $inst->baseUrl() : route('home')) : route('home');
 
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
@@ -274,7 +274,7 @@ class TelegramApprovalService
             $inst = $user->institution ?? null;
             $isCustom = $inst && !$inst->is_default;
             $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
-            $siteUrl = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
+            $siteUrl = $inst ? (method_exists($inst, 'baseUrl') ? $inst->baseUrl() : route('home')) : route('home');
 
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
@@ -282,7 +282,7 @@ class TelegramApprovalService
                 '[[charge]]' => $transaction->charge,
                 '[[amount]]' => setting('currency_symbol', '$') . number_format($transaction->amount, 2),
                 '[[total_amount]]' => setting('currency_symbol', '$') . number_format($transaction->final_amount, 2),
-                '[[status]]' => 'Rejected',
+                '[[status]]' => 'Declined',
                 '[[message]]' => $reason,
                 '[[reason]]' => $reason,
                 '[[action_message]]' => $reason,

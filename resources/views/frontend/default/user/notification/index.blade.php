@@ -261,7 +261,7 @@
                             <div class="mb-5">
                                 <div class="d-flex align-items-center gap-2 mb-3">
                                     <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                        <i class="fas fa-shield-alt small"></i>
+                                        <i class="fas fa-lock small"></i>
                                     </div>
                                     <h5 class="fw-bold mb-0" style="color: var(--body-text-primary-color); font-size: 1.1rem;">{{ __('Security & Sign-in Alerts') }}</h5>
                                 </div>

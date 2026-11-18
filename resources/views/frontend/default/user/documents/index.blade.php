@@ -63,7 +63,7 @@
                     </div>
                 </div>
 
-                <form id="docStatementForm" onsubmit="generateStatement(event)">
+                <form id="docStatementForm" data-no-loader="true" onsubmit="generateStatement(event)">
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted text-uppercase mb-1">{{ __('Select Account') }}</label>
@@ -99,7 +99,7 @@
                     </div>
 
                     <div class="p-2 mb-3 rounded-3 bg-light border small text-muted d-flex align-items-center gap-2">
-                        <i class="fas fa-shield-alt text-success"></i>
+                        <i class="fas fa-file-contract text-success"></i>
                         <span style="font-size: 12px;">{{ __('Includes official institution header, verified ledger entries, and audit authentication.') }}</span>
                     </div>
 
@@ -249,6 +249,9 @@
         var $btn = $('#btnGenerateStatement');
         var origHtml = $btn.html();
 
+        if (typeof window.showLoader === 'function') {
+            window.showLoader('Generating Official eStatement PDF...');
+        }
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Preparing PDF Statement...');
 
         var url = "{{ route('user.transactions.export.pdf') }}?period=" + encodeURIComponent(period);
@@ -266,12 +269,31 @@
             if (to) url += "&to_date=" + encodeURIComponent(to);
         }
 
-        // Auto restore button state after triggering download
-        setTimeout(function() {
-            $btn.prop('disabled', false).html(origHtml);
-        }, 2500);
-
-        window.location.href = url;
+        fetch(url)
+            .then(function(res) {
+                if (!res.ok) throw new Error('Statement download failed with status ' + res.status);
+                return res.blob();
+            })
+            .then(function(blob) {
+                var blobUrl = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'Official_eStatement.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(blobUrl);
+                a.remove();
+            })
+            .catch(function(err) {
+                console.error(err);
+                window.location.href = url; // Fallback
+            })
+            .finally(function() {
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+                $btn.prop('disabled', false).html(origHtml);
+            });
     }
 
     function downloadDirectDepositForm() {
