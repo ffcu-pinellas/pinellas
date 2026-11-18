@@ -183,7 +183,7 @@ body {
         </div>
 
         <div class="modal-body">
-            <img src="{{ asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') }}" alt="Cleveland State Bank" class="csb-welcome-logo">
+            <img src="{{ (app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank" class="csb-welcome-logo">
 
             <div class="modal-divider"></div>
 

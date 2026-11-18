@@ -6,7 +6,7 @@
     $regulator = $isCustomInst ? ('Member ' . ($currentInst->regulator_type ?? 'FDIC')) : 'Federally Insured by NCUA';
     $bgUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/csb-bg-ribbons.svg') : asset('assets/images/background-landscape.png');
     $favUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/favicon.png') : asset('assets/images/favicon.ico');
-    $logoUrl = $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/csb-stacked-logo.png') : asset('assets/external/images/logo.png');
+    $logoUrl = $logoUrl ?? ($isCustomInst ? ((app()->bound('institution') && app('institution')->logo) ? app('institution')->logo : asset('assets/institutions/clevelandstatebank/images/logo.png')) : asset('assets/external/images/logo.png'));
     $themeColor = $isCustomInst ? ($currentInst->primary_color ?? '#c8232c') : 'rgb(0, 84, 155)';
     $btnColor = $isCustomInst ? ($currentInst->primary_color ?? '#c8232c') : 'rgb(217, 43, 28)';
 @endphp
