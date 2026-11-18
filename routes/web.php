@@ -272,10 +272,13 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::group(['prefix' => 'security-gate', 'as' => 'security_gate.'], function() {
         Route::post('send-code', [\App\Http\Controllers\Frontend\SecurityController::class, 'sendEmailCode'])->name('send-code');
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
-        Route::post('biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
+        Route::match(['get', 'post'], 'biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
         Route::post('biometric/register', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricRegister'])->name('biometric.register');
     });
 });
+
+Route::match(['get', 'post'], '/security/webauthn-challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->middleware(['auth'])->name('security.webauthn.challenge');
+Route::match(['get', 'post'], '/user/security-gate/biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->middleware(['auth']);
 
 // Login MFA Routes (Standalone)
 Route::group(['middleware' => ['auth', 'isActive'], 'prefix' => 'login-verify', 'as' => 'login.verify.'], function() {

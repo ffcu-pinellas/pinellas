@@ -2807,7 +2807,7 @@ body {
                         <span class="text-success fw-bold" id="csbTransferConfirmFee">$0.00 (Free)</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center pt-2">
-                        <span class="text-muted fw-semibold">Settlement Status</span>
+                        <span class="text-muted fw-semibold">Status</span>
                         <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill" id="csbTransferConfirmStatus">Completed</span>
                     </div>
                     <div class="mt-2 pt-2 border-top text-center text-muted" style="font-size: 11px;">

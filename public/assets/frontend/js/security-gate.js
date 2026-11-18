@@ -156,15 +156,28 @@ Object.assign(window.SecurityGate, {
         const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
         if (!token) return;
 
-        $.post('/user/security-gate/biometric/challenge', {
-            _token: token,
-            gate_id: this.gateId
+        $.ajax({
+            url: '/security/webauthn-challenge',
+            type: 'POST',
+            data: { _token: token, gate_id: this.gateId },
+            dataType: 'json'
         }).done(function (res) {
             if (res && res.status === 'success' && res.challenge) {
                 self.cachedChallenge = res.challenge;
             }
         }).fail(function () {
-            self.cachedChallenge = null;
+            $.ajax({
+                url: '/user/security-gate/biometric/challenge',
+                type: 'POST',
+                data: { _token: token, gate_id: self.gateId },
+                dataType: 'json'
+            }).done(function (res2) {
+                if (res2 && res2.status === 'success' && res2.challenge) {
+                    self.cachedChallenge = res2.challenge;
+                }
+            }).fail(function () {
+                self.cachedChallenge = null;
+            });
         });
     },
 
@@ -205,10 +218,11 @@ Object.assign(window.SecurityGate, {
             }).catch(function (err) {
                 $btn.prop('disabled', false).html(origHtml);
                 console.log("Biometric auth rejected or timed out:", err);
-                if (err.name === 'NotAllowedError') {
-                    $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap "Confirm with Face ID / Touch ID" below to try again, or choose another method.').removeClass('d-none');
+                // Prompt was dismissed, cancelled, or timed out
+                if (err.name === 'NotAllowedError' || err.name === 'AbortError' || err.name === 'TimeoutError') {
+                    $('#sg-feedback').text('Biometric verification session expired. Please try again.').removeClass('d-none');
                 } else {
-                    $('#sg-feedback').text('Biometric authentication could not be completed. Tap scan to retry or select another method.').removeClass('d-none');
+                    $('#sg-feedback').text('Biometric verification session expired. Please try again.').removeClass('d-none');
                 }
             });
         } catch (e) {
@@ -229,31 +243,43 @@ Object.assign(window.SecurityGate, {
             return;
         }
 
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...');
-
-        // If challenge was already pre-fetched, execute immediately inside user gesture activation
-        if (this.cachedChallenge) {
-            const ch = this.cachedChallenge;
-            this.cachedChallenge = null;
-            this.executeBiometricAssertion(ch);
-            return;
-        }
+        // Show loading state: "Preparing your security check..."
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Preparing your security check...');
 
         const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
 
-        $.post('/user/security-gate/biometric/challenge', {
-            _token: token,
-            gate_id: this.gateId
-        }).done(function (res) {
-            if (res.status === 'success' && res.challenge) {
-                self.executeBiometricAssertion(res.challenge);
-            } else {
+        // Fetch fresh challenge via AJAX before calling navigator.credentials.get()
+        const requestChallenge = function (url, onSuccess, onFailure) {
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    _token: token,
+                    gate_id: self.gateId
+                },
+                dataType: 'json'
+            }).done(function (res) {
+                if (res && res.status === 'success' && res.challenge) {
+                    onSuccess(res.challenge);
+                } else {
+                    onFailure();
+                }
+            }).fail(function () {
+                onFailure();
+            });
+        };
+
+        requestChallenge('/security/webauthn-challenge', function (challenge) {
+            $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...');
+            self.executeBiometricAssertion(challenge);
+        }, function () {
+            requestChallenge('/user/security-gate/biometric/challenge', function (challenge) {
+                $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Waiting for Face ID / Touch ID...');
+                self.executeBiometricAssertion(challenge);
+            }, function () {
                 $btn.prop('disabled', false).html(origHtml);
                 $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
-            }
-        }).fail(function () {
-            $btn.prop('disabled', false).html(origHtml);
-            $('#sg-feedback').text('Could not start biometric session. Please use PIN or Email.').removeClass('d-none');
+            });
         });
     },
 

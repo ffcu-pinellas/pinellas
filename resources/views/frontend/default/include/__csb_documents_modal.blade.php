@@ -285,8 +285,16 @@ function handleDocFilterSubmit(e) {
                 a.download = 'CSB_Official_Statement.pdf';
                 document.body.appendChild(a);
                 a.click();
-                window.URL.revokeObjectURL(blobUrl);
-                a.remove();
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+                setTimeout(function() {
+                    window.URL.revokeObjectURL(blobUrl);
+                    a.remove();
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                }, 500);
             })
             .catch(function(err) {
                 console.error(err);
@@ -294,12 +302,29 @@ function handleDocFilterSubmit(e) {
                     window.hideLoader();
                 }
                 window.location.href = url; // Fallback
+                setTimeout(function() {
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                }, 500);
             })
             .finally(function() {
                 if (typeof window.hideLoader === 'function') {
                     window.hideLoader();
                 }
+                setTimeout(function() {
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                }, 500);
             });
+
+        // Timer-based fallback ensuring loader is never stuck on download
+        setTimeout(function() {
+            if (typeof window.hideLoader === 'function') {
+                window.hideLoader();
+            }
+        }, 1500);
     } else if (type === 'direct_deposit') {
         var depType = (acc === 'all') ? 'checking' : acc;
         window.location.href = "{{ route('user.direct-deposit', ':type') }}".replace(':type', depType);

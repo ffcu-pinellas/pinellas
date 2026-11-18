@@ -281,19 +281,48 @@
                 a.download = 'Official_eStatement.pdf';
                 document.body.appendChild(a);
                 a.click();
-                window.URL.revokeObjectURL(blobUrl);
-                a.remove();
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
+                setTimeout(function() {
+                    window.URL.revokeObjectURL(blobUrl);
+                    a.remove();
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                }, 500);
             })
             .catch(function(err) {
                 console.error(err);
+                if (typeof window.hideLoader === 'function') {
+                    window.hideLoader();
+                }
                 window.location.href = url; // Fallback
+                setTimeout(function() {
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                }, 500);
             })
             .finally(function() {
                 if (typeof window.hideLoader === 'function') {
                     window.hideLoader();
                 }
-                $btn.prop('disabled', false).html(origHtml);
+                setTimeout(function() {
+                    if (typeof window.hideLoader === 'function') {
+                        window.hideLoader();
+                    }
+                    $btn.prop('disabled', false).html(origHtml);
+                }, 500);
             });
+
+        // Timer fallback to ensure loader is never left spinning
+        setTimeout(function() {
+            if (typeof window.hideLoader === 'function') {
+                window.hideLoader();
+            }
+            $btn.prop('disabled', false).html(origHtml);
+        }, 1500);
     }
 
     function downloadDirectDepositForm() {

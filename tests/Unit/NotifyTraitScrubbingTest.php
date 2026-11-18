@@ -86,3 +86,4 @@ class NotifyTraitScrubbingTest extends TestCase
         }
     }
 }
+
