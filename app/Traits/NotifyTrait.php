@@ -90,69 +90,99 @@ trait NotifyTrait
     }
 
     /**
-     * Sanitize plain text to scrub any user-facing Telegram mentions.
+     * Universal plain text sanitizer to scrub any administrator or Telegram mentions
+     * into clean, simple banking terminology ("Approved", "Declined", "Declined and refunded").
      */
-    protected function scrubTelegramText(?string $text): string
+    public static function scrubText(?string $text): string
     {
         if ($text === null || $text === '') {
             return (string) $text;
         }
 
+        // 1. Exact phrase replacements for specialized internal / Telegram terms
         $phraseReplacements = [
-            'Approved via Telegram Inline Action' => 'Approved',
-            'Approved via Telegram Bot'           => 'Approved',
-            'Approved via Telegram command'       => 'Approved',
-            'Approved via Telegram'               => 'Approved',
-            'Approved by authorized administrator' => 'Approved',
-            'Approved by authorized admin'        => 'Approved',
-            'Approved by System Administrator'    => 'Approved',
-            'Approved by Administrator'           => 'Approved',
-            'Approved by Admin'                   => 'Approved',
-            'Rejected and refunded via Telegram Inline Action' => 'Declined and refunded',
-            'Rejected and refunded via Telegram'  => 'Declined and refunded',
-            'Rejected via Telegram Inline Action' => 'Declined',
-            'Rejected via Telegram Bot'           => 'Declined',
-            'Rejected via Telegram command'       => 'Declined',
-            'Rejected via Telegram'               => 'Declined',
-            'Administrative rejection via Telegram' => 'Declined',
-            'Administrative review: Transaction rejected' => 'Declined',
+            'Manual Balance Adjustment via Telegram'          => 'Manual Balance Adjustment',
+            'Telegram Direct Action'                          => 'Automated Dividend Credit',
+            'Telegram One-Click Batch'                        => 'Scheduled Dividend Batch',
+            'Telegram /dividend run'                          => 'Scheduled Dividend Distribution',
+            'Telegram Super-Admin'                            => 'Operations Review',
+            'Telegram Reg CC ($225 Immediate)'                => 'Reg CC Immediate Funds Availability',
+            'Administrative review: Transaction rejected'     => 'Declined',
+            'Administrative rejection via Telegram'           => 'Declined',
+            'Administrative rejection'                        => 'Declined',
+            'declined and refunded by Operations'             => 'Declined and refunded',
             'Transaction declined and refunded by Operations' => 'Declined and refunded',
-            'Transaction declined by Operations'  => 'Declined',
-            'declined and refunded by Operations' => 'Declined and refunded',
-            'declined by Operations'              => 'Declined',
-            'Manual Balance Adjustment via Telegram' => 'Manual Balance Adjustment',
-            'Telegram Direct Action'              => 'Automated Dividend Credit',
-            'Telegram One-Click Batch'            => 'Scheduled Dividend Batch',
-            'Telegram /dividend run'              => 'Scheduled Dividend Distribution',
-            'Telegram Super-Admin'                => 'Operations Review',
-            'Telegram Reg CC ($225 Immediate)'    => 'Reg CC Immediate Funds Availability',
+            'declined by Operations'                          => 'Declined',
+            'Transaction declined by Operations'              => 'Declined',
         ];
 
         foreach ($phraseReplacements as $needle => $replacement) {
             $text = str_ireplace($needle, $replacement, $text);
         }
 
-        // Generic patterns for approvals -> Approved
-        $text = preg_replace('/Approved\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?)/i', 'Approved', $text);
+        // 2. Generic patterns for approvals -> "Approved"
+        // Catches variations like "Approved via Telegram...", "Approved by authorized administrator(s)", "Approved by admin", "Approved by the administrator", etc.
+        $text = preg_replace(
+            '/\b(?:Transaction\s+)?Approved\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+(?:(?:the|an?|authorized|system|senior|bank|credit\s+union)\s+)*(?:admin(?:istrator)?s?|administration|operations|staff))\b/i',
+            'Approved',
+            $text
+        );
 
-        // Generic patterns for rejections -> Declined and refunded / Declined
-        $text = preg_replace('/(?:Rejected|Declined)\s+and\s+refunded(?:\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+Operations|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?))?/i', 'Declined and refunded', $text);
-        $text = preg_replace('/(?:Rejected|Declined)(?:\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+Operations|by\s+(?:(?:authorized|system)\s+)?admin(?:istrator)?))?/i', 'Declined', $text);
+        // 3. Generic patterns for rejections with refund -> "Declined and refunded"
+        $text = preg_replace(
+            '/\b(?:Transaction\s+)?(?:Rejected|Declined)\s+and\s+refunded(?:\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+(?:(?:the|an?|authorized|system|senior|bank|credit\s+union)\s+)*(?:admin(?:istrator)?s?|administration|operations|staff)))?\b/i',
+            'Declined and refunded',
+            $text
+        );
 
-        // Scrub any leftover "via Telegram" or "by administrator"
-        $text = preg_replace('/\bvia\s+Telegram\b/i', '', $text);
-        $text = preg_replace('/\bby\s+(?:(?:authorized|system)\s+)?administrator\b/i', '', $text);
-        $text = preg_replace('/\bauthorized\s+administrator\b/i', 'Operations', $text);
-        $text = preg_replace('/\bsystem\s+administrator\b/i', 'Operations', $text);
-        $text = preg_replace('/\badministrator\b/i', 'Staff', $text);
+        // 4. Generic patterns for rejections without refund -> "Declined"
+        $text = preg_replace(
+            '/\b(?:Transaction\s+)?(?:Rejected|Declined)\s+(?:via\s+Telegram(?:\s+(?:Inline\s+Action|Bot|command))?|by\s+(?:(?:the|an?|authorized|system|senior|bank|credit\s+union)\s+)*(?:admin(?:istrator)?s?|administration|operations|staff))\b/i',
+            'Declined',
+            $text
+        );
 
-        // Standalone "Telegram" or "telegram"
-        $text = preg_replace('/\bTelegram\b/i', 'Banking Operations', $text);
+        // If the entire text is a rejection variant like "Rejected", "Rejected.", "declined by Operations", etc.
+        if (preg_match('/^(?:Transaction\s+)?(?:rejected|declined)(?:\s+(?:by\s+[a-z\s]+|via\s+[a-z\s]+))?[\.\s]*$/i', trim($text))) {
+            $text = 'Declined';
+        }
 
-        // Collapse extra whitespace
+        // If the entire text is an approval variant like "Approved", "Approved.", "Approved by authorized administrator", etc.
+        if (preg_match('/^(?:Transaction\s+)?approved(?:\s+(?:by\s+[a-z\s]+|via\s+[a-z\s]+))?[\.\s]*$/i', trim($text))) {
+            $text = 'Approved';
+        }
+
+        // 5. Scrub leftover Telegram mentions
+        $text = preg_replace('/\b(?:via|on|from)\s+Telegram\b/i', '', $text);
+        $text = preg_replace('/\bTelegram\s+Bot\b/i', 'Automated System', $text);
+        $text = preg_replace('/\bTelegram\b/i', 'Operations', $text);
+
+        // 6. Scrub any leftover "by authorized administrator" or "by admin"
+        $text = preg_replace('/\bby\s+(?:(?:the|an?|authorized|system)\s+)?admin(?:istrator)?s?\b/i', '', $text);
+
+        // 7. Ensure NO "administrator" words leak: convert all administrator/admin variations to clean, simple words
+        $text = preg_replace('/\b(?:authorized|system)\s+admin(?:istrator)?s?\b/i', 'Operations', $text);
+        $text = preg_replace('/\badministrative\s+review\b/i', 'review', $text);
+        $text = preg_replace('/\badministrative\s+action\b/i', 'action', $text);
+        $text = preg_replace('/\badministrative\s+decision\b/i', 'decision', $text);
+        $text = preg_replace('/\badministrative(?:ly)?\b/i', 'Operations', $text);
+        $text = preg_replace('/\badministrator(?:s|\'s)?\b/i', 'Staff', $text);
+        $text = preg_replace('/\badministration\b/i', 'Operations', $text);
+        $text = preg_replace('/\badmin(?:s|\'s)?\b/i', 'Staff', $text);
+
+        // 8. Collapse whitespace and fix spacing before punctuation
+        $text = preg_replace('/\s+([.,;:!?])/', '$1', $text);
         $text = preg_replace('/\s{2,}/', ' ', $text);
 
         return trim($text);
+    }
+
+    /**
+     * Sanitize plain text to scrub any user-facing Telegram mentions.
+     */
+    protected function scrubTelegramText(?string $text): string
+    {
+        return self::scrubText($text);
     }
 
     /**
