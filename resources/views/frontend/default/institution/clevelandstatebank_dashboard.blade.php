@@ -3579,9 +3579,9 @@ body {
         $('#csbTxnModalDate').text(date);
         var sLower = (status || '').toLowerCase();
         if (sLower === 'pending' || sLower === '2') {
-            $('#csbTxnModalStatus').removeClass('text-success text-danger').addClass('text-warning fw-bold').text('Pending Review');
+            $('#csbTxnModalStatus').removeClass('text-success text-danger').addClass('text-warning fw-bold').text('Pending');
         } else if (sLower === 'rejected' || sLower === 'failed' || sLower === '3') {
-            $('#csbTxnModalStatus').removeClass('text-success text-warning').addClass('text-danger fw-bold').text('Rejected');
+            $('#csbTxnModalStatus').removeClass('text-success text-warning').addClass('text-danger fw-bold').text('Declined');
         } else {
             $('#csbTxnModalStatus').removeClass('text-warning text-danger').addClass('text-success fw-bold').text('Completed');
         }

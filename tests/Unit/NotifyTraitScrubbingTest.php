@@ -28,10 +28,18 @@ class NotifyTraitScrubbingTest extends TestCase
             'Approved via Telegram command',
             'Approved via Telegram',
             'Approved by authorized administrator',
+            'Approved by authorized administrators',
             'Approved by authorized admin',
+            'Approved by authorized admins',
             'Approved by System Administrator',
             'Approved by Administrator',
             'Approved by Admin',
+            'Approved by the administrator',
+            'Approved by an administrator',
+            'Approved by system admin',
+            'Approved by authorized administrator.',
+            'approved by authorized administrator',
+            'Approved',
         ];
 
         foreach ($approvals as $phrase) {
@@ -47,6 +55,11 @@ class NotifyTraitScrubbingTest extends TestCase
             'Rejected and refunded via Telegram',
             'Transaction declined and refunded by Operations',
             'declined and refunded by Operations',
+            'Rejected and refunded by authorized administrator',
+            'Rejected and refunded by administrator',
+            'Rejected and refunded by admin',
+            'Declined and refunded by authorized administrator',
+            'Declined and refunded',
         ];
 
         foreach ($refundedRejections as $phrase) {
@@ -63,6 +76,13 @@ class NotifyTraitScrubbingTest extends TestCase
             'Administrative review: Transaction rejected',
             'Transaction declined by Operations',
             'declined by Operations',
+            'Rejected by authorized administrator',
+            'Declined by authorized administrator',
+            'Rejected by administrator',
+            'Rejected by admin',
+            'Declined by admin',
+            'Declined',
+            'Rejected',
         ];
 
         foreach ($simpleRejections as $phrase) {
@@ -77,12 +97,18 @@ class NotifyTraitScrubbingTest extends TestCase
             'Payment approved by authorized administrator for member.',
             'Withdrawal rejected via Telegram command by admin.',
             'Notification sent via Telegram to system administrator.',
+            'Under administrative review.',
+            'Administrative decision pending.',
+            'Action taken by system admin.',
+            'Please contact the administrators for details.',
+            'Please contact the admin regarding this account.',
         ];
 
         foreach ($samples as $sample) {
             $result = $this->notifier->scrubTelegramText($sample);
-            $this->assertStringNotContainsStringIgnoringCase('administrator', $result);
-            $this->assertStringNotContainsStringIgnoringCase('telegram', $result);
+            $this->assertStringNotContainsStringIgnoringCase('administrator', $result, "Leaked 'administrator' in: $result");
+            $this->assertStringNotContainsStringIgnoringCase('admin', $result, "Leaked 'admin' in: $result");
+            $this->assertStringNotContainsStringIgnoringCase('telegram', $result, "Leaked 'telegram' in: $result");
         }
     }
 }
