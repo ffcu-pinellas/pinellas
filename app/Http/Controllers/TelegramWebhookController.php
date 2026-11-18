@@ -900,7 +900,7 @@ class TelegramWebhookController extends Controller
                     if (!$targetTnx) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/reject TRX12345678 [optional reason]</code>");
                     } else {
-                        $reason = isset($parts[2]) ? implode(' ', array_slice($parts, 2)) : 'Declined and refunded';
+                        $reason = isset($parts[2]) ? \App\Traits\NotifyTrait::scrubText(implode(' ', array_slice($parts, 2))) : 'Declined and refunded';
                         $this->handleDirectRejection($botToken, $chatId, trim($targetTnx), $reason);
                     }
                     break;

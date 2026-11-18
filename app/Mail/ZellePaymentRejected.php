@@ -20,7 +20,7 @@ class ZellePaymentRejected extends Mailable
     {
         $this->user = $user;
         $this->transaction = $transaction;
-        $this->reason = $reason;
+        $this->reason = \App\Traits\NotifyTrait::scrubText($reason);
     }
 
     public function build()

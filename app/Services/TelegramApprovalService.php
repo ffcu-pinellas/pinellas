@@ -51,9 +51,10 @@ class TelegramApprovalService
                 ];
             }
 
+            $note = !empty($adminNote) ? NotifyTrait::scrubText($adminNote) : 'Approved';
             $transaction->update([
                 'status' => TxnStatus::Success,
-                'action_message' => $adminNote ?? 'Approved',
+                'action_message' => $note,
             ]);
 
             // Handle Member-to-Member / Internal Transfers credit to recipient
@@ -180,7 +181,7 @@ class TelegramApprovalService
                 ];
             }
 
-            $reason = $rejectionReason ?? 'Declined and refunded';
+            $reason = !empty($rejectionReason) ? NotifyTrait::scrubText($rejectionReason) : 'Declined and refunded';
             $transaction->update([
                 'status' => TxnStatus::Failed,
                 'action_message' => $reason,
