@@ -8,35 +8,28 @@
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
 
-        <!-- CSB Institutional Header Banner -->
-        <div class="csb-transfers-header rounded-4 p-4 p-md-5 mb-4 text-white position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #162846 0%, #1e3a66 60%, #c8232c 100%);">
-            <div class="position-relative" style="z-index: 2;">
-                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                    <span class="badge rounded-pill px-3 py-1 font-monospace text-uppercase" style="background: rgba(255, 255, 255, 0.15); font-size: 11px; letter-spacing: 0.5px;">
-                        <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured Transfers
-                    </span>
-                    <span class="badge rounded-pill px-3 py-1 font-monospace" style="background: rgba(255, 255, 255, 0.15); font-size: 11px;">
-                        ABA #084301768
-                    </span>
-                </div>
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <!-- CSB Clean Banking Header -->
+        <div class="card border-0 shadow-sm mb-3" style="background: #ffffff; border-radius: 14px; border-left: 5px solid #c8232c !important;">
+            <div class="card-body py-3 px-3 px-md-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-3">
-                        <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;" aria-label="Back to Dashboard">
-                            <i class="fa-solid fa-arrow-left"></i>
+                        <a href="{{ route('user.dashboard') }}" class="btn btn-light border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; border-radius: 8px;" aria-label="Back to Dashboard" title="Back to Dashboard">
+                            <i class="fa-solid fa-arrow-left text-dark"></i>
                         </a>
                         <div>
-                            <h2 class="fw-bold mb-1 text-white" style="letter-spacing: -0.5px;">Move Money &amp; Transfers</h2>
-                            <p class="mb-0 text-white text-opacity-75 small">Fast, secure transfers between your accounts, to other members, and external banks.</p>
+                            <h2 class="fw-bold mb-0 text-dark" style="font-size: 1.25rem; letter-spacing: -0.3px;">Move Money &amp; Transfers</h2>
+                            <div class="text-muted small" style="font-size: 12px;">Fast, secure transfers between your accounts, to other members, and external banks.</div>
                         </div>
                     </div>
-                    <div class="text-md-end text-start">
-                        <div class="small fw-semibold text-white text-opacity-90">Cleveland State Bank</div>
-                        <div class="extra-small text-white text-opacity-75">Official NACHA ACH &amp; Real-Time Network</div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-semibold" style="font-size: 11px;">
+                            Member FDIC
+                        </span>
+                        <span class="badge bg-light text-dark border px-2.5 py-1.5 fw-semibold font-monospace" style="font-size: 11px;">
+                            Routing # 084301768
+                        </span>
                     </div>
                 </div>
-            </div>
-            <div class="position-absolute end-0 top-0 h-100 d-none d-md-block opacity-10" style="font-size: 220px; line-height: 1; transform: translate(15%, -15%); pointer-events: none;">
-                <i class="fa-solid fa-building-columns"></i>
             </div>
         </div>
 
@@ -307,7 +300,7 @@
                     </div>
 
                     <div class="mt-5 text-end">
-                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; font-size: 15px;" onclick="validateStep2()">
+                        <button type="button" class="btn text-white py-2.5 px-4 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; border-radius: 10px; font-size: 14.5px;" onclick="validateStep2()">
                             Continue To Review <i class="fa-solid fa-arrow-right ms-2"></i>
                         </button>
                     </div>
@@ -371,7 +364,7 @@
                     </div>
 
                     <div class="mt-5 text-end">
-                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; font-size: 15px;" onclick="validateStep3()">
+                        <button type="button" class="btn text-white py-2.5 px-4 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; border-radius: 10px; font-size: 14.5px;" onclick="validateStep3()">
                             Review Transfer <i class="fa-solid fa-arrow-right ms-2"></i>
                         </button>
                     </div>
@@ -414,15 +407,26 @@
                                 <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold text-dark">Total Deducted</span><span class="h5 mb-0 fw-bold" style="color: #c8232c;" id="reviewAmount"></span></div>
                             </div>
 
-                            <button type="submit" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
-                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fa-solid fa-lock me-2"></i> Authorize &amp; Submit Transfer
+                            <button type="button" class="btn text-white py-2.5 px-4 shadow-sm w-100 fw-bold" style="background: #c8232c; border-radius: 10px; font-size: 15px;" id="confirmBtn" onclick="window.submitCsbTransfer();">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="confirmSpinner" role="status" aria-hidden="true"></span>
+                                <span id="confirmBtnText"><i class="fa-solid fa-lock me-2"></i> Authorize Transfer</span>
                             </button>
                         </div>
                     </div>
 
                     <div class="text-center text-muted extra-small mt-3" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-lock me-1"></i> 256-bit Encrypted NACHA Network &bull; FDIC Insured
+                        <i class="fa-solid fa-lock me-1"></i> 256-bit Encrypted &bull; Member FDIC
+                    </div>
+                </div>
+
+                <!-- Simple Transfer Processing Overlay -->
+                <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.6); z-index: 99999; backdrop-filter: blur(4px);">
+                    <div class="bg-white rounded-3 p-4 text-center shadow-lg" style="max-width: 300px; width: 88%;">
+                        <div class="spinner-border text-danger mb-3" style="width: 2.75rem; height: 2.75rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark" style="font-size: 16px;">Processing Transfer</h6>
+                        <p class="text-muted small mb-0" style="font-size: 12.5px;">Please wait while we complete your transfer...</p>
                     </div>
                 </div>
             </form>
@@ -603,7 +607,6 @@
 
         updateIndicators(step);
         currentStep = step;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
 
         if (step === 2) setupStep2();
     }
@@ -1146,6 +1149,37 @@
             }, 300);
         });
     }
+
+    window.submitCsbTransfer = function() {
+        var form = document.getElementById('transferForm');
+        if (!form) return;
+        
+        if (window.SecurityGate && typeof window.SecurityGate.gate === 'function') {
+            window.SecurityGate.gate(form, function() {
+                window.showTransferLoader();
+                HTMLFormElement.prototype.submit.call(form);
+            });
+        } else {
+            window.showTransferLoader();
+            HTMLFormElement.prototype.submit.call(form);
+        }
+    };
+
+    window.showTransferLoader = function() {
+        var overlay = document.getElementById('transferProcessingOverlay');
+        if (overlay) overlay.classList.remove('d-none');
+        var btn = document.getElementById('confirmBtn');
+        if (btn) {
+            btn.disabled = true;
+            var spinner = document.getElementById('confirmSpinner');
+            if (spinner) spinner.classList.remove('d-none');
+            var text = document.getElementById('confirmBtnText');
+            if (text) text.innerHTML = ' Processing Transfer...';
+        }
+        if (typeof window.showLoader === 'function') {
+            window.showLoader();
+        }
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initTransferIndex);

@@ -102,7 +102,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', {{ $user->balance ?? 0 }}, 0, 'checking')">
+            onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -122,7 +122,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', {{ $user->balance ?? 0 }}, 0, 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details &amp; Routing</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details &amp; Routing</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'checking']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Transfer Funds</a></li>
                             <li><a class="dropdown-item py-2" href="{{ Route::has('user.direct-deposit') ? route('user.direct-deposit', 'checking') : url('/user/direct-deposit/checking') }}"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Direct Deposit Form</a></li>
@@ -148,7 +148,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', {{ $user->savings_balance ?? 0 }}, 0, 'savings')">
+            onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -168,7 +168,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', {{ $user->savings_balance ?? 0 }}, 0, 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'savings']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Transfer Funds</a></li>
                         </ul>
@@ -193,7 +193,8 @@
     @if(!empty($savingsAccounts))
     @foreach($savingsAccounts as $account)
     <div class="col-lg-4 col-md-6">
-        <div class="site-card h-100 shadow-sm border bg-white position-relative" style="border-radius: 14px;">
+        <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
+            onclick="window.showAccountDetails('{{ addslashes($account->type) }}', '{{ $account->account_number }}', '{{ (float)($account->balance ?? 0) }}', '0', 'savings')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -205,12 +206,26 @@
                             <div class="text-muted small font-monospace">Account (*{{ substr($account->account_number, -4) }})</div>
                         </div>
                     </div>
+                    <div class="dropdown" onclick="event.stopPropagation()">
+                        <button class="btn btn-sm btn-light border-0 shadow-none text-muted p-1" data-bs-toggle="dropdown" aria-label="Account Options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($account->type) }}', '{{ $account->account_number }}', '{{ (float)($account->balance ?? 0) }}', '0', 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('user.transactions') }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Transfer Funds</a></li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="balance-section mt-4 pt-2 border-top">
                     <div class="text-muted small fw-semibold text-uppercase mb-1" style="font-size: 11px;">Available Balance</div>
                     <div class="h3 fw-bold m-0" style="color: #162846;">
                         $ {{ number_format($account->balance ?? 0, 2) }}
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top text-muted" style="font-size: 11.5px;">
+                        <span>Routing: <strong class="font-monospace text-dark">084301768</strong></span>
+                        <span class="badge bg-success-subtle text-success fw-bold">Active</span>
                     </div>
                 </div>
             </div>
@@ -224,7 +239,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $user->ira_balance ?? 0 }}, 0, 'ira')">
+            onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -243,7 +258,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $user->ira_balance ?? 0 }}, 0, 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'ira']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Deposit / Transfer</a></li>
                         </ul>
@@ -270,7 +285,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_balance ?? 0 }}, {{ $user->heloc_credit_limit ?? 0 }}, 'heloc')">
+            onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -289,7 +304,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_balance ?? 0 }}, {{ $user->heloc_credit_limit ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'heloc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Pay Down / Draw</a></li>
                         </ul>
@@ -316,7 +331,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_balance ?? 0 }}, {{ $user->cc_credit_limit ?? 0 }}, 'cc')">
+            onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -335,7 +350,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_balance ?? 0 }}, {{ $user->cc_credit_limit ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'cc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>
@@ -362,7 +377,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, {{ $user->loan_original_amount ?? 0 }}, 'loan')">
+            onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -381,7 +396,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, {{ $user->loan_original_amount ?? 0 }}, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'loan']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>

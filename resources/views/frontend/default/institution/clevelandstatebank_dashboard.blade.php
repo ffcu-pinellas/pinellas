@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <title>Dashboard | Cleveland State Bank Online Banking</title>
 
 <link rel="apple-touch-icon" href="{{ asset('assets/institutions/clevelandstatebank/images/favicon.png') }}">
@@ -3147,6 +3148,8 @@ body {
         </a>
     </nav>
 
+    @include('frontend::include.__script')
+
     <script>
     // ── Global Mobile Sidebar Functions ──
     window.openMobileSidebar = function() {
@@ -4685,7 +4688,11 @@ body {
     });
     </script>
     <script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
+    <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=1.1"></script>
+    @include('frontend::include.__security_gate_modal')
     @include('frontend::include.__account_detail_modal')
+    @include('frontend::user.partials.ava_chat')
+    <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
     @stack('js')
 </body>
 </html>

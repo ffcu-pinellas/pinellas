@@ -88,7 +88,8 @@
             <!-- Savings Accounts Loop -->
             @foreach($savingsAccounts as $account)
             <div class="col-lg-4 col-md-6">
-                <div class="site-card h-100 shadow-lg border-0" style="border-radius: 12px; transition: transform 0.3s ease;">
+                <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
+                    onclick="window.showAccountDetails('{{ addslashes($account->type) }}', '{{ $account->account_number }}', '{{ (float)($account->balance ?? 0) }}', '0', 'savings')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
@@ -98,8 +99,9 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="#">View activity</a></li>
-                                    <li><a class="dropdown-item" href="#">Transfer funds</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($account->type) }}', '{{ $account->account_number }}', '{{ (float)($account->balance ?? 0) }}', '0', 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
                             </div>
                         </div>

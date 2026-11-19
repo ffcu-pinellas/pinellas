@@ -63,13 +63,17 @@ document.addEventListener('DOMContentLoaded', function() {
         let artificialDelay = new Promise(resolve => setTimeout(resolve, 800));
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                || document.querySelector('input[name="_token"]')?.value 
+                || '';
+
             // Run fetch and delay concurrently, wait for both
             const [response] = await Promise.all([
                 fetch('/user/ava/query', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                        'X-CSRF-TOKEN': csrfToken
                     },
                     body: JSON.stringify({ message: text })
                 }),

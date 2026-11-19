@@ -65,10 +65,10 @@
 
             <!-- Action Buttons -->
             <div class="d-grid gap-2">
-                <a href="{{ route('user.dashboard') }}" class="btn text-white rounded-pill py-3 fw-bold shadow-sm" style="background: #162846; font-size: 14px;">
-                    <i class="fa-solid fa-house me-1"></i> Done &amp; Refresh Dashboard
+                <a href="{{ route('user.dashboard') }}" class="btn text-white py-2.5 fw-bold shadow-sm" style="background: #162846; border-radius: 10px; font-size: 14px;">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Return to Dashboard
                 </a>
-                <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-outline-secondary rounded-pill py-2 fw-semibold small" style="border-color: #cbd5e1; font-size: 13px;">
+                <a href="{{ route('user.fund_transfer.index') }}" class="btn btn-outline-secondary py-2 fw-semibold small" style="border-color: #cbd5e1; border-radius: 10px; font-size: 13px;">
                     Make Another Transfer
                 </a>
             </div>

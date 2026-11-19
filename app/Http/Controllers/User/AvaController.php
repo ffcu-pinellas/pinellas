@@ -42,6 +42,9 @@ class AvaController extends Controller
             case 'LOCATIONS':
                 return $this->handleLocations($isCsb, $institution);
 
+            case 'HOURS':
+                return $this->handleHours($isCsb);
+
             case 'ROUTING':
                 return $this->handleRouting($isCsb, $institution);
 
@@ -50,6 +53,9 @@ class AvaController extends Controller
             
             case 'ACCOUNT_DETAILS':
                 return $this->handleAccountDetails($user, $isCsb, $institution);
+
+            case 'DIRECT_DEPOSIT':
+                return $this->handleDirectDeposit($user, $isCsb);
             
             case 'SPENDING':
                 return $this->handleSpending($user, $message, $intent['extracted_merchant'] ?? null);
@@ -60,17 +66,32 @@ class AvaController extends Controller
             case 'EMERGENCY':
                 return $this->handleEmergency();
 
+            case 'DISPUTES':
+                return $this->handleDisputes($isCsb);
+
             case 'WIRE_TRANSFER':
                 return $this->handleWireTransfer($isCsb, $institution);
 
             case 'TRANSFERS':
                 return $this->handleTransfers($isCsb);
 
+            case 'TRANSFER_SPEED_LIMITS':
+                return $this->handleTransferLimits($isCsb);
+
             case 'BILL_PAY':
                 return $this->handleBillPay();
                 
             case 'DEPOSITS':
-                return $this->handleDeposits();
+                return $this->handleDeposits($isCsb);
+
+            case 'RATES_APY':
+                return $this->handleRates($isCsb);
+
+            case 'FEES_OVERDRAFT':
+                return $this->handleFeesOverdraft($isCsb);
+
+            case 'STATEMENTS_TAX':
+                return $this->handleStatementsTax($isCsb);
 
             case 'IDENTITY':
                 return $this->handleIdentity($user, $isCsb, $institution);
@@ -88,12 +109,15 @@ class AvaController extends Controller
                 ]);
 
             default:
-                // Fallback Mechanism
+                // Comprehensive Fallback Mechanism
                 $insuranceAsk = $isCsb ? "• 'Is my money FDIC insured?'" : "• 'Is my account NCUA insured?'";
                 $locationAsk = $isCsb ? "• 'Where are your branch locations?'" : "• 'Where can I find an ATM?'";
+                $hoursAsk = "• 'What are your branch and drive-thru hours?'";
+                $ratesAsk = "• 'What are current savings and CD interest rates?'";
+                $depositAsk = "• 'How do I deposit a check and what are the limits?'";
                 return response()->json([
                     'type' => 'text',
-                    'message' => "I'm not quite sure I understand. To help me accurately assist you, try asking things like:<br><br>• 'What is my total balance?'<br>• 'What is your routing number?'<br>{$insuranceAsk}<br>{$locationAsk}<br>• 'How do I freeze or manage my card?'<br>• 'What are wire transfer cutoff times?'"
+                    'message' => "I'm not quite sure I understand. To help me accurately assist you, try asking things like:<br><br>• 'What is my total balance or net worth?'<br>• 'What is your ABA routing number?'<br>{$insuranceAsk}<br>{$locationAsk}<br>{$hoursAsk}<br>{$depositAsk}<br>{$ratesAsk}<br>• 'How do I freeze or manage my card?'<br>• 'What are transfer times and limits?'"
                 ]);
         }
     }
@@ -112,7 +136,9 @@ class AvaController extends Controller
             'spent', 'paid', 'cost', 'contact', 'support', 'ticket', 'loan', 'credit', 'heloc', 'deposit',
             'transfer', 'send', 'wire', 'zelle', 'pay', 'bill', 'schedule', 'insurance', 'insured', 'fdic', 'ncua',
             'location', 'locations', 'branch', 'branches', 'office', 'atm', 'address', 'hours', 'transit', 'controls',
-            'cutoff', 'fedwire', 'swift', 'lock', 'unlock'
+            'cutoff', 'fedwire', 'swift', 'lock', 'unlock', 'statement', 'statements', 'estatement', 'tax', 'dispute',
+            'overdraft', 'courtesy', 'limit', 'limits', 'speed', 'arrive', 'rates', 'interest', 'yield', 'direct',
+            'payroll', 'check', 'checks', 'phone', 'call', 'help', 'app'
         ];
 
         $tokens = explode(' ', $message);
@@ -146,53 +172,80 @@ class AvaController extends Controller
     private function parseIntent($message)
     {
         $intents = [
-            // 1. Card Controls & Management (Freeze / Unfreeze / PIN Reset)
-            ['regex' => '/(card pin|change pin|reset pin|freeze card|lock card|unfreeze card|unlock card|freeze|unfreeze|manage cards|card controls|lost card|stolen card)/', 'name' => 'CARD_CONTROLS'],
+            // 1. Operating Hours & Schedule
+            ['regex' => '/(hour|hours|what time|open|close|closing|schedule|weekend|saturday|sunday|lobby|drive thru|drive up)/', 'name' => 'HOURS'],
 
-            // 2. Emergency Detection (Fraud / Unauthorized / Declines)
+            // 2. Direct Deposit Setup & Payroll
+            ['regex' => '/(direct deposit|payroll|setup direct deposit|direct deposit form|direct deposit pdf|voided check|employer deposit)/', 'name' => 'DIRECT_DEPOSIT'],
+
+            // 3. Disputes & Unauthorized Charges
+            ['regex' => '/(dispute|dispute charge|dispute transaction|unauthorized|fraud claim|chargeback|wrong charge|did not authorize)/', 'name' => 'DISPUTES'],
+
+            // 4. Mobile Check Deposit & Remote Capture
+            ['regex' => '/(deposit check|mobile deposit|remote deposit|deposit limits|check deposit|deposit|endorse|scan check)/', 'name' => 'DEPOSITS'],
+
+            // 5. Transfer Speed, Timelines & Daily Limits
+            ['regex' => '/(transfer limit|how long do transfer|how long does transfer|when will transfer arrive|transfer speed|delivery time|arrive|ach time|zelle limit|wire time|transfer time)/', 'name' => 'TRANSFER_SPEED_LIMITS'],
+
+            // 6. Interest Rates, APY & Yields
+            ['regex' => '/(interest rate|rate|rates|apy|apr|yield|cd rate|savings rate|savings apy|checking apy|rate on loan|heloc rate)/', 'name' => 'RATES_APY'],
+
+            // 7. Fees, Overdraft Protection & NSF
+            ['regex' => '/(overdraft|nsf|courtesy pay|overdrawn|overdraft fee|maintenance fee|account fee|monthly fee|what fee|what fees|service charge)/', 'name' => 'FEES_OVERDRAFT'],
+
+            // 8. Statements & Tax Documents
+            ['regex' => '/(statement|statements|estatement|bank statement|tax form|tax document|1099|1098|financial document)/', 'name' => 'STATEMENTS_TAX'],
+
+            // 9. Card Controls & Management (Freeze / Unfreeze / PIN Reset)
+            ['regex' => '/(card pin|change pin|reset pin|freeze card|lock card|unfreeze card|unlock card|freeze|unfreeze|manage card|manage cards|card control|card controls|lost card|stolen card|replace card)/', 'name' => 'CARD_CONTROLS'],
+
+            // 10. Emergency Detection (Fraud / Unauthorized / Declines)
             ['regex' => '/(stole|fraud|compromised|unauthorized).*(card|account|charge|transaction)/', 'name' => 'EMERGENCY'],
             ['regex' => '/acting up.*declining|keep.*declining|card.*declined|declining/', 'name' => 'EMERGENCY'],
 
-            // 3. Federal Insurance (FDIC / NCUA / Protection)
+            // 11. Federal Insurance (FDIC / NCUA / Protection)
             ['regex' => '/(fdic|ncua|insured|insurance|safety|safe|protection|government backing|guarantee|federally insured)/', 'name' => 'INSURANCE'],
 
-            // 4. Branch & ATM Locations / Addresses / Hours
-            ['regex' => '/(branch|branches|location|locations|atm|atms|address|office|hours|where are you|find branch|directions|nearby)/', 'name' => 'LOCATIONS'],
+            // 12. Branch & ATM Locations / Addresses
+            ['regex' => '/(branch|branches|location|locations|atm|atms|address|office|where are you|find branch|directions|nearby)/', 'name' => 'LOCATIONS'],
 
-            // 5. Routing Transit / ABA Number
+            // 13. Routing Transit / ABA Number
             ['regex' => '/(routing|routing number|aba|transit|transit number|routing transit)/', 'name' => 'ROUTING'],
 
-            // 6. Account Details (Different from Balance)
+            // 14. Account Details (Different from Balance)
             ['regex' => '/(what is|show me|tell me|forgot|need).*(account|routing|member).*(number|id)/', 'name' => 'ACCOUNT_DETAILS'],
-            ['regex' => '/account number|member number/', 'name' => 'ACCOUNT_DETAILS'],
+            ['regex' => '/account number|member number|checking number|savings number/', 'name' => 'ACCOUNT_DETAILS'],
             
-            // 7. Conversational / Politeness
+            // 15. Conversational / Politeness
             ['regex' => '/^(thank you|thanks|bye|goodbye|appreciate it)/', 'name' => 'POLITENESS'],
 
-            // 8. Security & Profile modifications
+            // 16. Security & Profile modifications
             ['regex' => '/(change|update|reset|forgot|modify|setup).*(password|pin|passcode|email|phone|profile|address|settings|2fa|two factor)/', 'name' => 'SECURITY_PROFILE'],
             
-            // 9. Transactional Intents (Wire, Transfers, Bills, Deposits)
+            // 17. Wire Transfers
             ['regex' => '/(wire|swift|fedwire|wire transfer|international wire|send wire|wire money|wire fee|wire limit|wire cutoff)/', 'name' => 'WIRE_TRANSFER'],
-            ['regex' => '/(transfer|send|zelle|pay a person|move money)/', 'name' => 'TRANSFERS'],
-            ['regex' => '/(pay|schedule).*(bill|utility|utilities|electric)/', 'name' => 'BILL_PAY'],
-            ['regex' => '/(deposit|scan).*(check|mobile)/', 'name' => 'DEPOSITS'],
 
-            // 10. Financial Status (Balances & Debts)
+            // 18. General Transfers
+            ['regex' => '/(transfer|send|zelle|pay a person|move money)/', 'name' => 'TRANSFERS'],
+
+            // 19. Bill Pay
+            ['regex' => '/(pay|schedule).*(bill|utility|utilities|electric)/', 'name' => 'BILL_PAY'],
+
+            // 20. Financial Status (Balances & Debts)
             ['regex' => '/(balance|money|wealth|funds|how much do i have|what do i have|net worth|worth|savings|heloc|credit card|loan).*balance/', 'name' => 'BALANCE'],
-            ['regex' => '/balance|worth/', 'name' => 'BALANCE'],
+            ['regex' => '/balance|worth|how much money/', 'name' => 'BALANCE'],
             
-            // 11. Transaction Analysis (Extracting Merchant via regex slot filling)
+            // 21. Transaction Analysis (Extracting Merchant via regex slot filling)
             ['regex' => '/(?:spent|spend|paid|cost(?:s)?)\s+(?:at\s+|to\s+|for\s+)?(\w+)/', 'name' => 'SPENDING'],
             
-            // 12. Identity / Greeting
+            // 22. Identity / Greeting
             ['regex' => '/^(hi|hello|hey|greetings|ava|who are you)/', 'name' => 'IDENTITY'],
             
-            // 13. Support Routing
-            ['regex' => '/(contact|help|support|talk to|message|ticket|representative|human|agent)/', 'name' => 'SUPPORT'],
+            // 23. Support Routing
+            ['regex' => '/(contact|help|support|talk to|message|ticket|representative|human|agent|phone number|call bank|call you)/', 'name' => 'SUPPORT'],
             
-            // 14. General Products
-            ['regex' => '/(loan|saving|dps|fdr|rate|credit card|apply|heloc|mortgage|certificate)/', 'name' => 'PRODUCT_INFO']
+            // 24. General Products
+            ['regex' => '/(loan|saving|dps|fdr|credit card|apply|heloc|mortgage|certificate|cd)/', 'name' => 'PRODUCT_INFO']
         ];
 
         foreach ($intents as $intentDesc) {
@@ -274,6 +327,50 @@ class AvaController extends Controller
         return response()->json([
             'type' => 'card',
             'title' => 'FrontField CU Locations & Nationwide Network',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Account Services', 'url' => route('user.dashboard'), 'class' => 'btn-primary']
+            ]
+        ]);
+    }
+
+    /**
+     * Operating Hours Intent Handler
+     */
+    private function handleHours(bool $isCsb)
+    {
+        if ($isCsb) {
+            $msg = "<strong>Cleveland State Bank</strong> Hours of Operation:<br><br>";
+            $msg .= "• <strong>Lobby Hours:</strong><br>";
+            $msg .= "&nbsp;&nbsp;– Monday – Thursday: 8:30 AM – 4:30 PM CST<br>";
+            $msg .= "&nbsp;&nbsp;– Friday: 8:30 AM – 5:00 PM CST<br>";
+            $msg .= "&nbsp;&nbsp;– Saturday & Sunday: Closed<br><br>";
+            $msg .= "• <strong>Drive-Thru & ATMs:</strong><br>";
+            $msg .= "&nbsp;&nbsp;– Drive-thru teller lines follow regular branch hours.<br>";
+            $msg .= "&nbsp;&nbsp;– Drive-Up ATMs at Sharpe Ave, Hwy 61, and Grenada are open <strong>24/7/365</strong> with zero surcharge fees.<br><br>";
+            $msg .= "• <strong>Digital Banking:</strong> Move money, view statements, and freeze cards 24/7 online.";
+
+            return response()->json([
+                'type' => 'card',
+                'title' => 'Cleveland State Bank Operating Hours',
+                'message' => $msg,
+                'actions' => [
+                    ['label' => 'View Locations', 'url' => route('user.dashboard'), 'class' => 'btn-primary']
+                ]
+            ]);
+        }
+
+        $msg = "<strong>FrontField Credit Union</strong> Hours of Service:<br><br>";
+        $msg .= "• <strong>Member Support Center:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Monday – Friday: 9:00 AM – 5:00 PM EST<br>";
+        $msg .= "&nbsp;&nbsp;– Saturday & Sunday: Closed<br><br>";
+        $msg .= "• <strong>Nationwide CO-OP ATM Network:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Accessible <strong>24/7/365</strong> across 30,000+ surcharge-free ATMs.<br><br>";
+        $msg .= "• <strong>Digital Banking:</strong> Deposit checks, transfer funds, and manage cards anytime online.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'FrontField CU Hours & Availability',
             'message' => $msg,
             'actions' => [
                 ['label' => 'Account Services', 'url' => route('user.dashboard'), 'class' => 'btn-primary']
@@ -390,14 +487,194 @@ class AvaController extends Controller
         ]);
     }
 
-    private function handleDeposits()
+    /**
+     * Mobile Deposit & Check Capture Handler
+     */
+    private function handleDeposits(bool $isCsb = false)
     {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+        $endorseNote = $isCsb ? 'For Mobile Deposit Only at Cleveland State Bank' : 'For Mobile Deposit Only at FrontField CU';
+        $dailyLimit = $isCsb ? '$5,000.00' : '$2,500.00';
+        $monthlyLimit = '$10,000.00';
+        $cutoff = $isCsb ? '4:00 PM CST' : '4:00 PM EST';
+
+        $msg = "Deposit checks anywhere using your smartphone camera with <strong>Remote Deposit Capture</strong>:<br><br>";
+        $msg .= "• <strong>Daily Deposit Limit:</strong> Up to <strong>{$dailyLimit}</strong> per business day.<br>";
+        $msg .= "• <strong>Monthly Limit:</strong> Up to <strong>{$monthlyLimit}</strong> per rolling 30-day period.<br>";
+        $msg .= "• <strong>Endorsement Requirement:</strong> Sign the back of your check and clearly write: <i>\"{$endorseNote}\"</i>.<br>";
+        $msg .= "• <strong>Funds Availability:</strong> Checks deposited before <strong>{$cutoff}</strong> on business days typically post within 1–2 business days. The first $225 is often available next business day.<br>";
+        $msg .= "• <strong>Eligible Accounts:</strong> Personal Checking, Commercial Checking, and Primary Savings.";
+
         return response()->json([
             'type' => 'card',
-            'title' => 'Remote Check Deposit',
-            'message' => "Need to deposit a check? You can use your phone to scan and deposit checks instantly with Remote Deposit Capture.",
+            'title' => "Mobile Check Deposit ({$instName})",
+            'message' => $msg,
             'actions' => [
-                ['label' => 'Deposit a Check', 'url' => route('user.remote_deposit'), 'class' => 'btn-primary']
+                ['label' => 'Deposit a Check Now', 'url' => route('user.remote_deposit'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Transfer Speed, Timelines & Limits Handler
+     */
+    private function handleTransferLimits(bool $isCsb = false)
+    {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+
+        $msg = "Transfer options, delivery timelines, and daily limits at <strong>{$instName}</strong>:<br><br>";
+        $msg .= "• <strong>Internal Account Transfers:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Delivery: <strong>Instant / Immediate</strong> (24/7/365)<br>";
+        $msg .= "&nbsp;&nbsp;– Limit: Up to your available ledger balance (Fee: $0)<br><br>";
+        $msg .= "• <strong>Zelle® Payments:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Delivery: <strong>Within minutes</strong> to enrolled U.S. contacts<br>";
+        $msg .= "&nbsp;&nbsp;– Limit: $1,000 – $2,500 daily rolling limit (Fee: $0)<br><br>";
+        $msg .= "• <strong>External Bank ACH:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Delivery: <strong>1–3 business days</strong> via the NACHA network<br>";
+        $msg .= "&nbsp;&nbsp;– Limit: $10,000.00 daily limit (Fee: $0)<br><br>";
+        $msg .= "• <strong>Domestic Fedwire Wires:</strong><br>";
+        $msg .= "&nbsp;&nbsp;– Delivery: <strong>Same-day settlement</strong> if placed before cutoff<br>";
+        $msg .= "&nbsp;&nbsp;– Fee: $25.00 domestic | $45.00 international SWIFT";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Transfer Delivery Speeds & Limits',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Start a Transfer', 'url' => route('user.fund_transfer.index'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Interest Rates & APY Handler
+     */
+    private function handleRates(bool $isCsb = false)
+    {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+
+        $msg = "Current interest rates and Annual Percentage Yields (APY) at <strong>{$instName}</strong>:<br><br>";
+        $msg .= "• <strong>Personal Checking:</strong> <strong>0.05% APY</strong> (No monthly maintenance fee with $100 min balance)<br>";
+        $msg .= "• <strong>Primary Savings:</strong> <strong>3.25% APY</strong> (Compounded monthly, FDIC/NCUA insured up to $250,000)<br>";
+        $msg .= "• <strong>Retirement Accounts (IRA):</strong> <strong>4.50% APY</strong> (Tax-advantaged retirement compounding)<br>";
+        $msg .= "• <strong>Certificates of Deposit (CDs):</strong> Rates up to <strong>5.10% APY</strong> depending on term (6 to 60 months)<br>";
+        $msg .= "• <strong>HELOC Revolving Credit:</strong> Variable rates starting from <strong>Prime + 0.50% APR</strong><br>";
+        $msg .= "• <strong>Visa Credit Cards:</strong> Competitive APR starting from <strong>14.99% variable</strong> with 0% intro purchase rate<br>";
+        $msg .= "• <strong>Personal Loans:</strong> Fixed rates starting from <strong>7.99% APR</strong> with terms up to 60 months.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => "{$instName} Interest Rates & Yields",
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'View Accounts', 'url' => route('user.dashboard'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Fees & Overdraft Policy Handler
+     */
+    private function handleFeesOverdraft(bool $isCsb = false)
+    {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+
+        $msg = "Fee schedule and overdraft protection policies at <strong>{$instName}</strong>:<br><br>";
+        $msg .= "• <strong>Monthly Maintenance Fee:</strong> <strong>$0.00 (Free)</strong> on Personal Checking with active direct deposit or maintaining a $100 minimum daily balance.<br>";
+        $msg .= "• <strong>Overdraft Fee:</strong> $30.00 per item overdrawn by more than $10.00. No fee is assessed if the account is overdrawn by less than $10.00.<br>";
+        $msg .= "• <strong>Free Overdraft Protection:</strong> Link your Primary Savings account for automatic backup. Funds automatically transfer to cover checking deficits with <strong>$0 transfer fee</strong>.<br>";
+        $msg .= "• <strong>Stop Payment Fee:</strong> $25.00 per item.<br>";
+        $msg .= "• <strong>e-Statements:</strong> 100% Free electronic PDF statements online ($3.00 for mailed paper copies).<br>";
+        $msg .= "• <strong>Card Freezes & ATM Withdrawals:</strong> Zero fee for freezing cards or using in-network ATMs.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Fees & Overdraft Protection Schedule',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'View Account Settings', 'url' => route('user.setting.show'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Direct Deposit Setup Handler
+     */
+    private function handleDirectDeposit($user, bool $isCsb = false)
+    {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+        $routing = $isCsb ? '084301768' : '263177742';
+
+        $msg = "Set up Direct Deposit to receive your paycheck, tax refund, or government benefits up to <strong>2 days early</strong>:<br><br>";
+        $msg .= "Provide the following information to your employer or payroll department:<br>";
+        $msg .= "• <strong>Bank Name:</strong> {$instName}<br>";
+        $msg .= "• <strong>ABA Routing Number:</strong> <code>{$routing}</code><br>";
+        $msg .= "• <strong>Checking Account Number:</strong> <code>{$user->account_number}</code><br>";
+        if ($user->savings_account_number) {
+            $msg .= "• <strong>Savings Account Number:</strong> <code>{$user->savings_account_number}</code><br>";
+        }
+        $msg .= "• <strong>Account Type:</strong> Checking (or Savings)<br><br>";
+        $msg .= "<small><i>You can also download an official, prefilled Direct Deposit Authorization form under your Documents tab.</i></small>";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Direct Deposit Information',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Download Direct Deposit PDF', 'url' => route('user.documents.index'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Statements & Tax Documents Handler
+     */
+    private function handleStatementsTax(bool $isCsb = false)
+    {
+        $themeClass = $isCsb ? 'btn-danger' : 'btn-primary';
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+
+        $msg = "Access your electronic banking and tax documents anytime at <strong>{$instName}</strong>:<br><br>";
+        $msg .= "• <strong>Monthly e-Statements:</strong> Generated on the <strong>1st of every month</strong>. View, search, and download official PDF statements archived for up to <strong>7 years</strong>.<br>";
+        $msg .= "• <strong>Tax Forms (1099-INT / 1098):</strong> Generated annually by <strong>January 31st</strong> for accounts earning $10 or more in interest/dividends or paying qualifying mortgage/loan interest.<br>";
+        $msg .= "• <strong>Direct Deposit Letters & Verification:</strong> Instant PDF download verifying your active account status and routing details.<br>";
+        $msg .= "• <strong>Paperless Banking:</strong> e-Statements are secure, encrypted, and eliminate paper clutter.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Statements & Tax Documents',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Open Documents & Statements', 'url' => route('user.documents.index'), 'class' => $themeClass]
+            ]
+        ]);
+    }
+
+    /**
+     * Disputes & Unauthorized Charges Handler
+     */
+    private function handleDisputes(bool $isCsb = false)
+    {
+        $instName = $isCsb ? 'Cleveland State Bank' : 'FrontField Credit Union';
+
+        $msg = "Under <strong>Federal Regulation E</strong>, your account at <strong>{$instName}</strong> is protected against unauthorized charges, billing errors, and fraudulent transactions:<br><br>";
+        $msg .= "• <strong>Step 1 (Immediate Freeze):</strong> If your debit or credit card was compromised, freeze it immediately in Card Controls to prevent further unauthorized activity.<br>";
+        $msg .= "• <strong>Step 2 (File Dispute):</strong> Tap on the disputed transaction in your Recent Activity and click <i>\"File Official Dispute\"</i>, or submit a dispute ticket.<br>";
+        $msg .= "• <strong>Investigation Timeline:</strong> Formal review begins within <strong>2 business days</strong>.<br>";
+        $msg .= "• <strong>Provisional Credit:</strong> For eligible consumer claims, provisional credit is typically credited to your account within <strong>10 business days</strong> while the merchant investigation completes.";
+
+        return response()->json([
+            'type' => 'card',
+            'title' => 'Transaction Dispute & Fraud Protection',
+            'message' => $msg,
+            'actions' => [
+                ['label' => 'Freeze Card', 'url' => route('user.cards'), 'class' => 'btn-danger'],
+                ['label' => 'Submit Dispute Ticket', 'url' => route('user.ticket.index'), 'class' => 'btn-primary']
             ]
         ]);
     }
