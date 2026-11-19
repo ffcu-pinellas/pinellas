@@ -270,7 +270,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_credit_limit ?? 0 }}, {{ $user->heloc_balance ?? 0 }}, 'heloc')">
+            onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_balance ?? 0 }}, {{ $user->heloc_credit_limit ?? 0 }}, 'heloc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">

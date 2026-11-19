@@ -272,7 +272,6 @@
     }
 </style>
 
-@push('js')
 <script>
     window.currentSelectedAccountType = 'checking';
     window.currentSelectedAccountNumber = '';
@@ -493,4 +492,3 @@
         }
     };
 </script>
-@endpush

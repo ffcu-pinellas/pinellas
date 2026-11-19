@@ -35,7 +35,7 @@
 
                     <!-- Transaction PIN -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ $hasPin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
-                        <div style="flex: 1; min-width: 0; width: 100%;">
+                        <div style="flex: 1; min-width: 0;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Transaction PIN</label>
                             <div class="fw-600 text-dark fs-5">
                                 @if($hasPin)
@@ -46,14 +46,14 @@
                             </div>
                             <div class="small text-muted">Used for Extra Security on sensitive actions.</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ $hasPin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0 w-100 w-sm-auto text-center" style="white-space: nowrap;">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ $hasPin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0 text-center" style="white-space: nowrap;">
                             {{ $hasPin ? 'Change PIN' : 'Set Up Now' }}
                         </button>
                     </div>
 
-                    <!-- Biometric WebAuthn / Passkeys Setup -->
+                    <!-- Biometric Passkeys Setup -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 border-light" id="csbBiometricSetupCard">
-                        <div style="flex: 1; min-width: 0; width: 100%; padding-right: 0;">
+                        <div style="flex: 1; min-width: 0;">
                             <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                                 <label class="small text-muted d-block text-uppercase fw-bold mb-0">Biometric Authentication</label>
                                 <span class="badge bg-success text-white small" id="bioStatusBadge" style="font-size: 10px;">
@@ -68,7 +68,7 @@
                             </div>
                             <div id="bioFeedbackNotice" class="small mt-1 d-none"></div>
                         </div>
-                        <button type="button" id="btnRegisterBiometrics" onclick="csbRegisterBiometricPasskey()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 w-100 w-sm-auto" style="white-space: nowrap;">
+                        <button type="button" id="btnRegisterBiometrics" onclick="csbRegisterBiometricPasskey()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0" style="white-space: nowrap;">
                             <i class="fa-solid fa-fingerprint"></i>
                             <span id="btnBioLabel">Register Passkey</span>
                         </button>
@@ -305,6 +305,7 @@
 @section('style')
 <style>
     .fw-600 { font-weight: 600; }
+    .w-sm-auto { width: auto !important; }
 </style>
 @endsection
 
@@ -318,7 +319,7 @@
         }
         if (!window.PublicKeyCredential) {
             $('#bioStatusBadge').removeClass('bg-success').addClass('bg-secondary').html('<i class="fa-solid fa-ban me-1"></i> Not Supported');
-            $('#bioDeviceDesc').text('This browser or device does not support WebAuthn biometric sensors.');
+            $('#bioDeviceDesc').text('This browser or device does not support biometric sensors.');
             $('#btnRegisterBiometrics').prop('disabled', true).addClass('opacity-50');
         } else {
             // Check if user has registered
@@ -336,11 +337,11 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Not Supported',
-                    text: 'Your current browser or device does not support WebAuthn biometric passkeys.',
+                    text: 'Your current browser or device does not support biometric passkeys.',
                     confirmButtonColor: '#162846'
                 });
             } else {
-                alert('Your device does not support WebAuthn biometric passkeys.');
+                alert('Your device does not support biometric passkeys.');
             }
             return;
         }

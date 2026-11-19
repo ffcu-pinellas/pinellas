@@ -39,6 +39,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Checking', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -68,6 +69,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Primary Savings', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -127,6 +129,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('IRA Account', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -158,6 +161,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('HELOC Account', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -190,6 +194,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Pay Bill</a></li>
                                 </ul>
@@ -222,6 +227,7 @@
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>

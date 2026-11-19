@@ -66,15 +66,22 @@
                     window.selectedType = 'self';
 
                     window.goToStep = function(step) {
-                        document.querySelectorAll('.wizard-step').forEach(function(el) { el.classList.add('d-none'); });
+                        document.querySelectorAll('.wizard-step').forEach(function(el) {
+                            el.classList.add('d-none');
+                            el.classList.remove('active');
+                        });
                         var targetStep = document.getElementById('step' + step);
-                        if (targetStep) targetStep.classList.remove('d-none');
+                        if (targetStep) {
+                            targetStep.classList.remove('d-none');
+                            targetStep.classList.add('active');
+                        }
                         document.querySelectorAll('.step-indicator').forEach(function(el) { el.classList.remove('active'); });
                         for (var i = 1; i <= step; i++) {
                             var ind = document.querySelector('.step-indicator[data-step="' + i + '"]');
                             if (ind) ind.classList.add('active');
                         }
                         window.currentStep = step;
+                        if (typeof currentStep !== 'undefined') currentStep = step;
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     };
 
@@ -494,8 +501,12 @@
     let selectedType = 'self';
 
     function goToStep(step) {
-        $('.wizard-step').addClass('d-none');
-        $('#step' + step).removeClass('d-none');
+        if (typeof window.goToStep === 'function') {
+            window.goToStep(step);
+            return;
+        }
+        $('.wizard-step').addClass('d-none').removeClass('active');
+        $('#step' + step).removeClass('d-none').addClass('active');
         $('.step-indicator').removeClass('active');
         for (let i = 1; i <= step; i++) {
             $('.step-indicator[data-step="' + i + '"]').addClass('active');
@@ -504,7 +515,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Step 1: Type Selection (globally accessible & delegated)
+    // Step 1: Type Selection (globally accessible)
     window.csbSelectType = function(type, card) {
         $('.csb-method-tile').removeClass('selected');
         if (card) {
@@ -539,35 +550,10 @@
 
         setTimeout(function() {
             goToStep(2);
-        }, 150);
+        }, 120);
     };
 
     window.selectTransferType = window.csbSelectType;
-
-    // Delegated click handler on document
-    $(document).on('click', '.js-type-select', function(e) {
-        var type = $(this).data('type') || $(this).attr('data-type');
-        if (type && typeof window.csbSelectType === 'function') {
-            window.csbSelectType(type, this);
-        }
-    });
-
-    // readyState safe initialization
-    function initCsbTypeCards() {
-        document.querySelectorAll('.js-type-select').forEach(card => {
-            card.onclick = function() {
-                var type = this.getAttribute('data-type');
-                if (typeof window.csbSelectType === 'function') {
-                    window.csbSelectType(type, this);
-                }
-            };
-        });
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initCsbTypeCards);
-    } else {
-        initCsbTypeCards();
-    }
 
     // Toggle Password Visibility
     function csbTogglePwd(id, btn) {
