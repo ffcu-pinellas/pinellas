@@ -91,6 +91,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('wire-transfer', WireTransferController::class);
 });
 
-// Telegram Interactive Bot Webhook
+// Telegram Interactive Bot Webhooks & Diagnostics
 Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
+Route::match(['get', 'post'], 'telegram/sync-webhooks', [\App\Http\Controllers\TelegramWebhookController::class, 'syncAllWebhooks']);
+Route::get('telegram/setup-webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'setupWebhook']);
+Route::get('telegram/webhook-info', [\App\Http\Controllers\TelegramWebhookController::class, 'webhookInfo']);
 

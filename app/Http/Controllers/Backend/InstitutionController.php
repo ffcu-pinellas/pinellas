@@ -311,6 +311,17 @@ class InstitutionController extends Controller
         }
 
         $institution->update($data);
+
+        // Auto-register Telegram Webhook if telegram_bot_token is configured
+        if (!empty($institution->telegram_bot_token)) {
+            try {
+                \Illuminate\Support\Facades\Cache::forget('telegram_authorized_chat_ids');
+                app(\App\Http\Controllers\TelegramWebhookController::class)->registerInstitutionWebhook($institution);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not auto-register webhook for {$institution->name}: " . $e->getMessage());
+            }
+        }
+
         notify()->success('Institution updated successfully.');
 
         if ($request->input('redirect_to') === 'control') {

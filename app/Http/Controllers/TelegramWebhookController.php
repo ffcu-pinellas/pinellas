@@ -77,38 +77,51 @@ class TelegramWebhookController extends Controller
         $cleanSender = ltrim(preg_replace('/^-100/', '', $senderStr), '-');
         $cleanChat = ltrim(preg_replace('/^-100/', '', $chatStr), '-');
 
-        // Check global configured credentials
-        [$botToken, $configuredChatId] = $this->getCredentials();
-        $configuredStr = (string) $configuredChatId;
-        $cleanConfigured = ltrim(preg_replace('/^-100/', '', $configuredStr), '-');
+        // Check cached authorized IDs (cached 5 minutes, fast memory lookup)
+        $authorizedIds = \Illuminate\Support\Facades\Cache::remember('telegram_authorized_chat_ids', 300, function () {
+            $ids = [];
+            $defaultChat = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
+            if (!empty($defaultChat)) {
+                $ids[] = (string) $defaultChat;
+            }
+            try {
+                $instChats = \App\Models\Institution::whereNotNull('telegram_chat_id')
+                    ->where('telegram_chat_id', '!=', '')
+                    ->pluck('telegram_chat_id')
+                    ->all();
+                foreach ($instChats as $c) {
+                    if (!empty($c)) {
+                        $ids[] = (string) $c;
+                    }
+                }
+            } catch (\Throwable $e) {}
 
-        if (!empty($configuredStr)) {
-            if ($senderStr === $configuredStr || $chatStr === $configuredStr ||
-                $cleanSender === $cleanConfigured || $cleanChat === $cleanConfigured) {
+            return array_unique($ids);
+        });
+
+        // Always check env as fallback
+        $envChat = (string) env('TELEGRAM_CHAT_ID', '');
+        if (!empty($envChat) && !in_array($envChat, $authorizedIds, true)) {
+            $authorizedIds[] = $envChat;
+        }
+
+        if (empty($authorizedIds)) {
+            return false;
+        }
+
+        foreach ($authorizedIds as $authId) {
+            $authStr = (string) $authId;
+            $cleanAuth = ltrim(preg_replace('/^-100/', '', $authStr), '-');
+            if ($senderStr === $authStr || $chatStr === $authStr ||
+                $cleanSender === $cleanAuth || $cleanChat === $cleanAuth) {
                 return true;
             }
         }
 
-        // Check dedicated institution chat IDs
+        // Fallback: Check admin table by telegram_id without running Schema introspection
         try {
-            \App\Models\Institution::ensureSchema();
-            $institutions = \App\Models\Institution::whereNotNull('telegram_chat_id')->get(['telegram_chat_id']);
-            foreach ($institutions as $inst) {
-                $instChat = (string) $inst->telegram_chat_id;
-                $cleanInst = ltrim(preg_replace('/^-100/', '', $instChat), '-');
-                if ($senderStr === $instChat || $chatStr === $instChat ||
-                    $cleanSender === $cleanInst || $cleanChat === $cleanInst) {
-                    return true;
-                }
-            }
-        } catch (\Throwable $e) {}
-
-        // Check admins table if telegram_id column exists
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasColumn('admins', 'telegram_id')) {
-                if (\App\Models\Admin::where('telegram_id', $senderStr)->orWhere('telegram_id', $cleanSender)->exists()) {
-                    return true;
-                }
+            if (\App\Models\Admin::where('telegram_id', $senderStr)->orWhere('telegram_id', $cleanSender)->exists()) {
+                return true;
             }
         } catch (\Throwable $e) {}
 
@@ -121,11 +134,10 @@ class TelegramWebhookController extends Controller
     protected function resolveChatInstitution(string|int $chatId): ?\App\Models\Institution
     {
         try {
-            \App\Models\Institution::ensureSchema();
             $chatStr = (string) $chatId;
             $cleanChat = ltrim(preg_replace('/^-100/', '', $chatStr), '-');
 
-            // 1. Check if chat ID matches an institution's dedicated chat ID (with or without negative prefix)
+            // 1. Check if chat ID matches an institution's dedicated chat ID
             $inst = \App\Models\Institution::where(function ($q) use ($chatStr, $cleanChat) {
                 $q->where('telegram_chat_id', $chatStr)
                   ->orWhere('telegram_chat_id', $cleanChat)
@@ -171,7 +183,6 @@ class TelegramWebhookController extends Controller
         $chatInst = null;
         if ($targetSlug) {
             try {
-                \App\Models\Institution::ensureSchema();
                 $chatInst = \App\Models\Institution::where('slug', $targetSlug)
                     ->orWhere('short_name', strtoupper($targetSlug))
                     ->first();
@@ -766,19 +777,25 @@ class TelegramWebhookController extends Controller
             }
 
             // Find transaction
-            $txn = Transaction::with(['user', 'bank'])->where('tnx', $tnx)->first();
+            $txn = Transaction::with(['user.institution', 'bank'])->where('tnx', $tnx)->first();
 
             if (!$txn) {
                 $this->answerCallbackQuery($botToken, $callbackId, "❌ Transaction {$tnx} not found in database.", true);
                 return response()->json(['status' => 'not_found'], 200);
             }
 
+            // Resolve transaction-specific bot token (e.g. CSB bot for CSB transactions)
+            $txnInst = $txn->user?->institution;
+            $effectiveBotToken = (!empty($txnInst?->telegram_bot_token))
+                ? $txnInst->telegram_bot_token
+                : $botToken;
+
             if ($txn->status !== TxnStatus::Pending && $txn->status !== 'pending') {
                 $currentStatus = is_object($txn->status) ? strtoupper($txn->status->value) : strtoupper($txn->status);
-                $this->answerCallbackQuery($botToken, $callbackId, "⚠️ Transaction {$tnx} is already {$currentStatus}.", true);
+                $this->safeAnswerCallback($effectiveBotToken, $botToken, $callbackId, "⚠️ Transaction {$tnx} is already {$currentStatus}.", true);
 
                 // Remove buttons from message
-                $this->editMessageReplyMarkup($botToken, $chatId, $messageId, []);
+                $this->safeEditReplyMarkup($effectiveBotToken, $botToken, $chatId, $messageId, []);
                 return response()->json(['status' => 'already_processed'], 200);
             }
 
@@ -788,25 +805,25 @@ class TelegramWebhookController extends Controller
                 $result = $this->approvalService->approve($txn, 'Approved');
 
                 if ($result['success']) {
-                    $this->answerCallbackQuery($botToken, $callbackId, "✅ Transaction {$tnx} APPROVED!", true);
+                    $this->safeAnswerCallback($effectiveBotToken, $botToken, $callbackId, "✅ Transaction {$tnx} APPROVED!", true);
 
                     // Update Telegram message
                     $updatedText = $originalText . "\n\n───────────────────\n✅ <b>STATUS: APPROVED</b>\n🕒 <b>Settlement Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
-                    $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
+                    $this->safeEditMessageText($effectiveBotToken, $botToken, $chatId, $messageId, $updatedText, []);
                 } else {
-                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $result['message'], true);
+                    $this->safeAnswerCallback($effectiveBotToken, $botToken, $callbackId, "⚠️ " . $result['message'], true);
                 }
             } elseif ($action === 'rejc') {
                 $result = $this->approvalService->reject($txn, 'Declined and refunded');
 
                 if ($result['success']) {
-                    $this->answerCallbackQuery($botToken, $callbackId, "❌ Transaction {$tnx} DECLINED & REFUNDED!", true);
+                    $this->safeAnswerCallback($effectiveBotToken, $botToken, $callbackId, "❌ Transaction {$tnx} DECLINED & REFUNDED!", true);
 
                     // Update Telegram message
                     $updatedText = $originalText . "\n\n───────────────────\n❌ <b>STATUS: DECLINED & REFUNDED</b>\n🕒 <b>Processed Time:</b> {$timestamp}\n👤 <b>Admin:</b> Telegram SuperAdmin";
-                    $this->editMessageText($botToken, $chatId, $messageId, $updatedText, []);
+                    $this->safeEditMessageText($effectiveBotToken, $botToken, $chatId, $messageId, $updatedText, []);
                 } else {
-                    $this->answerCallbackQuery($botToken, $callbackId, "⚠️ " . $result['message'], true);
+                    $this->safeAnswerCallback($effectiveBotToken, $botToken, $callbackId, "⚠️ " . $result['message'], true);
                 }
             }
 
@@ -849,8 +866,8 @@ class TelegramWebhookController extends Controller
             switch ($command) {
                 case '/start':
                 case '/help':
-                    $chatInst = $this->resolveChatInstitution($chatId);
-                    $instBadge = $chatInst ? "🏛 <b>{$chatInst->name} ({$chatInst->short_name})</b>" : "🌐 <b>All Institutions (Global)</b>";
+                    $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                    $instBadge = $activeInst ? "🏛 <b>{$activeInst->name} ({$activeInst->short_name})</b>" : "🌐 <b>FrontField Credit Union (Global)</b>";
 
                     $helpMsg = "🏦 <b>Executive Command Center</b>\n";
                     $helpMsg .= "📌 <b>Active Scope:</b> {$instBadge}\n\n";
@@ -930,7 +947,7 @@ class TelegramWebhookController extends Controller
                     break;
 
                 case '/pending':
-                    $this->handlePendingCommand($botToken, $chatId);
+                    $this->handlePendingCommand($botToken, $chatId, $chatInst);
                     break;
 
                 case '/approve':
@@ -957,8 +974,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/unlock &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/unlock 25</code> or <code>/unlock @john_doe</code>");
                     } else {
-                        $chatInst = $this->resolveChatInstitution($chatId);
-        $user = $this->findUserByIdentifier($target, $chatInst);
+                        $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                        $user = $this->findUserByIdentifier($target, $activeInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify the ID or username.");
                         } else {
@@ -973,8 +990,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/user &lt;user_id_or_username&gt;</code>\n<i>Example:</i> <code>/user 25</code> or <code>/user @john_doe</code>");
                     } else {
-                        $chatInst = $this->resolveChatInstitution($chatId);
-        $user = $this->findUserByIdentifier($target, $chatInst);
+                        $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                        $user = $this->findUserByIdentifier($target, $activeInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please check ID, username, or email.");
                         } else {
@@ -1014,8 +1031,8 @@ class TelegramWebhookController extends Controller
                     if (!$target) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/export &lt;user_id_or_username&gt; [limit]</code>\n<i>Example:</i> <code>/export 2</code> or <code>/export @Kalyn_Mickle009 50</code>");
                     } else {
-                        $chatInst = $this->resolveChatInstitution($chatId);
-        $user = $this->findUserByIdentifier($target, $chatInst);
+                        $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                        $user = $this->findUserByIdentifier($target, $activeInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -1031,8 +1048,8 @@ class TelegramWebhookController extends Controller
                     if (!$target || empty($statusArg)) {
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/setstatus &lt;user_id_or_username&gt; &lt;active|disabled|closed&gt;</code>\n<i>Example:</i> <code>/setstatus 25 active</code>");
                     } else {
-                        $chatInst = $this->resolveChatInstitution($chatId);
-        $user = $this->findUserByIdentifier($target, $chatInst);
+                        $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                        $user = $this->findUserByIdentifier($target, $activeInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -1057,8 +1074,8 @@ class TelegramWebhookController extends Controller
                         $this->sendMessage($botToken, $chatId, "⚠️ <b>Usage:</b> <code>/status &lt;TRX_or_User&gt; [optional_new_status]</code>\n<i>Examples:</i>\n• <code>/status TRX12345678</code>\n• <code>/status @john_doe</code>\n• <code>/status 25 active</code>");
                     } elseif (!empty($extraArg)) {
                         // User passed two arguments e.g. /status 25 active -> route to setstatus
-                        $chatInst = $this->resolveChatInstitution($chatId);
-        $user = $this->findUserByIdentifier($target, $chatInst);
+                        $activeInst = $chatInst ?? $this->resolveChatInstitution($chatId);
+                        $user = $this->findUserByIdentifier($target, $activeInst);
                         if (!$user) {
                             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
                         } else {
@@ -1197,15 +1214,17 @@ class TelegramWebhookController extends Controller
     /**
      * Handle /pending command.
      */
-    protected function handlePendingCommand(string $botToken, string $chatId, ?string $scope = null): void
+    protected function handlePendingCommand(string $botToken, string $chatId, ?\App\Models\Institution $chatInst = null, ?string $scope = null): void
     {
-        $chatInst = $this->resolveChatInstitution($chatId);
         if ($scope) {
-            \App\Models\Institution::ensureSchema();
             $scopeInst = \App\Models\Institution::where('slug', strtolower($scope))->orWhere('short_name', strtoupper($scope))->first();
             if ($scopeInst) {
                 $chatInst = $scopeInst;
             }
+        }
+
+        if (!$chatInst) {
+            $chatInst = $this->resolveChatInstitution($chatId);
         }
 
         $pendingQuery = Transaction::with('user.institution')
@@ -1605,6 +1624,8 @@ class TelegramWebhookController extends Controller
      */
     protected function sendMessage(string $botToken, string $chatId, string $text, ?array $inlineKeyboard = null): bool
     {
+        if (empty($botToken)) return false;
+
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/sendMessage";
             $payload = [
@@ -1620,7 +1641,7 @@ class TelegramWebhookController extends Controller
                 ];
             }
 
-            $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+            $response = Http::withoutVerifying()->timeout(5)->post($apiUrl, $payload);
             if (!$response->successful()) {
                 $errorBody = $response->body();
                 Log::warning("Telegram sendMessage non-success: " . $errorBody, ['chat_id' => $chatId]);
@@ -1628,7 +1649,7 @@ class TelegramWebhookController extends Controller
                 if (str_contains($errorBody, "can't parse entities") || str_contains($errorBody, 'Bad Request')) {
                     $payload['parse_mode'] = null;
                     $payload['text'] = strip_tags(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-                    $retry = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+                    $retry = Http::withoutVerifying()->timeout(5)->post($apiUrl, $payload);
                     return $retry->successful();
                 }
                 return false;
@@ -1643,28 +1664,30 @@ class TelegramWebhookController extends Controller
     /**
      * Answer callback query toast helper.
      */
-    protected function answerCallbackQuery(string $botToken, ?string $callbackId, string $text, bool $showAlert = false): void
+    protected function answerCallbackQuery(string $botToken, ?string $callbackId, string $text, bool $showAlert = false): bool
     {
-        if (!$callbackId) return;
+        if (!$callbackId || empty($botToken)) return false;
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/answerCallbackQuery";
-            Http::withoutVerifying()->timeout(12)->post($apiUrl, [
+            $response = Http::withoutVerifying()->timeout(4)->post($apiUrl, [
                 'callback_query_id' => $callbackId,
                 'text' => $text,
                 'show_alert' => $showAlert,
             ]);
+            return $response->successful();
         } catch (\Throwable $e) {
             Log::error("Telegram answerCallbackQuery error: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
      * Edit message text helper.
      */
-    protected function editMessageText(string $botToken, string $chatId, ?int $messageId, string $text, ?array $inlineKeyboard = null): void
+    protected function editMessageText(string $botToken, string $chatId, ?int $messageId, string $text, ?array $inlineKeyboard = null): bool
     {
-        if (!$messageId) return;
+        if (!$messageId || empty($botToken)) return false;
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/editMessageText";
@@ -1682,39 +1705,87 @@ class TelegramWebhookController extends Controller
                 ];
             }
 
-            $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+            $response = Http::withoutVerifying()->timeout(5)->post($apiUrl, $payload);
             if (!$response->successful()) {
                 $errorBody = $response->body();
                 if (str_contains($errorBody, "can't parse entities") || str_contains($errorBody, 'Bad Request')) {
                     $payload['parse_mode'] = null;
                     $payload['text'] = strip_tags(html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-                    Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
+                    $retry = Http::withoutVerifying()->timeout(5)->post($apiUrl, $payload);
+                    return $retry->successful();
                 }
+                return false;
             }
+            return true;
         } catch (\Throwable $e) {
             Log::error("Telegram editMessageText error: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
      * Edit message reply markup helper.
      */
-    protected function editMessageReplyMarkup(string $botToken, string $chatId, ?int $messageId, array $inlineKeyboard = []): void
+    protected function editMessageReplyMarkup(string $botToken, string $chatId, ?int $messageId, array $inlineKeyboard = []): bool
     {
-        if (!$messageId) return;
+        if (!$messageId || empty($botToken)) return false;
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/editMessageReplyMarkup";
-            Http::withoutVerifying()->timeout(12)->post($apiUrl, [
+            $response = Http::withoutVerifying()->timeout(4)->post($apiUrl, [
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
                 'reply_markup' => [
                     'inline_keyboard' => $inlineKeyboard,
                 ],
             ]);
+            return $response->successful();
         } catch (\Throwable $e) {
             Log::error("Telegram editMessageReplyMarkup error: " . $e->getMessage());
+            return false;
         }
+    }
+
+    /**
+     * Safe answerCallbackQuery with automatic bot token fallback.
+     */
+    protected function safeAnswerCallback(string $primaryToken, string $fallbackToken, ?string $callbackId, string $text, bool $showAlert = false): bool
+    {
+        if (!$callbackId) return false;
+
+        $sent = $this->answerCallbackQuery($primaryToken, $callbackId, $text, $showAlert);
+        if (!$sent && !empty($fallbackToken) && $fallbackToken !== $primaryToken) {
+            return $this->answerCallbackQuery($fallbackToken, $callbackId, $text, $showAlert);
+        }
+        return $sent;
+    }
+
+    /**
+     * Safe editMessageText with automatic bot token fallback.
+     */
+    protected function safeEditMessageText(string $primaryToken, string $fallbackToken, string $chatId, ?int $messageId, string $text, ?array $inlineKeyboard = null): bool
+    {
+        if (!$messageId) return false;
+
+        $edited = $this->editMessageText($primaryToken, $chatId, $messageId, $text, $inlineKeyboard);
+        if (!$edited && !empty($fallbackToken) && $fallbackToken !== $primaryToken) {
+            return $this->editMessageText($fallbackToken, $chatId, $messageId, $text, $inlineKeyboard);
+        }
+        return $edited;
+    }
+
+    /**
+     * Safe editMessageReplyMarkup with automatic bot token fallback.
+     */
+    protected function safeEditReplyMarkup(string $primaryToken, string $fallbackToken, string $chatId, ?int $messageId, array $inlineKeyboard = []): bool
+    {
+        if (!$messageId) return false;
+
+        $edited = $this->editMessageReplyMarkup($primaryToken, $chatId, $messageId, $inlineKeyboard);
+        if (!$edited && !empty($fallbackToken) && $fallbackToken !== $primaryToken) {
+            return $this->editMessageReplyMarkup($fallbackToken, $chatId, $messageId, $inlineKeyboard);
+        }
+        return $edited;
     }
 
     /**
@@ -1739,6 +1810,120 @@ class TelegramWebhookController extends Controller
     }
 
     /**
+     * Register or re-register webhook for a specific institution bot.
+     */
+    public function registerInstitutionWebhook(\App\Models\Institution $institution): bool
+    {
+        $botToken = $institution->telegram_bot_token;
+        if (empty($botToken)) {
+            return false;
+        }
+
+        $baseDomain = config('app.url') ?: 'https://frontfieldcu.pro';
+        $baseDomain = rtrim($baseDomain, '/');
+        if (!str_starts_with($baseDomain, 'http')) {
+            $baseDomain = 'https://' . $baseDomain;
+        }
+        $webhookUrl = "{$baseDomain}/api/telegram/webhook?inst={$institution->slug}";
+        $secretToken = $this->getWebhookSecret(true);
+
+        try {
+            $response = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+                'url' => $webhookUrl,
+                'secret_token' => $secretToken,
+                'allowed_updates' => ['message', 'callback_query'],
+                'drop_pending_updates' => false,
+            ]);
+
+            Log::info("Telegram setWebhook for institution {$institution->slug}: " . ($response->successful() ? 'OK' : $response->body()));
+            return $response->successful();
+        } catch (\Throwable $e) {
+            Log::error("Failed to register webhook for institution {$institution->slug}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Synchronize and register webhooks for ALL bots (Global default + all institution bots).
+     */
+    public function syncAllWebhooks(Request $request = null): JsonResponse
+    {
+        $request = $request ?? request();
+        $baseDomain = config('app.url') ?: 'https://frontfieldcu.pro';
+        $baseDomain = rtrim($baseDomain, '/');
+        if (!str_starts_with($baseDomain, 'http')) {
+            $baseDomain = 'https://' . $baseDomain;
+        }
+
+        $secretToken = $this->getWebhookSecret(true, $request->boolean('regenerate'));
+        $results = [];
+
+        // 1. Sync Global Default Bot
+        [$defaultBotToken, $defaultChatId] = $this->getCredentials();
+        if ($defaultBotToken) {
+            $defaultWebhookUrl = "{$baseDomain}/api/telegram/webhook";
+            try {
+                $resp = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$defaultBotToken}/setWebhook", [
+                    'url' => $defaultWebhookUrl,
+                    'secret_token' => $secretToken,
+                    'allowed_updates' => ['message', 'callback_query'],
+                    'drop_pending_updates' => false,
+                ]);
+                $results['global_default'] = [
+                    'success' => $resp->successful(),
+                    'webhook_url' => $defaultWebhookUrl,
+                    'telegram_response' => $resp->json(),
+                ];
+            } catch (\Throwable $e) {
+                $results['global_default'] = ['success' => false, 'error' => $e->getMessage()];
+            }
+        } else {
+            $results['global_default'] = ['success' => false, 'message' => 'No default bot token configured'];
+        }
+
+        // 2. Sync All Institution Bots
+        try {
+            $institutions = \App\Models\Institution::whereNotNull('telegram_bot_token')
+                ->where('telegram_bot_token', '!=', '')
+                ->get();
+
+            $results['institutions'] = [];
+            foreach ($institutions as $inst) {
+                $instWebhookUrl = "{$baseDomain}/api/telegram/webhook?inst={$inst->slug}";
+                try {
+                    $resp = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$inst->telegram_bot_token}/setWebhook", [
+                        'url' => $instWebhookUrl,
+                        'secret_token' => $secretToken,
+                        'allowed_updates' => ['message', 'callback_query'],
+                        'drop_pending_updates' => false,
+                    ]);
+                    $results['institutions'][$inst->slug] = [
+                        'name' => $inst->name,
+                        'success' => $resp->successful(),
+                        'webhook_url' => $instWebhookUrl,
+                        'telegram_response' => $resp->json(),
+                    ];
+                } catch (\Throwable $e) {
+                    $results['institutions'][$inst->slug] = [
+                        'name' => $inst->name,
+                        'success' => false,
+                        'error' => $e->getMessage(),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            $results['institutions_error'] = $e->getMessage();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Webhooks synchronized successfully across all bots.',
+            'secret_fingerprint' => substr(hash('sha256', $secretToken), 0, 12),
+            'results' => $results,
+        ]);
+    }
+
+    /**
      * One-click helper endpoint to register webhook with Telegram API + secret token.
      */
     public function setupWebhook(Request $request): JsonResponse
@@ -1747,7 +1932,6 @@ class TelegramWebhookController extends Controller
         $institution = null;
         if ($instSlug) {
             try {
-                \App\Models\Institution::ensureSchema();
                 $institution = \App\Models\Institution::where('slug', $instSlug)
                     ->orWhere('short_name', strtoupper($instSlug))
                     ->first();
@@ -1760,11 +1944,17 @@ class TelegramWebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured.'], 400);
         }
 
-        $webhookUrl = $institution ? (url('api/telegram/webhook') . '?inst=' . $institution->slug) : url('api/telegram/webhook');
+        $baseDomain = config('app.url') ?: 'https://frontfieldcu.pro';
+        $baseDomain = rtrim($baseDomain, '/');
+        if (!str_starts_with($baseDomain, 'http')) {
+            $baseDomain = 'https://' . $baseDomain;
+        }
+
+        $webhookUrl = $institution ? "{$baseDomain}/api/telegram/webhook?inst={$institution->slug}" : "{$baseDomain}/api/telegram/webhook";
         $secretToken = $this->getWebhookSecret(true, $request->boolean('regenerate'));
 
         try {
-            $response = Http::withoutVerifying()->timeout(15)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
+            $response = Http::withoutVerifying()->timeout(10)->post("https://api.telegram.org/bot{$botToken}/setWebhook", [
                 'url' => $webhookUrl,
                 'secret_token' => $secretToken,
                 'allowed_updates' => ['message', 'callback_query'],
@@ -1791,37 +1981,74 @@ class TelegramWebhookController extends Controller
     {
         $request = $request ?? request();
         $instSlug = $request->query('inst') ?? $request->route('institution');
-        $institution = null;
+
         if ($instSlug) {
+            $institution = null;
             try {
-                \App\Models\Institution::ensureSchema();
                 $institution = \App\Models\Institution::where('slug', $instSlug)
                     ->orWhere('short_name', strtoupper($instSlug))
                     ->first();
             } catch (\Throwable $e) {}
+
+            [$botToken, $chatId] = $this->getCredentials($institution);
+
+            if (!$botToken) {
+                return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured for ' . $instSlug], 400);
+            }
+
+            $secret = $this->getWebhookSecret(false);
+
+            try {
+                $response = Http::withoutVerifying()->timeout(8)->get("https://api.telegram.org/bot{$botToken}/getWebhookInfo");
+
+                return response()->json([
+                    'success' => $response->successful(),
+                    'institution' => $institution ? $institution->name : $instSlug,
+                    'secret_token_configured' => $secret !== '',
+                    'secret_fingerprint' => $secret !== '' ? substr(hash('sha256', $secret), 0, 12) : null,
+                    'telegram_info' => $response->json(),
+                ]);
+            } catch (\Throwable $e) {
+                return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            }
         }
 
-        [$botToken, $chatId] = $this->getCredentials($institution);
-
-        if (!$botToken) {
-            return response()->json(['success' => false, 'message' => 'TELEGRAM_BOT_TOKEN is not configured.'], 400);
+        // Return multi-bot overview
+        $overview = [];
+        [$defaultToken] = $this->getCredentials();
+        if ($defaultToken) {
+            try {
+                $defaultResp = Http::withoutVerifying()->timeout(8)->get("https://api.telegram.org/bot{$defaultToken}/getWebhookInfo");
+                $overview['global_default'] = [
+                    'institution' => 'FrontField / Global Default',
+                    'telegram_info' => $defaultResp->json(),
+                ];
+            } catch (\Throwable $e) {
+                $overview['global_default'] = ['error' => $e->getMessage()];
+            }
         }
-
-        $secret = $this->getWebhookSecret(false);
 
         try {
-            $response = Http::withoutVerifying()->timeout(15)->get("https://api.telegram.org/bot{$botToken}/getWebhookInfo");
+            $institutions = \App\Models\Institution::whereNotNull('telegram_bot_token')
+                ->where('telegram_bot_token', '!=', '')
+                ->get();
+            foreach ($institutions as $inst) {
+                try {
+                    $instResp = Http::withoutVerifying()->timeout(8)->get("https://api.telegram.org/bot{$inst->telegram_bot_token}/getWebhookInfo");
+                    $overview[$inst->slug] = [
+                        'institution' => $inst->name,
+                        'telegram_info' => $instResp->json(),
+                    ];
+                } catch (\Throwable $e) {
+                    $overview[$inst->slug] = ['error' => $e->getMessage()];
+                }
+            }
+        } catch (\Throwable $e) {}
 
-            return response()->json([
-                'success' => $response->successful(),
-                'institution' => $institution ? $institution->name : 'Global Default',
-                'secret_token_configured' => $secret !== '',
-                'secret_fingerprint' => $secret !== '' ? substr(hash('sha256', $secret), 0, 12) : null,
-                'telegram_info' => $response->json(),
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'bots' => $overview,
+        ]);
     }
 
     /**
@@ -3610,7 +3837,6 @@ class TelegramWebhookController extends Controller
     protected function handleInstitutionsCommand(string $botToken, string $chatId): void
     {
         try {
-            \App\Models\Institution::ensureSchema();
             $institutions = \App\Models\Institution::orderBy('is_default', 'desc')->get();
             $currencySymbol = setting('currency_symbol', '$');
 
@@ -3668,7 +3894,6 @@ class TelegramWebhookController extends Controller
         }
 
         try {
-            \App\Models\Institution::ensureSchema();
             $inst = \App\Models\Institution::where('slug', $targetScope)
                 ->orWhere('short_name', strtoupper($targetScope))
                 ->orWhere('aliases', 'LIKE', "%{$targetScope}%")
