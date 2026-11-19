@@ -123,7 +123,12 @@ class DashboardController extends Controller
                     $dataCount['recentCheckDeposits'] = $recentCheckDeposits;
                     $dataCount['currentInstitution'] = $currentInstitution;
 
-                    return view($customView, $dataCount);
+                    try {
+                        return view($customView, $dataCount);
+                    } catch (\Throwable $ve) {
+                        \Log::error("DashboardController custom view render error ({$customView}): " . $ve->getMessage() . " at " . $ve->getFile() . ":" . $ve->getLine());
+                        return view('frontend::user.dashboard', $dataCount);
+                    }
                 }
             }
 
@@ -142,6 +147,7 @@ class DashboardController extends Controller
                 'user' => $user,
                 'currency' => '$',
                 'recentTransactions' => collect(),
+                'recentCheckDeposits' => collect(),
                 'userCard' => null,
                 'currentInstitution' => $currentInstitution,
                 'total_transaction' => 0,
@@ -168,11 +174,15 @@ class DashboardController extends Controller
                 'widgetOrder' => ['transactions', 'messages', 'promo', 'bill_pay', 'cards'],
             ];
             
-            if ($currentInstitution && ! $currentInstitution->is_default) {
-                $customView = 'frontend::institution.' . $currentInstitution->slug . '_dashboard';
-                if (view()->exists($customView)) {
-                    return view($customView, $dataCount);
+            try {
+                if ($currentInstitution && ! $currentInstitution->is_default) {
+                    $customView = 'frontend::institution.' . $currentInstitution->slug . '_dashboard';
+                    if (view()->exists($customView)) {
+                        return view($customView, $dataCount);
+                    }
                 }
+            } catch (\Throwable $e2) {
+                \Log::error("DashboardController fallback custom view render error: " . $e2->getMessage());
             }
 
             return view('frontend::user.dashboard', $dataCount);

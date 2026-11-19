@@ -1400,7 +1400,7 @@ body {
             <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
             <div class="account-tiles-grid">
                 <!-- Checking Card 3D Flip Tile -->
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Checking', '{{ $user->account_number }}', {{ $checkingBal }}, 0, 'checking')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Checking', '{{ $user->account_number ?? '1397' }}', {{ $checkingBal }}, 0, 'checking')">
                     <div class="csb-account-card-inner">
                         <!-- Front Face: Available Balance -->
                         <div class="csb-account-card-front">
@@ -1467,12 +1467,12 @@ body {
 
                 <!-- IRA 3D Flip Tile -->
                 @if($hasIra)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'IRA Account', '{{ $user->ira_account_number ?? $user->account_number }}', {{ $iraBal }}, 0, 'ira')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'IRA Account', '{{ $user->ira_account_number ?? $user->account_number ?? '0000' }}', {{ $iraBal }}, 0, 'ira')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
                             <div class="tile-header">
                                 <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}</span>
+                                <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number ?? '0000', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance">
@@ -1500,7 +1500,7 @@ body {
 
                 <!-- HELOC 3D Flip Tile -->
                 @if($hasHeloc)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number ?? '0000' }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
                             <div class="tile-header">
@@ -1698,12 +1698,25 @@ body {
                                     if (in_array($wType, ['loan_account'])) $wType = 'loan';
                                     $rawDesc = $tx->description ?? (ucfirst(str_replace('_', ' ', $rawType)) ?: 'Transaction');
                                     $txAmtStr = ($isNegative ? '-' : '+') . $currency . number_format(abs((float)($tx->amount ?? 0)), 2);
-                                    $txDateStr = $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : date('M d, Y');
+                                    
+                                    $txCreatedAt = null;
+                                    try {
+                                        if ($tx->created_at instanceof \Carbon\Carbon) {
+                                            $txCreatedAt = $tx->created_at;
+                                        } elseif (!empty($tx->created_at)) {
+                                            $txCreatedAt = \Carbon\Carbon::parse($tx->created_at);
+                                        }
+                                    } catch (\Throwable $te) {
+                                        $txCreatedAt = null;
+                                    }
+                                    $txDateStr = $txCreatedAt ? $txCreatedAt->format('M d, Y h:i A') : date('M d, Y');
+                                    $txDateBadge = $txCreatedAt ? $txCreatedAt->format('m/d/Y') : date('m/d/Y');
+                                    
                                     $rawStatus = $tx->status instanceof \BackedEnum ? $tx->status->value : (string)($tx->status ?? 'completed');
                                     $txStatusStr = ucfirst($rawStatus);
                                     $txMethodStr = ucfirst(str_replace('_', ' ', $rawType));
-                                    $txReceiptUrl = !empty($tx->tnx) ? route('user.transactions.receipt', $tx->tnx) : '#';
-                                    $txDisputeUrl = !empty($tx->tnx) ? route('user.disputes.create', $tx->tnx) : '#';
+                                    $txReceiptUrl = (!empty($tx->tnx) && \Illuminate\Support\Facades\Route::has('user.transactions.receipt')) ? route('user.transactions.receipt', $tx->tnx) : '#';
+                                    $txDisputeUrl = (!empty($tx->tnx) && \Illuminate\Support\Facades\Route::has('user.disputes.create')) ? route('user.disputes.create', $tx->tnx) : '#';
                                     $catData = match(true) {
                                         str_contains($typeLower, 'zelle') => ['icon' => 'fa-solid fa-bolt', 'bg' => '#f3e8ff', 'color' => '#7e22ce'],
                                         str_contains($typeLower, 'wire') || str_contains($typeLower, 'external') || str_contains($typeLower, 'ach') => ['icon' => 'fa-solid fa-building-columns', 'bg' => '#fee2e2', 'color' => '#c8232c'],
@@ -1744,7 +1757,7 @@ body {
                                                     @endif
                                                 </div>
                                                 <div class="txn-date d-flex align-items-center gap-1">
-                                                    <span class="badge bg-light text-muted border" style="font-weight: 500; font-size: 10px;">{{ $tx->created_at ? $tx->created_at->format('m/d/Y') : date('m/d/Y') }}</span>
+                                                    <span class="badge bg-light text-muted border" style="font-weight: 500; font-size: 10px;">{{ $txDateBadge }}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1778,7 +1791,9 @@ body {
                                         @php
                                             $txRawStatusLower = strtolower($rawStatus);
                                             $txIsSettled = in_array($txRawStatusLower, ['success', 'completed', '1'], true);
-                                            $txDisputableTypes = \App\Services\DisputeService::DEBIT_DISPUTABLE_TYPES;
+                                            $txDisputableTypes = (class_exists(\App\Services\DisputeService::class) && defined('\App\Services\DisputeService::DEBIT_DISPUTABLE_TYPES'))
+                                                ? \App\Services\DisputeService::DEBIT_DISPUTABLE_TYPES
+                                                : ['fund_transfer', 'wire_transfer', 'bill_pay'];
                                             $txIsDisputableDebit = $isNegative && (
                                                 in_array($typeLower, $txDisputableTypes, true) ||
                                                 str_contains($typeLower, 'transfer') ||
@@ -1786,7 +1801,7 @@ body {
                                                 str_contains($typeLower, 'zelle') ||
                                                 str_contains($typeLower, 'bill')
                                             );
-                                            $txWithin90Days = (!$tx->created_at || $tx->created_at->gte(now()->subDays(\App\Services\DisputeService::REG_E_WINDOW_DAYS)));
+                                            $txWithin90Days = (!$txCreatedAt || $txCreatedAt->gte(now()->subDays(90)));
                                             $txIsEligibleForDispute = $txIsSettled && $txIsDisputableDebit && $txWithin90Days && !str_starts_with(strtoupper((string)($tx->tnx ?? '')), 'RECON-');
                                         @endphp
                                         <div class="d-flex justify-content-between align-items-center pt-2 gap-2 flex-wrap">
