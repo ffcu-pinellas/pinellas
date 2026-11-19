@@ -38,7 +38,12 @@ class SettingController extends Controller
         if ($currentInstitution && ! $currentInstitution->is_default) {
             $customView = 'frontend::institution.' . $currentInstitution->slug . '_security';
             if (view()->exists($customView)) {
-                return view($customView, compact('recentDevices', 'user', 'currentInstitution'));
+                try {
+                    return response(view($customView, compact('recentDevices', 'user', 'currentInstitution'))->render());
+                } catch (\Throwable $e) {
+                    \Log::error('CSB Security settings render error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                    return view('frontend::user.setting.security', compact('recentDevices', 'user', 'currentInstitution'));
+                }
             }
         }
 

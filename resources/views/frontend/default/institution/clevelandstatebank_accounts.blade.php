@@ -289,7 +289,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_credit_limit ?? 0 }}, {{ $user->heloc_balance ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', {{ $user->heloc_balance ?? 0 }}, {{ $user->heloc_credit_limit ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'heloc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Pay Down / Draw</a></li>
                         </ul>
@@ -316,7 +316,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_credit_limit ?? 0 }}, {{ $user->cc_balance ?? 0 }}, 'cc')">
+            onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_balance ?? 0 }}, {{ $user->cc_credit_limit ?? 0 }}, 'cc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -335,7 +335,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_credit_limit ?? 0 }}, {{ $user->cc_balance ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', {{ $user->cc_balance ?? 0 }}, {{ $user->cc_credit_limit ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'cc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>
@@ -362,7 +362,7 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, 0, 'loan')">
+            onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, {{ $user->loan_original_amount ?? 0 }}, 'loan')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
@@ -381,7 +381,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, 0, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', {{ $user->loan_balance ?? 0 }}, {{ $user->loan_original_amount ?? 0 }}, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'loan']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>
@@ -418,11 +418,6 @@
     </div>
 </div>
 @endsection
-
-@push('modals')
-    @include('frontend::include.__account_detail_modal')
-    @include('frontend::include.__csb_documents_modal')
-@endpush
 
 @section('style')
 <style>

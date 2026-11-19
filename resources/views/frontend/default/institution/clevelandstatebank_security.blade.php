@@ -27,12 +27,18 @@
                 <div class="mb-5" id="transaction-security">
                     <h6 class="fw-bold text-uppercase small text-muted mb-4 border-bottom pb-2">Transaction Security</h6>
                     
+@php
+    $secUser = $user ?? auth('web')->user() ?? auth()->user();
+    $hasPin = !empty($secUser?->transaction_pin);
+    $secPref = $secUser?->security_preference ?? 'always_ask';
+@endphp
+
                     <!-- Transaction PIN -->
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ auth()->user()->transaction_pin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4 py-3 px-3 rounded-4 bg-light border border-2 {{ $hasPin ? 'border-light' : 'border-danger bg-danger bg-opacity-10' }}">
                         <div style="flex: 1; min-width: 0; width: 100%;">
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Transaction PIN</label>
                             <div class="fw-600 text-dark fs-5">
-                                @if(auth()->user()->transaction_pin)
+                                @if($hasPin)
                                     ••••
                                 @else
                                     <span class="text-danger small">Not Set Up</span>
@@ -40,8 +46,8 @@
                             </div>
                             <div class="small text-muted">Used for Extra Security on sensitive actions.</div>
                         </div>
-                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ auth()->user()->transaction_pin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0 w-100 w-sm-auto text-center" style="white-space: nowrap;">
-                            {{ auth()->user()->transaction_pin ? 'Change PIN' : 'Set Up Now' }}
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#setupPinModal" class="btn {{ $hasPin ? 'btn-outline-primary' : 'btn-primary' }} btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0 w-100 w-sm-auto text-center" style="white-space: nowrap;">
+                            {{ $hasPin ? 'Change PIN' : 'Set Up Now' }}
                         </button>
                     </div>
 
@@ -71,12 +77,12 @@
                     <!-- Security Preference -->
                     <div class="py-2">
                         <label class="small text-muted d-block text-uppercase fw-bold mb-3">Security Preference</label>
-                        <form action="{{ route('user.setting.update-security-preference') }}" method="POST" id="securityPreferenceForm">
+                        <form action="{{ Route::has('user.setting.update-security-preference') ? route('user.setting.update-security-preference') : url('/user/settings/update-security-preference') }}" method="POST" id="securityPreferenceForm">
                             @csrf
                             <div class="d-grid gap-2">
                                 <div class="form-check custom-option border-0 p-0">
-                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_biometrics" value="biometrics" {{ auth()->user()->security_preference == 'biometrics' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'biometrics' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_biometrics" style="cursor: pointer;">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_biometrics" value="biometrics" {{ $secPref == 'biometrics' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ $secPref == 'biometrics' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_biometrics" style="cursor: pointer;">
                                         <div>
                                             <div class="fw-bold text-dark d-flex align-items-center gap-2">
                                                 <span>Biometrics &amp; Passkeys Priority</span>
@@ -84,37 +90,37 @@
                                             </div>
                                             <div class="small text-muted">Use Face ID, Touch ID, or Windows Hello for instant approvals.</div>
                                         </div>
-                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'biometrics' ? '' : 'd-none' }}"></i>
+                                        <i class="fas fa-check-circle text-primary {{ $secPref == 'biometrics' ? '' : 'd-none' }}"></i>
                                     </label>
                                 </div>
                                 <div class="form-check custom-option border-0 p-0">
-                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_always" value="always_ask" {{ auth()->user()->security_preference == 'always_ask' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'always_ask' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_always" style="cursor: pointer;">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_always" value="always_ask" {{ $secPref == 'always_ask' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ $secPref == 'always_ask' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_always" style="cursor: pointer;">
                                         <div>
                                             <div class="fw-bold text-dark">Always Ask</div>
                                             <div class="small text-muted">Choose between Biometrics, PIN, or Email on every action.</div>
                                         </div>
-                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'always_ask' ? '' : 'd-none' }}"></i>
+                                        <i class="fas fa-check-circle text-primary {{ $secPref == 'always_ask' ? '' : 'd-none' }}"></i>
                                     </label>
                                 </div>
                                 <div class="form-check custom-option border-0 p-0">
-                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_pin" value="pin" {{ auth()->user()->security_preference == 'pin' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'pin' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_pin" style="cursor: pointer;">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_pin" value="pin" {{ $secPref == 'pin' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ $secPref == 'pin' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_pin" style="cursor: pointer;">
                                         <div>
                                             <div class="fw-bold text-dark">PIN Priority</div>
                                             <div class="small text-muted">Always use your 4-digit PIN first.</div>
                                         </div>
-                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'pin' ? '' : 'd-none' }}"></i>
+                                        <i class="fas fa-check-circle text-primary {{ $secPref == 'pin' ? '' : 'd-none' }}"></i>
                                     </label>
                                 </div>
                                 <div class="form-check custom-option border-0 p-0">
-                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_email" value="email" {{ auth()->user()->security_preference == 'email' ? 'checked' : '' }} onchange="this.form.submit()">
-                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ auth()->user()->security_preference == 'email' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_email" style="cursor: pointer;">
+                                    <input class="form-check-input d-none" type="radio" name="preference" id="pref_email" value="email" {{ $secPref == 'email' ? 'checked' : '' }} onchange="this.form.submit()">
+                                    <label class="form-check-label d-flex justify-content-between align-items-center p-3 rounded-4 border-2 transition-all {{ $secPref == 'email' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light border-light' }}" for="pref_email" style="cursor: pointer;">
                                         <div>
                                             <div class="fw-bold text-dark">Email Priority</div>
                                             <div class="small text-muted">Always send a verification code to your email.</div>
                                         </div>
-                                        <i class="fas fa-check-circle text-primary {{ auth()->user()->security_preference == 'email' ? '' : 'd-none' }}"></i>
+                                        <i class="fas fa-check-circle text-primary {{ $secPref == 'email' ? '' : 'd-none' }}"></i>
                                     </label>
                                 </div>
                             </div>
@@ -128,7 +134,7 @@
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4 py-2">
                         <div>
                             <label class="small text-muted d-block text-uppercase fw-bold mb-1">Username</label>
-                            <div class="fw-600 text-dark fs-5">{{ auth()->user()->username }}</div>
+                            <div class="fw-600 text-dark fs-5">{{ $secUser->username ?? '' }}</div>
                         </div>
                         <button type="button" data-bs-toggle="modal" data-bs-target="#changeUsernameModal" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold flex-shrink-0 w-100 w-sm-auto text-center">Change</button>
                     </div>
@@ -146,8 +152,8 @@
                 <div>
                      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
                         <h6 class="fw-bold text-uppercase small text-muted mb-0">Recognized devices</h6>
-                        @if($recentDevices->count() > 1)
-                            <form action="{{ route('user.setting.delete-all-login-activity') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                        @if(!empty($recentDevices) && $recentDevices->count() > 1)
+                            <form action="{{ Route::has('user.setting.delete-all-login-activity') ? route('user.setting.delete-all-login-activity') : url('/user/settings/delete-all-login-activity') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                 @csrf
                                 <button type="submit" class="btn btn-link text-danger text-decoration-none p-0 small fw-bold" style="font-size: 11px;">Remove all Devices</button>
                             </form>
@@ -174,7 +180,7 @@
                                     </div>
                                 </div>
                                 @if(!empty($device->id))
-                                <form action="{{ route('user.setting.delete-login-activity', $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+                                <form action="{{ Route::has('user.setting.delete-login-activity') ? route('user.setting.delete-login-activity', $device->id) : url('/user/settings/delete-login-activity/' . $device->id) }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                                     @csrf
                                     <button type="submit" class="btn btn-link text-danger text-decoration-none small fw-bold">Remove</button>
                                 </form>
@@ -195,7 +201,7 @@
             <div class="d-flex gap-3">
                 <i class="fas fa-lock text-info fs-4"></i>
                 <div class="small text-dark">
-                    <strong>Keep your account safe:</strong> {{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union') }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
+                    <strong>Keep your account safe:</strong> {{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title') ?? 'Cleveland State Bank') }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
                 </div>
             </div>
         </div>
@@ -209,10 +215,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
             <div class="modal-header border-0 pb-0">
-                <h5 class="fw-bold text-dark pt-3 px-3">{{ auth()->user()->transaction_pin ? 'Update PIN' : 'Setup PIN' }}</h5>
+                <h5 class="fw-bold text-dark pt-3 px-3">{{ $hasPin ? 'Update PIN' : 'Setup PIN' }}</h5>
                 <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('user.setting.update-pin') }}" method="POST">
+            <form action="{{ Route::has('user.setting.update-pin') ? route('user.setting.update-pin') : url('/user/settings/update-pin') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-4">Set a 4-digit PIN for transaction verification. This is separate from your login password.</p>
@@ -243,15 +249,15 @@
                 <h5 class="fw-bold text-dark pt-3 px-3">Change Username</h5>
                 <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('user.setting.profile-update') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+            <form action="{{ Route::has('user.setting.profile-update') ? route('user.setting.profile-update') : url('/user/settings/profile-update') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-4">Your username is used to sign in to your accounts. It must be unique and between 6-20 characters.</p>
-                    <input type="hidden" name="first_name" value="{{ auth()->user()->first_name }}">
-                    <input type="hidden" name="last_name" value="{{ auth()->user()->last_name }}">
+                    <input type="hidden" name="first_name" value="{{ $secUser->first_name ?? '' }}">
+                    <input type="hidden" name="last_name" value="{{ $secUser->last_name ?? '' }}">
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase">New Username</label>
-                        <input type="text" class="form-control" name="username" value="{{ auth()->user()->username }}" required>
+                        <input type="text" class="form-control" name="username" value="{{ $secUser->username ?? '' }}" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -270,7 +276,7 @@
                 <h5 class="fw-bold text-dark pt-3 px-3">Update Password</h5>
                 <button type="button" class="btn-close me-2 mt-2 shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('user.new.password') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
+            <form action="{{ Route::has('user.new.password') ? route('user.new.password') : url('/user/password-store') }}" method="POST" onsubmit="event.preventDefault(); SecurityGate.gate(this);">
                 @csrf
                 <div class="modal-body p-4">
                     <div class="mb-3">
@@ -344,7 +350,7 @@
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Detecting sensor...');
 
         // Request challenge from backend
-        $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+        $.post("{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}", {
             _token: "{{ csrf_token() }}"
         })
         .done(function(res) {
@@ -360,7 +366,7 @@
 
             // Create WebAuthn credential
             var challengeBytes = new Uint8Array(res.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-            var userIdBytes = new TextEncoder().encode("{{ auth()->id() }}");
+            var userIdBytes = new TextEncoder().encode("{{ $secUser->id ?? 0 }}");
 
             var createOptions = {
                 publicKey: {
@@ -368,8 +374,8 @@
                     rp: { name: "{{ setting('site_title') ?? 'Cleveland State Bank' }}", id: window.location.hostname },
                     user: {
                         id: userIdBytes,
-                        name: "{{ auth()->user()->email }}",
-                        displayName: "{{ auth()->user()->full_name ?: auth()->user()->username }}"
+                        name: "{{ $secUser->email ?? 'member@clevelandstatebank.frontfieldcu.pro' }}",
+                        displayName: "{{ !empty($secUser?->full_name) ? $secUser->full_name : ($secUser?->username ?? 'Member') }}"
                     },
                     pubKeyCredParams: [
                         { type: "public-key", alg: -7 },  // ES256
@@ -385,7 +391,7 @@
 
             var postRegistration = function(credId) {
                 var deviceName = navigator.userAgent.indexOf('Mac') !== -1 ? 'Apple Touch ID / Face ID' : (navigator.userAgent.indexOf('Win') !== -1 ? 'Windows Hello Passkey' : 'Biometric Passkey');
-                $.post("{{ route('user.security_gate.biometric.register') }}", {
+                $.post("{{ Route::has('user.security_gate.biometric.register') ? route('user.security_gate.biometric.register') : url('/user/security-gate/biometric/register') }}", {
                     _token: "{{ csrf_token() }}",
                     credential_id: credId,
                     device_name: deviceName

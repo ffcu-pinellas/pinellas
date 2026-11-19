@@ -347,6 +347,7 @@ Object.assign(window.SecurityGate, {
         }
 
         const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') ||
+                             document.querySelector('#csbTransferForm') ||
                              document.querySelector('#transferForm') ||
                              document.querySelector('#csbFormMember') ||
                              document.querySelector('#csbFormExternal') ||

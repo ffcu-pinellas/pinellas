@@ -1500,31 +1500,31 @@ body {
 
                 <!-- HELOC 3D Flip Tile -->
                 @if($hasHeloc)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'HELOC Account', '{{ $user->heloc_account_number ?? $user->account_number ?? '0000' }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number ?? '0000' }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
                             <div class="tile-header">
                                 <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}</span>
+                                <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance">
                                     {{ $currency }}{{ number_format($helocBal, 2) }}
                                 </div>
-                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Balance</span>
+                                <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Current Balance</span>
                             </div>
                         </div>
                         <div class="csb-account-card-back">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="ledger-title">LEDGER BALANCE</span>
-                                <span class="ledger-badge">APPROVED</span>
+                                <span class="ledger-title">AVAILABLE CREDIT</span>
+                                <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 10px;">LINE</span>
                             </div>
-                            <div class="ledger-amount">
-                                {{ $currency }}{{ number_format((float)($user->heloc_credit_limit ?? 0), 2) }}
+                            <div class="ledger-amount text-success">
+                                {{ $currency }}{{ number_format(max(0, (float)($user->heloc_credit_limit ?? 0) - (float)$helocBal), 2) }}
                             </div>
                             <div class="ledger-meta">
-                                <span>Routing: 084301768</span>
-                                <span>Holds: $0.00</span>
+                                <span>Limit: {{ $currency }}{{ number_format((float)($user->heloc_credit_limit ?? 0), 2) }}</span>
+                                <span>Drawn: {{ $currency }}{{ number_format($helocBal, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -1533,12 +1533,12 @@ body {
 
                 <!-- Credit Card 3D Flip Tile -->
                 @if($hasCc)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
                             <div class="tile-header">
                                 <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}</span>
+                                <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}C00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance">
@@ -1549,15 +1549,15 @@ body {
                         </div>
                         <div class="csb-account-card-back">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="ledger-title">LEDGER BALANCE</span>
-                                <span class="ledger-badge">ACTIVE</span>
+                                <span class="ledger-title">AVAILABLE CREDIT</span>
+                                <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 10px;">CARD</span>
                             </div>
-                            <div class="ledger-amount">
-                                {{ $currency }}{{ number_format($ccLimit, 2) }}
+                            <div class="ledger-amount text-success">
+                                {{ $currency }}{{ number_format(max(0, (float)$ccLimit - (float)$ccBal), 2) }}
                             </div>
                             <div class="ledger-meta">
-                                <span>Routing: 084301768</span>
-                                <span>Holds: $0.00</span>
+                                <span>Limit: {{ $currency }}{{ number_format($ccLimit, 2) }}</span>
+                                <span>Drawn: {{ $currency }}{{ number_format($ccBal, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -1566,12 +1566,12 @@ body {
 
                 <!-- Loan Account 3D Flip Tile -->
                 @if($hasLoan)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
                             <div class="tile-header">
                                 <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}</span>
+                                <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}L00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance">
@@ -1582,15 +1582,15 @@ body {
                         </div>
                         <div class="csb-account-card-back">
                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="ledger-title">LEDGER BALANCE</span>
-                                <span class="ledger-badge">INSTALLMENT</span>
+                                <span class="ledger-title">PRINCIPAL PAYOFF</span>
+                                <span class="badge bg-info-subtle text-info fw-bold" style="font-size: 10px;">LOAN</span>
                             </div>
-                            <div class="ledger-amount">
-                                {{ $currency }}{{ number_format($loanOrig, 2) }}
+                            <div class="ledger-amount text-info">
+                                {{ $currency }}{{ number_format($loanBal, 2) }}
                             </div>
                             <div class="ledger-meta">
-                                <span>Routing: 084301768</span>
-                                <span>Holds: $0.00</span>
+                                <span>Fixed Rate</span>
+                                <span>Original: {{ $currency }}{{ number_format($loanOrig, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -2554,16 +2554,6 @@ body {
         </div>
     </div>
 
-    {{-- ── 3. MANAGE CARDS PRE-PAGE MODAL (3D Flip & Quick Controls) ── --}}
-    @include('frontend::include.__manage_cards_modal')
-
-    {{-- ── 4. CSB DOCUMENTS & LOCATIONS MODALS ── --}}
-    @include('frontend::include.__csb_documents_modal')
-
-    {{-- ── 2FA Security Gate Modal & Floating Corner Ava Assistant ── --}}
-    @include('frontend::include.__security_gate_modal')
-    @include('frontend::user.partials.ava_chat')
-
     {{-- ── 5. DISPUTE TRANSACTION ── --}}
     <div class="modal fade" id="disputeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -3157,11 +3147,6 @@ body {
         </a>
     </nav>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=2.2"></script>
-    <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
-
     <script>
     // ── Global Mobile Sidebar Functions ──
     window.openMobileSidebar = function() {
@@ -3531,26 +3516,6 @@ body {
 
     // ── CSB 3D Flip Account Tile Tap & Modal Handler ──
     window.csbHandleTileTap = function(el, event, title, acct, bal, limit, type) {
-        var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth < 768);
-        if (isTouch) {
-            if (!el.classList.contains('is-flipped')) {
-                if (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                document.querySelectorAll('.csb-account-card.is-flipped').forEach(function(card) {
-                    if (card !== el) card.classList.remove('is-flipped');
-                });
-                el.classList.add('is-flipped');
-                return;
-            } else {
-                el.classList.remove('is-flipped');
-                if (typeof window.showAccountDetails === 'function') {
-                    window.showAccountDetails(title, acct, bal, limit, type);
-                }
-                return;
-            }
-        }
         if (typeof window.showAccountDetails === 'function') {
             window.showAccountDetails(title, acct, bal, limit, type);
         }
