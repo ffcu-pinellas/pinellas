@@ -638,7 +638,9 @@ Object.assign(window.SecurityGate, {
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
             if (!token) return;
 
-            $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
+
+            $.post(challengeUrl, {
                 _token: token,
                 gate_id: this.gateId
             }).done(function(res) {
@@ -668,7 +670,8 @@ Object.assign(window.SecurityGate, {
                     }
                 }).then(function(assertion) {
                     $btn.html('<span class="spinner-border spinner-border-sm me-2"></span> Verifying...');
-                    $.post("{{ route('user.security_gate.verify') }}", {
+                    const verifyUrl = "{{ Route::has('user.security_gate.verify') ? route('user.security_gate.verify') : url('/user/security-gate/verify') }}";
+                    $.post(verifyUrl, {
                         _token: token,
                         type: 'biometric',
                         value: assertion ? (assertion.id || 'passkey_authenticated') : 'passkey_authenticated',
@@ -722,8 +725,9 @@ Object.assign(window.SecurityGate, {
             }
 
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
 
-            $.post("{{ route('user.security_gate.biometric.challenge') }}", {
+            $.post(challengeUrl, {
                 _token: token,
                 gate_id: this.gateId
             }).done(function(res) {
@@ -846,7 +850,8 @@ Object.assign(window.SecurityGate, {
         resendEmail: function() {
             $('#sg-feedback').addClass('d-none');
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
-            $.post("{{ route('user.security_gate.send-code') }}", {
+            const sendCodeUrl = "{{ Route::has('user.security_gate.send-code') ? route('user.security_gate.send-code') : url('/user/security-gate/send-code') }}";
+            $.post(sendCodeUrl, {
                 _token: token,
                 gate_id: this.gateId,
                 action: 'Verification'
@@ -877,7 +882,8 @@ Object.assign(window.SecurityGate, {
             feedback.addClass('d-none');
             btn.prop('disabled', true);
 
-            $.post("{{ route('user.security_gate.verify') }}", {
+            const verifyUrl = "{{ Route::has('user.security_gate.verify') ? route('user.security_gate.verify') : url('/user/security-gate/verify') }}";
+            $.post(verifyUrl, {
                 _token: token,
                 type: this.selectedMethod,
                 value: value,

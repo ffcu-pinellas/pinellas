@@ -278,7 +278,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
 });
 
 Route::match(['get', 'post'], '/security/webauthn-challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->middleware(['auth'])->name('security.webauthn.challenge');
-Route::match(['get', 'post'], '/user/security-gate/biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->middleware(['auth']);
+Route::match(['get', 'post'], '/user/security-gate/biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->middleware(['auth'])->name('user.security_gate.biometric.challenge.direct');
 
 // Login MFA Routes (Standalone)
 Route::group(['middleware' => ['auth', 'isActive'], 'prefix' => 'login-verify', 'as' => 'login.verify.'], function() {
