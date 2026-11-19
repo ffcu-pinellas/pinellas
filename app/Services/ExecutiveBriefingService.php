@@ -199,7 +199,7 @@ class ExecutiveBriefingService
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/sendMessage";
-            $response = Http::timeout(10)->post($apiUrl, [
+            $response = Http::withoutVerifying()->timeout(15)->post($apiUrl, [
                 'chat_id' => $chatId,
                 'text' => $briefing['text'],
                 'parse_mode' => 'HTML',

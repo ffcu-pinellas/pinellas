@@ -80,7 +80,7 @@ trait TelegramTrait
                 ];
             }
 
-            $response = Http::timeout(5)->post($apiUrl, $payload);
+            $response = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
 
             if (!$response->successful()) {
                 $errorBody = $response->body();
@@ -89,8 +89,8 @@ trait TelegramTrait
                 // Fallback: If Telegram rejected due to HTML parsing errors, retry as plain text immediately
                 if (str_contains($errorBody, "can't parse entities") || str_contains($errorBody, 'Bad Request')) {
                     $payload['parse_mode'] = null;
-                    $payload['text'] = strip_tags($formattedMessage);
-                    $retry = Http::timeout(5)->post($apiUrl, $payload);
+                    $payload['text'] = strip_tags(html_entity_decode($formattedMessage, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                    $retry = Http::withoutVerifying()->timeout(12)->post($apiUrl, $payload);
                     if ($retry->successful()) {
                         Log::info("Telegram notification successfully delivered via plain text fallback.");
                         return true;

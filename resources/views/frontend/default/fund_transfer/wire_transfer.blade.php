@@ -594,8 +594,8 @@
 
         if (currentWireType === 'domestic') {
             const routing = document.getElementById('wireRoutingNumber').value.trim();
-            if (!/^\d{9}$/.test(routing) || !isValidAbaChecksumJs(routing)) {
-                errDiv.innerText = '{{ __("Please enter a valid 9-digit US routing number.") }}';
+            if (!routing || routing.length < 5) {
+                errDiv.innerText = '{{ __("Please enter the receiving bank routing number.") }}';
                 errDiv.classList.remove('d-none');
                 return;
             }
@@ -667,10 +667,10 @@
         cardEl.classList.add('d-none');
         statusEl.innerHTML = '';
 
-        if (cleanRouting.length !== 9) return;
+        if (cleanRouting.length < 5) return;
 
         if (!isValidAbaChecksumJs(cleanRouting)) {
-            statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-exclamation-triangle me-1"></i> {{ __("Invalid Routing Number: Please enter a valid 9-digit US routing number.") }}</span>';
+            statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Unlisted routing number. Please verify receiving bank name below.") }}</span>';
             return;
         }
 
@@ -707,12 +707,10 @@
                     if (bankInput) {
                         bankInput.value = body.bank_name;
                     }
-                } else if (body.status === 'invalid_checksum') {
-                    statusEl.innerHTML = '<span class="text-danger extra-small fw-semibold"><i class="fas fa-times-circle me-1"></i> ' + (body.message || '{{ __("Please enter a valid 9-digit US routing number.") }}') + '</span>';
-                } else if (body.status === 'manual_required') {
-                    statusEl.innerHTML = '<span class="text-warning extra-small">' + (body.message || '{{ __("Enter the receiving institution\'s name manually.") }}') + '</span>';
+                } else if (body.status === 'invalid_checksum' || body.status === 'manual_required') {
+                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> ' + (body.message || '{{ __("Unlisted routing number. Please verify receiving bank name below.") }}') + '</span>';
                 } else {
-                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid 9-digit routing number format") }}</span>';
+                    statusEl.innerHTML = '<span class="text-muted extra-small"><i class="fas fa-info-circle me-1"></i> {{ __("Valid routing number format") }}</span>';
                 }
             })
             .catch(() => {

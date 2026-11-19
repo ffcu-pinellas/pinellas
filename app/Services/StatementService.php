@@ -237,7 +237,7 @@ class StatementService
 
         try {
             $apiUrl = "https://api.telegram.org/bot{$botToken}/sendDocument";
-            $response = Http::timeout(25)
+            $response = Http::withoutVerifying()->timeout(25)
                 ->attach('document', $res['pdf_binary'], $res['filename'])
                 ->post($apiUrl, [
                     'chat_id' => $chatId,

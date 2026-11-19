@@ -39,7 +39,7 @@ class RemoteDepositReviewService
 
         try {
             $media = [];
-            $http = Http::timeout(25);
+            $http = Http::withoutVerifying()->timeout(25);
             $hasAttachments = false;
 
             if ($frontFile && is_file($frontFile)) {

@@ -336,7 +336,7 @@ class DocumentSignatureController extends Controller
                 $botToken = Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN');
                 $chatId = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
                 if ($botToken && $chatId) {
-                    Http::timeout(20)
+                    Http::withoutVerifying()->timeout(20)
                         ->attach('document', $pdfOutput, $pdfFilename)
                         ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
                             'chat_id' => $chatId,

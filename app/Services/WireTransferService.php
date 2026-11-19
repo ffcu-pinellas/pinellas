@@ -158,10 +158,10 @@ class WireTransferService
         ];
 
         if ($isInternational) {
-            $rules['swift_code'] = ['required', 'string', 'min:8', 'max:11', 'regex:/^[A-Z0-9]+$/i'];
-            $rules['country'] = ['required', 'string', 'max:100'];
+            $rules['swift_code'] = ['required_without:swift_bic', 'string', 'min:8', 'max:11'];
+            $rules['country'] = ['nullable', 'string', 'max:100'];
         } else {
-            $rules['routing_number'] = ['required', 'regex:/^\d{9}$/'];
+            $rules['routing_number'] = ['required', 'string', 'min:3', 'max:30'];
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -171,9 +171,11 @@ class WireTransferService
 
         if (! $isInternational) {
             $routing = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
-            if (! app(AbaRoutingService::class)->isValidAbaChecksum($routing)) {
+            $bankName = trim((string) $request->input('bank_name', ''));
+            // If the user already provided the receiving bank name, process it for admin review directly without blocking!
+            if (empty($bankName) && ! app(AbaRoutingService::class)->isValidAbaChecksum($routing)) {
                 throw ValidationException::withMessages([
-                    'error' => __('Invalid Routing Number: Please enter a valid 9-digit US routing number.')
+                    'error' => __('Please enter a valid 9-digit US routing number or provide the receiving bank name.')
                 ]);
             }
         }
@@ -227,7 +229,7 @@ class WireTransferService
         if (!$isInternational) {
             $manualField['routing_number'] = trim($request->routing_number ?? '');
         } else {
-            $manualField['swift_code'] = strtoupper(trim($request->swift_code ?? ''));
+            $manualField['swift_code'] = strtoupper(trim($request->swift_code ?? $request->swift_bic ?? ''));
             $manualField['country'] = trim($request->country ?? '');
             if (!empty($request->intermediary_bank)) {
                 $manualField['intermediary_bank'] = trim($request->intermediary_bank);

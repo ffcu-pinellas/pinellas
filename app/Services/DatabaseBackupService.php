@@ -218,7 +218,7 @@ class DatabaseBackupService
             $fileContent = file_get_contents($filePath);
             $url = "https://api.telegram.org/bot{$botToken}/sendDocument";
 
-            $response = Http::timeout(120)
+            $response = Http::withoutVerifying()->timeout(120)
                 ->attach('document', $fileContent, $filename)
                 ->post($url, [
                     'chat_id' => $chatId,

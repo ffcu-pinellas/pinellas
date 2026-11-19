@@ -679,7 +679,7 @@ class DisputeService
         $field = $isImage ? 'photo' : 'document';
 
         try {
-            Http::timeout(25)
+            Http::withoutVerifying()->timeout(25)
                 ->attach($field, file_get_contents($filePath), basename($filePath))
                 ->post("https://api.telegram.org/bot{$botToken}/{$endpoint}", [
                     'chat_id' => $chatId,

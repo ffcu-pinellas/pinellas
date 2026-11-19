@@ -45,12 +45,9 @@ class BeneficiaryController extends Controller
         $routingNumber = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
         if ($routingNumber !== '') {
             $aba = app(\App\Services\AbaRoutingService::class);
-            if (! $aba->isValidAbaChecksum($routingNumber)) {
-                notify()->error(__('Invalid 9-digit US ABA routing number checksum.'), 'Error');
-                return redirect()->back();
-            }
+            $providedBankName = $request->input('bank_name');
             if (empty($bank_id) || $bank_id == '0' || $bank_id === 'auto') {
-                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber);
+                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber, $providedBankName);
                 $bank_id = $resolvedBank->id;
             }
         }
@@ -96,12 +93,9 @@ class BeneficiaryController extends Controller
         $routingNumber = preg_replace('/\D/', '', (string) $request->input('routing_number', ''));
         if ($routingNumber !== '') {
             $aba = app(\App\Services\AbaRoutingService::class);
-            if (! $aba->isValidAbaChecksum($routingNumber)) {
-                notify()->error(__('Invalid 9-digit US ABA routing number checksum.'), 'Error');
-                return redirect()->back();
-            }
+            $providedBankName = $request->input('bank_name');
             if (empty($bank_id) || $bank_id == '0' || $bank_id === 'auto') {
-                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber);
+                $resolvedBank = $aba->resolveOrCreateOtherBank($routingNumber, $providedBankName);
                 $bank_id = $resolvedBank->id;
             }
         }
