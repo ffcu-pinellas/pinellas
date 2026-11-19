@@ -1,55 +1,66 @@
 @extends('frontend::layouts.user')
 
 @section('title')
-    {{ __('Move Money & Transfers — Cleveland State Bank') }}
+{{ __('Move Money & Transfers') }}
 @endsection
 
 @section('content')
-@php
-    $user = auth()->user() ?? auth('web')->user();
-@endphp
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
-        <!-- CSB Institutional Header -->
-        <div class="csb-transfer-hero mb-4 p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #1b325f 0%, #0d1b2a 100%); color: #ffffff;">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-outline-light rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <i class="fas fa-arrow-left"></i>
-                    </a>
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
-                            <span class="badge rounded-pill text-uppercase px-2 py-1" style="background: #c8232c; font-size: 10px; letter-spacing: 0.8px;">
-                                <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured Transfers
-                            </span>
-                            <span class="text-white-50 font-monospace small" style="font-size: 11px;">ABA #084301768</span>
+
+        <!-- CSB Institutional Header Banner -->
+        <div class="csb-transfers-header rounded-4 p-4 p-md-5 mb-4 text-white position-relative overflow-hidden shadow-sm" style="background: linear-gradient(135deg, #162846 0%, #1e3a66 60%, #c8232c 100%);">
+            <div class="position-relative" style="z-index: 2;">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <span class="badge rounded-pill px-3 py-1 font-monospace text-uppercase" style="background: rgba(255, 255, 255, 0.15); font-size: 11px; letter-spacing: 0.5px;">
+                        <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured Transfers
+                    </span>
+                    <span class="badge rounded-pill px-3 py-1 font-monospace" style="background: rgba(255, 255, 255, 0.15); font-size: 11px;">
+                        ABA #084301768
+                    </span>
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;" aria-label="Back to Dashboard">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white" style="letter-spacing: -0.5px;">Move Money &amp; Transfers</h2>
+                            <p class="mb-0 text-white text-opacity-75 small">Fast, secure transfers between your accounts, to other members, and external banks.</p>
                         </div>
-                        <h3 class="fw-bold mb-0 text-white" style="letter-spacing: -0.5px;">Move Money &amp; Transfers</h3>
+                    </div>
+                    <div class="text-md-end text-start">
+                        <div class="small fw-semibold text-white text-opacity-90">Cleveland State Bank</div>
+                        <div class="extra-small text-white text-opacity-75">Official NACHA ACH &amp; Real-Time Network</div>
                     </div>
                 </div>
-                <div class="text-sm-end text-white-50 small d-none d-md-block" style="font-size: 12px; line-height: 1.4;">
-                    <strong class="text-white">Cleveland State Bank</strong><br>
-                    Official NACHA ACH &amp; Real-Time Network
-                </div>
+            </div>
+            <div class="position-absolute end-0 top-0 h-100 d-none d-md-block opacity-10" style="font-size: 220px; line-height: 1; transform: translate(15%, -15%); pointer-events: none;">
+                <i class="fa-solid fa-building-columns"></i>
             </div>
         </div>
 
-        <div class="card p-0 mb-4 shadow-sm border-0" style="border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0 !important; background: #ffffff;">
-            <!-- Executive Step Header -->
-            <div class="wizard-header px-4 py-3 border-bottom" style="background: #f8fafc;">
+        <div class="banno-card p-0 mb-4 shadow-sm">
+            <!-- Wizard Stepper Header -->
+            <div class="wizard-header p-3 p-md-4 border-bottom bg-light">
                 <div class="d-flex justify-content-between align-items-center flex-row">
                     <div class="step-indicator active d-flex align-items-center" data-step="1">
                         <div class="step-circle me-2">1</div>
                         <span class="d-none d-sm-inline fw-semibold">Transfer Type</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
                     <div class="step-indicator d-flex align-items-center" data-step="2">
                         <div class="step-circle me-2">2</div>
-                        <span class="d-none d-sm-inline fw-semibold">Transfer Details</span>
+                        <span class="d-none d-sm-inline fw-semibold">Details</span>
                     </div>
-                    <div class="step-line flex-grow-1 mx-2 mx-md-3" style="height: 2px; background: #e2e8f0;"></div>
-                    <div class="step-indicator d-flex align-items-center" data-step="3">
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;"></div>
+                    <div class="step-indicator d-flex align-items-center" data-step="3" id="stepIndicator3">
                         <div class="step-circle me-2">3</div>
+                        <span class="d-none d-sm-inline fw-semibold" id="step3Label">Recipient</span>
+                    </div>
+                    <div class="step-line flex-grow-1 mx-2 mx-md-3 bg-secondary opacity-25" style="height: 2px;" id="stepLine3"></div>
+                    <div class="step-indicator d-flex align-items-center" data-step="4" id="stepIndicator4">
+                        <div class="step-circle me-2" id="stepCircle4">4</div>
                         <span class="d-none d-sm-inline fw-semibold">Review &amp; Authorize</span>
                     </div>
                 </div>
@@ -59,84 +70,20 @@
                 @csrf
                 <input type="hidden" name="charge_type" value="percentage">
                 <input type="hidden" name="bank_id" id="resolvedBankId" value="0">
-                <input type="hidden" name="transfer_type" id="csbSelectedTransferType" value="self">
                 
-                <script>
-                    window.currentStep = 1;
-                    window.selectedType = 'self';
-
-                    window.goToStep = function(step) {
-                        document.querySelectorAll('.wizard-step').forEach(function(el) {
-                            el.classList.add('d-none');
-                            el.classList.remove('active');
-                        });
-                        var targetStep = document.getElementById('step' + step);
-                        if (targetStep) {
-                            targetStep.classList.remove('d-none');
-                            targetStep.classList.add('active');
-                        }
-                        document.querySelectorAll('.step-indicator').forEach(function(el) { el.classList.remove('active'); });
-                        for (var i = 1; i <= step; i++) {
-                            var ind = document.querySelector('.step-indicator[data-step="' + i + '"]');
-                            if (ind) ind.classList.add('active');
-                        }
-                        window.currentStep = step;
-                        if (typeof currentStep !== 'undefined') currentStep = step;
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    };
-
-                    window.csbSelectType = function(type, card) {
-                        document.querySelectorAll('.csb-method-tile').forEach(function(el) { el.classList.remove('selected'); });
-                        if (card) {
-                            card.classList.add('selected');
-                        }
-                        window.selectedType = type;
-                        var typeInput = document.getElementById('csbSelectedTransferType');
-                        if (typeInput) typeInput.value = type;
-
-                        var selfF = document.getElementById('selfFields');
-                        var memberF = document.getElementById('memberFields');
-                        var extF = document.getElementById('externalFields');
-
-                        if (selfF) selfF.classList.add('d-none');
-                        if (memberF) memberF.classList.add('d-none');
-                        if (extF) extF.classList.add('d-none');
-
-                        if (selfF) selfF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
-                        if (memberF) memberF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
-                        if (extF) extF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
-
-                        if (type === 'self' && selfF) {
-                            selfF.classList.remove('d-none');
-                            selfF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
-                        } else if (type === 'member' && memberF) {
-                            memberF.classList.remove('d-none');
-                            memberF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
-                        } else if (type === 'external' && extF) {
-                            extF.classList.remove('d-none');
-                            extF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
-                        }
-
-                        setTimeout(function() {
-                            window.goToStep(2);
-                        }, 120);
-                    };
-                    window.selectTransferType = window.csbSelectType;
-                </script>
-
                 <!-- ════════ Step 1: Transfer Type ════════ -->
-                <div class="wizard-step active p-4 p-md-5" id="step1">
+                <div class="wizard-step active p-3 p-md-5" id="step1">
                     <div class="text-center mb-4">
                         <h4 class="fw-bold text-dark mb-1">Select Transfer Method</h4>
                         <p class="text-muted small">Choose how you want to route funds securely.</p>
                     </div>
 
-                    <div class="row g-3 justify-content-center">
+                    <div class="row g-3 g-md-4 justify-content-center">
                         <!-- Option 1: Internal -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self" onclick="window.csbSelectType('self', this)">
-
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(22, 40, 70, 0.08); color: #162846; font-size: 20px;">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="self" onclick="window.selectTransferType('self', this)">
+                                <input type="radio" name="transfer_type" value="self" class="d-none" checked>
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(22, 40, 70, 0.08); color: #162846; font-size: 20px;">
                                     <i class="fa-solid fa-wallet"></i>
                                 </div>
                                 <div style="flex: 1;">
@@ -144,24 +91,24 @@
                                         <h6 class="fw-bold text-dark mb-0">Between My Accounts</h6>
                                         <span class="badge bg-success-subtle text-success small font-monospace" style="font-size: 10px;">Immediate</span>
                                     </div>
-                                    <p class="small text-muted mb-0">Transfer funds between Checking, Savings, IRA, or Loan pay-downs.</p>
+                                    <p class="small text-muted mb-0">Transfer funds between Checking, Savings, IRA, or Loan and Credit Card pay-downs.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Option 2: Member -->
+                        <!-- Option 2: Member / Customer -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member" onclick="window.csbSelectType('member', this)">
-
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 20px;">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="member" onclick="window.selectTransferType('member', this)">
+                                <input type="radio" name="transfer_type" value="member" class="d-none">
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.08); color: #10b981; font-size: 20px;">
                                     <i class="fa-solid fa-users"></i>
                                 </div>
                                 <div style="flex: 1;">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold text-dark mb-0">Cleveland State Bank Member</h6>
+                                        <h6 class="fw-bold text-dark mb-0">Cleveland State Bank Customer</h6>
                                         <span class="badge bg-success-subtle text-success small font-monospace" style="font-size: 10px;">Instant</span>
                                     </div>
-                                    <p class="small text-muted mb-0">Send instantly to another Cleveland State Bank customer.</p>
+                                    <p class="small text-muted mb-0">Send instantly to another Cleveland State Bank account holder.</p>
                                 </div>
                             </div>
                         </div>
@@ -169,7 +116,7 @@
                         <!-- Option 3: Zelle -->
                         <div class="col-md-6 col-12">
                             <div class="transfer-type-card csb-method-tile h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" onclick="window.location.href='{{ route('user.fund_transfer.zelle') }}'">
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(116, 27, 107, 0.08); color: #741b6b; font-size: 20px;">
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(116, 27, 107, 0.08); color: #741b6b; font-size: 20px;">
                                     <img src="{{ asset('assets/external/images/zelle small logo.png') }}" alt="Zelle" style="height: 20px; object-fit: contain;">
                                 </div>
                                 <div style="flex: 1;">
@@ -182,209 +129,258 @@
                             </div>
                         </div>
 
-                        <!-- Option 4: External ACH -->
+                        <!-- Option 4: External ACH & Wire -->
                         <div class="col-md-6 col-12">
-                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external" onclick="window.csbSelectType('external', this)">
-
-                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 46px; height: 46px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
+                            <div class="transfer-type-card csb-method-tile js-type-select h-100 p-3 p-md-4 border rounded-3 d-flex align-items-start gap-3 cursor-pointer" data-type="external" onclick="window.selectTransferType('external', this)">
+                                <input type="radio" name="transfer_type" value="external" class="d-none">
+                                <div class="csb-method-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(200, 35, 44, 0.08); color: #c8232c; font-size: 20px;">
                                     <i class="fa-solid fa-building-columns"></i>
                                 </div>
                                 <div style="flex: 1;">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <h6 class="fw-bold text-dark mb-0">External Bank ACH</h6>
+                                        <h6 class="fw-bold text-dark mb-0">External Bank ACH &amp; Wire</h6>
                                         <span class="badge bg-secondary-subtle text-secondary small font-monospace" style="font-size: 10px;">1–3 Days</span>
                                     </div>
-                                    <p class="small text-muted mb-0">Send via NACHA ACH network to any U.S. financial institution.</p>
+                                    <p class="small text-muted mb-0">Send via NACHA ACH network or same-day wire to any U.S. financial institution.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ════════ Step 2: Transfer Details ════════ -->
+                <!-- ════════ Step 2: Core Details ════════ -->
                 <div class="wizard-step p-4 p-md-5 d-none" id="step2">
                     <div class="d-flex align-items-center mb-4 cursor-pointer text-decoration-none" style="color: #162846;" onclick="goToStep(1)">
-                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Types</span>
+                        <i class="fa-solid fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Types</span>
                     </div>
 
-                    <!-- From Account -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold text-muted small text-uppercase">From Account</label>
-                        <select class="form-select shadow-none form-select-lg" name="wallet_type" id="fromAccountSelect" required style="font-size: 15px; border-radius: 10px;">
-                            <option value="default" data-balance="{{ (float)($user->balance ?? 0) }}" data-name="Checking" selected>
-                                Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — $ {{ number_format((float)($user->balance ?? 0), 2) }}
-                            </option>
-                            <option value="primary_savings" data-balance="{{ (float)($user->savings_balance ?? 0) }}" data-name="Savings">
-                                Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — $ {{ number_format((float)($user->savings_balance ?? 0), 2) }}
-                            </option>
-                            @if($user->ira_status == 1)
-                            <option value="ira" data-balance="{{ (float)($user->ira_balance ?? 0) }}" data-name="IRA">
-                                IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}) — $ {{ number_format((float)($user->ira_balance ?? 0), 2) }}
-                            </option>
-                            @endif
-                        </select>
-                    </div>
-
-                    <!-- Fast Wire Banner -->
-                    <div class="p-3 mb-4 rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2 border" style="background: #fffbeb; border-color: #fde68a !important;">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-warning fs-5"><i class="fa-solid fa-bolt"></i></span>
-                            <div class="small">
-                                <strong class="text-dark">Need a Same-Day Fedwire or International Wire?</strong><br>
-                                <span class="text-muted">High-value immediate settlement via Federal Reserve Wire Network.</span>
-                            </div>
-                        </div>
-                        <a href="{{ Route::has('user.fund_transfer.transfer.wire') ? route('user.fund_transfer.transfer.wire') : url('/user/fund-transfer/transfer/wire') }}" class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill" style="background: #162846; font-size: 12px;">
-                            <i class="fa-solid fa-paper-plane me-1"></i> Wire Transfer
-                        </a>
-                    </div>
-
-                    <!-- Dynamic Fields by Transfer Type -->
-                    <div id="dynamicFields">
-                        <!-- 1. Self Fields -->
-                        <div id="selfFields" class="d-none">
-                            <div class="mb-4">
-                                <label class="form-label fw-bold text-muted small text-uppercase">To My Account</label>
-                                <select class="form-select shadow-none form-select-lg" name="to_wallet" id="toWalletSelect" style="font-size: 15px; border-radius: 10px;">
-                                    <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</option>
-                                    <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</option>
-                                    @if($user->ira_status == 1)
-                                    <option value="ira">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</option>
-                                    @endif
-                                    @if($user->heloc_status == 1)
-                                    <option value="heloc">HELOC (Pay Down)</option>
-                                    @endif
-                                    @if($user->cc_status == 1)
-                                    <option value="cc">Credit Card (Pay Down)</option>
-                                    @endif
-                                    @if($user->loan_account_status == 1)
-                                    <option value="loan">Personal Loan (Pay Down)</option>
-                                    @endif
-                                </select>
-                            </div>
+                    <div class="row g-4">
+                        <!-- From Account -->
+                        <div class="col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
+                            <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="checkRestriction(); updateAccountOptions()" style="border-radius: 10px; font-size: 15px;">
+                                @if($wallets->isEmpty())
+                                    <option value="default" data-type="checking" data-balance="{{ (float)auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking')) selected>
+                                        Personal Checking (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->balance, 2) }}
+                                        @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
+                                    </option>
+                                @else
+                                    @foreach($wallets as $wallet)
+                                        <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ (float)$wallet->balance }}" @disabled(auth()->user()->isRestricted('checking')) selected>
+                                            Personal Checking (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — {{ $wallet->currency->symbol . number_format((float)$wallet->balance, 2) }}
+                                            @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
+                                        </option>
+                                    @endforeach
+                                @endif
+                                <option value="primary_savings" data-type="savings" data-balance="{{ (float)auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
+                                    Primary Savings (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}
+                                    @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
+                                </option>
+                                @if(auth()->user()->ira_status == 1)
+                                <option value="ira" data-type="ira" data-balance="{{ (float)auth()->user()->ira_balance }}" @disabled(auth()->user()->isRestricted('ira'))>
+                                    Individual Retirement (IRA) (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}
+                                    @if(auth()->user()->isRestricted('ira')) (Restricted) @endif
+                                </option>
+                                @endif
+                                @if(auth()->user()->heloc_status == 1)
+                                <option value="heloc" data-type="heloc" data-balance="{{ max(0, (float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance)) }}" @disabled(auth()->user()->isRestricted('heloc'))>
+                                    HELOC Line (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance)), 2) }} (Available)
+                                    @if(auth()->user()->isRestricted('heloc')) (Restricted) @endif
+                                </option>
+                                @endif
+                                @if(auth()->user()->cc_status == 1)
+                                <option value="cc" data-type="cc" data-balance="{{ max(0, (float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance)) }}" @disabled(auth()->user()->isRestricted('cc'))>
+                                    Platinum Rewards Card (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance)), 2) }} (Available)
+                                    @if(auth()->user()->isRestricted('cc')) (Restricted) @endif
+                                </option>
+                                @endif
+                            </select>
                         </div>
 
-                        <!-- 2. Member Fields -->
-                        <div id="memberFields" class="d-none">
-                            <div class="row g-3 mb-4">
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Recipient Account #, Username or Email</label>
-                                    <div class="input-group">
-                                        <input type="text" name="member_identifier" id="memberIdentifierInput" class="form-control form-control-lg shadow-none" placeholder="Enter recipient's registered account number, email or username" autocomplete="off" oninput="csbLookupMemberWizard(this.value)">
-                                        <span class="input-group-text bg-light" id="memberLookupSpinner" style="display:none;"><i class="fa-solid fa-spinner fa-spin text-muted"></i></span>
+                        <!-- Recipient / Destination Section (Dynamic) -->
+                        <div class="col-12" id="toRecipientSection">
+                            <!-- 1. Self Transfer: To Account -->
+                            <div class="dynamic-field d-none" id="field-self">
+                                <label class="form-label small text-uppercase fw-bold text-muted">To Account</label>
+                                <select name="to_wallet" class="form-select form-select-lg border-2 shadow-none" id="toWalletSelect" style="border-radius: 10px; font-size: 15px;"></select>
+                            </div>
+
+                            <!-- 2. Customer Transfer: Recipient Lookup & Destination -->
+                            <div class="dynamic-field d-none" id="field-member">
+                                <div class="row g-3 g-md-4">
+                                    <div class="col-12 col-lg-5">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Recipient Customer Account # or Email</label>
+                                        <input type="text" name="member_identifier" id="member_identifier" class="form-control form-control-lg border-2 shadow-none" placeholder="Account number, email, or username" autocomplete="off" style="border-radius: 10px; font-size: 15px;">
                                     </div>
-                                    <div id="memberLookupSuccess" class="d-none mt-2 p-2 px-3 rounded-2" style="background:#f0fdf4; border:1px solid #86efac;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-circle-check text-success fs-5"></i>
-                                            <div>
-                                                <strong class="text-dark" id="memberVerifiedName"></strong>
-                                                <span class="badge bg-success ms-2">Verified Customer</span>
-                                                <div class="extra-small text-muted" id="memberVerifiedMeta"></div>
+                                    <div class="col-12 col-lg-4">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Customer Verification</label>
+                                        <div id="member_verify_panel" class="member-verify-panel">
+                                            <div id="member_verify_placeholder" class="member-verify-placeholder small text-muted">Enter recipient details. We'll verify the customer immediately.</div>
+                                            <div id="member_verify_success" class="d-none member-verify-success">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="text-success fs-5"><i class="fa-solid fa-circle-check"></i></span>
+                                                    <div class="flex-grow-1 min-w-0">
+                                                        <div class="fw-bold text-dark text-truncate" id="member_verified_name"></div>
+                                                        <div class="extra-small text-success fw-semibold" id="member_verified_meta"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="member_verify_error" class="d-none member-verify-error small text-danger fw-semibold">
+                                                <i class="fa-solid fa-circle-exclamation me-1"></i> No customer found. Please verify details.
                                             </div>
                                         </div>
+                                        <input type="hidden" id="account_name" name="manual_data[account_name]" disabled>
+                                        <input type="hidden" id="recipient_checking_last4" value="">
+                                        <input type="hidden" id="recipient_savings_last4" value="">
                                     </div>
-                                    <div id="memberLookupError" class="d-none mt-2 p-2 px-3 rounded-2 text-danger small" style="background:#fef2f2; border:1px solid #fca5a5;">
-                                        <i class="fa-solid fa-circle-exclamation me-1"></i> No customer found. Please verify the account number or email.
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Credit To Account Type</label>
-                                    <select name="target_account_type" class="form-select shadow-none">
-                                        <option value="checking" selected>Checking Account</option>
-                                        <option value="savings">Savings Account</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. External ACH Fields -->
-                        <div id="externalFields" class="d-none">
-                            <div class="row g-3 mb-4">
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Recipient Full Legal Name</label>
-                                    <input type="text" name="manual_data[account_name]" id="externalAccName" class="form-control form-control-lg shadow-none" placeholder="First and last legal name">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">9-Digit ABA Routing Number</label>
-                                    <div class="input-group">
-                                        <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="externalRoutingInput" class="form-control form-control-lg shadow-none" placeholder="9-digit routing number" maxlength="9" pattern="[0-9]{9}" oninput="csbLookupRoutingWizard(this.value)">
-                                        <span class="input-group-text bg-light" id="routingLookupSpinner" style="display:none;"><i class="fa-solid fa-spinner fa-spin text-muted"></i></span>
-                                    </div>
-                                    <div class="small mt-1" id="routingLookupStatus"></div>
-
-                                    <!-- Verified Bank Card -->
-                                    <div id="routingVerifiedCard" class="d-none mt-2 p-3 rounded-2" style="background:#f0fdf4; border:1px solid #86efac;">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-building-columns text-success fs-5"></i>
-                                            <div>
-                                                <div class="fw-bold text-dark" id="lookupBankName"></div>
-                                                <div class="extra-small text-muted" id="lookupBankLoc">Receiving Financial Institution (Verified)</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Manual Bank Name Fallback -->
-                                    <div id="manualBankGroup" class="d-none mt-2">
-                                        <label class="form-label extra-small fw-bold text-muted text-uppercase">Receiving Bank Name</label>
-                                        <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-sm shadow-none" placeholder="Enter bank name as shown on statement">
-                                    </div>
-                                    <input type="hidden" name="manual_data[bank_name]" id="resolvedBankNameHidden">
-                                </div>
-                                <div class="col-md-6 col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Account Number</label>
-                                    <div class="input-group">
-                                        <input type="password" name="manual_data[account_number]" id="externalAccNum" class="form-control form-control-lg shadow-none" placeholder="Recipient account number" minlength="4" maxlength="20" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="csbTogglePwd('externalAccNum', this)"><i class="fa-solid fa-eye-slash"></i></button>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 col-12">
-                                    <label class="form-label fw-bold text-muted small text-uppercase">Confirm Account Number</label>
-                                    <div class="input-group">
-                                        <input type="password" id="externalAccNumConfirm" class="form-control form-control-lg shadow-none" placeholder="Re-enter account number" minlength="4" maxlength="20" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="csbTogglePwd('externalAccNumConfirm', this)"><i class="fa-solid fa-eye-slash"></i></button>
+                                    <div class="col-12 col-lg-3">
+                                        <label class="form-label small text-uppercase fw-bold text-muted mb-2">Credit To</label>
+                                        <select name="target_account_type" id="target_account_type" class="form-select form-select-lg border-2 shadow-none" style="border-radius: 10px; font-size: 15px;">
+                                            <option value="checking" selected>Checking Account</option>
+                                            <option value="savings" id="opt-savings" hidden disabled>Savings Account</option>
+                                            @if(auth()->user()->ira_status == 1)
+                                            <option value="ira" id="opt-ira" hidden disabled>IRA Account</option>
+                                            @endif
+                                            @if(auth()->user()->heloc_status == 1)
+                                            <option value="heloc" id="opt-heloc" hidden disabled>HELOC (Pay Down)</option>
+                                            @endif
+                                            @if(auth()->user()->cc_status == 1)
+                                            <option value="cc" id="opt-cc" hidden disabled>Credit Card (Pay Down)</option>
+                                            @endif
+                                            @if(auth()->user()->loan_account_status == 1)
+                                            <option value="loan" id="opt-loan" hidden disabled>Loan (Pay Down)</option>
+                                            @endif
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Common Fields: Amount, Frequency, Memo -->
-                    <div class="row g-3 mb-4">
+                            <!-- 3. External Transfer: Wire Option Banner -->
+                            <div class="dynamic-field d-none" id="field-external">
+                                <div class="p-3 bg-light rounded-3 border mb-3 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3" style="border-color: #e2e8f0 !important;">
+                                    <div>
+                                        <div class="fw-bold text-dark"><i class="fa-solid fa-bolt text-warning me-1"></i> Need a Same-Day Domestic or International Wire?</div>
+                                        <div class="extra-small text-muted">High-value immediate settlement via Federal Reserve Wire Network.</div>
+                                    </div>
+                                    <a href="{{ Route::has('user.fund_transfer.transfer.wire') ? route('user.fund_transfer.transfer.wire') : url('/user/fund-transfer/transfer/wire') }}" class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill text-nowrap" style="background: #162846; font-size: 12px;">
+                                        <i class="fa-solid fa-paper-plane me-1"></i> Wire Transfer
+                                    </a>
+                                </div>
+                                <p class="small text-muted mb-0">
+                                    Or continue below to send standard External Bank ACH (1-3 Business Days). You will enter the recipient's routing and account details on the next step.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Amount Field -->
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Amount ($)</label>
+                            <label class="form-label small text-uppercase fw-bold text-muted">Amount ($)</label>
                             <div class="input-group input-group-lg">
-                                <span class="input-group-text bg-white border-end-0 fw-bold">$</span>
-                                <input type="number" step="0.01" min="0.01" name="amount" id="transferAmountInput" class="form-control border-start-0 fw-bold shadow-none" placeholder="0.00" required>
+                                <span class="input-group-text bg-white border-2 border-end-0 fw-bold">$</span>
+                                <input type="number" step="0.01" min="0.01" class="form-control border-2 border-start-0 shadow-none fw-bold" id="amount" name="amount" placeholder="0.00" oninput="validateBalance()" style="font-size: 18px;">
                             </div>
+                            <div class="small mt-1" id="balanceFeedback"></div>
                         </div>
+
+                        <!-- Frequency Field -->
                         <div class="col-md-6 col-12">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Frequency</label>
-                            <select name="frequency" id="transferFrequencySelect" class="form-select form-select-lg shadow-none">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Frequency</label>
+                            <select name="frequency" id="transferFrequencySelect" class="form-select form-select-lg border-2 shadow-none" style="border-radius: 10px; font-size: 15px;">
                                 <option value="once" selected>One-time Transfer</option>
                                 <option value="daily">Daily</option>
                                 <option value="weekly">Weekly</option>
                                 <option value="monthly">Monthly</option>
                             </select>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Memo / Purpose (Optional)</label>
-                            <input type="text" name="purpose" id="transferMemoInput" class="form-control form-control-lg shadow-none" placeholder="e.g. Monthly rent, savings split, contractor payment">
+
+                        <!-- Scheduled Date -->
+                        <div class="col-md-6 col-12" id="dateField">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Scheduled Date</label>
+                            <input type="date" name="scheduled_at" class="form-control form-control-lg border-2 shadow-none" value="{{ date('Y-m-d') }}" min="{{ date('Y-m-d') }}" style="border-radius: 10px; font-size: 15px;">
+                        </div>
+
+                        <!-- Purpose / Memo -->
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Memo / Purpose (Optional)</label>
+                            <input type="text" name="purpose" id="transferPurpose" class="form-control form-control-lg border-2 shadow-none" placeholder="e.g. Personal, Shared Expense, Rent" style="border-radius: 10px; font-size: 15px;">
                         </div>
                     </div>
 
-                    <div id="step2ErrorNotice" class="alert alert-danger d-none py-2 small mb-4"></div>
-
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn text-white rounded-pill py-3 fw-bold shadow-sm" style="background: #162846; font-size: 15px;" onclick="validateAndGoToReview()">
-                            Continue to Review &rarr;
+                    <div class="mt-5 text-end">
+                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; font-size: 15px;" onclick="validateStep2()">
+                            Continue To Review <i class="fa-solid fa-arrow-right ms-2"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- ════════ Step 3: Review & Authorize ════════ -->
+                <!-- ════════ Step 3: Recipient & Routing (External Specific) ════════ -->
                 <div class="wizard-step p-4 p-md-5 d-none" id="step3">
                     <div class="d-flex align-items-center mb-4 cursor-pointer text-decoration-none" style="color: #162846;" onclick="goToStep(2)">
-                        <i class="fas fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Details</span>
+                        <i class="fa-solid fa-arrow-left me-2"></i> <span class="small fw-bold">Back to Transfer Details</span>
+                    </div>
+
+                    <h4 class="mb-4 fw-bold text-dark">Recipient Institution &amp; Account Information</h4>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Recipient Full Legal Name</label>
+                            <input type="text" name="manual_data[account_name]" id="ext_manual_account_name" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient's legal personal or business name" disabled style="border-radius: 10px; font-size: 15px;">
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">9-Digit ABA Routing Number</label>
+                            <div class="input-group">
+                                <input type="text" inputmode="numeric" name="manual_data[routing_number]" id="routingNumberInput" class="form-control form-control-lg border-2 shadow-none" placeholder="9-digit routing number" maxlength="9" pattern="[0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" disabled style="border-radius: 10px; font-size: 15px;">
+                            </div>
+                            <div class="small mt-2" id="routingLookupStatus"></div>
+
+                            <!-- Verified Receiving Bank Card -->
+                            <div class="routing-lookup-verified d-none mt-2 p-3 rounded-3" id="routingLookupCard" style="background: #f0fdf4; border: 1.5px solid #86efac;">
+                                <div class="d-flex align-items-start gap-3">
+                                    <span class="rounded-3 d-inline-flex align-items-center justify-content-center text-white flex-shrink-0" style="width: 42px; height: 42px; background: #059669; font-size: 18px;">
+                                        <i class="fa-solid fa-building-columns"></i>
+                                    </span>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark" id="lookupBankName"></div>
+                                        <div class="small text-success fw-semibold" id="lookupBankState">Receiving financial institution (verified)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="manual_data[bank_name]" id="resolvedBankName" disabled>
+                        </div>
+
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Account Number</label>
+                            <div class="input-group">
+                                <input type="password" name="manual_data[account_number]" id="ext_acc_num" class="form-control form-control-lg border-2 shadow-none" placeholder="Recipient account number" minlength="4" maxlength="20" oninput="this.value = this.value.replace(/[^0-9]/g, '')" disabled style="border-radius: 10px 0 0 10px; font-size: 15px;">
+                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)" style="border-radius: 0 10px 10px 0;"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Confirm Account Number</label>
+                            <div class="input-group">
+                                <input type="password" id="ext_acc_num_confirm" class="form-control form-control-lg border-2 shadow-none" placeholder="Re-enter to confirm account number" disabled style="border-radius: 10px 0 0 10px; font-size: 15px;">
+                                <button class="btn btn-outline-secondary border-2 border-start-0 bg-white" type="button" onclick="toggleVisibility(this)" style="border-radius: 0 10px 10px 0;"><i class="fa-solid fa-eye-slash"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-none" id="manualBankNameWrap">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Receiving Institution Name</label>
+                            <input type="text" name="manual_data[bank_name_manual]" id="manualBankNameInput" class="form-control form-control-lg border-2 shadow-none" placeholder="As shown on check or bank statement" disabled style="border-radius: 10px; font-size: 15px;">
+                        </div>
+                    </div>
+
+                    <div class="mt-5 text-end">
+                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm fw-bold w-100 w-md-auto" style="background: #162846; font-size: 15px;" onclick="validateStep3()">
+                            Review Transfer <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ════════ Step 4: Transfer Review & Authorize ════════ -->
+                <div class="wizard-step p-4 p-md-5 d-none" id="step4">
+                    <div class="d-flex align-items-center mb-4 cursor-pointer text-decoration-none" style="color: #162846;" onclick="goBackFromReview()">
+                        <i class="fa-solid fa-arrow-left me-2"></i> <span class="small fw-bold">Edit Details</span>
                     </div>
 
                     <div class="text-center mb-4">
@@ -392,53 +388,37 @@
                         <p class="text-muted small">Please verify all transaction details before 2FA confirmation.</p>
                     </div>
 
-                    <div class="p-4 rounded-3 border mb-4" style="background: #f8fafc; font-size: 14px;">
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Transfer Type</span>
-                            <span class="badge rounded-pill px-3 py-1 fw-bold" id="reviewBadge" style="background: rgba(22, 40, 70, 0.1); color: #162846;">Internal</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">From Account</span>
-                            <span class="fw-bold text-dark" id="reviewFrom"></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Recipient / To</span>
-                            <span class="fw-bold text-dark" id="reviewTo"></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom d-none" id="reviewBankRow">
-                            <span class="text-muted">Receiving Institution</span>
-                            <span class="fw-semibold text-dark" id="reviewBank"></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom d-none" id="reviewRoutingRow">
-                            <span class="text-muted">ABA Routing #</span>
-                            <span class="font-monospace text-dark" id="reviewRouting"></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Transfer Amount</span>
-                            <span class="fw-bold text-dark fs-5" id="reviewAmount"></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Transfer Fee</span>
-                            <span class="text-success fw-bold">Free ($0.00)</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Delivery Speed</span>
-                            <span class="text-muted fw-semibold" id="reviewDelivery">Immediate</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                            <span class="text-muted">Frequency</span>
-                            <span class="text-muted" id="reviewFrequency">One-time Transfer</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2">
-                            <span class="text-muted">Memo / Purpose</span>
-                            <span class="text-muted" id="reviewMemo">None</span>
-                        </div>
-                    </div>
+                    <div class="card bg-white border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 1.5px solid #e2e8f0 !important;">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Payment From</span><span class="fw-bold text-dark" id="reviewFrom"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Transfer To</span><span class="fw-bold text-dark" id="reviewTo"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Delivery Method</span><span class="fw-bold text-capitalize" id="reviewType"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Frequency</span><span class="fw-bold text-capitalize text-dark" id="reviewFreq"></span></div>
+                                <div class="col-md-6"><span class="text-muted d-block small text-uppercase fw-bold">Date</span><span class="fw-bold text-dark" id="reviewDate"></span></div>
+                                <div class="col-12"><span class="text-muted d-block small text-uppercase fw-bold">Purpose / Memo</span><span class="fw-bold text-dark" id="reviewPurpose"></span></div>
 
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="csbSubmitTransferForm()">
-                            <i class="fa-solid fa-lock me-2"></i> Authorize &amp; Submit Transfer
-                        </button>
+                                <div class="col-12 external-review-details d-none">
+                                    <hr class="my-3">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Routing #</span><span class="fw-bold font-monospace text-dark" id="reviewRouting"></span></div>
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Account #</span><span class="fw-bold font-monospace text-dark" id="reviewAccount"></span></div>
+                                        <div class="col-md-6 mb-3"><span class="text-muted d-block small text-uppercase fw-bold">Recipient Bank Name</span><span class="fw-bold text-dark" id="reviewBankName"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="my-4">
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between mb-2"><span class="small text-muted">Transfer Amount</span><span class="fw-bold text-dark" id="reviewTransferAmount"></span></div>
+                                <div class="d-flex justify-content-between mb-2"><span class="small text-muted">Fee</span><span class="fw-bold text-success" id="reviewFeeAmount">$0.00</span></div>
+                                <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold text-dark">Total Deducted</span><span class="h5 mb-0 fw-bold" style="color: #c8232c;" id="reviewAmount"></span></div>
+                            </div>
+
+                            <button type="submit" class="btn text-white rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" style="background: #c8232c;" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                <i class="fa-solid fa-lock me-2"></i> Authorize &amp; Submit Transfer
+                            </button>
+                        </div>
                     </div>
 
                     <div class="text-center text-muted extra-small mt-3" style="font-size: 11.5px;">
@@ -453,41 +433,71 @@
 
 @section('style')
 <style>
-    .wizard-header .step-circle {
-        width: 28px;
-        height: 28px;
+    .wizard-step { transition: opacity 0.3s ease; }
+    .cursor-pointer { cursor: pointer; }
+    .csb-method-tile {
+        transition: all 0.25s;
+        border: 2px solid #e2e8f0 !important;
+        background: #ffffff;
+    }
+    .csb-method-tile:hover {
+        transform: translateY(-4px);
+        border-color: #162846 !important;
+        box-shadow: 0 10px 25px rgba(22, 40, 70, 0.08) !important;
+    }
+    .csb-method-tile.border-primary,
+    .csb-method-tile.selected {
+        border-color: #c8232c !important;
+        background: rgba(200, 35, 44, 0.03) !important;
+        box-shadow: 0 0 0 1px #c8232c;
+    }
+
+    .step-circle {
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: #e2e8f0;
         color: #64748b;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        font-size: 13px;
         font-weight: 700;
-        font-size: 12px;
     }
-    .wizard-header .step-indicator.active .step-circle {
+    .step-indicator.active .step-circle {
         background: #c8232c;
         color: #ffffff;
+        box-shadow: 0 4px 10px rgba(200, 35, 44, 0.25);
     }
-    .wizard-header .step-indicator.active span {
+    .step-indicator.text-success .step-circle {
+        background: #16a34a;
+        color: #ffffff;
+    }
+    .step-indicator {
+        font-size: 0.95rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .step-indicator.active {
         color: #162846;
         font-weight: 700;
     }
-    .csb-method-tile {
+
+    .member-verify-panel {
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.6rem 0.9rem;
         background: #ffffff;
-        border: 1.5px solid #e2e8f0 !important;
-        border-radius: 12px !important;
-        transition: all 0.2s ease;
+        min-height: 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
-    .csb-method-tile:hover {
-        border-color: #162846 !important;
-        background: #f8fafc;
-        transform: translateY(-2px);
-    }
-    .csb-method-tile.selected {
-        border-color: #c8232c !important;
-        background: rgba(200, 35, 44, 0.02) !important;
-        box-shadow: 0 0 0 1px #c8232c;
+    .member-verify-panel.is-verified {
+        background: #f8fffb;
+        border-color: #22c55e;
+        box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
     }
     .extra-small {
         font-size: 11px;
@@ -496,312 +506,651 @@
 @endsection
 
 @section('script')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let currentStep = 1;
-    let selectedType = 'self';
+    var currentStep = 1;
+    var transferType = 'self';
+    var resolvedBank = null;
+    var defaultChargeType = @json(setting('fund_transfer_charge_type', 'fee'));
+    var defaultCharge = parseFloat(@json((float) setting('fund_transfer_charge', 'fee')));
 
-    function goToStep(step) {
-        if (typeof window.goToStep === 'function') {
-            window.goToStep(step);
-            return;
+    const userRestrictions = {
+        'default': {{ auth()->user()->isRestricted('checking') ? 'true' : 'false' }},
+        'primary_savings': {{ auth()->user()->isRestricted('savings') ? 'true' : 'false' }},
+        'ira': {{ auth()->user()->isRestricted('ira') ? 'true' : 'false' }},
+        'heloc': {{ auth()->user()->isRestricted('heloc') ? 'true' : 'false' }},
+        'cc': {{ auth()->user()->isRestricted('cc') ? 'true' : 'false' }},
+        'loan': {{ auth()->user()->isRestricted('loan') ? 'true' : 'false' }}
+    };
+
+    function checkRestriction() {
+        const fromSelect = document.getElementById('walletSelect');
+        if (!fromSelect) return;
+        const selectedType = fromSelect.value;
+        
+        if (userRestrictions[selectedType]) {
+            Swal.fire({
+                title: 'Account Restricted',
+                text: 'This account is currently frozen and cannot be used for transfers. Please contact customer support.',
+                icon: 'error',
+                confirmButtonColor: '#162846'
+            });
+            for (let i = 0; i < fromSelect.options.length; i++) {
+                if (!fromSelect.options[i].disabled) {
+                    fromSelect.selectedIndex = i;
+                    break;
+                }
+            }
         }
-        $('.wizard-step').addClass('d-none').removeClass('active');
-        $('#step' + step).removeClass('d-none').addClass('active');
-        $('.step-indicator').removeClass('active');
-        for (let i = 1; i <= step; i++) {
-            $('.step-indicator[data-step="' + i + '"]').addClass('active');
-        }
-        currentStep = step;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Step 1: Type Selection (globally accessible)
-    window.csbSelectType = function(type, card) {
-        $('.csb-method-tile').removeClass('selected');
+    window.selectTransferType = function(type, card) {
+        transferType = type;
+        document.querySelectorAll('.transfer-type-card').forEach(el => el.classList.remove('border-primary', 'selected'));
         if (card) {
-            $(card).addClass('selected');
+            card.classList.add('border-primary', 'selected');
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio) radio.checked = true;
         } else {
-            $('.js-type-select[data-type="' + type + '"]').addClass('selected');
-        }
-        selectedType = type;
-        $('#csbSelectedTransferType').val(selectedType);
-        $('input[name="transfer_type"][value="' + selectedType + '"]').prop('checked', true);
-
-        // Configure Step 2: Disable all dynamic fields first
-        $('#selfFields, #memberFields, #externalFields').addClass('d-none');
-        $('#selfFields select, #selfFields input, #memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
-
-        if (selectedType === 'self') {
-            $('#selfFields').removeClass('d-none');
-            $('#selfFields select, #selfFields input').prop('disabled', false);
-            $('#toWalletSelect').prop('required', true);
-            $('#memberIdentifierInput, #externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', false);
-        } else if (selectedType === 'member') {
-            $('#memberFields').removeClass('d-none');
-            $('#memberFields select, #memberFields input').prop('disabled', false);
-            $('#memberIdentifierInput').prop('required', true);
-            $('#toWalletSelect, #externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', false);
-        } else if (selectedType === 'external') {
-            $('#externalFields').removeClass('d-none');
-            $('#externalFields select, #externalFields input').prop('disabled', false);
-            $('#externalAccName, #externalRoutingInput, #externalAccNum, #externalAccNumConfirm').prop('required', true);
-            $('#toWalletSelect, #memberIdentifierInput').prop('required', false);
+            const el = document.querySelector('.js-type-select[data-type="' + type + '"]');
+            if (el) {
+                el.classList.add('border-primary', 'selected');
+                const radio = el.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
+            }
         }
 
+        syncTransferFormFields();
         setTimeout(function() {
             goToStep(2);
         }, 120);
     };
 
-    window.selectTransferType = window.csbSelectType;
+    window.csbSelectType = window.selectTransferType;
 
-    // Toggle Password Visibility
-    function csbTogglePwd(id, btn) {
-        var input = document.getElementById(id);
-        var icon = btn.querySelector('i');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        }
-    }
-
-    // Routing Lookup
-    function csbLookupRoutingWizard(val) {
-        val = (val || '').replace(/\D/g, '');
-        var $status = $('#routingLookupStatus');
-        var $card = $('#routingVerifiedCard');
-        var $manual = $('#manualBankGroup');
-        var $spin = $('#routingLookupSpinner');
-
-        if (val.length < 9) {
-            $status.html('');
-            $card.addClass('d-none');
-            $manual.addClass('d-none');
-            return;
-        }
-
-        // Whitelist CSB
-        if (val === '084301768') {
-            $spin.hide();
-            $status.html('');
-            $card.removeClass('d-none');
-            $('#lookupBankName').text('Cleveland State Bank');
-            $('#lookupBankLoc').text('Cleveland, MS • Internal Institution');
-            $('#resolvedBankNameHidden').val('Cleveland State Bank');
-            $('#resolvedBankId').val('0');
-            $manual.addClass('d-none');
-            return;
-        }
-
-        $spin.show();
-        $status.html('<span class="text-muted"><i class="fa-solid fa-spinner fa-spin me-1"></i> Looking up institution directory...</span>');
-
-        $.get('/user/fund-transfer/routing-lookup', { routing_number: val })
-            .done(function(res) {
-                $spin.hide();
-                if (res.status === 'verified') {
-                    $status.html('');
-                    $card.removeClass('d-none');
-                    $('#lookupBankName').text(res.bank_name);
-                    $('#lookupBankLoc').text(res.location || 'Verified Financial Institution');
-                    $('#resolvedBankNameHidden').val(res.bank_name);
-                    $('#resolvedBankId').val(res.bank_id || '0');
-                    $manual.addClass('d-none');
-                } else {
-                    $card.addClass('d-none');
-                    $manual.removeClass('d-none');
-                    $status.html('<span class="text-muted"><i class="fa-solid fa-circle-info me-1"></i> Unlisted institution. Please enter the bank name below.</span>');
-                }
-            })
-            .fail(function() {
-                $spin.hide();
-                $card.addClass('d-none');
-                $manual.removeClass('d-none');
-                $status.html('<span class="text-muted"><i class="fa-solid fa-circle-info me-1"></i> Directory lookup unavailable. Please enter the receiving bank name below.</span>');
+    function syncTransferFormFields() {
+        var step3 = document.getElementById('step3');
+        var external = transferType === 'external';
+        if (step3) {
+            step3.querySelectorAll('input, select, textarea').forEach(function(el) {
+                el.disabled = !external;
             });
+        }
+        var accName = document.getElementById('account_name');
+        if (accName) {
+            if (transferType !== 'member') {
+                accName.disabled = true;
+                accName.value = '';
+            }
+        }
+        var bankIdEl = document.getElementById('resolvedBankId');
+        if (bankIdEl && transferType !== 'external') {
+            bankIdEl.value = '0';
+        }
     }
 
-    // Member Lookup
-    let memberTimer = null;
-    function csbLookupMemberWizard(val) {
-        clearTimeout(memberTimer);
-        val = (val || '').trim();
-        var $spin = $('#memberLookupSpinner');
-        var $succ = $('#memberLookupSuccess');
-        var $err  = $('#memberLookupError');
+    function goToStep(step) {
+        document.querySelectorAll('.wizard-step').forEach(function(el) {
+            el.classList.add('d-none');
+            el.classList.remove('active');
+        });
 
-        if (val.length < 2) {
-            $spin.hide();
-            $succ.addClass('d-none');
-            $err.addClass('d-none');
+        const stepEl = document.getElementById('step' + step);
+        if (stepEl) {
+            stepEl.classList.remove('d-none');
+            stepEl.classList.add('active');
+        }
+
+        updateIndicators(step);
+        currentStep = step;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (step === 2) setupStep2();
+    }
+
+    window.goToStep = goToStep;
+
+    function updateIndicators(step) {
+        const isExternal = transferType === 'external';
+        const step3Ind = document.getElementById('stepIndicator3');
+        const stepLine3 = document.getElementById('stepLine3');
+        const step3Lbl = document.getElementById('step3Label');
+        const step4Ind = document.getElementById('stepIndicator4');
+        const step4Circ = document.getElementById('stepCircle4');
+
+        if (!isExternal) {
+            if (step3Lbl) step3Lbl.innerText = 'Review & Authorize';
+            if (stepLine3) stepLine3.classList.add('d-none');
+            if (step4Ind) step4Ind.classList.add('d-none');
+        } else {
+            if (step3Lbl) step3Lbl.innerText = 'Recipient';
+            if (stepLine3) stepLine3.classList.remove('d-none');
+            if (step4Ind) step4Ind.classList.remove('d-none');
+        }
+
+        document.querySelectorAll('.step-indicator').forEach(function(el) {
+            const stepNum = parseInt(el.getAttribute('data-step') || '1');
+            el.classList.remove('active', 'text-success');
+
+            let activeStepNum = step;
+            if (!isExternal && step === 4) activeStepNum = 3;
+
+            if (stepNum === activeStepNum) {
+                el.classList.add('active');
+            } else if (stepNum < activeStepNum) {
+                el.classList.add('text-success');
+            }
+        });
+    }
+
+    function setupStep2() {
+        document.querySelectorAll('.dynamic-field').forEach(el => el.classList.add('d-none'));
+        const field = document.getElementById('field-' + transferType);
+        if (field) field.classList.remove('d-none');
+        updateAccountOptions();
+    }
+
+    function updateAccountOptions() {
+        const fromSelect = document.getElementById('walletSelect');
+        const toSelect = document.getElementById('toWalletSelect');
+        if (!fromSelect || !toSelect) return;
+        const selectedType = fromSelect.options[fromSelect.selectedIndex].getAttribute('data-type');
+
+        if (transferType === 'self') {
+            toSelect.innerHTML = '';
+
+            // Add Checking
+            if (selectedType !== 'checking') {
+                const isRestricted = userRestrictions['default'];
+                var opt = document.createElement('option');
+                opt.value = 'default';
+                opt.text = 'Personal Checking (*{{ substr(auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+
+            // Add Savings
+            if (selectedType !== 'savings') {
+                const isRestricted = userRestrictions['primary_savings'];
+                var opt = document.createElement('option');
+                opt.value = 'primary_savings';
+                opt.text = 'Primary Savings (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+
+            // Add IRA
+            @if(auth()->user()->ira_status == 1)
+            if (selectedType !== 'ira') {
+                const isRestricted = userRestrictions['ira'];
+                var opt = document.createElement('option');
+                opt.value = 'ira';
+                opt.text = 'Individual Retirement (IRA) (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add HELOC
+            @if(auth()->user()->heloc_status == 1)
+            if (selectedType !== 'heloc') {
+                const isRestricted = userRestrictions['heloc'];
+                var opt = document.createElement('option');
+                opt.value = 'heloc';
+                opt.text = 'HELOC Line (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->heloc_balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add Credit Card
+            @if(auth()->user()->cc_status == 1)
+            if (selectedType !== 'cc') {
+                const isRestricted = userRestrictions['cc'];
+                var opt = document.createElement('option');
+                opt.value = 'cc';
+                opt.text = 'Platinum Rewards Card (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->cc_balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+            @endif
+
+            // Add Loan
+            @if(auth()->user()->loan_account_status == 1)
+            if (selectedType !== 'loan') {
+                const isRestricted = userRestrictions['loan'];
+                var opt = document.createElement('option');
+                opt.value = 'loan';
+                opt.text = 'Personal Loan (*{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->loan_balance, 2) }}';
+                if (isRestricted) opt.disabled = true;
+                toSelect.add(opt);
+            }
+            @endif
+        }
+        validateBalance();
+    }
+
+    function validateBalance() {
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const fromSelect = document.getElementById('walletSelect');
+        const balance = parseFloat(fromSelect.options[fromSelect.selectedIndex].getAttribute('data-balance') || '0');
+        const feedback = document.getElementById('balanceFeedback');
+
+        if (amount > balance) {
+            feedback.innerHTML = '<span class="text-danger small fw-semibold"><i class="fa-solid fa-circle-exclamation me-1"></i> Insufficient funds available.</span>';
+            return false;
+        } else if (amount > 0) {
+            feedback.innerHTML = '<span class="text-success small fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> Sufficient funds.</span>';
+        } else {
+            feedback.innerHTML = '';
+        }
+        return true;
+    }
+
+    function validateStep2() {
+        const amount = document.getElementById('amount').value;
+        if (!amount || parseFloat(amount) <= 0) {
+            Swal.fire({ title: 'Invalid Amount', text: 'Please enter a transfer amount greater than $0.00.', icon: 'warning', confirmButtonColor: '#162846' });
+            return;
+        }
+        if (!validateBalance()) {
+            Swal.fire({ title: 'Insufficient Funds', text: 'You do not have enough available funds in this account for this transfer.', icon: 'error', confirmButtonColor: '#162846' });
             return;
         }
 
-        $spin.show();
-        memberTimer = setTimeout(function() {
-            $.get('/user/exist/' + encodeURIComponent(val))
-                .done(function(res) {
-                    $spin.hide();
-                    if (res.data) {
-                        $err.addClass('d-none');
-                        $succ.removeClass('d-none');
-                        $('#memberVerifiedName').text(res.data.name || res.data.username || 'Cleveland State Bank Customer');
-                        $('#memberVerifiedMeta').text('Account: ' + (res.data.account_number || val));
+        if (transferType === 'member') {
+            if (!document.getElementById('member_identifier').value.trim()) {
+                Swal.fire({ title: 'Recipient Required', text: 'Please provide the recipient\'s customer account number or email.', icon: 'warning', confirmButtonColor: '#162846' });
+                return;
+            }
+            var accNm = document.getElementById('account_name');
+            if (!accNm || !accNm.value.trim() || accNm.disabled) {
+                Swal.fire({ title: 'Verify Customer', text: 'Please enter a valid Cleveland State Bank customer so we can confirm the recipient before continuing.', icon: 'warning', confirmButtonColor: '#162846' });
+                return;
+            }
+        }
+
+        if (transferType === 'external') {
+            goToStep(3);
+        } else {
+            populateReview();
+            goToStep(4);
+        }
+    }
+
+    function isValidAbaChecksumAch(routing) {
+        if (routing === '084301768') return true;
+        if (!/^\d{9}$/.test(routing)) return false;
+        const d = routing.split('').map(Number);
+        const sum = (3 * (d[0] + d[3] + d[6])) + (7 * (d[1] + d[4] + d[7])) + (d[2] + d[5] + d[8]);
+        return sum % 10 === 0;
+    }
+
+    function validateStep3() {
+        var nameEl = document.getElementById('ext_manual_account_name');
+        const name = nameEl ? nameEl.value.trim() : '';
+        const acc1 = document.getElementById('ext_acc_num').value.trim();
+        const acc2 = document.getElementById('ext_acc_num_confirm').value.trim();
+        const routing = document.querySelector('input[name="manual_data[routing_number]"]').value.trim();
+
+        if (!name || !acc1 || routing.length < 9) {
+            Swal.fire({ title: 'Details Missing', text: 'Please complete all recipient and receiving bank fields.', icon: 'warning', confirmButtonColor: '#162846' });
+            return;
+        }
+        if (acc1 !== acc2) {
+            Swal.fire({ title: 'Account Number Mismatch', text: 'The account numbers entered do not match. Please verify.', icon: 'error', confirmButtonColor: '#162846' });
+            return;
+        }
+        if (!document.getElementById('resolvedBankId').value || document.getElementById('resolvedBankId').value === '0') {
+            const manualName = document.getElementById('manualBankNameInput').value.trim();
+            if (!manualName && routing !== '084301768') {
+                var mWrap = document.getElementById('manualBankNameWrap');
+                if (mWrap) mWrap.classList.remove('d-none');
+                var mInput = document.getElementById('manualBankNameInput');
+                if (mInput) {
+                    mInput.removeAttribute('disabled');
+                    mInput.focus();
+                }
+                Swal.fire({ title: 'Receiving Institution Required', text: 'Please enter the receiving bank name as it appears on records.', icon: 'warning', confirmButtonColor: '#162846' });
+                return;
+            }
+            if (manualName) {
+                document.getElementById('resolvedBankName').value = manualName;
+            }
+        }
+        populateReview();
+        goToStep(4);
+    }
+
+    function calculateFee(amount) {
+        return 0.00;
+    }
+
+    function setMemberVerifyState(state) {
+        var panel = document.getElementById('member_verify_panel');
+        var ph = document.getElementById('member_verify_placeholder');
+        var ok = document.getElementById('member_verify_success');
+        var err = document.getElementById('member_verify_error');
+        var accName = document.getElementById('account_name');
+        if (!panel || !ph || !ok || !err) return;
+
+        panel.classList.remove('is-verified');
+        ph.classList.remove('d-none');
+        ok.classList.add('d-none');
+        err.classList.add('d-none');
+
+        if (state === 'success') {
+            panel.classList.add('is-verified');
+            ph.classList.add('d-none');
+            ok.classList.remove('d-none');
+            if (accName && transferType === 'member') accName.disabled = false;
+        } else if (state === 'error') {
+            ph.classList.add('d-none');
+            err.classList.remove('d-none');
+            if (accName) { accName.disabled = true; accName.value = ''; }
+        } else {
+            if (accName) { accName.disabled = true; accName.value = ''; }
+        }
+    }
+
+    function recipientAccountEndingLabel() {
+        var tEl = document.getElementById('target_account_type');
+        if (!tEl) return '';
+        var t = tEl.value;
+        var chkEl = document.getElementById('recipient_checking_last4');
+        var savEl = document.getElementById('recipient_savings_last4');
+        var chk = chkEl ? chkEl.value : '';
+        var sav = savEl ? savEl.value : '';
+        if (t === 'checking' && chk) return 'Checking account ending in ' + chk;
+        if (t === 'savings' && sav) return 'Savings account ending in ' + sav;
+        if (t === 'ira') return 'IRA Account';
+        if (t === 'heloc') return 'HELOC (payment)';
+        if (t === 'cc') return 'Credit Card (payment)';
+        if (t === 'loan') return 'Loan (payment)';
+        if (chk) return 'Checking account ending in ' + chk;
+        return '';
+    }
+
+    function buildReviewToLine() {
+        var accEl = document.getElementById('account_name');
+        var name = accEl ? accEl.value.trim() : '';
+        var ending = recipientAccountEndingLabel();
+        if (!name) return '—';
+        return ending ? (name + ' — ' + ending) : name;
+    }
+
+    function updateVerifiedMetaLine() {
+        var metaEl = document.getElementById('member_verified_meta');
+        if (!metaEl) return;
+        var line = recipientAccountEndingLabel();
+        metaEl.innerText = line || 'Verified Cleveland State Bank customer.';
+    }
+
+    function populateReview() {
+        document.getElementById('reviewType').innerText = transferType === 'self' ? 'Between My Accounts' : (transferType === 'member' ? 'Cleveland State Bank Customer' : 'External Bank ACH');
+        const fromSelect = document.getElementById('walletSelect');
+        document.getElementById('reviewFrom').innerText = fromSelect.options[fromSelect.selectedIndex].text.split('—')[0].trim();
+
+        let toText = 'Unknown';
+        if (transferType === 'self') {
+            const toSelect = document.getElementById('toWalletSelect');
+            toText = toSelect.options[toSelect.selectedIndex]?.text.split('—')[0].trim() || 'My Account';
+        } else if (transferType === 'member') {
+            toText = buildReviewToLine();
+        } else {
+            toText = (document.getElementById('resolvedBankName').value || document.getElementById('manualBankNameInput').value || 'External Financial Institution');
+        }
+
+        document.getElementById('reviewTo').innerText = toText;
+        const amount = parseFloat(document.getElementById('amount').value) || 0;
+        const fee = transferType === 'external' ? calculateFee(amount) : 0;
+        const total = amount + fee;
+
+        document.getElementById('reviewTransferAmount').innerText = '$ ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('reviewFeeAmount').innerText = fee > 0 ? ('$ ' + fee.toFixed(2)) : 'Free ($0.00)';
+        document.getElementById('reviewAmount').innerText = '$ ' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('reviewDate').innerText = document.querySelector('input[name="scheduled_at"]').value;
+        document.getElementById('reviewFreq').innerText = document.querySelector('select[name="frequency"]').value;
+        document.getElementById('reviewPurpose').innerText = document.getElementById('transferPurpose').value || 'Transfer of funds';
+
+        const externalDetails = document.querySelector('.external-review-details');
+        if (transferType === 'external') {
+            externalDetails.classList.remove('d-none');
+            document.getElementById('reviewRouting').innerText = document.getElementById('routingNumberInput').value;
+            document.getElementById('reviewAccount').innerText = '••••' + document.getElementById('ext_acc_num').value.slice(-4);
+            document.getElementById('reviewBankName').innerText = toText;
+        } else {
+            externalDetails.classList.add('d-none');
+        }
+    }
+
+    function goBackFromReview() {
+        if (transferType === 'external') goToStep(3);
+        else goToStep(2);
+    }
+
+    function toggleVisibility(btn) {
+        const input = btn.parentElement.querySelector('input');
+        input.type = input.type === "password" ? "text" : "password";
+        btn.querySelector('i').classList.toggle('fa-eye');
+        btn.querySelector('i').classList.toggle('fa-eye-slash');
+    }
+
+    function initTransferIndex() {
+        document.querySelectorAll('.js-type-select').forEach(card => {
+            card.onclick = function(e) {
+                const type = this.getAttribute('data-type');
+                window.selectTransferType(type, this);
+            };
+        });
+
+        syncTransferFormFields();
+
+        var memberInput = document.getElementById('member_identifier');
+        var targetAccountType = document.getElementById('target_account_type');
+        var optSavings = document.getElementById('opt-savings');
+        var accountNameHidden = document.getElementById('account_name');
+        var chkLast4 = document.getElementById('recipient_checking_last4');
+        var savLast4 = document.getElementById('recipient_savings_last4');
+        var optIra = document.getElementById('opt-ira');
+        var optHeloc = document.getElementById('opt-heloc');
+        var optCc = document.getElementById('opt-cc');
+        var optLoan = document.getElementById('opt-loan');
+
+        function hideOptionalTargetOpts() {
+            if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+            if (optIra) { optIra.hidden = true; optIra.disabled = true; }
+            if (optHeloc) { optHeloc.hidden = true; optHeloc.disabled = true; }
+            if (optCc) { optCc.hidden = true; optCc.disabled = true; }
+            if (optLoan) { optLoan.hidden = true; optLoan.disabled = true; }
+        }
+
+        if (targetAccountType) {
+            targetAccountType.addEventListener('change', function() {
+                var succ = document.getElementById('member_verify_success');
+                if (succ && !succ.classList.contains('d-none')) updateVerifiedMetaLine();
+            });
+        }
+
+        var memberDebounceTimer = null;
+        if (memberInput) {
+            memberInput.addEventListener('input', function() {
+                clearTimeout(memberDebounceTimer);
+                var val = this.value.trim();
+                if (val.length >= 2) {
+                    memberDebounceTimer = setTimeout(function() {
+                        fetch('{{ route("user.fund_transfer.lookup_recipient") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ identifier: val })
+                        })
+                        .then(function(response) { return response.json().then(function(data) { return { status: response.status, body: data }; }); })
+                        .then(function(res) {
+                            var data = res.body;
+                            if (res.status === 200 && data.status === 'success') {
+                                document.getElementById('member_verified_name').innerText = data.masked_name || data.name || data.full_name;
+                                if (accountNameHidden) {
+                                    accountNameHidden.value = data.full_name || data.name;
+                                }
+                                if (chkLast4) chkLast4.value = data.checking_last4 || '';
+                                if (savLast4) savLast4.value = data.savings_last4 || '';
+                                setMemberVerifyState('success');
+                                updateVerifiedMetaLine();
+
+                                if (data.has_savings && optSavings) {
+                                    optSavings.hidden = false;
+                                    optSavings.disabled = false;
+                                } else {
+                                    if (optSavings) { optSavings.hidden = true; optSavings.disabled = true; }
+                                    if (targetAccountType && targetAccountType.value === 'savings') targetAccountType.value = 'checking';
+                                }
+
+                                if (optIra) {
+                                    if (data.has_ira) { optIra.hidden = false; optIra.disabled = false; }
+                                    else { optIra.hidden = true; optIra.disabled = true; if (targetAccountType && targetAccountType.value === 'ira') targetAccountType.value = 'checking'; }
+                                }
+                                if (optHeloc) {
+                                    if (data.has_heloc) { optHeloc.hidden = false; optHeloc.disabled = false; }
+                                    else { optHeloc.hidden = true; optHeloc.disabled = true; if (targetAccountType && targetAccountType.value === 'heloc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optCc) {
+                                    if (data.has_cc) { optCc.hidden = false; optCc.disabled = false; }
+                                    else { optCc.hidden = true; optCc.disabled = true; if (targetAccountType && targetAccountType.value === 'cc') targetAccountType.value = 'checking'; }
+                                }
+                                if (optLoan) {
+                                    if (data.has_loan) { optLoan.hidden = false; optLoan.disabled = false; }
+                                    else { optLoan.hidden = true; optLoan.disabled = true; if (targetAccountType && targetAccountType.value === 'loan') targetAccountType.value = 'checking'; }
+                                }
+
+                                updateVerifiedMetaLine();
+                            } else {
+                                if (accountNameHidden) accountNameHidden.value = '';
+                                if (chkLast4) chkLast4.value = '';
+                                if (savLast4) savLast4.value = '';
+                                setMemberVerifyState('error');
+                                hideOptionalTargetOpts();
+                                if (targetAccountType) targetAccountType.value = 'checking';
+                            }
+                        })
+                        .catch(function(err) {
+                            if (accountNameHidden) accountNameHidden.value = '';
+                            if (chkLast4) chkLast4.value = '';
+                            if (savLast4) savLast4.value = '';
+                            setMemberVerifyState('error');
+                            hideOptionalTargetOpts();
+                        });
+                    }, 400);
+                } else {
+                    if (accountNameHidden) accountNameHidden.value = '';
+                    if (chkLast4) chkLast4.value = '';
+                    if (savLast4) savLast4.value = '';
+                    setMemberVerifyState('idle');
+                    hideOptionalTargetOpts();
+                    if (targetAccountType) targetAccountType.value = 'checking';
+                }
+            });
+        }
+
+        const routingInput = document.getElementById('routingNumberInput');
+        const statusEl = document.getElementById('routingLookupStatus');
+        const cardEl = document.getElementById('routingLookupCard');
+        const bankNameEl = document.getElementById('lookupBankName');
+        const bankStateEl = document.getElementById('lookupBankState');
+        const bankIdEl = document.getElementById('resolvedBankId');
+        const bankNameHidden = document.getElementById('resolvedBankName');
+        const manualWrap = document.getElementById('manualBankNameWrap');
+        const manualInput = document.getElementById('manualBankNameInput');
+
+        function clearResolvedBank() {
+            resolvedBank = null;
+            bankIdEl.value = '0';
+            bankNameHidden.value = '';
+            cardEl.classList.add('d-none');
+        }
+
+        let lookupTimer = null;
+        if (routingInput) routingInput.addEventListener('input', function() {
+            const routing = this.value.trim();
+            clearResolvedBank();
+            manualWrap.classList.add('d-none');
+            manualInput.setAttribute('disabled', 'disabled');
+            manualInput.value = '';
+            statusEl.innerHTML = '';
+
+            if (routing.length !== 9) return;
+
+            // Whitelist Cleveland State Bank routing
+            if (routing === '084301768') {
+                bankIdEl.value = '0';
+                bankNameHidden.value = 'Cleveland State Bank';
+                bankNameEl.innerText = 'Cleveland State Bank';
+                bankStateEl.innerText = 'Cleveland, MS — Internal Institution';
+                cardEl.classList.remove('d-none');
+                statusEl.innerHTML = '<span class="text-success fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> Cleveland State Bank verified.</span>';
+                return;
+            }
+
+            if (!isValidAbaChecksumAch(routing)) {
+                statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Unlisted routing number. Please enter receiving bank name below.</span>';
+                manualWrap.classList.remove('d-none');
+                manualInput.removeAttribute('disabled');
+                return;
+            }
+
+            statusEl.innerHTML = '<span class="text-muted"><i class="fa-solid fa-spinner fa-spin me-1"></i> Verifying ABA routing number directory...</span>';
+            if (lookupTimer) clearTimeout(lookupTimer);
+            lookupTimer = setTimeout(() => {
+                fetch("{{ route('user.fund_transfer.lookup-routing') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ routing_number: routing })
+                })
+                .then(async response => {
+                    const text = await response.text();
+                    let body = {};
+                    try { body = text ? JSON.parse(text) : {}; } catch (e) { body = {}; }
+                    return { ok: response.ok, status: response.status, body };
+                })
+                .then(({ok, status, body}) => {
+                    if (ok && body.status === 'verified') {
+                        resolvedBank = body;
+                        bankIdEl.value = body.bank_id;
+                        bankNameHidden.value = body.bank_name;
+                        bankNameEl.innerText = body.bank_name;
+                        bankStateEl.innerText = body.location ? (body.location + ' — Verified Receiving Institution') : 'Receiving financial institution (verified)';
+                        cardEl.classList.remove('d-none');
+                        statusEl.innerHTML = '<span class="text-success fw-semibold"><i class="fa-solid fa-circle-check me-1"></i> Receiving institution verified.</span>';
+                        manualWrap.classList.add('d-none');
+                        manualInput.setAttribute('disabled', 'disabled');
+                        manualInput.value = '';
                     } else {
-                        $succ.addClass('d-none');
-                        $err.removeClass('d-none');
+                        statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Unlisted institution. Enter bank name below.</span>';
+                        manualWrap.classList.remove('d-none');
+                        manualInput.removeAttribute('disabled');
                     }
                 })
-                .fail(function() {
-                    $spin.hide();
-                    $succ.addClass('d-none');
-                    $err.removeClass('d-none');
+                .catch(() => {
+                    statusEl.innerHTML = '<span class="text-warning fw-semibold"><i class="fa-solid fa-circle-info me-1"></i> Directory lookup unavailable. Enter bank name below.</span>';
+                    manualWrap.classList.remove('d-none');
+                    manualInput.removeAttribute('disabled');
                 });
-        }, 400);
+            }, 300);
+        });
     }
 
-    // Validation & Step 3 Review
-    function validateAndGoToReview() {
-        var $errNotice = $('#step2ErrorNotice');
-        $errNotice.addClass('d-none').html('');
-
-        var amt = parseFloat($('#transferAmountInput').val()) || 0;
-        if (amt <= 0) {
-            $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter a valid transfer amount.');
-            return;
-        }
-
-        var fromOpt = $('#fromAccountSelect option:selected');
-        var fromBal = parseFloat(fromOpt.data('balance')) || 0;
-        if (amt > fromBal) {
-            $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Insufficient funds in ' + fromOpt.data('name') + '. Available: $' + fromBal.toFixed(2));
-            return;
-        }
-
-        var fromText = fromOpt.text().split('—')[0].trim();
-        var toText = '';
-        var bankName = '';
-        var routing = '';
-        var badgeText = 'INTERNAL TRANSFER';
-        var delivery = 'Immediate';
-
-        if (selectedType === 'self') {
-            toText = $('#toWalletSelect option:selected').text().trim();
-            badgeText = 'BETWEEN MY ACCOUNTS';
-            delivery = 'Immediate';
-        } else if (selectedType === 'member') {
-            var memberId = $('#memberIdentifierInput').val().trim();
-            if (!memberId) {
-                $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter recipient member details.');
-                return;
-            }
-            toText = $('#memberVerifiedName').text() || memberId;
-            badgeText = 'MEMBER-TO-MEMBER';
-            delivery = 'Immediate Settlement';
-        } else if (selectedType === 'external') {
-            var recName = $('#externalAccName').val().trim();
-            if (!recName) {
-                $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter the recipient legal name.');
-                return;
-            }
-            routing = $('#externalRoutingInput').val().trim();
-            if (routing.length !== 9) {
-                $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter a valid 9-digit ABA routing number.');
-                return;
-            }
-            var acc1 = $('#externalAccNum').val().trim();
-            var acc2 = $('#externalAccNumConfirm').val().trim();
-            if (!acc1 || acc1 !== acc2) {
-                $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Account numbers do not match. Please verify both fields.');
-                return;
-            }
-            bankName = $('#resolvedBankNameHidden').val().trim() || $('#manualBankNameInput').val().trim();
-            if (!bankName) {
-                $('#manualBankGroup').removeClass('d-none');
-                $errNotice.removeClass('d-none').html('<i class="fa-solid fa-circle-exclamation me-1"></i> Please enter the receiving bank name to continue.');
-                return;
-            }
-            toText = recName + ' (*' + acc1.slice(-4) + ')';
-            badgeText = 'EXTERNAL BANK ACH';
-            delivery = '1–3 Business Days (Standard ACH)';
-        }
-
-        var freq = $('#transferFrequencySelect option:selected').text().trim();
-        var memo = $('#transferMemoInput').val().trim() || 'None';
-
-        // Fill review modal
-        $('#reviewBadge').text(badgeText);
-        $('#reviewFrom').text(fromText);
-        $('#reviewTo').text(toText);
-        $('#reviewAmount').text('$ ' + amt.toFixed(2));
-        $('#reviewDelivery').text(delivery);
-        $('#reviewFrequency').text(freq);
-        $('#reviewMemo').text(memo);
-
-        if (bankName) {
-            $('#reviewBank').text(bankName);
-            $('#reviewBankRow').removeClass('d-none');
-        } else {
-            $('#reviewBankRow').addClass('d-none');
-        }
-
-        if (routing) {
-            $('#reviewRouting').text(routing);
-            $('#reviewRoutingRow').removeClass('d-none');
-        } else {
-            $('#reviewRoutingRow').addClass('d-none');
-        }
-
-        goToStep(3);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTransferIndex);
+    } else {
+        initTransferIndex();
     }
-
-    function csbSubmitTransferForm() {
-        var form = document.getElementById('transferForm');
-        var $btn = $('#confirmBtn');
-        var origHtml = $btn.html();
-
-        // Ensure security_verified hidden input is present on the form
-        if (!$('#transferForm').find('input[name="security_verified"]').length) {
-            $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo('#transferForm');
-        } else {
-            $('#transferForm').find('input[name="security_verified"]').val('1');
-        }
-
-        // Ensure only active fields for selectedType are enabled, inactive are disabled
-        if (selectedType === 'self') {
-            $('#selfFields select, #selfFields input').prop('disabled', false);
-            $('#memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
-        } else if (selectedType === 'member') {
-            $('#memberFields select, #memberFields input').prop('disabled', false);
-            $('#selfFields select, #selfFields input, #externalFields select, #externalFields input').prop('disabled', true);
-        } else if (selectedType === 'external') {
-            $('#externalFields select, #externalFields input').prop('disabled', false);
-            $('#selfFields select, #selfFields input, #memberFields select, #memberFields input').prop('disabled', true);
-        }
-
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Authorizing &amp; Routing Transfer...');
-
-        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
-            SecurityGate.onCancelCb = function() {
-                if (typeof window.hideLoader === 'function') window.hideLoader();
-                $btn.prop('disabled', false).html(origHtml);
-            };
-            SecurityGate.gate(form);
-        } else {
-            if (typeof window.showLoader === 'function') window.showLoader();
-            HTMLFormElement.prototype.submit.call(form);
-        }
-    }
-
-    $(function() {
-        $('#selfFields select, #selfFields input').prop('disabled', false);
-        $('#memberFields select, #memberFields input, #externalFields select, #externalFields input').prop('disabled', true);
-    });
 </script>
 @endsection
-
