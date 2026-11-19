@@ -23,7 +23,7 @@
                 <div class="d-flex align-items-center justify-content-between w-100 pt-2 px-3">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 rounded-pill fw-bold" style="font-size: 10px;">
-                            <i class="fa-solid fa-shield-halved me-1"></i>FDIC
+                            <i class="fa-solid fa-building-columns me-1"></i>FDIC
                         </span>
                         <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">{{ __('Security Verification') }}</h5>
                     </div>
@@ -98,7 +98,7 @@
                             <!-- FDIC Trust Badge -->
                             <div class="mb-3">
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                                    <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured • Cleveland State Bank
                                 </span>
                             </div>
 
@@ -175,7 +175,7 @@
                         @if($isCsb)
                         <div class="mb-3">
                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                                <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured • Cleveland State Bank
                             </span>
                         </div>
                         @endif
@@ -205,7 +205,7 @@
                         @if($isCsb)
                         <div class="mb-3">
                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold" style="font-size: 11px;">
-                                <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured • Cleveland State Bank
+                                <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured • Cleveland State Bank
                             </span>
                         </div>
                         @endif
@@ -490,7 +490,6 @@
 window.UserSecurityPreference = "{{ $sgAuthUser->security_preference ?? 'always_ask' }}";
 
 window.SecurityGate = window.SecurityGate || {};
-var SecurityGate = window.SecurityGate;
 
 Object.assign(window.SecurityGate, {
         currentTarget: window.SecurityGate.currentTarget || null,
@@ -613,7 +612,10 @@ Object.assign(window.SecurityGate, {
                 $('#sg-biometric-verify').removeClass('d-none');
                 $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
                 $('#sg-back-btn').removeClass('d-none').text('Cancel');
-                this.prepareBiometricChallenge();
+                const self = this;
+                setTimeout(function() {
+                    self.triggerBiometricAuth();
+                }, 150);
                 return;
             }
 

@@ -18,7 +18,7 @@
             <p class="text-muted small">Quickly deposit checks from anywhere using your device's camera.</p>
             <div class="d-flex justify-content-center gap-2">
                 <span class="badge rounded-pill px-3 py-1 text-uppercase fw-bold" style="background: rgba(200, 35, 44, 0.1); color: #c8232c; font-size: 11px;">
-                    <i class="fa-solid fa-shield-halved me-1"></i> FDIC Insured
+                    <i class="fa-solid fa-building-columns me-1"></i> FDIC Insured
                 </span>
                 <span class="badge rounded-pill px-3 py-1 text-uppercase fw-bold bg-light text-secondary border font-monospace" style="font-size: 11px;">
                     ABA #084301768
@@ -107,7 +107,7 @@
 
             <!-- Submit Button -->
             <button type="button" class="btn text-white w-100 rounded-pill py-3 fw-bold shadow-sm" style="background: #162846; font-size: 15px;" id="csbSubmitBtn" onclick="csbValidateAndSubmitDeposit()">
-                <i class="fa-solid fa-shield-halved me-1"></i> Submit Check for Review
+                <i class="fa-solid fa-paper-plane me-1"></i> Submit Check for Review
             </button>
         </form>
 

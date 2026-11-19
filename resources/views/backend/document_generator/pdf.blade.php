@@ -163,7 +163,7 @@
             <strong>{{ $docTitle }}</strong><br>
             {{ $docAddress }}<br>
             {{ $docCityStateZip }}<br>
-            {{ $docPhone }}@if(!empty($docDomain) && !str_contains(strtolower($docDomain), 'frontfieldcu.pro')) | {{ $docDomain }}@endif
+            {{ $docPhone }}
         </div>
         <div class="clear"></div>
     </div>

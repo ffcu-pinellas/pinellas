@@ -32,7 +32,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 mb-3 border-bottom" style="border-color: #e2e8f0 !important;">
         <div class="d-flex align-items-center gap-2">
             <span class="badge bg-light text-dark border px-2 py-1 fw-bold" style="font-size: 11px;">
-                <i class="fa-solid fa-shield-halved text-success me-1"></i> FDIC-Insured
+                <i class="fa-solid fa-building-columns text-success me-1"></i> FDIC-Insured
             </span>
             <span class="text-muted extra-small d-none d-md-inline" style="font-size: 11.5px;">Backed by full faith and credit of U.S. Government</span>
         </div>

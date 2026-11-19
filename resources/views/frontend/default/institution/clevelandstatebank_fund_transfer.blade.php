@@ -61,6 +61,62 @@
                 <input type="hidden" name="bank_id" id="resolvedBankId" value="0">
                 <input type="hidden" name="transfer_type" id="csbSelectedTransferType" value="self">
                 
+                <script>
+                    window.currentStep = 1;
+                    window.selectedType = 'self';
+
+                    window.goToStep = function(step) {
+                        document.querySelectorAll('.wizard-step').forEach(function(el) { el.classList.add('d-none'); });
+                        var targetStep = document.getElementById('step' + step);
+                        if (targetStep) targetStep.classList.remove('d-none');
+                        document.querySelectorAll('.step-indicator').forEach(function(el) { el.classList.remove('active'); });
+                        for (var i = 1; i <= step; i++) {
+                            var ind = document.querySelector('.step-indicator[data-step="' + i + '"]');
+                            if (ind) ind.classList.add('active');
+                        }
+                        window.currentStep = step;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    };
+
+                    window.csbSelectType = function(type, card) {
+                        document.querySelectorAll('.csb-method-tile').forEach(function(el) { el.classList.remove('selected'); });
+                        if (card) {
+                            card.classList.add('selected');
+                        }
+                        window.selectedType = type;
+                        var typeInput = document.getElementById('csbSelectedTransferType');
+                        if (typeInput) typeInput.value = type;
+
+                        var selfF = document.getElementById('selfFields');
+                        var memberF = document.getElementById('memberFields');
+                        var extF = document.getElementById('externalFields');
+
+                        if (selfF) selfF.classList.add('d-none');
+                        if (memberF) memberF.classList.add('d-none');
+                        if (extF) extF.classList.add('d-none');
+
+                        if (selfF) selfF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
+                        if (memberF) memberF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
+                        if (extF) extF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = true; });
+
+                        if (type === 'self' && selfF) {
+                            selfF.classList.remove('d-none');
+                            selfF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
+                        } else if (type === 'member' && memberF) {
+                            memberF.classList.remove('d-none');
+                            memberF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
+                        } else if (type === 'external' && extF) {
+                            extF.classList.remove('d-none');
+                            extF.querySelectorAll('select, input').forEach(function(inp) { inp.disabled = false; });
+                        }
+
+                        setTimeout(function() {
+                            window.goToStep(2);
+                        }, 120);
+                    };
+                    window.selectTransferType = window.csbSelectType;
+                </script>
+
                 <!-- ════════ Step 1: Transfer Type ════════ -->
                 <div class="wizard-step active p-4 p-md-5" id="step1">
                     <div class="text-center mb-4">

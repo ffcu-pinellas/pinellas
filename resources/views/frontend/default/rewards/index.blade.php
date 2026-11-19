@@ -111,7 +111,7 @@
                                                     <td>
                                                         <div class="d-flex align-items-center">
                                                             <div class="avatar avatar-xs bg-light me-2 rounded-circle d-flex align-items-center justify-content-center">
-                                                                <i data-lucide="shield-check" class="text-primary" size="14"></i>
+                                                                <i data-lucide="check-circle" class="text-primary" size="14"></i>
                                                             </div>
                                                             <span class="fw-bold text-dark">{{ $redeem->portfolio->portfolio_name }}</span>
                                                         </div>

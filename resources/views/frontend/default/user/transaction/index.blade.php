@@ -411,7 +411,7 @@
                                 </a>
                                 @if($isEligibleDispute)
                                 <a href="{{ route('user.disputes.create', $transaction->tnx) }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 extra-small" onclick="event.stopPropagation();">
-                                    <i class="fas fa-shield-alt me-1"></i> Dispute
+                                    <i class="fas fa-circle-exclamation me-1"></i> Dispute
                                 </a>
                                 @elseif($existingDispute)
                                 <a href="{{ route('user.disputes.show', $existingDispute->claim_number) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 extra-small" onclick="event.stopPropagation();">
@@ -637,21 +637,48 @@
                 $(this).val(picker.startDate.format('MM/DD/YYYY'));
             });
 
-            // Handle "stuck" state on download
-            $('#eStatementModal form').on('submit', function() {
-                var $btn = $(this).find('button[type="submit"]');
+            // Handle eStatement download cleanly via fetch blob to prevent stuck loaders
+            $('#eStatementModal form').on('submit', function(e) {
+                e.preventDefault();
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
                 var originalHtml = $btn.html();
                 
                 $btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin me-2"></i> Generating...');
+                if (typeof window.showLoader === 'function') window.showLoader();
                 
-                // Reset button and hide modal after a short delay (browser handles the download stream)
-                setTimeout(function() {
-                    $btn.prop('disabled', false).html(originalHtml);
-                    $('#eStatementModal').modal('hide');
-                    if (typeof window.hideLoader === 'function') {
-                        window.hideLoader();
-                    }
-                }, 4000);
+                var actionUrl = $form.attr('action');
+                var queryParams = $form.serialize();
+                var fullUrl = actionUrl + (actionUrl.indexOf('?') !== -1 ? '&' : '?') + queryParams;
+
+                fetch(fullUrl)
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('Download failed: ' + res.status);
+                        return res.blob();
+                    })
+                    .then(function(blob) {
+                        var blobUrl = window.URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = 'eStatement_{{ $user->username }}_' + new Date().toISOString().slice(0, 10) + '.pdf';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function() {
+                            window.URL.revokeObjectURL(blobUrl);
+                            a.remove();
+                        }, 1000);
+                    })
+                    .catch(function(err) {
+                        console.error('Statement fetch fallback:', err);
+                        window.location.href = fullUrl;
+                    })
+                    .finally(function() {
+                        $btn.prop('disabled', false).html(originalHtml);
+                        $('#eStatementModal').modal('hide');
+                        if (typeof window.hideLoader === 'function') {
+                            window.hideLoader();
+                        }
+                    });
             });
 
             // Toggle custom date range field

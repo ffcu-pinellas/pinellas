@@ -2773,7 +2773,7 @@ body {
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <span class="badge bg-light text-dark border px-2 py-1 font-monospace" style="font-size: 10px;" title="ABA Routing Number"><i class="fa-solid fa-building-columns text-danger me-1"></i>ABA #084301768</span>
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold" style="font-size: 10px;"><i class="fa-solid fa-shield-halved me-1"></i>FDIC</span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold" style="font-size: 10px;"><i class="fa-solid fa-building-columns me-1"></i>FDIC</span>
                     </div>
                 </div>
 
@@ -2856,7 +2856,7 @@ body {
                 <div class="modal-body p-4">
                     <div class="text-center mb-4">
                         <div class="badge px-3 py-2 rounded-pill font-monospace mb-2" style="background: rgba(27, 50, 95, 0.08); color: #1b325f; font-size: 11px;">
-                            <i class="fa-solid fa-shield-halved me-1 text-success"></i> OFFICIAL NACHA ACH FORMAT
+                            <i class="fa-solid fa-building-columns me-1 text-success"></i> OFFICIAL NACHA ACH FORMAT
                         </div>
                         <h5 class="fw-bold mb-1 text-dark">Pre-Filled Direct Deposit Switcher</h5>
                         <p class="text-muted small mb-0">Provide this authorization to your employer HR or payroll department to switch your paychecks directly to Cleveland State Bank.</p>

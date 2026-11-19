@@ -76,7 +76,7 @@
 
 <div class="breaker"></div></div><div class="flexbox ">
 
-<p><a href="{{ route('login') }}"><span class="fal fa-shield-check"></span>Member Security Center</a></p>
+<p><a href="{{ route('login') }}"><span class="fal fa-lock"></span>Member Security Center</a></p>
 
 <p><a href="{{ route('login') }}"><span class="fal fa-badge-dollar"></span>Member Discounts</a></p>
 

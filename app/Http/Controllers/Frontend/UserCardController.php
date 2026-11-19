@@ -73,12 +73,14 @@ class UserCardController extends Controller
         // 2. Dispatch Notifications BEFORE returning JSON
         try {
             // Email Notification (Respect alert preferences)
-            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+            if ($user->isEmailAlertsEnabled()) {
+                $instName = $user->institution?->name ?? 'Cleveland State Bank';
                 $this->mailNotify($user->email, 'card_status_update', [
+                    '[[subject]]' => "Debit Card {$displayStatus} - " . $instName,
                     '[[full_name]]' => $user->full_name,
                     '[[card_number]]' => "****" . substr($card->card_number, -4),
                     '[[status]]' => $displayStatus,
-                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
+                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ". If you did not make this change, please lock your card and contact customer support immediately.",
                 ]);
             }
 
@@ -137,12 +139,14 @@ class UserCardController extends Controller
         // 2. Dispatch Notifications BEFORE returning JSON
         try {
             // Email Notification (Respect alert preferences)
-            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+            if ($user->isEmailAlertsEnabled()) {
+                $instName = $user->institution?->name ?? 'Cleveland State Bank';
                 $this->mailNotify($user->email, 'card_status_update', [
+                    '[[subject]]' => "Debit Card Reported Lost/Stolen - " . $instName,
                     '[[full_name]]' => $user->full_name,
                     '[[card_number]]' => "****" . substr($card->card_number, -4),
                     '[[status]]' => 'Locked (Lost/Stolen)',
-                    '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked. Please contact support if you did not initiate this.",
+                    '[[message]]' => "A card ending in " . substr($card->card_number, -4) . " was reported lost/stolen and is now locked. Please contact support immediately if you did not initiate this.",
                 ]);
             }
 
@@ -249,8 +253,10 @@ class UserCardController extends Controller
         // 2. Dispatch Notifications BEFORE returning JSON
         try {
             // Email Notification (Respect alert preferences)
-            if ($user->isEmailAlertsEnabled() && $user->isCardChargeAlertEnabled()) {
+            if ($user->isEmailAlertsEnabled()) {
+                $instName = $user->institution?->name ?? 'Cleveland State Bank';
                 $this->mailNotify($user->email, 'card_security_update', [
+                    '[[subject]]' => "Debit Card PIN Updated - " . $instName,
                     '[[full_name]]' => $user->full_name,
                     '[[card_number]]' => "****" . substr($card->card_number, -4),
                     '[[action]]' => 'PIN Reset',

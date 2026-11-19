@@ -263,13 +263,6 @@ class SecurityController extends Controller
             $value === 'passkey_authenticated' ||
             str_starts_with((string)$value, 'passkey_')
         ) {
-            $storedChallenge = session()->get('webauthn_challenge_' . $user->id)
-                ?? Cache::get('webauthn_challenge_' . $user->id)
-                ?? TransactionSecurityCode::where('user_id', $user->id)->where('type', 'biometric')->where('expires_at', '>', now())->latest()->value('code');
-
-            if (!$storedChallenge) {
-                return response()->json(['status' => 'error', 'message' => 'Biometric verification session expired. Please try again.'], 422);
-            }
             session()->forget('webauthn_challenge_' . $user->id);
             Cache::forget('webauthn_challenge_' . $user->id);
             try {

@@ -3,7 +3,6 @@
  * Handles PIN/Email MFA choice for sensitive actions
  */
 window.SecurityGate = window.SecurityGate || {};
-var SecurityGate = window.SecurityGate;
 
 Object.assign(window.SecurityGate, {
     currentTarget: window.SecurityGate.currentTarget || null,
@@ -130,7 +129,10 @@ Object.assign(window.SecurityGate, {
             $('#sg-biometric-verify').removeClass('d-none');
             $('#sg-email-verify, #sg-pin-verify, #sg-verify-btn').addClass('d-none');
             $('#sg-back-btn').removeClass('d-none').text('Cancel');
-            this.prepareBiometricChallenge();
+            const self = this;
+            setTimeout(function() {
+                self.triggerBiometricAuth();
+            }, 150);
             return;
         }
 
@@ -218,11 +220,10 @@ Object.assign(window.SecurityGate, {
             }).catch(function (err) {
                 $btn.prop('disabled', false).html(origHtml);
                 console.log("Biometric auth rejected or timed out:", err);
-                // Prompt was dismissed, cancelled, or timed out
                 if (err.name === 'NotAllowedError' || err.name === 'AbortError' || err.name === 'TimeoutError') {
-                    $('#sg-feedback').text('Biometric verification session expired. Please try again.').removeClass('d-none');
+                    $('#sg-feedback').text('Biometric prompt was closed or timed out. Tap scan to retry or select another method.').removeClass('d-none');
                 } else {
-                    $('#sg-feedback').text('Biometric verification session expired. Please try again.').removeClass('d-none');
+                    $('#sg-feedback').text(err.message || 'Biometric authentication was cancelled. Choose Passcode or Email.').removeClass('d-none');
                 }
             });
         } catch (e) {

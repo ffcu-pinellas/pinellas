@@ -51,16 +51,7 @@
                 <div class="bank-contact">
                     <strong>{{ $siteTitle ?? (setting('site_title') ?? 'FrontField Credit Union') }}</strong><br>
                     {{ $contactAddress ?? 'Corporate Offices • P.O. Box 2300' }}<br>
-                    {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}<br>
-                    @php
-                        $cleanDomain = $homeDomain ?? null;
-                        if ($cleanDomain && str_ends_with(strtolower($cleanDomain), '.frontfieldcu.pro')) {
-                            $cleanDomain = 'clevelandstatebank.com';
-                        }
-                    @endphp
-                    @if($cleanDomain)
-                        {{ $cleanDomain }}
-                    @endif
+                    {{ $contactCityStateZip ?? 'Cleveland, OH 44166' }}
                 </div>
             </div>
 

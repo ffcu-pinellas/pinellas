@@ -193,7 +193,7 @@
         <!-- Security Warning -->
         <div class="p-4 bg-info bg-opacity-10 rounded-4 border-start border-info border-4 mb-4">
             <div class="d-flex gap-3">
-                <i class="fas fa-shield-alt text-info fs-4"></i>
+                <i class="fas fa-lock text-info fs-4"></i>
                 <div class="small text-dark">
                     <strong>Keep your account safe:</strong> {{ (!empty($currentInstitution) && !$currentInstitution->is_default) ? $currentInstitution->name : (setting('site_title') ?? 'FrontField Credit Union') }} will never call, text, or email you asking for your password or 2FA code. If you notice any suspicious activity, change your password immediately.
                 </div>

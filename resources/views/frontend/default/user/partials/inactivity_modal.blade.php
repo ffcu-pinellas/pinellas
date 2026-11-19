@@ -4,9 +4,9 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px);">
             <div class="modal-body p-4 text-center">
                 
-                <!-- Pulsing Bank Shield Icon -->
+                <!-- Pulsing Bank Clock Icon -->
                 <div class="inactivity-icon-wrap mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 72px; height: 72px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; position: relative;">
-                    <i data-lucide="shield-alert" style="width: 36px; height: 36px;"></i>
+                    <i data-lucide="clock" style="width: 36px; height: 36px;"></i>
                     <div class="pulse-ring" style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid #3b82f6; animation: pulseRing 1.8s infinite ease-in-out;"></div>
                 </div>
 
