@@ -72,6 +72,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'notifications_permission',
         'transaction_pin',
         'security_preference',
+        'passkey_credentials',
         'close_reason',
         'savings_account_number',
         'savings_balance',
@@ -174,6 +175,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'phone_verified' => 'boolean',
         'notifications_permission' => 'array',
         'dashboard_order' => 'array',
+        'passkey_credentials' => 'array',
         'dividend_status' => 'boolean',
         'dividend_apy' => 'decimal:2',
         'last_dividend_at' => 'datetime',
@@ -682,6 +684,8 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
 
     protected static function booted(): void
     {
+        static::ensurePasskeyColumn();
+
         static::created(function ($user) {
 
             $notifications = notificationPermissions();
@@ -692,5 +696,16 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
                 'savings_account_number' => generateSavingsAccountNumber(),
             ]);
         });
+    }
+
+    public static function ensurePasskeyColumn(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users') && !\Illuminate\Support\Facades\Schema::hasColumn('users', 'passkey_credentials')) {
+                \Illuminate\Support\Facades\Schema::table('users', function ($table) {
+                    $table->json('passkey_credentials')->nullable()->after('security_preference');
+                });
+            }
+        } catch (\Throwable $e) {}
     }
 }

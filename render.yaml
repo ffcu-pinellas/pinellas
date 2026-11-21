@@ -32,6 +32,8 @@ services:
         value: /etc/ssl/certs/ca-certificates.crt
       - key: DEFAULT_INSTITUTION
         value: frontfieldcu
+      - key: MAIL_MAILER
+        value: log
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER
@@ -72,6 +74,8 @@ services:
         value: /etc/ssl/certs/ca-certificates.crt
       - key: DEFAULT_INSTITUTION
         value: clevelandstatebank
+      - key: MAIL_MAILER
+        value: log
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER

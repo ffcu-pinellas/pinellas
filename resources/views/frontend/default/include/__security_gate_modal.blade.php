@@ -792,12 +792,19 @@ Object.assign(window.SecurityGate, {
                 }
             }
 
+            if (typeof window.showTransferLoader === 'function') {
+                try { window.showTransferLoader(); } catch (e) {}
+            } else if (typeof window.showLoader === 'function') {
+                try { window.showLoader(); } catch (e) {}
+            }
+
             if (target && (target.tagName === 'FORM' || target instanceof HTMLFormElement)) {
                 if (!$(target).find('input[name="security_verified"]').length) {
                     $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(target);
                 } else {
                     $(target).find('input[name="security_verified"]').val('1');
                 }
+                $(target).find('button[type="submit"], #confirmBtn').prop('disabled', true);
                 HTMLFormElement.prototype.submit.call(target);
                 return;
             }
@@ -817,6 +824,7 @@ Object.assign(window.SecurityGate, {
                 } else {
                     $(fallbackForm).find('input[name="security_verified"]').val('1');
                 }
+                $(fallbackForm).find('button[type="submit"], #confirmBtn').prop('disabled', true);
                 HTMLFormElement.prototype.submit.call(fallbackForm);
                 return;
             }

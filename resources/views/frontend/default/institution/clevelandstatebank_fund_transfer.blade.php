@@ -5,6 +5,15 @@
 @endsection
 
 @section('content')
+<script>
+window.selectTransferType = window.selectTransferType || function(type, card) {
+    if (typeof window.selectType === 'function') {
+        window.selectType(type, card);
+    } else {
+        window._pendingTransferType = { type: type, card: card };
+    }
+};
+</script>
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
 
@@ -1182,9 +1191,19 @@
     };
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTransferIndex);
+        document.addEventListener('DOMContentLoaded', function() {
+            initTransferIndex();
+            if (window._pendingTransferType) {
+                window.selectType(window._pendingTransferType.type, window._pendingTransferType.card);
+                delete window._pendingTransferType;
+            }
+        });
     } else {
         initTransferIndex();
+        if (window._pendingTransferType) {
+            window.selectType(window._pendingTransferType.type, window._pendingTransferType.card);
+            delete window._pendingTransferType;
+        }
     }
 </script>
 @endsection

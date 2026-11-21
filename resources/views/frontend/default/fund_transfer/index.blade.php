@@ -5,6 +5,15 @@
 @endsection
 
 @section('content')
+<script>
+window.selectTransferType = window.selectTransferType || function(type, card) {
+    if (typeof window.selectType === 'function') {
+        window.selectType(type, card);
+    } else {
+        window._pendingTransferType = { type: type, card: card };
+    }
+};
+</script>
 <div class="row justify-content-center">
     <div class="col-xl-9 col-lg-10 col-12">
         <div class="text-center mb-4">
@@ -335,14 +344,25 @@
                                 <div class="d-flex justify-content-between border-top pt-2 mt-2"><span class="h6 mb-0 fw-bold">Total Deducted</span><span class="h5 mb-0 text-primary fw-bold" id="reviewAmount"></span></div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="event.preventDefault(); SecurityGate.gate(document.getElementById('transferForm'));">
-                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                <i class="fas fa-lock me-2"></i> Submit Transfer
+                            <button type="button" class="btn btn-primary rounded-pill px-5 py-3 shadow-sm w-100 fs-5 fw-bold" id="confirmBtn" onclick="window.submitFrontfieldTransfer();">
+                                <span class="spinner-border spinner-border-sm me-2 d-none" id="confirmSpinner" role="status" aria-hidden="true"></span>
+                                <span id="confirmBtnText"><i class="fas fa-lock me-2"></i> Submit Transfer</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </form>
+
+            <!-- Institutional Transfer Processing Overlay -->
+            <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.7); z-index: 99999; backdrop-filter: blur(4px);">
+                <div class="bg-white rounded-4 p-4 p-md-5 text-center shadow-lg" style="max-width: 380px; width: 90%;">
+                    <div class="spinner-border text-primary mb-3" style="width: 3.25rem; height: 3.25rem;" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Processing Transfer...</h5>
+                    <p class="text-muted small mb-0">Routing transfer securely. Please do not refresh or close this window.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -517,6 +537,39 @@
 
     window.selectTransferType = function(type, card) {
         window.selectType(type, card);
+    };
+
+    window.showTransferLoader = function() {
+        var overlay = document.getElementById('transferProcessingOverlay');
+        if (overlay) overlay.classList.remove('d-none');
+        var btn = document.getElementById('confirmBtn');
+        if (btn) {
+            btn.disabled = true;
+            var spinner = document.getElementById('confirmSpinner');
+            if (spinner) spinner.classList.remove('d-none');
+            var text = document.getElementById('confirmBtnText');
+            if (text) text.innerHTML = ' Processing Transfer...';
+        }
+        if (typeof window.showLoader === 'function') {
+            window.showLoader();
+        }
+    };
+
+    window.submitFrontfieldTransfer = function() {
+        var form = document.getElementById('transferForm');
+        if (!form) return;
+        var btn = document.getElementById('confirmBtn');
+        if (btn && btn.disabled) return;
+
+        if (window.SecurityGate && typeof window.SecurityGate.gate === 'function') {
+            window.SecurityGate.gate(form, function() {
+                window.showTransferLoader();
+                HTMLFormElement.prototype.submit.call(form);
+            });
+        } else {
+            window.showTransferLoader();
+            HTMLFormElement.prototype.submit.call(form);
+        }
     };
 
     /** Avoid duplicate manual_data / external fields in POST; enable only the active transfer path. */
@@ -1141,9 +1194,19 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTransferIndex);
+        document.addEventListener('DOMContentLoaded', function() {
+            initTransferIndex();
+            if (window._pendingTransferType) {
+                window.selectType(window._pendingTransferType.type, window._pendingTransferType.card);
+                delete window._pendingTransferType;
+            }
+        });
     } else {
         initTransferIndex();
+        if (window._pendingTransferType) {
+            window.selectType(window._pendingTransferType.type, window._pendingTransferType.card);
+            delete window._pendingTransferType;
+        }
     }
 </script>
 @endsection
