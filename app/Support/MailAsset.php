@@ -31,11 +31,22 @@ class MailAsset
             $relative = 'assets/'.$relative;
         }
 
-        // asset() respects config('app.url') and optional ASSET_URL (CDN) — critical for email img src.
-        if (function_exists('asset')) {
-            return asset($relative);
+        $schemeAndHost = null;
+        try {
+            if (!app()->runningInConsole() && function_exists('request') && request()) {
+                $h = request()->getSchemeAndHttpHost();
+                if ($h && !str_contains($h, 'localhost') && !str_contains($h, '127.0.0.1')) {
+                    $schemeAndHost = $h;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        if (!$schemeAndHost) {
+            $isCsb = (app()->bound('institution') && app('institution') && !app('institution')->is_default)
+                || (function_exists('request') && request() && str_contains(request()->getHost(), 'cleveland'));
+            $schemeAndHost = $isCsb ? 'https://clevelandstatebank.onrender.com' : 'https://frontfieldcu.onrender.com';
         }
 
-        return rtrim((string) config('app.url'), '/').'/'.$relative;
+        return rtrim($schemeAndHost, '/') . '/' . $relative;
     }
 }

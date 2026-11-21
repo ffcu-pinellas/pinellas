@@ -359,10 +359,17 @@
     @stack('style')
 </head>
 <body>
-    <div id="global-loader">
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Securing your session...</div>
+    <div id="global-loader" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); display: none; align-items: center; justify-content: center; z-index: 99999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease; opacity: 0;">
+        <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: var(--body-text-theme-color, #00549b); animation: authSpin 0.85s linear infinite;"></div>
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
+                <img src="{{ $logoUrl }}" alt="{{ $siteTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+            </div>
+        </div>
     </div>
+    <style>
+        @keyframes authSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
     <div class="auth-wrapper">
         <div class="login-card">
             @include('global._notify')
@@ -407,12 +414,14 @@
 
     @stack('script')
     <script>
-        // Global Loading Logic
-        window.showLoader = function(text = 'Securing your session...') {
-            document.querySelector('.loader-text').textContent = text;
+        // Global Loading Logic (Centered spinning logo, no text)
+        window.showLoader = function() {
             const loader = document.getElementById('global-loader');
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
+            if (loader) {
+                loader.style.display = 'flex';
+                loader.offsetHeight;
+                loader.style.opacity = '1';
+            }
         };
 
         window.hideLoader = function() {

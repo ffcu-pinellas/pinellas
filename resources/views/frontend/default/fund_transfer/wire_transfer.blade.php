@@ -750,6 +750,13 @@
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Verifying...';
         }
 
+        const submitWireOrder = function() {
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Sending Wire Transfer...', 'Please wait a moment...');
+            }
+            document.getElementById('wireForm').submit();
+        };
+
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
             SecurityGate.onCancelCb = function() {
                 if (submitBtn) {
@@ -757,12 +764,9 @@
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> {{ __("Authorize & Submit Wire") }}';
                 }
             };
-            SecurityGate.gate(document.getElementById('wireForm'));
+            SecurityGate.gate(submitWireOrder);
         } else {
-            if (typeof window.showLoader === 'function') {
-                window.showLoader('Processing Wire Order...', 'Transmitting wire order securely...');
-            }
-            document.getElementById('wireForm').submit();
+            submitWireOrder();
         }
     }
 </script>

@@ -420,10 +420,16 @@ trait NotifyTrait
             // Prioritize manual inputs from the Admin Modal (Subject and Email Details)
             $manualSubject = $shortcodes['[[subject]]'] ?? null;
             $manualMessage = $shortcodes['[[message]]'] ?? null;
+            $rawMsg = $manualMessage ?: ($shortcodes['[[action]]'] ?? '');
+
+            // Fallback for single-word / truncated messages
+            if (empty($rawMsg) || in_array(strtolower(trim($rawMsg)), ['approved', 'approve', 'success', 'completed'])) {
+                $rawMsg = 'Your transaction (Ref #' . ($shortcodes['[[tnx]]'] ?? ($shortcodes['[[txn]]'] ?? 'N/A')) . ') for ' . ($shortcodes['[[amount]]'] ?? '$0.00') . ' has been approved and successfully credited to your account.';
+            }
 
             $details = [
                 'subject' => $manualSubject ?: 'Account Notification - ' . $siteTitle,
-                'message_body' => $manualMessage ?: ($shortcodes['[[action]]'] ?? 'A notification has been triggered for your account.'),
+                'message_body' => $rawMsg,
                 'site_logo' => MailAsset::absolute($siteLogo),
                 'site_logo_path' => $siteLogo ? public_path($siteLogo) : null,
                 'site_link' => $siteLink,
@@ -537,6 +543,20 @@ trait NotifyTrait
                 $details['subject'] = 'Check Deposit Received - ' . $siteTitle;
                 $details['title'] = 'Check Received';
                 $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? $amtVal) . ' to your ' . ($shortcodes['[[account_name]]'] ?? $toAcc) . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.<br><br><strong>Deposit Reference:</strong> ' . $tnxRef;
+            } elseif ($code === 'user_manual_deposit_request' || $code === 'deposit_approved') {
+                $statusUpper = strtoupper($shortcodes['[[status]]'] ?? 'APPROVED');
+                $isApproved = str_contains($statusUpper, 'APPROV') || str_contains($statusUpper, 'COMPLET') || str_contains($statusUpper, 'SUCCESS');
+                $depAmt = $shortcodes['[[deposit_amount]]'] ?? ($shortcodes['[[amount]]'] ?? $amtVal);
+                $details['subject'] = ($isApproved ? 'Check Deposit Approved & Credited - Ref #' : 'Check Deposit Update - Ref #') . $tnxRef;
+                $details['title'] = $isApproved ? 'Check Deposit Credited' : 'Deposit Update';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Status' => $isApproved ? 'Approved & Funds Available' : 'Under Review',
+                    'Check Amount' => $depAmt,
+                    'Deposited To' => $shortcodes['[[account_name]]'] ?? ($shortcodes['[[to_account]]'] ?? 'Personal Checking'),
+                    'Confirmation Number' => $tnxRef,
+                    'Method' => $shortcodes['[[gateway_name]]'] ?? 'Mobile Check Deposit',
+                    'Processing Date' => $dateVal,
+                ], $depAmt, $isApproved ? 'Funds Available' : 'In Review', 'Check Deposit', $primaryColor);
             } elseif ($code === 'card_status_update') {
                 $details['subject'] = 'Security Alert: Card Status Changed';
                 $details['title'] = 'Card Update';
@@ -818,5 +838,47 @@ trait NotifyTrait
             return false;
         }
 
+    }
+
+    /**
+     * Dispatch important user activity alerts to the assigned Account Officer
+     */
+    public function notifyAssignedAccountOfficer($user, string $subject, string $message, array $shortcodes = []): void
+    {
+        try {
+            if (!$user) return;
+            $officer = $user->staff ?? null;
+            $officerEmail = $officer?->email;
+            $officerName = $officer?->name ?: 'Account Officer Desk';
+
+            if (!$officerEmail) {
+                $officerEmail = setting('support_email', 'global') ?: setting('site_email', 'global');
+            }
+
+            if (!$officerEmail) return;
+
+            $inst = app()->bound('institution') ? app('institution') : ($user->institution ?? null);
+            $isCsb = ($inst && ($inst->slug === 'clevelandstatebank' || !$inst->is_default))
+                || (function_exists('request') && request() && str_contains(request()->getHost(), 'cleveland'));
+            $instName = $inst ? $inst->name : ($isCsb ? 'Cleveland State Bank' : (setting('site_title') ?? 'FrontField Credit Union'));
+
+            $mergedShortcodes = array_merge([
+                '[[full_name]]' => $user->full_name ?? $user->username ?? 'Member',
+                '[[member_name]]' => $user->full_name ?? $user->username ?? 'Member',
+                '[[officer_name]]' => $officerName,
+                '[[account_number]]' => '****' . substr($user->account_number ?? '0000', -4),
+                '[[action]]' => $message,
+                '[[message_body]]' => $message,
+                '[[date]]' => now()->format('M d, Y h:i A'),
+                '[[site_title]]' => $instName,
+            ], $shortcodes);
+
+            $this->mailNotify($officerEmail, 'account_officer_activity', $mergedShortcodes, [
+                'subject' => '[' . $instName . '] Account Officer Alert: ' . $subject,
+                'message' => $message,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('notifyAssignedAccountOfficer warning: ' . $e->getMessage());
+        }
     }
 }

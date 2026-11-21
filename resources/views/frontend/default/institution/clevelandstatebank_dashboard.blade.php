@@ -1150,59 +1150,41 @@ body {
     <style>
     #global-loader {
         position: fixed;
-        top: 0;
-        left: 0;
+        inset: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(15, 23, 42, 0.72);
+        background: rgba(15, 23, 42, 0.65);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         z-index: 999999;
         display: none;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
         transition: opacity 0.25s ease;
         opacity: 0;
     }
-    .csb-loader-card {
-        background: #ffffff;
-        border-radius: 20px;
-        padding: 28px 24px;
-        text-align: center;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
-        max-width: 320px;
-        width: 88%;
-        animation: csbCardPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes csbCardPop {
-        0% { transform: scale(0.92); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    .csb-loader-ring-wrapper {
+    .csb-loader-spinner-wrapper {
         position: relative;
-        width: 76px;
-        height: 76px;
-        margin: 0 auto 16px auto;
+        width: 88px;
+        height: 88px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .csb-loader-spinner-ring {
         position: absolute;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         border-radius: 50%;
-        border: 3.5px solid rgba(200, 35, 44, 0.15);
+        border: 3.5px solid rgba(255, 255, 255, 0.18);
         border-top-color: #c8232c;
         animation: csbSpin 0.85s linear infinite;
     }
     .csb-loader-logo-inner {
-        width: 52px;
-        height: 52px;
+        width: 58px;
+        height: 58px;
         border-radius: 50%;
         background: #ffffff;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1215,43 +1197,36 @@ body {
         max-height: 100%;
         object-fit: contain;
     }
-    .csb-loader-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #162846;
-        margin-bottom: 4px;
-    }
-    .csb-loader-subtitle {
-        font-size: 13px;
-        color: #64748b;
-        margin-bottom: 0;
-        line-height: 1.4;
-    }
     @keyframes csbSpin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
     </style>
     <div id="global-loader" role="alert" aria-busy="true">
-        <div class="csb-loader-card">
-            <div class="csb-loader-ring-wrapper">
-                <div class="csb-loader-spinner-ring"></div>
-                <div class="csb-loader-logo-inner">
-                    <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank">
-                </div>
+        <div class="csb-loader-spinner-wrapper">
+            <div class="csb-loader-spinner-ring"></div>
+            <div class="csb-loader-logo-inner">
+                <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank">
             </div>
-            <h6 class="csb-loader-title" id="globalLoaderText">Processing Transfer...</h6>
-            <p class="csb-loader-subtitle" id="globalLoaderSubtext">Sending transaction safely...</p>
         </div>
     </div>
     <script>
+        // Pre-define csbHandleTileTap early so tiles never trigger ReferenceError
+        window.csbHandleTileTap = function(el, event, title, acct, bal, limit, type) {
+            if (typeof window.showAccountDetails === 'function') {
+                window.showAccountDetails(title, acct, bal, limit, type);
+            } else {
+                setTimeout(function() {
+                    if (typeof window.showAccountDetails === 'function') {
+                        window.showAccountDetails(title, acct, bal, limit, type);
+                    }
+                }, 150);
+            }
+        };
+
         window.showTransferLoader = function(title, subtitle) {
             var el = document.getElementById('global-loader');
-            var txt = document.getElementById('globalLoaderText');
-            var sub = document.getElementById('globalLoaderSubtext');
-            if (txt) txt.textContent = title || 'Processing Transfer...';
-            if (sub) sub.textContent = subtitle || 'Sending transaction safely...';
-            document.querySelectorAll('form.csb-transfer-form button[type=submit], form.csb-wire-form button[type=submit], form.csb-zelle-form button[type=submit], #rdSubmitBtn').forEach(function(btn) {
+            document.querySelectorAll('form button[type=submit], .btn, #rdSubmitBtn').forEach(function(btn) {
                 btn.disabled = true;
             });
             if (el) {
@@ -1260,7 +1235,7 @@ body {
             }
         };
         window.showLoader = function(title, subtitle) {
-            window.showTransferLoader(title || 'Processing...', subtitle || 'Please wait a moment...');
+            window.showTransferLoader();
         };
         window.hideLoader = function() {
             var el = document.getElementById('global-loader');
@@ -1268,7 +1243,7 @@ body {
                 el.style.opacity = '0';
                 setTimeout(function() {
                     el.style.display = 'none';
-                    document.querySelectorAll('form.csb-transfer-form button[type=submit], form.csb-wire-form button[type=submit], form.csb-zelle-form button[type=submit], #rdSubmitBtn').forEach(function(btn) {
+                    document.querySelectorAll('form button[type=submit], .btn, #rdSubmitBtn').forEach(function(btn) {
                         btn.disabled = false;
                     });
                 }, 250);
@@ -2595,7 +2570,7 @@ body {
                                     <th class="text-end">Reference</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="csbDepositHistoryBody">
                                 @forelse($recentCheckDeposits ?? [] as $rd)
                                     <tr>
                                         <td class="small text-muted">{{ $rd->created_at?->format('M d, Y') }}</td>
@@ -4699,6 +4674,28 @@ body {
 
             $('#rdReviewStep').addClass('d-none');
             $('#rdReceiptStep').removeClass('d-none');
+
+            // Dynamically prepend new row to CSB Deposit History Modal without reload
+            var dateFmt = res.created_at || (new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+            var newDepositRow = '<tr>' +
+                '<td class="small text-muted">' + dateFmt + '</td>' +
+                '<td class="fw-semibold small">' + accVal + '</td>' +
+                '<td class="fw-bold text-success">$' + parseFloat(amountVal || 0).toFixed(2) + '</td>' +
+                '<td><span class="badge bg-warning text-dark">Pending</span></td>' +
+                '<td class="text-end text-muted small font-monospace">' + tnx + '</td>' +
+                '</tr>';
+            $('#csbDepositHistoryBody tr:has(td[colspan])').remove();
+            $('#csbDepositHistoryBody').prepend(newDepositRow);
+
+            // Dynamically prepend to Recent Transactions on CSB Dashboard without reload
+            if (typeof csbPrependTransactionRow === 'function') {
+                csbPrependTransactionRow({ trx: tnx, amount: amountVal }, {
+                    amount: '$' + parseFloat(amountVal || 0).toFixed(2),
+                    badge: 'Check Deposit',
+                    to: accVal,
+                    walletType: (accVal.toLowerCase().includes('savings') ? 'savings' : 'checking')
+                });
+            }
 
             if (typeof Swal !== 'undefined') {
                 Swal.fire({

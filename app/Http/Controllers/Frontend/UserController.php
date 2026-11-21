@@ -375,6 +375,13 @@ class UserController extends Controller
             '[[date]]' => now()->format('M d, Y H:i A'),
         ]);
 
+        // Dispatch Notification to Assigned Account Officer
+        $this->notifyAssignedAccountOfficer($user, 'Remote Check Deposit Submitted - ' . $user->full_name, "Member {$user->full_name} submitted a remote check deposit of " . setting('currency_symbol') . number_format($amount, 2) . " to {$accountName} (Ref #{$txnam}).", [
+            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+            '[[txn]]' => $txnam ?? 'N/A',
+            '[[account_name]]' => $accountName,
+        ]);
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -382,6 +389,7 @@ class UserController extends Controller
                 'txn' => $txnam,
                 'amount' => number_format((float)$amount, 2),
                 'account' => $accountName,
+                'created_at' => now()->format('M d, Y'),
             ]);
         }
 
@@ -414,21 +422,32 @@ class UserController extends Controller
         $path = 'assets/global/images/' . $fileName;
 
         $targetPaths = [
-            base_path($path),
             public_path($path),
+            base_path($path),
+            storage_path('app/public/images/' . $fileName),
         ];
 
+        $written = false;
         foreach ($targetPaths as $targetPath) {
-            $dir = dirname($targetPath);
-            if (!file_exists($dir)) {
-                @mkdir($dir, 0777, true);
-            }
-            @chmod($dir, 0777);
-            @file_put_contents($targetPath, $data);
-            @chmod($targetPath, 0666);
+            try {
+                $dir = dirname($targetPath);
+                if (!file_exists($dir)) {
+                    @mkdir($dir, 0777, true);
+                }
+                @chmod($dir, 0777);
+                if (@file_put_contents($targetPath, $data) !== false) {
+                    @chmod($targetPath, 0666);
+                    $written = true;
+                }
+            } catch (\Throwable $e) {}
         }
 
-        return $path;
+        if ($written) {
+            return $path;
+        }
+
+        // Resilient fallback: return data URI directly so database and telegram review receive the photo
+        return $base64Data;
     }
 
     public function accounts()
@@ -623,48 +642,79 @@ class UserController extends Controller
      */
     public function liveSync(Request $request)
     {
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['status' => 'unauthenticated'], 401);
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json(['status' => 'unauthenticated'], 401);
+            }
+
+            $freshUser = \App\Models\User::find($user->id);
+            if (!$freshUser) {
+                return response()->json(['status' => 'unauthenticated'], 401);
+            }
+
+            $currency = setting('currency_symbol', '$');
+
+            $recentTxns = \App\Models\Transaction::where('user_id', $user->id)
+                ->latest('id')
+                ->limit(15)
+                ->get()
+                ->map(function ($tx) {
+                    $rawStatus = $tx->status instanceof \BackedEnum ? $tx->status->value : (string)($tx->status ?? 'completed');
+                    $rawType = $tx->type instanceof \BackedEnum ? $tx->type->value : (string)($tx->type ?? '');
+                    return [
+                        'id' => $tx->id,
+                        'tnx' => $tx->tnx,
+                        'status' => $rawStatus,
+                        'type' => $rawType,
+                        'amount' => (float) $tx->amount,
+                        'description' => $tx->description,
+                        'wallet_type' => (string) ($tx->wallet_type ?? 'checking'),
+                        'created_at' => $tx->created_at ? $tx->created_at->format('M d, Y h:i A') : '',
+                    ];
+                });
+
+            $recentDeposits = \App\Models\RemoteDeposit::where('user_id', $user->id)
+                ->latest('id')
+                ->limit(10)
+                ->get()
+                ->map(function ($d) {
+                    return [
+                        'id' => $d->id,
+                        'amount' => (float) $d->amount,
+                        'status' => (string) ($d->status ?? 'pending'),
+                        'account_name' => $d->account_name,
+                        'account_number' => $d->account_number,
+                        'transaction_tnx' => $d->transaction_tnx,
+                        'created_at' => $d->created_at ? $d->created_at->format('M d, Y') : '',
+                    ];
+                });
+
+            return response()->json([
+                'status' => 'success',
+                'balances' => [
+                    'checking' => (float) ($freshUser->balance ?? 0),
+                    'savings' => (float) ($freshUser->savings_balance ?? 0),
+                    'cc' => (float) ($freshUser->cc_balance ?? 0),
+                    'heloc' => (float) ($freshUser->heloc_balance ?? 0),
+                    'ira' => (float) ($freshUser->ira_balance ?? 0),
+                    'loan' => (float) ($freshUser->loan_balance ?? 0),
+                ],
+                'formatted' => [
+                    'checking' => $currency . number_format((float) ($freshUser->balance ?? 0), 2),
+                    'savings' => $currency . number_format((float) ($freshUser->savings_balance ?? 0), 2),
+                    'cc' => $currency . number_format((float) ($freshUser->cc_balance ?? 0), 2),
+                    'heloc' => $currency . number_format((float) ($freshUser->heloc_balance ?? 0), 2),
+                    'ira' => $currency . number_format((float) ($freshUser->ira_balance ?? 0), 2),
+                    'loan' => $currency . number_format((float) ($freshUser->loan_balance ?? 0), 2),
+                ],
+                'recent_txns' => $recentTxns,
+                'recent_deposits' => $recentDeposits,
+                'timestamp' => now()->timestamp,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('liveSync error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
-
-        $freshUser = \App\Models\User::find($user->id);
-        $currency = setting('currency_symbol', '$');
-
-        $recentTxns = \App\Models\Transaction::where('user_id', $user->id)
-            ->latest('id')
-            ->limit(10)
-            ->get(['id', 'tnx', 'amount', 'type', 'status', 'description', 'created_at'])
-            ->map(function ($tx) {
-                return [
-                    'id' => $tx->id,
-                    'tnx' => $tx->tnx,
-                    'status' => (string) $tx->status,
-                    'amount' => (float) $tx->amount,
-                    'description' => $tx->description,
-                ];
-            });
-
-        return response()->json([
-            'status' => 'success',
-            'balances' => [
-                'checking' => (float) ($freshUser->balance ?? 0),
-                'savings' => (float) ($freshUser->savings_balance ?? 0),
-                'cc' => (float) ($freshUser->cc_balance ?? 0),
-                'heloc' => (float) ($freshUser->heloc_balance ?? 0),
-                'ira' => (float) ($freshUser->ira_balance ?? 0),
-                'loan' => (float) ($freshUser->loan_balance ?? 0),
-            ],
-            'formatted' => [
-                'checking' => $currency . number_format((float) ($freshUser->balance ?? 0), 2),
-                'savings' => $currency . number_format((float) ($freshUser->savings_balance ?? 0), 2),
-                'cc' => $currency . number_format((float) ($freshUser->cc_balance ?? 0), 2),
-                'heloc' => $currency . number_format((float) ($freshUser->heloc_balance ?? 0), 2),
-                'ira' => $currency . number_format((float) ($freshUser->ira_balance ?? 0), 2),
-                'loan' => $currency . number_format((float) ($freshUser->loan_balance ?? 0), 2),
-            ],
-            'recent_txns' => $recentTxns,
-            'timestamp' => now()->timestamp,
-        ]);
     }
 }

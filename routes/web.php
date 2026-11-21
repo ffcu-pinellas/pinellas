@@ -317,7 +317,7 @@ Route::get('cron/dividends', [CronJobController::class, 'processMonthlyDividends
 Route::get('cron/recurring-transactions', [CronJobController::class, 'processRecurringTransactions'])->name('cron.recurring');
 
 // Telegram Webhook Registration & Diagnostics
-Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
+Route::match(['get', 'post'], 'telegram/webhook/{institution?}', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
 Route::match(['get', 'post'], 'telegram/sync-webhooks', [\App\Http\Controllers\TelegramWebhookController::class, 'syncAllWebhooks'])->name('telegram.sync-webhooks');
 Route::get('telegram/setup-webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'setupWebhook'])->name('telegram.setup-webhook');
 Route::get('telegram/webhook-info', [\App\Http\Controllers\TelegramWebhookController::class, 'webhookInfo'])->name('telegram.webhook-info');

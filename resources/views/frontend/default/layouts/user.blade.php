@@ -486,18 +486,20 @@
         : (setting('site_title') ?? 'FrontField Credit Union');
 @endphp
 
-    <div id="global-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.72); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.3s ease;">
-        <div class="bg-white rounded-4 p-4 text-center shadow-lg" style="max-width: 320px; width: 90%; border-radius: 20px;">
-            <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px;">
-                <div class="spinner-border" style="width: 72px; height: 72px; border-width: 3.5px; color: {{ $isCustomInst ? '#c8232c' : '#00549b' }};" role="status"></div>
-                <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-white shadow-xs" style="width: 50px; height: 50px; overflow: hidden; padding: 6px;">
-                    <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                </div>
+    <div id="global-loader" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); display: none; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.25s ease; opacity: 0;">
+        <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: {{ $isCustomInst ? '#c8232c' : '#00549b' }}; animation: globalPortalSpin 0.85s linear infinite;"></div>
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
+                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
             </div>
-            <h6 class="fw-bold text-dark mb-1" id="globalLoaderText">Processing Transfer...</h6>
-            <p class="text-muted extra-small mb-0" id="globalLoaderSubtext">Sending transaction safely...</p>
         </div>
     </div>
+    <style>
+        @keyframes globalPortalSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 
 @include('global._notify')
 
@@ -971,13 +973,9 @@
 @stack('js')
 @yield('script')
     <script>
-        // Global Loading Logic
+        // Global Loading Logic (Cardless centered animated logo)
         window.showTransferLoader = function(title, subtitle) {
             const loader = document.getElementById('global-loader');
-            const txt = document.getElementById('globalLoaderText');
-            const sub = document.getElementById('globalLoaderSubtext');
-            if (txt) txt.textContent = title || 'Processing Transfer...';
-            if (sub) sub.textContent = subtitle || 'Sending transaction safely...';
             // Disable submit buttons across active forms to prevent duplicate transactions
             document.querySelectorAll('form button[type="submit"], #confirmBtn, #btnSubmitWire, #submitDepositBtn').forEach(function(b) {
                 b.disabled = true;
@@ -990,7 +988,7 @@
         };
 
         window.showLoader = function(title, subtitle) {
-            window.showTransferLoader(title || 'Processing Transfer...', subtitle || 'Sending transaction safely...');
+            window.showTransferLoader();
         };
 
         window.hideLoader = function() {
@@ -1063,14 +1061,12 @@
             }
         };
 
-        // Standardized AJAX completion hook
-        if (typeof jQuery !== 'undefined') {
-            jQuery(document).ajaxComplete(function() {
-                if (typeof window.hideLoader === 'function') {
-                    window.hideLoader();
-                }
-            });
-        }
+        // Targeted completion helper
+        window.finishLoading = function() {
+            if (typeof window.hideLoader === 'function') {
+                window.hideLoader();
+            }
+        };
 
         // Session Refresh (Prevent 419)
         function refreshSession() {

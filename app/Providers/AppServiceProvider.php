@@ -73,5 +73,8 @@ class AppServiceProvider extends ServiceProvider
         // Set string length to 255
         Schema::defaultStringLength(255);
 
+        // Ensure user passkey column exists dynamically
+        \App\Models\User::ensurePasskeyColumn();
+
     }
 }

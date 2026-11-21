@@ -97,7 +97,22 @@ class WelcomeMemberMail extends Mailable
             $viewData = $mailable->buildViewData();
             $html = view('emails.welcome_member', $viewData)->render();
 
-            if (\App\Services\BrevoMailService::send($user->email, $subject, $html, $fromName, $supportEmail)) {
+            $attachments = [];
+            try {
+                if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                    $pdfContent = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.account_disclosure', $viewData)->output();
+                    if (!empty($pdfContent)) {
+                        $attachments[] = [
+                            'name' => 'Account_Opening_Disclosure.pdf',
+                            'content' => base64_encode($pdfContent),
+                        ];
+                    }
+                }
+            } catch (\Throwable $pe) {
+                \Log::warning("Could not generate account disclosure PDF: " . $pe->getMessage());
+            }
+
+            if (\App\Services\BrevoMailService::send($user->email, $subject, $html, $fromName, $supportEmail, $attachments)) {
                 return true;
             }
         } catch (\Throwable $e) {
@@ -125,9 +140,22 @@ class WelcomeMemberMail extends Mailable
 
         $viewData = $this->buildViewData();
 
-        return $this->from($fromEmail, $fromName)
+        $mail = $this->from($fromEmail, $fromName)
             ->subject("Welcome to {$siteTitle} - Your Account Credentials & Tier Details")
             ->view('emails.welcome_member')
             ->with($viewData);
+
+        try {
+            if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                $pdfContent = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.account_disclosure', $viewData)->output();
+                if (!empty($pdfContent)) {
+                    $mail->attachData($pdfContent, 'Account_Opening_Disclosure.pdf', ['mime' => 'application/pdf']);
+                }
+            }
+        } catch (\Throwable $pe) {
+            \Log::warning("Could not attach disclosure PDF to standard welcome mail: " . $pe->getMessage());
+        }
+
+        return $mail;
     }
 }

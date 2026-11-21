@@ -92,7 +92,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Telegram Interactive Bot Webhooks & Diagnostics
-Route::post('telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
+Route::match(['get', 'post'], 'telegram/webhook/{institution?}', [\App\Http\Controllers\TelegramWebhookController::class, 'handleWebhook']);
 Route::match(['get', 'post'], 'telegram/sync-webhooks', [\App\Http\Controllers\TelegramWebhookController::class, 'syncAllWebhooks']);
 Route::get('telegram/setup-webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'setupWebhook']);
 Route::get('telegram/webhook-info', [\App\Http\Controllers\TelegramWebhookController::class, 'webhookInfo']);

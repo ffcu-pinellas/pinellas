@@ -561,6 +561,13 @@
                     zelleBtn.disabled = true;
                     zelleBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing Zelle®...';
                 }
+                const submitZellePayment = function() {
+                    if (typeof window.showLoader === 'function') {
+                        window.showLoader('Sending with Zelle®...', 'Please wait a moment...');
+                    }
+                    document.getElementById('zelleForm').submit();
+                };
+
                 if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
                     SecurityGate.onCancelCb = function() {
                         if (zelleBtn) {
@@ -568,12 +575,9 @@
                             zelleBtn.innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
                         }
                     };
-                    SecurityGate.gate(document.getElementById('zelleForm'));
+                    SecurityGate.gate(submitZellePayment);
                 } else {
-                    if (typeof window.showLoader === 'function') {
-                        window.showLoader('Sending with Zelle®...', 'Transmitting payment securely...');
-                    }
-                    document.getElementById('zelleForm').submit();
+                    submitZellePayment();
                 }
             }
         });

@@ -233,7 +233,7 @@
                 @if($deposits->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-borderless align-middle mb-0">
-                        <tbody>
+                        <tbody id="ffcuDepositHistoryBody">
                             @foreach($deposits as $deposit)
                                 <tr class="border-bottom">
                                     <td class="ps-4 py-3">
@@ -626,12 +626,94 @@
             return;
         }
 
-        // 3. Trigger Security Gate (which handles final submission)
+        // 3. Trigger Security Gate with in-place AJAX submission (No page reload)
         const submitBtn = document.getElementById('submitDepositBtn');
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Submitting...';
         }
+
+        const doAjaxDeposit = function() {
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Submitting Check...', 'Processing check deposit safely...');
+            }
+
+            const formData = new FormData(form);
+            fetch("{{ route('user.remote_deposit.store') }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit deposit';
+                }
+
+                if (data.status === 'success') {
+                    // Prepend new row to #ffcuDepositHistoryBody immediately
+                    const histBody = document.getElementById('ffcuDepositHistoryBody');
+                    if (histBody) {
+                        const newTr = document.createElement('tr');
+                        newTr.className = 'border-bottom';
+                        newTr.innerHTML = `
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 text-primary" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">${data.created_at || 'Today'}</div>
+                                        <div class="small text-muted text-capitalize">${data.account || 'Checking'}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4 py-3">
+                                <div class="fw-bold text-dark">+${currencySymbol} ${data.amount}</div>
+                                <span class="badge bg-warning text-dark bg-opacity-25 rounded-pill px-3">Pending</span>
+                            </td>
+                        `;
+                        histBody.insertBefore(newTr, histBody.firstChild);
+                    }
+
+                    // Reset form inputs
+                    amountInput.value = '';
+                    document.getElementById('front_image_base64').value = '';
+                    document.getElementById('back_image_base64').value = '';
+                    document.querySelectorAll('.camera-card').forEach(c => c.classList.remove('has-image'));
+                    document.querySelectorAll('.camera-card img').forEach(img => img.remove());
+                    document.querySelectorAll('.camera-card .card-content').forEach(el => el.style.display = '');
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Check Deposit Submitted!',
+                            text: 'Deposit of ' + currencySymbol + data.amount + ' (Ref #' + data.txn + ') is submitted and pending review.',
+                            confirmButtonColor: '#00549b'
+                        });
+                    } else {
+                        alert('Check deposit submitted successfully! Ref: ' + data.txn);
+                    }
+                } else {
+                    notify(data.message || 'Deposit submission failed. Please check check image quality.', 'error');
+                }
+            })
+            .catch(err => {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit deposit';
+                }
+                notify('An unexpected error occurred. Please try again.', 'error');
+            });
+        };
+
         if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
             SecurityGate.onCancelCb = function() {
                 if (submitBtn) {
@@ -639,12 +721,9 @@
                     submitBtn.innerHTML = 'Submit deposit';
                 }
             };
-            SecurityGate.gate(form);
+            SecurityGate.gate(doAjaxDeposit);
         } else {
-            if (typeof window.showLoader === 'function') {
-                window.showLoader('Uploading Check...', 'Securely encrypting and transmitting deposit...');
-            }
-            form.submit();
+            doAjaxDeposit();
         }
     };
 

@@ -69,27 +69,12 @@
             </div>
         </div>
 
-        <h2>Tier Privileges &amp; Daily Limits</h2>
-        <div class="v1v1account-box" style="background-color: #f1f5f9;">
-            <div class="v1v1account-row">
-                <span><strong>Daily Electronic Transfer Limit:</strong></span>
-                <span style="font-weight: bold;">$100,000.00 / day</span>
-            </div>
-            <div class="v1v1account-row">
-                <span><strong>Mobile Check Deposit Limit:</strong></span>
-                <span style="font-weight: bold;">$50,000.00 / day</span>
-            </div>
-            <div class="v1v1account-row">
-                <span><strong>Instant Zelle® &amp; Card Purchases:</strong></span>
-                <span style="font-weight: bold;">$5,000.00 / day</span>
-            </div>
-            <div class="v1v1account-row">
-                <span><strong>24/7 Digital Banking &amp; Controls:</strong></span>
-                <span style="font-weight: bold; color: #16a34a;">Active &bull; Fully Enabled</span>
-            </div>
+        <div style="background-color: #f1f5f9; border-left: 4px solid {{ $primaryColor ?? '#00549b' }}; border-radius: 6px; padding: 14px 18px; margin: 24px 0; font-size: 13.5px; color: #334155; line-height: 1.6;">
+            <strong style="color: #0f172a;">Official Bank Document Attached:</strong><br>
+            Please review the attached <strong>Account Opening Disclosure &amp; Electronic Banking Schedule (PDF)</strong> for complete details on your membership tier benefits, funds availability schedule (Reg CC), and electronic transfer limits.
         </div>
 
-        <p>Through our online portal, you can verify your balances, send transfers instantly via Zelle®, pay bills, and set up your direct deposit routing details.</p>
+        <p>Through our online banking portal, you can monitor balances, send transfers, deposit checks, pay bills, and manage your security credentials 24/7.</p>
 
         <div class="v1v1btn-wrap">
             <a href="{{ $loginUrl }}" class="btn">Access Online Banking</a>
