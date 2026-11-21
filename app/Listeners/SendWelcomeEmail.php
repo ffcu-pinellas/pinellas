@@ -26,7 +26,7 @@ class SendWelcomeEmail
 
         try {
             if ($user && $user->email) {
-                Mail::to($user->email)->send(new WelcomeMemberMail($user));
+                \App\Mail\WelcomeMemberMail::dispatchWelcome($user);
             }
         } catch (\Exception $e) {
             Log::error("Failed to send welcome email to {$user->email}: " . $e->getMessage());

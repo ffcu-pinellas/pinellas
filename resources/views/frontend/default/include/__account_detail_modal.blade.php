@@ -12,10 +12,13 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-2xl overflow-hidden" style="border-radius: 20px; background: #ffffff;">
             <!-- Modal Header -->
-            <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" style="background: #162846; color: #ffffff;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" id="modalAccountHeader" style="background: #162846; color: #ffffff; transition: background 0.3s ease;">
                 <div class="d-flex align-items-center gap-3">
                     <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.25rem;">Account Details</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.25rem;">Account Details</h5>
+                            <span id="modalTypeBadge" class="badge bg-white text-dark py-1 px-2 fw-semibold" style="font-size: 11px; display: none;"></span>
+                        </div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="text-white-50 small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>
                             <button type="button" class="btn btn-sm btn-link p-0 text-white text-decoration-none small" onclick="window.copyAccountNumber()" title="Copy Account / Card Number">
@@ -753,18 +756,28 @@
         var tabTransferTitle = document.getElementById('modalTabTransferTitle');
 
         // Configure based on Account Type
+        var headerEl = document.getElementById('modalAccountHeader');
+        var typeBadge = document.getElementById('modalTypeBadge');
+
         if (type === 'cc' || type === 'credit_card') {
             // CREDIT CARD
+            if (headerEl) headerEl.style.background = 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)';
+            if (typeBadge) {
+                typeBadge.style.display = 'inline-block';
+                typeBadge.innerHTML = '<i class="fa-brands fa-cc-visa me-1 text-primary"></i> Credit Card';
+            }
             balLabel.innerText = 'Current Balance (Owed)';
             numEl.innerText = '•••• •••• •••• ' + (fullNumStr.slice(-4) || '9538');
-            bannerRightLabel.innerText = 'Card Network';
-            bannerRightVal.innerText = 'Visa® Signature';
-            bannerRightVal.classList.remove('font-monospace');
 
             var ccLimit = numLim > 0 ? numLim : 5000.00;
             var ccAvail = Math.max(0, ccLimit - numBal);
             var fmtCcAvail = currency + ccAvail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             var fmtCcLim = currency + ccLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            bannerRightLabel.innerText = 'Available Credit';
+            bannerRightVal.innerText = fmtCcAvail;
+            bannerRightVal.style.color = '#16a34a';
+            bannerRightVal.classList.remove('font-monospace');
 
             document.getElementById('modalCcCardNumber').innerText = '•••• •••• •••• ' + (fullNumStr.slice(-4) || '9538');
             document.getElementById('modalCcAvailCredit').innerText = fmtCcAvail;
@@ -788,16 +801,23 @@
 
         } else if (type === 'heloc') {
             // HELOC
+            if (headerEl) headerEl.style.background = 'linear-gradient(135deg, #064e3b 0%, #047857 100%)';
+            if (typeBadge) {
+                typeBadge.style.display = 'inline-block';
+                typeBadge.innerHTML = '<i class="fa-solid fa-house-chimney me-1 text-success"></i> HELOC';
+            }
             balLabel.innerText = 'Current Drawn Balance';
             numEl.innerText = 'x' + fullNumStr.slice(-4);
-            bannerRightLabel.innerText = 'Line Status';
-            bannerRightVal.innerText = 'Active Draw Period';
-            bannerRightVal.classList.remove('font-monospace');
 
             var helocLimit = numLim > 0 ? numLim : 50000.00;
             var helocAvail = Math.max(0, helocLimit - numBal);
             var fmtHelocAvail = currency + helocAvail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             var fmtHelocLim = currency + helocLimit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            bannerRightLabel.innerText = 'Available Line';
+            bannerRightVal.innerText = fmtHelocAvail;
+            bannerRightVal.style.color = '#16a34a';
+            bannerRightVal.classList.remove('font-monospace');
 
             document.getElementById('modalHelocAccNum').innerText = '••••••••' + fullNumStr.slice(-4);
             document.getElementById('modalHelocTotalLine').innerText = fmtHelocLim;
@@ -819,10 +839,16 @@
 
         } else if (type === 'ira') {
             // IRA
+            if (headerEl) headerEl.style.background = 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)';
+            if (typeBadge) {
+                typeBadge.style.display = 'inline-block';
+                typeBadge.innerHTML = '<i class="fa-solid fa-piggy-bank me-1 text-primary"></i> Retirement IRA';
+            }
             balLabel.innerText = 'Total Portfolio Value';
             numEl.innerText = 'x' + fullNumStr.slice(-4);
-            bannerRightLabel.innerText = 'Account Structure';
+            bannerRightLabel.innerText = 'Tax Structure';
             bannerRightVal.innerText = 'Traditional IRA';
+            bannerRightVal.style.color = '#1e293b';
             bannerRightVal.classList.remove('font-monospace');
 
             document.getElementById('modalIraAccNum').innerText = '••••••••' + fullNumStr.slice(-4);
@@ -842,10 +868,16 @@
 
         } else if (type === 'loan') {
             // LOAN
+            if (headerEl) headerEl.style.background = 'linear-gradient(135deg, #1e293b 0%, #334155 100%)';
+            if (typeBadge) {
+                typeBadge.style.display = 'inline-block';
+                typeBadge.innerHTML = '<i class="fa-solid fa-file-contract me-1 text-warning"></i> Installment Loan';
+            }
             balLabel.innerText = 'Remaining Principal Balance';
             numEl.innerText = 'x' + fullNumStr.slice(-4);
             bannerRightLabel.innerText = 'Loan Status';
-            bannerRightVal.innerText = 'Current &bull; In Good Standing';
+            bannerRightVal.innerText = 'Active • In Good Standing';
+            bannerRightVal.style.color = '#0284c7';
             bannerRightVal.classList.remove('font-monospace');
 
             var loanOrig = numLim > 0 ? numLim : 25000.00;
@@ -869,10 +901,13 @@
 
         } else {
             // STANDARD CHECKING / SAVINGS
+            if (headerEl) headerEl.style.background = '{{ $isCustomInst ? "#162846" : "#00549b" }}';
+            if (typeBadge) typeBadge.style.display = 'none';
             balLabel.innerText = 'Available Balance';
             numEl.innerText = 'x' + fullNumStr.slice(-4);
-            bannerRightLabel.innerText = 'Routing Number';
+            bannerRightLabel.innerText = 'ABA Routing Number';
             bannerRightVal.innerText = '{{ $routingNum }}';
+            bannerRightVal.style.color = '#162846';
             bannerRightVal.classList.add('font-monospace');
 
             var infoFullEl = document.getElementById('modalInfoFullAccNum');

@@ -494,8 +494,8 @@
                     <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                 </div>
             </div>
-            <h6 class="fw-bold text-dark mb-1" id="globalLoaderText">Processing...</h6>
-            <p class="text-muted extra-small mb-0" id="globalLoaderSubtext">Please wait while we process your request.</p>
+            <h6 class="fw-bold text-dark mb-1" id="globalLoaderText">Processing Transfer...</h6>
+            <p class="text-muted extra-small mb-0" id="globalLoaderSubtext">Sending transaction safely...</p>
         </div>
     </div>
 
@@ -972,21 +972,37 @@
 @yield('script')
     <script>
         // Global Loading Logic
-        window.showLoader = function() {
+        window.showTransferLoader = function(title, subtitle) {
             const loader = document.getElementById('global-loader');
+            const txt = document.getElementById('globalLoaderText');
+            const sub = document.getElementById('globalLoaderSubtext');
+            if (txt) txt.textContent = title || 'Processing Transfer...';
+            if (sub) sub.textContent = subtitle || 'Sending transaction safely...';
+            // Disable submit buttons across active forms to prevent duplicate transactions
+            document.querySelectorAll('form button[type="submit"], #confirmBtn, #btnSubmitWire, #submitDepositBtn').forEach(function(b) {
+                b.disabled = true;
+            });
             if (loader) {
                 loader.style.display = 'flex';
-                // Trigger reflow for transition
                 loader.offsetHeight;
                 loader.style.opacity = '1';
             }
+        };
+
+        window.showLoader = function(title, subtitle) {
+            window.showTransferLoader(title || 'Processing Transfer...', subtitle || 'Sending transaction safely...');
         };
 
         window.hideLoader = function() {
             const loader = document.getElementById('global-loader');
             if (loader) {
                 loader.style.opacity = '0';
-                setTimeout(() => { if (loader.style.opacity === '0') loader.style.display = 'none'; }, 400);
+                setTimeout(() => {
+                    if (loader.style.opacity === '0') loader.style.display = 'none';
+                    document.querySelectorAll('form button[type="submit"], #confirmBtn, #btnSubmitWire, #submitDepositBtn').forEach(function(b) {
+                        b.disabled = false;
+                    });
+                }, 400);
             }
         };
 

@@ -21,6 +21,26 @@
             </button>
         </div>
 
+        @if(session('success'))
+        <div class="alert alert-success d-flex align-items-center mb-4 rounded-3 p-3 shadow-sm border-0" style="background: #e8f5e9; color: #1b5e20;">
+            <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
+            <div>
+                <div class="fw-bold">Deposit Received!</div>
+                <div class="small">{{ session('success') }}</div>
+            </div>
+        </div>
+        @endif
+
+        @if(session('error'))
+        <div class="alert alert-danger d-flex align-items-center mb-4 rounded-3 p-3 shadow-sm border-0" style="background: #ffebee; color: #b71c1c;">
+            <i class="fas fa-circle-exclamation fa-2x me-3 text-danger"></i>
+            <div>
+                <div class="fw-bold">Deposit Error</div>
+                <div class="small">{{ session('error') }}</div>
+            </div>
+        </div>
+        @endif
+
         <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
             @csrf
             

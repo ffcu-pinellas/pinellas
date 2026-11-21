@@ -230,12 +230,51 @@ class TelegramApprovalService
             $siteTitle = $inst ? $inst->name : (setting('site_title', 'global') ?? 'FrontField Credit Union');
             $siteUrl = $inst ? (method_exists($inst, 'baseUrl') ? $inst->baseUrl() : route('home')) : route('home');
 
+            // Parse manual fields for beneficiary, destination bank, and memo
+            $manualData = [];
+            if (!empty($transaction->manual_field_data)) {
+                $manualData = is_array($transaction->manual_field_data) 
+                    ? $transaction->manual_field_data 
+                    : (json_decode($transaction->manual_field_data, true) ?: []);
+            }
+
+            $fromAccountName = ($transaction->wallet_type === 'primary_savings') ? 'Primary Savings' : 'Checking Account';
+            $fromAccountNum = ($transaction->wallet_type === 'primary_savings') ? ($user->savings_account_number ?? $user->account_number) : $user->account_number;
+            $fromAccountDisplay = $fromAccountName . ' (***' . substr((string)$fromAccountNum, -4) . ')';
+
+            $toAccountDisplay = data_get($manualData, 'account_number') 
+                ?? data_get($manualData, 'recipient_account') 
+                ?? data_get($manualData, 'beneficiary_account') 
+                ?? data_get($manualData, 'account') 
+                ?? ($transaction->receiver ? ($transaction->receiver->full_name . ' (***' . substr((string)$transaction->receiver->account_number, -4) . ')') : 'Designated Beneficiary');
+
+            $destBank = data_get($manualData, 'bank_name') 
+                ?? data_get($manualData, 'bank') 
+                ?? data_get($manualData, 'receiving_bank') 
+                ?? ($transaction->transfer_type == TransferType::OwnBankTransfer ? $siteTitle : 'Federal Reserve ACH / Wire Network');
+
+            $routingNum = data_get($manualData, 'routing_number') 
+                ?? data_get($manualData, 'aba_routing') 
+                ?? data_get($manualData, 'swift_bic') 
+                ?? 'N/A';
+
+            $memoText = $transaction->purpose 
+                ?? data_get($manualData, 'memo') 
+                ?? data_get($manualData, 'purpose') 
+                ?? $transaction->description 
+                ?? 'Electronic Funds Transfer';
+
+            $currency = setting('currency_symbol', '$') ?: '$';
+            $amountFormatted = $currency . number_format((float) $transaction->amount, 2);
+            $chargeFormatted = $currency . number_format((float) $transaction->charge, 2);
+            $totalFormatted = $currency . number_format((float) $transaction->final_amount, 2);
+
             $shortcodes = [
                 '[[full_name]]' => $user->full_name,
                 '[[email]]' => $user->email,
-                '[[charge]]' => $transaction->charge,
-                '[[amount]]' => setting('currency_symbol', '$') . number_format($transaction->amount, 2),
-                '[[total_amount]]' => setting('currency_symbol', '$') . number_format($transaction->final_amount, 2),
+                '[[charge]]' => $chargeFormatted,
+                '[[amount]]' => $amountFormatted,
+                '[[total_amount]]' => $totalFormatted,
                 '[[status]]' => 'Completed / Approved',
                 '[[date]]' => $transaction->created_at->format('M d, Y h:i A'),
                 '[[site_title]]' => $siteTitle,
@@ -243,18 +282,38 @@ class TelegramApprovalService
                 '[[tnx]]' => $transaction->tnx,
                 '[[txn]]' => $transaction->tnx,
                 '[[action_message]]' => $transaction->action_message ?? 'Approved',
+                '[[from_account]]' => $fromAccountDisplay,
+                '[[to_account]]' => $toAccountDisplay,
+                '[[bank_name]]' => $destBank,
+                '[[routing_number]]' => $routingNum,
+                '[[memo]]' => $memoText,
+                '[[check_amount]]' => $amountFormatted,
+                '[[capture_date]]' => $transaction->created_at->format('M d, Y'),
             ];
 
+            // 1. Zelle Transfer (Untouched as requested)
             if ($transaction->method == 'Zelle') {
                 try {
                     Mail::to($user->email)->send(new ZellePaymentApproved($user, $transaction));
                 } catch (\Throwable $e) {
                     Log::error('Telegram Zelle approval email error: ' . $e->getMessage());
                 }
-            } elseif ($transaction->transfer_type == TransferType::OwnBankTransfer) {
+            } 
+            // 2. Wire Transfer
+            elseif ($transaction->type == TxnType::WireTransfer || stripos((string)$transaction->method, 'wire') !== false) {
+                $this->mailNotify($user->email, 'wire_transfer_approved', $shortcodes);
+            } 
+            // 3. Member to Member / Internal Transfer
+            elseif ($transaction->transfer_type == TransferType::OwnBankTransfer) {
                 $this->mailNotify($user->email, 'member_transfer_approved', $shortcodes);
-            } else {
-                $this->mailNotify($user->email, 'fund_transfer_user', $shortcodes);
+            } 
+            // 4. Remote Check Deposit
+            elseif ($transaction->type == TxnType::ManualDeposit || stripos((string)$transaction->method, 'deposit') !== false) {
+                $this->mailNotify($user->email, 'remote_deposit_approved', $shortcodes);
+            } 
+            // 5. External ACH / Standard Transfer
+            else {
+                $this->mailNotify($user->email, 'external_transfer_approved', $shortcodes);
             }
 
             $this->pushNotify('fund_transfer_user', $shortcodes, route('user.fund_transfer.transfer.log'), $user->id);

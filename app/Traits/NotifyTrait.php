@@ -178,6 +178,42 @@ trait NotifyTrait
     }
 
     /**
+     * Render a clean, institutional-grade banking receipt HTML table.
+     */
+    protected function renderStructuredReceiptHtml(array $rows, string $amount, string $statusText, string $transferType, string $brandColor = '#00549b'): string
+    {
+        $html = '<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px 20px; margin: 15px 0; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Arial, sans-serif;">';
+        
+        // Status header & amount
+        $html .= '<div style="text-align: center; padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">';
+        $html .= '<div style="display: inline-block; background-color: #ecfdf5; color: #047857; font-weight: 700; font-size: 12px; padding: 5px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">';
+        $html .= '&#10003; ' . htmlspecialchars($statusText) . '</div>';
+        $html .= '<div style="font-size: 32px; font-weight: 800; color: #0f172a; margin: 4px 0;">' . htmlspecialchars($amount) . '</div>';
+        $html .= '<div style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">' . htmlspecialchars($transferType) . ' Confirmation</div>';
+        $html .= '</div>';
+        
+        // Summary Key-Value Rows
+        $html .= '<table style="width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13.5px;">';
+        foreach ($rows as $label => $val) {
+            if ($val === null || $val === '' || $val === 'N/A') continue;
+            $html .= '<tr style="border-bottom: 1px solid #f1f5f9;">';
+            $html .= '<td style="padding: 10px 0; color: #64748b; font-weight: 500; vertical-align: top;">' . htmlspecialchars($label) . '</td>';
+            $html .= '<td style="padding: 10px 0; text-align: right; color: #0f172a; font-weight: 600; vertical-align: top;">' . htmlspecialchars($val) . '</td>';
+            $html .= '</tr>';
+        }
+        $html .= '</table>';
+        
+        // Reassurance footer
+        $html .= '<div style="margin-top: 18px; padding: 12px 14px; background-color: #ffffff; border-left: 3px solid ' . htmlspecialchars($brandColor) . '; border-radius: 4px; font-size: 12px; color: #475569; line-height: 1.5;">';
+        $html .= 'This transaction has been authorized, processed, and recorded on the banking ledger. Funds have been transmitted via secure payment networks.';
+        $html .= '</div>';
+        
+        $html .= '</div>';
+        
+        return $html;
+    }
+
+    /**
      * Sanitize plain text to scrub any user-facing Telegram mentions.
      */
     protected function scrubTelegramText(?string $text): string
@@ -411,22 +447,96 @@ trait NotifyTrait
             ];
 
             // Specific Fallbacks for commonly missing templates
+            $tnxRef = $shortcodes['[[tnx]]'] ?? ($shortcodes['[[txn]]'] ?? 'TRX');
+            $amtVal = $shortcodes['[[amount]]'] ?? '$0.00';
+            $fromAcc = $shortcodes['[[from_account]]'] ?? 'Checking Account';
+            $toAcc = $shortcodes['[[to_account]]'] ?? 'Designated Beneficiary';
+            $destBank = $shortcodes['[[bank_name]]'] ?? 'Federal Reserve Clearing Network';
+            $routing = $shortcodes['[[routing_number]]'] ?? 'N/A';
+            $feeVal = $shortcodes['[[charge]]'] ?? '$0.00';
+            $totVal = $shortcodes['[[total_amount]]'] ?? $amtVal;
+            $memoVal = $shortcodes['[[memo]]'] ?? 'Electronic Funds Transfer';
+            $dateVal = $shortcodes['[[date]]'] ?? now()->format('M d, Y h:i A');
+
             if ($code === 'wire_transfer' || $code === 'wire_transfer_request') {
-                $details['subject'] = 'Wire Transfer Order Submitted - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['subject'] = 'Wire Transfer Order Submitted - Ref #' . $tnxRef;
                 $details['title'] = 'Wire Transfer Submitted';
-                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer instruction has been successfully recorded and is pending final clearing and settlement.';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Transfer Type' => 'Federal Reserve Wire Network',
+                    'Amount' => $amtVal,
+                    'Wire Fee' => $feeVal,
+                    'Total Deducted' => $totVal,
+                    'From Account' => $fromAcc,
+                    'Beneficiary' => $toAcc,
+                    'Receiving Bank' => $destBank,
+                    'Routing / SWIFT' => $routing,
+                    'Reference #' => $tnxRef,
+                    'Submitted At' => $dateVal,
+                ], $amtVal, 'Pending Final Settlement', 'Wire Transfer', $primaryColor);
             } elseif ($code === 'wire_transfer_approved') {
-                $details['subject'] = 'Wire Transfer Dispatched & Settlement Complete - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['subject'] = 'Wire Transfer Dispatched & Settlement Complete - Ref #' . $tnxRef;
                 $details['title'] = 'Wire Transfer Completed';
-                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer has been reviewed, authorized, and successfully dispatched.';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Status' => 'Dispatched & Settled',
+                    'Amount Transferred' => $amtVal,
+                    'Wire Fee' => $feeVal,
+                    'Total Debited' => $totVal,
+                    'From Account' => $fromAcc,
+                    'Beneficiary' => $toAcc,
+                    'Beneficiary Institution' => $destBank,
+                    'Routing / SWIFT' => $routing,
+                    'Federal Reference #' => $tnxRef,
+                    'Settlement Date' => $dateVal,
+                ], $amtVal, 'Completed', 'Fedwire Transfer', $primaryColor);
             } elseif ($code === 'wire_transfer_rejected') {
-                $details['subject'] = 'Wire Transfer Order Cancelled & Refunded - Ref #' . ($shortcodes['[[tnx]]'] ?? 'TRX');
+                $details['subject'] = 'Wire Transfer Order Cancelled & Refunded - Ref #' . $tnxRef;
                 $details['title'] = 'Wire Order Cancelled';
-                $details['message_body'] = $shortcodes['[[message_body]]'] ?? $shortcodes['[[message]]'] ?? 'Your wire transfer request could not be processed and has been cancelled. Funds have been refunded to your account balance.';
+                $details['message_body'] = 'Your wire transfer request (Ref #' . $tnxRef . ') could not be completed and has been cancelled. Funds (' . $totVal . ') have been safely returned to your available balance.<br><br><strong>Reason:</strong> ' . ($shortcodes['[[message]]'] ?? 'Unable to verify recipient routing details with receiving bank.');
+            } elseif ($code === 'external_transfer_approved' || $code === 'fund_transfer_user' || $code === 'fund_transfer_approved') {
+                $details['subject'] = 'Transfer Approved & Dispatched - Ref #' . $tnxRef;
+                $details['title'] = 'Transfer Successfully Settled';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Status' => 'Completed / Dispatched',
+                    'Amount Sent' => $amtVal,
+                    'Transfer Fee' => $feeVal,
+                    'Total Deducted' => $totVal,
+                    'From Account' => $fromAcc,
+                    'Recipient / Payee' => $toAcc,
+                    'Receiving Bank' => $destBank,
+                    'Routing Transit' => $routing,
+                    'Confirmation Number' => $tnxRef,
+                    'Date & Time' => $dateVal,
+                    'Memo' => $memoVal,
+                ], $amtVal, 'Approved & Settled', 'ACH / External Transfer', $primaryColor);
+            } elseif ($code === 'member_transfer_approved') {
+                $details['subject'] = 'Member Transfer Approved & Delivered - Ref #' . $tnxRef;
+                $details['title'] = 'Transfer Successfully Completed';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Status' => 'Credited to Recipient',
+                    'Amount Transferred' => $amtVal,
+                    'Fee' => '$0.00 (Free Member Transfer)',
+                    'From Account' => $fromAcc,
+                    'Recipient Account' => $toAcc,
+                    'Confirmation Number' => $tnxRef,
+                    'Processed Date' => $dateVal,
+                    'Memo / Note' => $memoVal,
+                ], $amtVal, 'Delivered', 'Member-to-Member Transfer', $primaryColor);
+            } elseif ($code === 'remote_deposit_approved') {
+                $checkAmt = $shortcodes['[[check_amount]]'] ?? $amtVal;
+                $details['subject'] = 'Mobile Check Deposit Cleared & Credited - Ref #' . $tnxRef;
+                $details['title'] = 'Check Deposit Cleared';
+                $details['message_body'] = $this->renderStructuredReceiptHtml([
+                    'Status' => 'Cleared & Available',
+                    'Check Amount' => $checkAmt,
+                    'Deposited To' => $toAcc,
+                    'Confirmation #' => $tnxRef,
+                    'Funds Availability' => 'Immediate Access',
+                    'Settlement Date' => $dateVal,
+                ], $checkAmt, 'Funds Cleared', 'Mobile Check Deposit', $primaryColor);
             } elseif ($code === 'remote_deposit_submitted') {
                 $details['subject'] = 'Check Deposit Received - ' . $siteTitle;
                 $details['title'] = 'Check Received';
-                $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? 'the specified amount') . ' to your ' . ($shortcodes['[[account_name]]'] ?? 'account') . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.';
+                $details['message_body'] = 'We have received your mobile check deposit of ' . ($shortcodes['[[amount]]'] ?? $amtVal) . ' to your ' . ($shortcodes['[[account_name]]'] ?? $toAcc) . '. Our team is now reviewing the deposit. You will receive another notification once it is processed and completed or if more information is needed.<br><br><strong>Deposit Reference:</strong> ' . $tnxRef;
             } elseif ($code === 'card_status_update') {
                 $details['subject'] = 'Security Alert: Card Status Changed';
                 $details['title'] = 'Card Update';

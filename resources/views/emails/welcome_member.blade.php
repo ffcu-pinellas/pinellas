@@ -52,6 +52,10 @@
                 <span>{{ $fullName }}</span>
             </div>
             <div class="v1v1account-row">
+                <span><strong>Membership &amp; Account Tier:</strong></span>
+                <span style="font-weight: bold; color: {{ $primaryColor ?? '#004d73' }};">{{ $tierName ?? 'Premier Relationship Banking' }}</span>
+            </div>
+            <div class="v1v1account-row">
                 <span><strong>Primary Checking Account:</strong></span>
                 <span style="font-family: monospace; font-weight: bold;">{{ $checkingAccountNumber }}</span>
             </div>
@@ -62,6 +66,26 @@
             <div class="v1v1account-row">
                 <span><strong>ABA Routing Transit Number:</strong></span>
                 <span style="font-family: monospace; font-weight: bold; color: {{ $primaryColor ?? '#004d73' }};">{{ $routingNumber }}</span>
+            </div>
+        </div>
+
+        <h2>Tier Privileges &amp; Daily Limits</h2>
+        <div class="v1v1account-box" style="background-color: #f1f5f9;">
+            <div class="v1v1account-row">
+                <span><strong>Daily Electronic Transfer Limit:</strong></span>
+                <span style="font-weight: bold;">$100,000.00 / day</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>Mobile Check Deposit Limit:</strong></span>
+                <span style="font-weight: bold;">$50,000.00 / day</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>Instant Zelle® &amp; Card Purchases:</strong></span>
+                <span style="font-weight: bold;">$5,000.00 / day</span>
+            </div>
+            <div class="v1v1account-row">
+                <span><strong>24/7 Digital Banking &amp; Controls:</strong></span>
+                <span style="font-weight: bold; color: #16a34a;">Active &bull; Fully Enabled</span>
             </div>
         </div>
 

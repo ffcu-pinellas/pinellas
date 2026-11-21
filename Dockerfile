@@ -46,7 +46,10 @@ COPY . .
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && mkdir -p /var/www/html/assets/global/images /var/www/html/public/assets/global/images \
+    && chown -R www-data:www-data /var/www/html/assets /var/www/html/public/assets /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 777 /var/www/html/assets /var/www/html/public/assets /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Setup entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

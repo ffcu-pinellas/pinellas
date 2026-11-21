@@ -32,7 +32,7 @@ class TransactionGeneratorController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'count' => 'required|integer|min:1|max:50',
+            'count' => 'required|integer|min:1|max:100',
             'min_amount' => 'required|numeric|min:0.01',
             'max_amount' => 'required|numeric|min:0.01|gte:min_amount',
             'direction' => 'required|in:income,outcome,both',
@@ -52,35 +52,113 @@ class TransactionGeneratorController extends Controller
         $themes = [
             'standard' => [
                 'income' => [
+                    ['label' => 'Payroll Direct Deposit - ADP', 'cat' => 'large'],
+                    ['label' => 'Gusto Payroll PPD Direct Dep', 'cat' => 'large'],
+                    ['label' => 'Workday Corporate Salary Dep', 'cat' => 'large'],
+                    ['label' => 'IRS TREAS 310 - TAX REF', 'cat' => 'large'],
+                    ['label' => 'State Tax Refund Direct Dep', 'cat' => 'medium'],
+                    ['label' => 'SSA TREAS 310 - SOC SEC', 'cat' => 'medium'],
                     ['label' => 'Rental Reimbursement', 'cat' => 'medium'],
-                    ['label' => 'Insurance Claim Payout', 'cat' => 'large'],
-                    ['label' => 'Gift - Birthday Funds', 'cat' => 'small']
+                    ['label' => 'Insurance Claim Settlement Payout', 'cat' => 'large'],
+                    ['label' => 'Gift - Birthday / Celebration Funds', 'cat' => 'small'],
+                    ['label' => 'Mobile Remote Check Deposit', 'cat' => 'medium'],
+                    ['label' => 'ATM Cash Deposit', 'cat' => 'small'],
+                    ['label' => 'Dividend Payout - Fidelity Investments', 'cat' => 'small'],
+                    ['label' => 'Vanguard Index Fund Distribution', 'cat' => 'medium'],
+                    ['label' => 'Charles Schwab Settlement Credit', 'cat' => 'large'],
+                    ['label' => 'Consulting Professional Fee Pmt', 'cat' => 'large'],
+                    ['label' => 'Freelance Design Retainer PPD', 'cat' => 'medium'],
+                    ['label' => 'Stripe Merchant Payout Transfer', 'cat' => 'large'],
+                    ['label' => 'Square Inc Merchant Daily Payout', 'cat' => 'medium'],
+                    ['label' => 'PayPal Transfer to Bank Account', 'cat' => 'small'],
+                    ['label' => 'Venmo Cashout Transfer', 'cat' => 'small'],
+                    ['label' => 'Zelle Payment Received from Contact', 'cat' => 'small'],
+                    ['label' => 'Cash App Cash Out Direct Dep', 'cat' => 'small'],
+                    ['label' => 'Interest Payment Credit', 'cat' => 'micro'],
+                    ['label' => 'Annual Cash Back Bonus Reward', 'cat' => 'small'],
+                    ['label' => 'Apple Card Daily Cash Payout', 'cat' => 'micro'],
+                    ['label' => 'Travel Expense Reimbursement Concur', 'cat' => 'medium'],
+                    ['label' => 'Health Savings HSA Payout Dist', 'cat' => 'small'],
+                    ['label' => 'Escrow Balance Surplus Return', 'cat' => 'large'],
+                    ['label' => 'Tuition / Educational Stipend Dep', 'cat' => 'medium'],
+                    ['label' => 'Automobile Rebate Settlement', 'cat' => 'medium'],
                 ],
                 'outcome' => [
-                    ['label' => 'Amazon.com Order', 'cat' => 'small'],
-                    ['label' => 'Starbucks Coffee', 'cat' => 'micro'],
-                    ['label' => 'Walmart Supercenter', 'cat' => 'small'],
-                    ['label' => 'Netflix Subscription', 'cat' => 'sub'],
-                    ['label' => 'Uber Trip', 'cat' => 'micro'],
-                    ['label' => 'Shell Gas Station', 'cat' => 'small'],
-                    ['label' => 'McDonald\'s Store', 'cat' => 'micro'],
-                    ['label' => 'Target Store Purchase', 'cat' => 'small'],
-                    ['label' => 'Apple Services - iCloud', 'cat' => 'sub'],
-                    ['label' => 'Spotify Premium', 'cat' => 'sub'],
-                    ['label' => 'Costco Wholesale', 'cat' => 'medium'],
-                    ['label' => 'Whole Foods Market', 'cat' => 'small'],
-                    ['label' => 'Dunkin\' Donuts', 'cat' => 'micro'],
-                    ['label' => '7-Eleven Purchase', 'cat' => 'micro'],
-                    ['label' => 'Walgreens Pharmacy', 'cat' => 'small'],
-                    ['label' => 'CVS Pharmacy', 'cat' => 'small'],
-                    ['label' => 'Chick-fil-A', 'cat' => 'micro'],
-                    ['label' => 'Panera Bread', 'cat' => 'micro'],
-                    ['label' => 'Chipotle Mexican Grill', 'cat' => 'micro'],
-                    ['label' => 'Home Depot - Small Tools', 'cat' => 'small'],
-                    ['label' => 'Best Buy - Electronics', 'cat' => 'medium'],
-                    ['label' => 'Petco - Animal Supplies', 'cat' => 'small'],
-                    ['label' => 'Adobe Creative Cloud', 'cat' => 'sub'],
-                    ['label' => 'NY Times Subscription', 'cat' => 'sub']
+                    ['label' => 'Amazon.com Marketplace Order', 'cat' => 'small'],
+                    ['label' => 'Amazon Prime Monthly Membership', 'cat' => 'sub'],
+                    ['label' => 'Starbucks Coffee Drive-Thru', 'cat' => 'micro'],
+                    ['label' => 'Walmart Supercenter Groceries', 'cat' => 'small'],
+                    ['label' => 'Walmart.com Online Purchase', 'cat' => 'small'],
+                    ['label' => 'Target Store In-Store Purchase', 'cat' => 'small'],
+                    ['label' => 'Target.com Delivery Order', 'cat' => 'small'],
+                    ['label' => 'Costco Wholesale Warehouse', 'cat' => 'medium'],
+                    ['label' => 'Costco Gasoline Pump', 'cat' => 'small'],
+                    ['label' => 'Sam\'s Club Member Purchase', 'cat' => 'medium'],
+                    ['label' => 'Whole Foods Market Natural Foods', 'cat' => 'small'],
+                    ['label' => 'Trader Joe\'s Specialty Market', 'cat' => 'small'],
+                    ['label' => 'Publix Super Markets Food & Deli', 'cat' => 'small'],
+                    ['label' => 'Kroger Groceries and Pharmacy', 'cat' => 'small'],
+                    ['label' => 'ALDI Food Market Fresh Produce', 'cat' => 'small'],
+                    ['label' => 'The Home Depot Hardware & Paint', 'cat' => 'medium'],
+                    ['label' => 'Lowe\'s Home Improvement Tools', 'cat' => 'medium'],
+                    ['label' => 'Best Buy Electronics & Cables', 'cat' => 'medium'],
+                    ['label' => 'Apple Store Retail Electronics', 'cat' => 'large'],
+                    ['label' => 'Apple Services - iCloud Subscription', 'cat' => 'sub'],
+                    ['label' => 'Apple Music Monthly Subscription', 'cat' => 'sub'],
+                    ['label' => 'Netflix Premium 4K Streaming', 'cat' => 'sub'],
+                    ['label' => 'Spotify Premium Family Plan', 'cat' => 'sub'],
+                    ['label' => 'Hulu & Disney+ Streaming Bundle', 'cat' => 'sub'],
+                    ['label' => 'YouTube Premium Individual', 'cat' => 'sub'],
+                    ['label' => 'HBO Max Streaming Service', 'cat' => 'sub'],
+                    ['label' => 'Adobe Creative Cloud All Apps', 'cat' => 'sub'],
+                    ['label' => 'New York Times Digital Access', 'cat' => 'sub'],
+                    ['label' => 'Uber Trip Ride Fare', 'cat' => 'micro'],
+                    ['label' => 'Uber Eats Food Delivery Order', 'cat' => 'small'],
+                    ['label' => 'DoorDash Restaurant Delivery', 'cat' => 'small'],
+                    ['label' => 'Instacart Grocery Delivery Service', 'cat' => 'small'],
+                    ['label' => 'Lyft Direct Ride Transit', 'cat' => 'micro'],
+                    ['label' => 'Shell Oil Fuel & Mart', 'cat' => 'small'],
+                    ['label' => 'Chevron Gasoline Service Station', 'cat' => 'small'],
+                    ['label' => 'ExxonMobil Fuel Station', 'cat' => 'small'],
+                    ['label' => 'BP Gas Station & Convenience', 'cat' => 'small'],
+                    ['label' => 'Wawa Store Gasoline & Food', 'cat' => 'small'],
+                    ['label' => 'Circle K Mart & Convenience', 'cat' => 'micro'],
+                    ['label' => '7-Eleven Convenience Store', 'cat' => 'micro'],
+                    ['label' => 'McDonald\'s Quick Service Restaurant', 'cat' => 'micro'],
+                    ['label' => 'Chick-fil-A Lunch & Catering', 'cat' => 'micro'],
+                    ['label' => 'Wendy\'s Restaurant Store', 'cat' => 'micro'],
+                    ['label' => 'Chipotle Mexican Grill Meal', 'cat' => 'micro'],
+                    ['label' => 'Panera Bread Bakery-Cafe', 'cat' => 'micro'],
+                    ['label' => 'Dunkin\' Donuts Coffee & Bagels', 'cat' => 'micro'],
+                    ['label' => 'Subway Sandwiches Store', 'cat' => 'micro'],
+                    ['label' => 'Taco Bell Drive-Thru', 'cat' => 'micro'],
+                    ['label' => 'Panda Express Chinese Kitchen', 'cat' => 'micro'],
+                    ['label' => 'Walgreens Health & Pharmacy', 'cat' => 'small'],
+                    ['label' => 'CVS Pharmacy Health Store', 'cat' => 'small'],
+                    ['label' => 'Rite Aid Pharmacy Store', 'cat' => 'small'],
+                    ['label' => 'Petco Animal Supplies & Food', 'cat' => 'small'],
+                    ['label' => 'PetSmart Supplies & Grooming', 'cat' => 'small'],
+                    ['label' => 'Chewy.com Pet Supplies Order', 'cat' => 'small'],
+                    ['label' => 'Verizon Wireless Monthly AutoPay', 'cat' => 'medium'],
+                    ['label' => 'AT&T Mobility Wireless Service', 'cat' => 'medium'],
+                    ['label' => 'T-Mobile Cellular Monthly Bill', 'cat' => 'medium'],
+                    ['label' => 'Spectrum High Speed Internet Service', 'cat' => 'small'],
+                    ['label' => 'Comcast Xfinity Cable & Broadband', 'cat' => 'medium'],
+                    ['label' => 'Duke Energy Residential Electric', 'cat' => 'medium'],
+                    ['label' => 'Florida Power & Light Electric Pmt', 'cat' => 'medium'],
+                    ['label' => 'Con Edison Gas & Electric Service', 'cat' => 'medium'],
+                    ['label' => 'Municipal Water & Sewer Utility Bill', 'cat' => 'small'],
+                    ['label' => 'Waste Management Trash Collection', 'cat' => 'micro'],
+                    ['label' => 'GEICO Auto Insurance AutoPay', 'cat' => 'medium'],
+                    ['label' => 'State Farm Mutual Auto Insurance', 'cat' => 'medium'],
+                    ['label' => 'Progressive Insurance Monthly Premium', 'cat' => 'medium'],
+                    ['label' => 'Planet Fitness Monthly Membership', 'cat' => 'micro'],
+                    ['label' => 'Equinox Fitness Club Membership', 'cat' => 'medium'],
+                    ['label' => 'AutoZone Auto Parts & Accessories', 'cat' => 'small'],
+                    ['label' => 'Advance Auto Parts Retail Store', 'cat' => 'small'],
+                    ['label' => 'USPS Post Office Stamps & Ship', 'cat' => 'micro'],
+                    ['label' => 'FedEx Office Shipping Services', 'cat' => 'small'],
+                    ['label' => 'UPS Store Packing and Shipping', 'cat' => 'small'],
                 ]
             ],
             'crypto' => [
@@ -991,6 +1069,8 @@ class TransactionGeneratorController extends Controller
         $intl_cities = ['LON', 'PAR', 'BER', 'TYO', 'TOR', 'VAN', 'SIN', 'DXB', 'FRA'];
         
         $branch = ' #'.rand(1000, 9999);
+        $store = ' STORE '.rand(100, 9999);
+        $term = ' TERM '.rand(10, 99);
         $txnId = ' *'.rand(100000, 999999);
         
         // Add realistic bank-style prefixes based on category
@@ -1004,16 +1084,18 @@ class TransactionGeneratorController extends Controller
         if ($intl) {
             $label .= ' ' . $intl_cities[array_rand($intl_cities)];
         } else {
-            // 50% chance of city code for variety
-            if (rand(0, 1)) {
+            // 60% chance of city code for variety
+            if (rand(0, 10) > 4) {
                 $label .= ' ' . $us_cities[array_rand($us_cities)];
             }
         }
 
-        // Add Branch/Txn ID "Noise"
-        $mod = rand(0, 3);
+        // Add Branch/Txn ID/Store "Noise" to guarantee uniqueness
+        $mod = rand(0, 4);
         if ($mod == 1) $label .= $branch;
         if ($mod == 2) $label .= $txnId;
+        if ($mod == 3) $label .= $store;
+        if ($mod == 4) $label .= $term;
 
         return strtoupper($label); // Real bank statements are often uppercase
     }

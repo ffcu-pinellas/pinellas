@@ -253,11 +253,11 @@
                                     <div class="site-input-groups mb-0">
                                         <label class="input-label mb-1">
                                             {{ __('Number of Items') }}
-                                            <span data-bs-toggle="tooltip" title="{{ __('Total number of transactions to generate (Max 20).') }}" class="ms-1 cursor-pointer">
+                                            <span data-bs-toggle="tooltip" title="{{ __('Total number of transactions to generate (Max 100).') }}" class="ms-1 cursor-pointer">
                                                 <i data-lucide="info" class="icon-xs"></i>
                                             </span>
                                         </label>
-                                        <input type="number" name="count" class="form-control" value="5" min="1" max="20" required>
+                                        <input type="number" name="count" class="form-control" value="5" min="1" max="100" required>
                                     </div>
                                 </div>
                                 <div class="col-xl-6 text-start">

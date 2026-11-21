@@ -298,7 +298,7 @@ class UserController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Image processing failed: ' . $e->getMessage()], 422);
             }
             notify()->error('Image capture failed: ' . $e->getMessage());
-            return redirect()->back()->withInput();
+            return redirect()->back()->withInput()->with('error', 'Image processing failed: ' . $e->getMessage());
         }
 
         // Determine Account Details
@@ -386,7 +386,7 @@ class UserController extends Controller
         }
 
         notify()->success('Remote deposit submitted successfully and is pending review.');
-        return redirect()->route('user.remote_deposit');
+        return redirect()->route('user.remote_deposit')->with('success', __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
     }
 
     /**
@@ -412,9 +412,21 @@ class UserController extends Controller
 
         $fileName = \Str::random(20) . '.' . $type;
         $path = 'assets/global/images/' . $fileName;
-        $fullPath = public_path($path);
-        \File::ensureDirectoryExists(dirname($fullPath));
-        \File::put($fullPath, $data);
+
+        $targetPaths = [
+            base_path($path),
+            public_path($path),
+        ];
+
+        foreach ($targetPaths as $targetPath) {
+            $dir = dirname($targetPath);
+            if (!file_exists($dir)) {
+                @mkdir($dir, 0777, true);
+            }
+            @chmod($dir, 0777);
+            @file_put_contents($targetPath, $data);
+            @chmod($targetPath, 0666);
+        }
 
         return $path;
     }

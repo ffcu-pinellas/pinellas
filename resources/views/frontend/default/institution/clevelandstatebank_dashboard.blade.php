@@ -1146,7 +1146,7 @@ body {
 </head>
 <body>
 
-    <!-- Global Loader (CSB Brand) -->
+    <!-- Global Loader (CSB Clean Brand, No Shield, Clear Progress Text) -->
     <style>
     #global-loader {
         position: fixed;
@@ -1154,45 +1154,124 @@ body {
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: rgba(255, 255, 255, 0.75);
+        background: rgba(15, 23, 42, 0.72);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
         z-index: 999999;
         display: none;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.25s ease;
         opacity: 0;
     }
-    .loader-spinner {
-        width: 60px;
-        height: 60px;
-        border: 4px solid rgba(22, 40, 70, 0.15);
-        border-top: 4px solid #c8232c;
+    .csb-loader-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 28px 24px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+        max-width: 320px;
+        width: 88%;
+        animation: csbCardPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes csbCardPop {
+        0% { transform: scale(0.92); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .csb-loader-ring-wrapper {
+        position: relative;
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 16px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .csb-loader-spinner-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
         border-radius: 50%;
-        animation: csbSpin 0.8s linear infinite;
+        border: 3.5px solid rgba(200, 35, 44, 0.15);
+        border-top-color: #c8232c;
+        animation: csbSpin 0.85s linear infinite;
+    }
+    .csb-loader-logo-inner {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 7px;
+        z-index: 2;
+    }
+    .csb-loader-logo-inner img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+    .csb-loader-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #162846;
+        margin-bottom: 4px;
+    }
+    .csb-loader-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 0;
+        line-height: 1.4;
     }
     @keyframes csbSpin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
     </style>
-    <div id="global-loader">
-        <div class="loader-spinner"></div>
+    <div id="global-loader" role="alert" aria-busy="true">
+        <div class="csb-loader-card">
+            <div class="csb-loader-ring-wrapper">
+                <div class="csb-loader-spinner-ring"></div>
+                <div class="csb-loader-logo-inner">
+                    <img src="{{ asset('assets/institutions/clevelandstatebank/images/logo.png') }}" alt="Cleveland State Bank">
+                </div>
+            </div>
+            <h6 class="csb-loader-title" id="globalLoaderText">Processing Transfer...</h6>
+            <p class="csb-loader-subtitle" id="globalLoaderSubtext">Sending transaction safely...</p>
+        </div>
     </div>
     <script>
-        window.showLoader = function() {
+        window.showTransferLoader = function(title, subtitle) {
             var el = document.getElementById('global-loader');
+            var txt = document.getElementById('globalLoaderText');
+            var sub = document.getElementById('globalLoaderSubtext');
+            if (txt) txt.textContent = title || 'Processing Transfer...';
+            if (sub) sub.textContent = subtitle || 'Sending transaction safely...';
+            document.querySelectorAll('form.csb-transfer-form button[type=submit], form.csb-wire-form button[type=submit], form.csb-zelle-form button[type=submit], #rdSubmitBtn').forEach(function(btn) {
+                btn.disabled = true;
+            });
             if (el) {
                 el.style.display = 'flex';
                 setTimeout(function() { el.style.opacity = '1'; }, 10);
             }
         };
+        window.showLoader = function(title, subtitle) {
+            window.showTransferLoader(title || 'Processing...', subtitle || 'Please wait a moment...');
+        };
         window.hideLoader = function() {
             var el = document.getElementById('global-loader');
             if (el) {
                 el.style.opacity = '0';
-                setTimeout(function() { el.style.display = 'none'; }, 250);
+                setTimeout(function() {
+                    el.style.display = 'none';
+                    document.querySelectorAll('form.csb-transfer-form button[type=submit], form.csb-wire-form button[type=submit], form.csb-zelle-form button[type=submit], #rdSubmitBtn').forEach(function(btn) {
+                        btn.disabled = false;
+                    });
+                }, 250);
             }
         };
     </script>
@@ -1390,11 +1469,11 @@ body {
             <div class="balance-summary-row">
                 <div class="summary-block">
                     <div class="summary-label">Total Deposits {{ $depositAccountCount }} {{ $depositAccountCount === 1 ? 'Account' : 'Accounts' }}</div>
-                    <div class="summary-amount">{{ $currency }}{{ number_format($totalDepositAmount, 2) }}</div>
+                    <div class="summary-amount" data-csb-summary="deposits">{{ $currency }}{{ number_format($totalDepositAmount, 2) }}</div>
                 </div>
                 <div class="summary-block">
                     <div class="summary-label">Total Loans {{ $loanAccountCount }} {{ $loanAccountCount === 1 ? 'Account' : 'Accounts' }}</div>
-                    <div class="summary-amount">{{ $currency }}{{ number_format($totalLoanSum, 2) }}</div>
+                    <div class="summary-amount" data-csb-summary="loans">{{ $currency }}{{ number_format($totalLoanSum, 2) }}</div>
                 </div>
             </div>
 
@@ -1410,7 +1489,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="checking">
                                     {{ $currency }}{{ number_format($checkingBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
@@ -1422,7 +1501,7 @@ body {
                                 <span class="ledger-title">LEDGER BALANCE</span>
                                 <span class="ledger-badge">POSTED</span>
                             </div>
-                            <div class="ledger-amount">
+                            <div class="ledger-amount" data-csb-ledger="checking">
                                 {{ $currency }}{{ number_format($checkingBal, 2) }}
                             </div>
                             <div class="ledger-meta">
@@ -1443,7 +1522,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="savings">
                                     {{ $currency }}{{ number_format($savingsBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
@@ -1454,7 +1533,7 @@ body {
                                 <span class="ledger-title">LEDGER BALANCE</span>
                                 <span class="ledger-badge">POSTED</span>
                             </div>
-                            <div class="ledger-amount">
+                            <div class="ledger-amount" data-csb-ledger="savings">
                                 {{ $currency }}{{ number_format($savingsBal, 2) }}
                             </div>
                             <div class="ledger-meta">
@@ -1476,7 +1555,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number ?? '0000', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="ira">
                                     {{ $currency }}{{ number_format($iraBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Available</span>
@@ -1487,7 +1566,7 @@ body {
                                 <span class="ledger-title">LEDGER BALANCE</span>
                                 <span class="ledger-badge">POSTED</span>
                             </div>
-                            <div class="ledger-amount">
+                            <div class="ledger-amount" data-csb-ledger="ira">
                                 {{ $currency }}{{ number_format($iraBal, 2) }}
                             </div>
                             <div class="ledger-meta">
@@ -1509,7 +1588,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="heloc">
                                     {{ $currency }}{{ number_format($helocBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Current Balance</span>
@@ -1542,7 +1621,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}C00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="cc">
                                     {{ $currency }}{{ number_format($ccBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Current Balance</span>
@@ -1575,7 +1654,7 @@ body {
                                 <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}L00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
-                                <div class="tile-balance">
+                                <div class="tile-balance" data-csb-balance="loan">
                                     {{ $currency }}{{ number_format($loanBal, 2) }}
                                 </div>
                                 <span class="badge bg-light text-muted border extra-small" style="font-size: 10px;">Principal Due</span>
@@ -1586,7 +1665,7 @@ body {
                                 <span class="ledger-title">PRINCIPAL PAYOFF</span>
                                 <span class="badge bg-info-subtle text-info fw-bold" style="font-size: 10px;">LOAN</span>
                             </div>
-                            <div class="ledger-amount text-info">
+                            <div class="ledger-amount text-info" data-csb-ledger="loan">
                                 {{ $currency }}{{ number_format($loanBal, 2) }}
                             </div>
                             <div class="ledger-meta">
@@ -4220,7 +4299,11 @@ body {
         $btn.data('orig', origText);
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> Processing Transfer...');
 
-        if (typeof window.showLoader === 'function') window.showLoader();
+        if (typeof window.showTransferLoader === 'function') {
+            window.showTransferLoader('Processing Transfer...', 'Sending transaction safely...');
+        } else if (typeof window.showLoader === 'function') {
+            window.showLoader();
+        }
 
         // Ensure security_verified is set in form data
         if (!$form.find('input[name="security_verified"]').length) {
@@ -4686,6 +4769,194 @@ body {
             })
             .always(function() { $btn.prop('disabled', false).html('<i class="fa-solid fa-file-circle-exclamation me-1"></i> FILE OFFICIAL DISPUTE'); });
     });
+
+    // ── Real-Time CSB Account & Approval Auto-Sync Poller ──
+    (function() {
+        var lastBalances = null;
+        var lastTxns = null;
+        var isSyncing = false;
+
+        function syncAccountLive() {
+            if (document.hidden || isSyncing) return;
+            isSyncing = true;
+
+            fetch("{{ route('user.live-sync') }}", {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                isSyncing = false;
+                if (!data || data.status !== 'success' || !data.balances) return;
+
+                var curBals = data.balances;
+                var fmtBals = data.formatted;
+
+                if (lastBalances !== null) {
+                    var hasChanged = false;
+                    for (var k in curBals) {
+                        if (curBals[k] !== lastBalances[k]) {
+                            hasChanged = true;
+                            break;
+                        }
+                    }
+
+                    if (hasChanged) {
+                        // 1. Update checking
+                        if (fmtBals.checking) {
+                            document.querySelectorAll('[data-csb-balance="checking"], #checkingBalance').forEach(function(el) {
+                                el.textContent = fmtBals.checking;
+                                flashBalanceUpdate(el);
+                            });
+                            document.querySelectorAll('[data-csb-ledger="checking"]').forEach(function(el) {
+                                el.textContent = fmtBals.checking;
+                            });
+                        }
+
+                        // 2. Update savings
+                        if (fmtBals.savings) {
+                            document.querySelectorAll('[data-csb-balance="savings"], #savingsBalance').forEach(function(el) {
+                                el.textContent = fmtBals.savings;
+                                flashBalanceUpdate(el);
+                            });
+                            document.querySelectorAll('[data-csb-ledger="savings"]').forEach(function(el) {
+                                el.textContent = fmtBals.savings;
+                            });
+                        }
+
+                        // 3. Update IRA, HELOC, CC, Loan
+                        if (fmtBals.ira) {
+                            document.querySelectorAll('[data-csb-balance="ira"]').forEach(function(el) {
+                                el.textContent = fmtBals.ira;
+                                flashBalanceUpdate(el);
+                            });
+                            document.querySelectorAll('[data-csb-ledger="ira"]').forEach(function(el) {
+                                el.textContent = fmtBals.ira;
+                            });
+                        }
+                        if (fmtBals.heloc) {
+                            document.querySelectorAll('[data-csb-balance="heloc"]').forEach(function(el) {
+                                el.textContent = fmtBals.heloc;
+                                flashBalanceUpdate(el);
+                            });
+                        }
+                        if (fmtBals.cc) {
+                            document.querySelectorAll('[data-csb-balance="cc"]').forEach(function(el) {
+                                el.textContent = fmtBals.cc;
+                                flashBalanceUpdate(el);
+                            });
+                        }
+                        if (fmtBals.loan) {
+                            document.querySelectorAll('[data-csb-balance="loan"]').forEach(function(el) {
+                                el.textContent = fmtBals.loan;
+                                flashBalanceUpdate(el);
+                            });
+                            document.querySelectorAll('[data-csb-ledger="loan"]').forEach(function(el) {
+                                el.textContent = fmtBals.loan;
+                            });
+                        }
+
+                        // 4. Update Total Deposits
+                        var totalDep = (parseFloat(curBals.checking) || 0) + (parseFloat(curBals.savings) || 0) + (parseFloat(curBals.ira) || 0);
+                        var totalDepFmt = "{{ $currency }}" + totalDep.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        document.querySelectorAll('[data-csb-summary="deposits"]').forEach(function(el) {
+                            el.textContent = totalDepFmt;
+                            flashBalanceUpdate(el);
+                        });
+
+                        // 5. Update form selects
+                        updateSelectBalance('#csbSelfFromWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbSelfFromWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbSelfToWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbSelfToWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbMemberFromWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbMemberFromWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbExtFromWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbExtFromWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbWireFromWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbWireFromWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbZelleFromWallet option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbZelleFromWallet option[value="savings"]', fmtBals.savings);
+                        updateSelectBalance('#csbRdAccountSelect option[value="checking"]', fmtBals.checking);
+                        updateSelectBalance('#csbRdAccountSelect option[value="savings"]', fmtBals.savings);
+                    }
+                }
+                lastBalances = curBals;
+
+                // Check recent transactions status update
+                if (data.recent_txns && Array.isArray(data.recent_txns)) {
+                    if (lastTxns !== null) {
+                        data.recent_txns.forEach(function(tx) {
+                            var oldTx = lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; });
+                            if (oldTx && oldTx.status !== tx.status) {
+                                var isApproved = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
+                                var isRejected = (tx.status === 'rejected' || tx.status == 3);
+                                var statusLabel = isApproved ? 'Approved' : (isRejected ? 'Declined' : tx.status);
+
+                                var rows = document.querySelectorAll('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"]');
+                                rows.forEach(function(r) {
+                                    r.setAttribute('data-tx-status', statusLabel);
+                                    var badge = r.querySelector('.badge');
+                                    if (badge) {
+                                        if (isApproved) {
+                                            badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+                                            badge.textContent = 'Approved';
+                                        } else if (isRejected) {
+                                            badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+                                            badge.textContent = 'Declined';
+                                        }
+                                    }
+                                });
+
+                                if (typeof Swal !== 'undefined') {
+                                    const Toast = Swal.mixin({
+                                        toast: true,
+                                        position: 'top-end',
+                                        showConfirmButton: false,
+                                        timer: 4500,
+                                        timerProgressBar: true
+                                    });
+                                    Toast.fire({
+                                        icon: isApproved ? 'success' : 'info',
+                                        title: 'Transaction ' + (isApproved ? 'Approved' : statusLabel),
+                                        text: (tx.description || tx.tnx) + ' has been updated.'
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    lastTxns = data.recent_txns;
+                }
+            })
+            .catch(function() { isSyncing = false; });
+        }
+
+        function flashBalanceUpdate(el) {
+            if (!el) return;
+            var origColor = el.style.color;
+            el.style.transition = 'color 0.4s ease';
+            el.style.color = '#16a34a';
+            setTimeout(function() { el.style.color = origColor || ''; }, 2200);
+        }
+
+        function updateSelectBalance(selector, formattedVal) {
+            var opt = document.querySelector(selector);
+            if (opt && formattedVal) {
+                var parts = opt.textContent.split('—');
+                if (parts.length > 0) {
+                    opt.textContent = parts[0].trim() + ' — ' + formattedVal;
+                }
+            }
+        }
+
+        setTimeout(function() {
+            syncAccountLive();
+            setInterval(syncAccountLive, 4000);
+        }, 2000);
+    })();
     </script>
     <script src="{{ asset('assets/front/js/apexcharts.js') }}"></script>
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=1.1"></script>

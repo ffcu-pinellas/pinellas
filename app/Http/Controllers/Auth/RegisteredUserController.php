@@ -430,6 +430,13 @@ class RegisteredUserController extends Controller
             Auth::login($user);
             LoginActivities::add();
 
+            // Dispatch official welcome email with credentials & tier details immediately upon registration
+            try {
+                \App\Mail\WelcomeMemberMail::dispatchWelcome($user);
+            } catch (\Throwable $we) {
+                \Log::warning("Welcome email dispatch upon registration notice: " . $we->getMessage());
+            }
+
             $request->session()->put('newly_registered', true);
             Session::forget('step1');
 

@@ -220,6 +220,7 @@ class AvaController extends Controller
             ['regex' => '/^(thank you|thanks|bye|goodbye|appreciate it)/', 'name' => 'POLITENESS'],
 
             // 16. Security & Profile modifications
+            ['regex' => '/(biometric|biometrics|passkey|passkeys|face id|touch id|fingerprint|windows hello)/', 'name' => 'SECURITY_PROFILE'],
             ['regex' => '/(change|update|reset|forgot|modify|setup).*(password|pin|passcode|email|phone|profile|address|settings|2fa|two factor)/', 'name' => 'SECURITY_PROFILE'],
             
             // 17. Wire Transfers
@@ -764,10 +765,16 @@ class AvaController extends Controller
 
     private function handleSecurityProfile()
     {
+        $msg = "Manage your authentication and security credentials:<br><br>";
+        $msg .= "• <strong>Biometrics & Passkeys:</strong> Enroll Face ID, Touch ID, or Windows Hello for instant 1-touch sign-in and approvals.<br>";
+        $msg .= "• <strong>Transaction Security PIN:</strong> Change or reset your 4-digit transfer authorization PIN.<br>";
+        $msg .= "• <strong>Verification Priority:</strong> Set your preferred approval method (Biometrics, Email Code, or PIN).<br>";
+        $msg .= "• <strong>Password & 2FA:</strong> Update your online banking password or enable two-factor verification.";
+
         return response()->json([
             'type' => 'card',
-            'title' => 'Profile & Security',
-            'message' => "Need to update your password, PIN, Email, or 2FA settings? You can execute these actions immediately via the secure settings portal.",
+            'title' => 'Profile, Passkeys & Security',
+            'message' => $msg,
             'actions' => [
                 ['label' => 'Open Security Settings', 'url' => route('user.setting.security'), 'class' => 'btn-primary'],
                 ['label' => 'Edit My Profile', 'url' => route('user.setting.show'), 'class' => 'btn-outline-primary']
