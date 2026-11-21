@@ -177,6 +177,8 @@ class TelegramWebhookController extends Controller
                 $targetSlug = 'clevelandstatebank';
             } elseif (app()->bound('institution') && app('institution')) {
                 $targetSlug = app('institution')->slug;
+            } else {
+                $targetSlug = 'frontfieldcu';
             }
         }
 
@@ -232,12 +234,9 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'unauthorized'], 200);
             }
 
-            // Resolve chat institution and bot token if dedicated bot token exists
+            // Resolve chat institution for scope if needed; NEVER overwrite $botToken which received this callback
             if (!$chatInst) {
                 $chatInst = $this->resolveChatInstitution($chatId);
-            }
-            if (!empty($chatInst?->telegram_bot_token)) {
-                $botToken = $chatInst->telegram_bot_token;
             }
 
             // =================================================================
@@ -784,11 +783,8 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'not_found'], 200);
             }
 
-            // Resolve transaction-specific bot token (e.g. CSB bot for CSB transactions)
-            $txnInst = $txn->user?->institution;
-            $effectiveBotToken = (!empty($txnInst?->telegram_bot_token))
-                ? $txnInst->telegram_bot_token
-                : $botToken;
+            // The callback query and message belong to the bot where the button was tapped ($botToken)
+            $effectiveBotToken = $botToken;
 
             if ($txn->status !== TxnStatus::Pending && $txn->status !== 'pending') {
                 $currentStatus = is_object($txn->status) ? strtoupper($txn->status->value) : strtoupper($txn->status);
@@ -843,12 +839,9 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'empty_text'], 200);
             }
 
-            // Resolve chat institution and bot token first for accurate context
+            // Resolve chat institution for scope if needed; NEVER overwrite $botToken which received this message
             if (!$chatInst) {
                 $chatInst = $this->resolveChatInstitution($chatId);
-            }
-            if (!empty($chatInst?->telegram_bot_token)) {
-                $botToken = $chatInst->telegram_bot_token;
             }
 
             // Security authorization check

@@ -364,28 +364,28 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                         </div>
                     </div>
                     
-                    <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.3px;">Processing Transfer</h4>
-                    <p class="text-muted small mb-3">Routing funds securely through interbank payment network</p>
+                    <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.3px;">Processing Your Transfer...</h4>
+                    <p class="text-muted small mb-3">Please wait a moment while we send your transfer.</p>
 
                     <!-- Steps Status Card -->
                     <div class="bg-light rounded-3 p-3 text-start mb-3 border">
                         <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
                             <i class="fa-solid fa-circle-check"></i>
-                            <span>Security verification approved</span>
+                            <span>Security check passed</span>
                         </div>
                         <div class="d-flex align-items-center gap-2 text-primary small fw-bold">
                             <span class="spinner-border spinner-border-sm" role="status"></span>
-                            <span>Settling transaction &amp; updating balances...</span>
+                            <span>Sending your money now...</span>
                         </div>
                     </div>
 
                     <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-start d-flex align-items-center gap-2" style="background: #fff8e6; color: #855d00; border-radius: 10px; font-size: 12px;">
                         <i class="fa-solid fa-triangle-exclamation flex-shrink-0"></i>
-                        <span>Please do not refresh, close, or navigate back while processing.</span>
+                        <span>Please do not close or refresh this page.</span>
                     </div>
 
                     <div class="text-muted extra-small" style="font-size: 11px;">
-                        <i class="fa-solid fa-lock me-1"></i> 256-bit Bank Grade Security &bull; Federally Insured by NCUA
+                        <i class="fa-solid fa-lock me-1"></i> Safe &amp; Secure Transfer &bull; Federally Insured by NCUA
                     </div>
                 </div>
             </div>

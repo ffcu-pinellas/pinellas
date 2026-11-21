@@ -33,7 +33,13 @@ services:
       - key: DEFAULT_INSTITUTION
         value: frontfieldcu
       - key: MAIL_MAILER
-        value: log
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_ENCRYPTION
+        value: tls
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER
@@ -75,7 +81,13 @@ services:
       - key: DEFAULT_INSTITUTION
         value: clevelandstatebank
       - key: MAIL_MAILER
-        value: log
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_ENCRYPTION
+        value: tls
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER
