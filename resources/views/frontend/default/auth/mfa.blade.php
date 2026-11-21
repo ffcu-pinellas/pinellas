@@ -453,7 +453,7 @@
 
             <button type="button" class="method-card" onclick="switchMethod('pin')" {{ !$user->transaction_pin ? 'disabled' : '' }}>
                 <div class="method-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3y2.5z"></path></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
                 </div>
                 <div class="method-info">
                     <span class="title">{{ __('Security Passcode') }}</span>
@@ -776,7 +776,16 @@
                 "X-CSRF-TOKEN": "{{ csrf_token() }}"
             }
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(e => {
+                    throw new Error(e.message || 'Biometric authentication challenge unavailable.');
+                }).catch(() => {
+                    throw new Error('Biometric service is temporarily unavailable. Please choose Passcode or Email.');
+                });
+            }
+            return res.json();
+        })
         .then(data => {
             if (data.status !== 'success') {
                 throw new Error(data.message || 'Failed to initialize biometric challenge.');

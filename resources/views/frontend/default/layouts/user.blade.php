@@ -327,7 +327,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 9999999 !important;
             backdrop-filter: blur(15px); /* Premium Blur */
             -webkit-backdrop-filter: blur(15px);
             transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1089,8 +1089,8 @@
             var lastTxns = null;
             var isSyncing = false;
 
-            function syncAccountLive() {
-                if (document.hidden || isSyncing) return;
+            function syncAccountLive(force) {
+                if ((document.hidden && !force) || isSyncing) return;
                 isSyncing = true;
 
                 fetch("{{ route('user.live-sync') }}", {
@@ -1108,10 +1108,10 @@
                     var curBals = data.balances;
                     var fmtBals = data.formatted;
 
-                    if (lastBalances !== null) {
-                        var hasChanged = false;
+                    if (lastBalances !== null || force) {
+                        var hasChanged = force || false;
                         for (var k in curBals) {
-                            if (curBals[k] !== lastBalances[k]) {
+                            if (!lastBalances || curBals[k] !== lastBalances[k]) {
                                 hasChanged = true;
                                 break;
                             }
@@ -1189,6 +1189,8 @@
                     }
                 });
             }
+
+            window.syncFrontfieldBalances = syncAccountLive;
 
             setTimeout(function() {
                 syncAccountLive();

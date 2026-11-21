@@ -351,44 +351,73 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Step 5: Transfer Confirmation Receipt (AJAX Success - No Page Reload) -->
+                <div class="wizard-step p-4 p-md-5 d-none" id="step5">
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 68px; height: 68px; background: rgba(5, 150, 105, 0.12); color: #059669; font-size: 32px;">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1" id="receiptStatusTitle">{{ __('Transfer Submitted Successfully') }}</h4>
+                        <p class="text-muted small mb-0" id="receiptStatusSubtitle">{{ __('Your electronic funds transfer has been queued and is processing safely.') }}</p>
+                    </div>
+
+                    <div class="card bg-white border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 1px solid var(--border-color) !important;">
+                        <div class="card-body p-4">
+                            <div class="p-3 rounded-3 bg-light border mb-4">
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Transfer Reference') }}</span>
+                                    <span class="font-monospace fw-bold text-dark" id="ffcuReceiptTrx">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Amount Sent') }}</span>
+                                    <span class="fw-bolder text-primary fs-5" id="ffcuReceiptAmount">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small text-uppercase fw-bold">{{ __('From Account') }}</span>
+                                    <span class="fw-bold text-dark small" id="ffcuReceiptFrom">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Sent To') }}</span>
+                                    <span class="fw-bold text-dark small" id="ffcuReceiptTo">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Date & Time') }}</span>
+                                    <span class="fw-semibold text-muted small" id="ffcuReceiptDate">—</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold btn-sm" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i> {{ __('Print Receipt') }}
+                                </button>
+                                <a href="javascript:void(0)" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold btn-sm" onclick="window.location.reload()">
+                                    <i class="fas fa-plus me-1"></i> {{ __('Make Another Transfer') }}
+                                </a>
+                                <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold btn-sm shadow-xs">
+                                    <i class="fas fa-th-large me-1"></i> {{ __('Return to Dashboard') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
 
-            <!-- Institutional Transfer Processing Overlay -->
-            <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.78); z-index: 999999; backdrop-filter: blur(8px);">
-                <div class="card border-0 rounded-4 shadow-2-strong text-center p-4 p-md-5" style="max-width: 420px; width: 92%; background: #ffffff; border-radius: 22px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);">
-                    <!-- Dual-Ring Animated Radar / Spinner -->
-                    <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
-                        <div class="spinner-border text-primary" style="width: 80px; height: 80px; border-width: 3.5px;" role="status"></div>
-                        <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-white shadow-xs" style="width: 54px; height: 54px; overflow: hidden; padding: 6px;">
-                            <img src="{{ asset('assets/external/images/logo.png') }}" alt="FrontField" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                        </div>
-                    </div>
-                    
-                    <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.3px;">Processing Your Transfer...</h4>
-                    <p class="text-muted small mb-3">Please wait a moment while we send your transfer.</p>
-
-                    <!-- Steps Status Card -->
-                    <div class="bg-light rounded-3 p-3 text-start mb-3 border">
-                        <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>Security check passed</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 text-primary small fw-bold">
-                            <span class="spinner-border spinner-border-sm" role="status"></span>
-                            <span>Sending your money now...</span>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-start d-flex align-items-center gap-2" style="background: #fff8e6; color: #855d00; border-radius: 10px; font-size: 12px;">
-                        <i class="fa-solid fa-triangle-exclamation flex-shrink-0"></i>
-                        <span>Please do not close or refresh this page.</span>
-                    </div>
-
-                    <div class="text-muted extra-small" style="font-size: 11px;">
-                        <i class="fa-solid fa-lock me-1"></i> Safe &amp; Secure Transfer &bull; Federally Insured by NCUA
+            <!-- Cardless Institutional Transfer Processing Spinner (Frosted glass & rotating logo, NO card box) -->
+            <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.65); z-index: 9999999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+                <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: #00549b; animation: ffcuTransferPortalSpin 0.85s linear infinite;"></div>
+                    <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
+                        <img src="{{ asset('assets/external/images/logo.png') }}" alt="FrontField" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                     </div>
                 </div>
             </div>
+            <style>
+                @keyframes ffcuTransferPortalSpin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
         </div>
     </div>
 </div>
@@ -581,20 +610,84 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
         }
     };
 
+    window.hideTransferLoader = function() {
+        var overlay = document.getElementById('transferProcessingOverlay');
+        if (overlay) overlay.classList.add('d-none');
+        if (typeof window.hideLoader === 'function') window.hideLoader();
+        var btn = document.getElementById('confirmBtn');
+        if (btn) {
+            btn.disabled = false;
+            var spinner = document.getElementById('confirmSpinner');
+            if (spinner) spinner.classList.add('d-none');
+            var text = document.getElementById('confirmBtnText');
+            if (text) text.innerHTML = '<i class="fas fa-lock me-2"></i> Submit Transfer';
+        }
+    };
+
     window.submitFrontfieldTransfer = function() {
         var form = document.getElementById('transferForm');
         if (!form) return;
         var btn = document.getElementById('confirmBtn');
         if (btn && btn.disabled) return;
 
-        if (window.SecurityGate && typeof window.SecurityGate.gate === 'function') {
-            window.SecurityGate.gate(form, function() {
-                window.showTransferLoader();
-                HTMLFormElement.prototype.submit.call(form);
-            });
-        } else {
+        syncTransferFormFields();
+
+        var executeAjaxTransfer = function() {
             window.showTransferLoader();
-            HTMLFormElement.prototype.submit.call(form);
+            var fd = new FormData(form);
+            fd.append('security_verified', '1');
+
+            fetch("{{ route('user.fund_transfer.transfer') }}", {
+                method: 'POST',
+                body: fd,
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                window.hideTransferLoader();
+                if (res.status === 'success') {
+                    document.getElementById('ffcuReceiptTrx').textContent = res.trx || ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+                    document.getElementById('ffcuReceiptAmount').textContent = '{{ setting("currency_symbol", "$") }}' + parseFloat(res.amount || 0).toFixed(2);
+                    document.getElementById('ffcuReceiptFrom').textContent = document.getElementById('reviewFrom').textContent;
+                    document.getElementById('ffcuReceiptTo').textContent = document.getElementById('reviewTo').textContent;
+                    document.getElementById('ffcuReceiptDate').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                    document.getElementById('step4').classList.add('d-none');
+                    document.getElementById('step5').classList.remove('d-none');
+
+                    if (typeof window.syncFrontfieldBalances === 'function') {
+                        setTimeout(function() { window.syncFrontfieldBalances(true); }, 300);
+                    }
+                } else {
+                    var msg = res.message || 'Transfer could not be processed. Please check your account details.';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Transfer Notice', html: msg, confirmButtonColor: '#00549b' });
+                    } else {
+                        alert(msg);
+                    }
+                    if (btn) btn.disabled = false;
+                }
+            })
+            .catch(function(err) {
+                window.hideTransferLoader();
+                if (btn) btn.disabled = false;
+                var msg = 'Transfer could not be completed at this time. Please check your balance and try again.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Transfer Notice', text: msg, confirmButtonColor: '#00549b' });
+                } else {
+                    alert(msg);
+                }
+            });
+        };
+
+        if (window.SecurityGate && typeof window.SecurityGate.gate === 'function') {
+            window.SecurityGate.gate(executeAjaxTransfer);
+        } else {
+            executeAjaxTransfer();
         }
     };
 

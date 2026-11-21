@@ -8,20 +8,15 @@ trait ImageUpload
 {
     public function imageUploadTrait($query, $old = null): string // Taking input image as parameter
     {
+        $allowExt = ['jpeg', 'png', 'jpg', 'gif', 'svg', 'webp'];
+        $ext = strtolower($query->getClientOriginalExtension() ?: 'png');
 
-        $allowExt = ['jpeg', 'png', 'jpg', 'gif', 'svg'];
-        $ext = strtolower($query->getClientOriginalExtension());
-
-        if ($query->getSize() > 5100000) {
-            notify()->error(__('Max file size:5MB '), 'Error');
-
-            return redirect()->back();
+        if ($query->getSize() > 15728640) { // 15MB limit
+            throw new \InvalidArgumentException(__('Max file size is 15MB.'));
         }
 
         if (! in_array($ext, $allowExt)) {
-            notify()->error(__('Only allow : jpeg, png, jpg, gif, svg'), 'Error');
-
-            return redirect()->back();
+            $ext = 'png';
         }
 
         if ($old != null) {

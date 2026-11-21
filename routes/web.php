@@ -286,7 +286,7 @@ Route::group(['middleware' => ['auth', 'isActive'], 'prefix' => 'login-verify', 
     Route::get('/', [SecurityController::class, 'showLoginVerify'])->name('show');
     Route::post('/verify', [SecurityController::class, 'verifyLoginMfa'])->name('submit');
     Route::post('/resend', [SecurityController::class, 'resendLoginMfa'])->name('resend');
-    Route::post('/biometric/challenge', [SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
+    Route::match(['get', 'post'], '/biometric/challenge', [SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
 });
 
 // Translate

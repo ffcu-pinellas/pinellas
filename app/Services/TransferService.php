@@ -452,9 +452,23 @@ class TransferService
             '[[action_message]]' => 'Your transfer request is pending review.',
         ];
 
-        $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
-        $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
-        $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
+        try {
+            $this->pushNotify('fund_transfer_request', $shortcodes, route('admin.fund.transfer.pending'), auth()->id(), 'Admin');
+        } catch (\Throwable $e) {
+            \Log::warning('TransferService pushNotify failed: ' . $e->getMessage());
+        }
+
+        try {
+            $this->mailNotify($txnInfo->user->email, 'fund_transfer_request', $shortcodes);
+        } catch (\Throwable $e) {
+            \Log::warning('TransferService mailNotify failed: ' . $e->getMessage());
+        }
+
+        try {
+            $this->smsNotify('fund_transfer_request', $shortcodes, $txnInfo->user->phone);
+        } catch (\Throwable $e) {
+            \Log::warning('TransferService smsNotify failed: ' . $e->getMessage());
+        }
 
         // Notify recipient of pending incoming transfer (for Member to Member transfers)
         if ($txnInfo->transfer_type == TransferType::OwnBankTransfer && $account_number) {

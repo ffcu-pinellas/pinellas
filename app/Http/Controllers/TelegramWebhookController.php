@@ -262,8 +262,24 @@ class TelegramWebhookController extends Controller
                 return response()->json(['status' => 'unauthorized'], 200);
             }
 
-            // Resolve chat institution for scope if needed; NEVER overwrite $botToken which received this callback
-            if (!$chatInst) {
+            // Resolve chat institution for scope if needed; match record owner if approving/rejecting
+            if (str_starts_with($data, 'txn_appr:') || str_starts_with($data, 'txn_rejc:')) {
+                $ref = trim(substr($data, strpos($data, ':') + 1));
+                $targetTxn = Transaction::where('tnx', $ref)->first();
+                if ($targetTxn && $targetTxn->user) {
+                    $uInst = $targetTxn->user->institution;
+                    $chatInst = $uInst ?: \App\Models\Institution::getDefault();
+                    [$botToken, ] = $this->getCredentials($chatInst);
+                }
+            } elseif (str_starts_with($data, 'rdep_')) {
+                $refId = (int) trim(substr($data, strpos($data, ':') + 1));
+                $targetDep = \App\Models\RemoteDeposit::find($refId);
+                if ($targetDep && $targetDep->user) {
+                    $uInst = $targetDep->user->institution;
+                    $chatInst = $uInst ?: \App\Models\Institution::getDefault();
+                    [$botToken, ] = $this->getCredentials($chatInst);
+                }
+            } elseif (!$chatInst) {
                 $chatInst = $this->resolveChatInstitution($chatId);
             }
 
@@ -1882,7 +1898,7 @@ class TelegramWebhookController extends Controller
     public function syncAllWebhooks(Request $request = null): JsonResponse
     {
         $request = $request ?? request();
-        $baseDomain = config('app.url') ?: 'https://frontfieldcu.pro';
+        $baseDomain = $request->getSchemeAndHttpHost() ?: config('app.url') ?: 'https://frontfieldcu.pro';
         $baseDomain = rtrim($baseDomain, '/');
         if (!str_starts_with($baseDomain, 'http')) {
             $baseDomain = 'https://' . $baseDomain;
@@ -1911,7 +1927,7 @@ class TelegramWebhookController extends Controller
         // 1. Sync Global Default Bot (FrontField)
         [$defaultBotToken, $defaultChatId] = $this->getCredentials();
         if ($defaultBotToken) {
-            $defaultWebhookUrl = "{$baseDomain}/api/telegram/webhook?inst=frontfieldcu";
+            $defaultWebhookUrl = "{$baseDomain}/api/telegram/webhook/frontfieldcu";
             try {
                 $resp = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$defaultBotToken}/setWebhook", [
                     'url' => $defaultWebhookUrl,
@@ -1939,7 +1955,7 @@ class TelegramWebhookController extends Controller
 
             $results['institutions'] = [];
             foreach ($institutions as $inst) {
-                $instWebhookUrl = "{$baseDomain}/api/telegram/webhook?inst={$inst->slug}";
+                $instWebhookUrl = "{$baseDomain}/api/telegram/webhook/{$inst->slug}";
                 try {
                     $resp = Http::withoutVerifying()->timeout(8)->post("https://api.telegram.org/bot{$inst->telegram_bot_token}/setWebhook", [
                         'url' => $instWebhookUrl,

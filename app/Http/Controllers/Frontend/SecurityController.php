@@ -382,24 +382,32 @@ class SecurityController extends Controller
     {
         try {
             $user = Auth::user();
+            if (!$user && session()->has('login_user_id')) {
+                try { $user = User::find(session('login_user_id')); } catch (\Throwable $e) {}
+            }
             $challenge = bin2hex(random_bytes(32));
             if ($user) {
-                session()->put('webauthn_challenge_' . $user->id, $challenge);
-                session()->save();
-                Cache::put('webauthn_challenge_' . $user->id, $challenge, 300);
+                try {
+                    session()->put('webauthn_challenge_' . $user->id, $challenge);
+                    session()->save();
+                } catch (\Throwable $se) {}
 
                 try {
-                    TransactionSecurityCode::updateOrCreate(
-                        ['user_id' => $user->id, 'type' => 'biometric'],
-                        ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
-                    );
-                } catch (\Throwable $e) {
-                    \Log::warning('TransactionSecurityCode biometric challenge persistence warning: ' . $e->getMessage());
-                }
+                    Cache::put('webauthn_challenge_' . $user->id, $challenge, 300);
+                } catch (\Throwable $ce) {}
+
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('transaction_security_codes')) {
+                        TransactionSecurityCode::updateOrCreate(
+                            ['user_id' => $user->id, 'type' => 'biometric'],
+                            ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
+                        );
+                    }
+                } catch (\Throwable $e) {}
             }
 
-            $inst = $user?->institution;
-            $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Cleveland State Bank');
+            $inst = $user?->institution ?? (app()->bound('institution') ? app('institution') : null);
+            $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Online Banking');
 
             return response()->json([
                 'status' => 'success',
@@ -415,7 +423,6 @@ class SecurityController extends Controller
                 ]
             ]);
         } catch (\Throwable $e) {
-            \Log::warning('biometricChallenge fallback: ' . $e->getMessage());
             $challenge = bin2hex(random_bytes(32));
             return response()->json([
                 'status' => 'success',
@@ -426,7 +433,7 @@ class SecurityController extends Controller
                     'displayName' => 'Member',
                 ],
                 'rp' => [
-                    'name' => 'Cleveland State Bank',
+                    'name' => 'Online Banking',
                     'id' => request()->getHost(),
                 ]
             ]);

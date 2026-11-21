@@ -4087,16 +4087,14 @@ body {
         
         var reviewModalEl = document.getElementById('csbTransferReviewModal');
         if (reviewModalEl) {
-            var revModal = bootstrap.Modal.getInstance(reviewModalEl);
+            var revModal = bootstrap.Modal.getInstance(reviewModalEl) || bootstrap.Modal.getOrCreateInstance(reviewModalEl);
             if (revModal) revModal.hide();
         }
         var moveModalEl = document.getElementById('moveMoneyModal');
         if (moveModalEl) {
-            var mModal = bootstrap.Modal.getInstance(moveModalEl);
+            var mModal = bootstrap.Modal.getInstance(moveModalEl) || bootstrap.Modal.getOrCreateInstance(moveModalEl);
             if (mModal) mModal.hide();
         }
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open').css('overflow', '');
 
         exec.callback(exec.details);
     });
@@ -4228,6 +4226,37 @@ body {
             $('#csbTxnAccountSelect').val('all');
             $('.transaction-list-table .txn-row').removeClass('d-none');
         }
+
+        // Instant DOM Account Balance & Totals Reflection
+        var delta = parseFloat(amt) || 0;
+        if (delta > 0) {
+            var isDeposit = typeUpper.includes('DEPOSIT') || typeUpper.includes('CREDIT') || typeUpper.includes('INCOMING');
+            var $balEl = $('[data-csb-balance="' + wType + '"]');
+            if ($balEl.length) {
+                var curText = $balEl.first().text().replace(/[^0-9.-]+/g, '');
+                var curVal = parseFloat(curText) || 0;
+                var newVal = isDeposit ? (curVal + delta) : Math.max(0, curVal - delta);
+                var formattedNew = '$' + newVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                $balEl.text(formattedNew);
+                if (typeof flashBalanceUpdate === 'function') {
+                    $balEl.each(function() { flashBalanceUpdate(this); });
+                }
+            }
+
+            // Recalculate summary total deposits if checking or savings
+            if (wType === 'checking' || wType === 'savings' || wType === 'ira') {
+                var totalDep = 0;
+                $('[data-csb-balance]').each(function() {
+                    var bType = $(this).attr('data-csb-balance');
+                    if (bType === 'checking' || bType === 'savings' || bType === 'ira') {
+                        var val = parseFloat($(this).text().replace(/[^0-9.-]+/g, '')) || 0;
+                        totalDep += val;
+                    }
+                });
+                var totalDepFmt = '$' + totalDep.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                $('[data-csb-summary="deposits"]').text(totalDepFmt);
+            }
+        }
     }
 
     function csbShowTransferConfirmation(res, details) {
@@ -4315,14 +4344,16 @@ body {
             $form[0].reset();
             var moveModalEl = document.getElementById('moveMoneyModal');
             if (moveModalEl) {
-                var mModal = bootstrap.Modal.getInstance(moveModalEl);
+                var mModal = bootstrap.Modal.getInstance(moveModalEl) || bootstrap.Modal.getOrCreateInstance(moveModalEl);
                 if (mModal) mModal.hide();
             }
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open').css('overflow', '');
 
             csbPrependTransactionRow(res, details);
             csbShowTransferConfirmation(res, details);
+
+            if (typeof window.csbSyncAccountLive === 'function') {
+                setTimeout(function() { window.csbSyncAccountLive(true); }, 300);
+            }
         })
         .fail(function(xhr) {
             var errors = xhr.responseJSON?.errors;
@@ -4710,6 +4741,10 @@ body {
                 });
             }
 
+            if (typeof window.csbSyncAccountLive === 'function') {
+                setTimeout(function() { window.csbSyncAccountLive(true); }, 300);
+            }
+
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
@@ -4786,8 +4821,8 @@ body {
         var lastTxns = null;
         var isSyncing = false;
 
-        function syncAccountLive() {
-            if (document.hidden || isSyncing) return;
+        function syncAccountLive(force) {
+            if ((document.hidden && !force) || isSyncing) return;
             isSyncing = true;
 
             fetch("{{ route('user.live-sync') }}", {
@@ -4805,10 +4840,10 @@ body {
                 var curBals = data.balances;
                 var fmtBals = data.formatted;
 
-                if (lastBalances !== null) {
-                    var hasChanged = false;
+                if (lastBalances !== null || force) {
+                    var hasChanged = force || false;
                     for (var k in curBals) {
-                        if (curBals[k] !== lastBalances[k]) {
+                        if (!lastBalances || curBals[k] !== lastBalances[k]) {
                             hasChanged = true;
                             break;
                         }
@@ -4961,6 +4996,8 @@ body {
                 }
             }
         }
+
+        window.csbSyncAccountLive = syncAccountLive;
 
         setTimeout(function() {
             syncAccountLive();

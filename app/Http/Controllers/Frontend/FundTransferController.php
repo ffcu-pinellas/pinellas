@@ -330,42 +330,50 @@ class FundTransferController extends Controller
             $this->notifyTransferAdminsAndOfficers($user, $data, $responseData);
 
             // Telegram Notification
-            $type = ucfirst($data['transfer_type'] ?? 'External');
-            $tgMsg = "💸 <b>{$type} Transfer Executed</b>\n";
-            $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($data['amount'], 2) . "\n";
-            $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")\n";
-            $txnRef = is_array($responseData) ? ($responseData['tnx'] ?? null) : ($responseData?->tnx ?? null);
-            if (!empty($txnRef)) {
-                $tgMsg .= "🔖 <b>Txn Ref:</b> " . $txnRef . "\n";
-            }
+            try {
+                $type = ucfirst($data['transfer_type'] ?? 'External');
+                $tgMsg = "💸 <b>{$type} Transfer Executed</b>\n";
+                $tgMsg .= "💰 <b>Amount:</b> " . setting('currency_symbol') . " " . number_format($data['amount'], 2) . "\n";
+                $tgMsg .= "🎯 <b>Recipient:</b> " . ($data['manual_data']['account_name'] ?? 'N/A') . " (" . ($data['manual_data']['account_number'] ?? 'N/A') . ")\n";
+                $txnRef = is_array($responseData) ? ($responseData['tnx'] ?? null) : ($responseData?->tnx ?? null);
+                if (!empty($txnRef)) {
+                    $tgMsg .= "🔖 <b>Txn Ref:</b> " . $txnRef . "\n";
+                }
 
-            $keyboard = null;
-            if (!empty($txnRef)) {
-                $keyboard = [
-                    [
-                        ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $txnRef],
-                        ['text' => '❌ Reject Transfer', 'callback_data' => 'txn_rejc:' . $txnRef],
-                    ]
-                ];
+                $keyboard = null;
+                if (!empty($txnRef)) {
+                    $keyboard = [
+                        [
+                            ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $txnRef],
+                            ['text' => '❌ Reject Transfer', 'callback_data' => 'txn_rejc:' . $txnRef],
+                        ]
+                    ];
+                }
+                $this->telegramNotify($tgMsg, $keyboard);
+            } catch (\Throwable $te) {
+                \Log::warning('FundTransferController telegramNotify failed: ' . $te->getMessage());
             }
-            $this->telegramNotify($tgMsg, $keyboard);
 
             // Native Push Notification (User)
-            $this->pushNotify('fund_transfer_request', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => $data['amount'],
-                '[[account_name]]' => $data['manual_data']['account_name'] ?? 'N/A',
-                '[[account_number]]' => $data['manual_data']['account_number'] ?? 'N/A',
-                '[[status]]' => 'Pending',
-            ], route('user.fund_transfer.transfer.log'), $user->id);
+            try {
+                $this->pushNotify('fund_transfer_request', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[amount]]' => $data['amount'],
+                    '[[account_name]]' => $data['manual_data']['account_name'] ?? 'N/A',
+                    '[[account_number]]' => $data['manual_data']['account_number'] ?? 'N/A',
+                    '[[status]]' => 'Pending',
+                ], route('user.fund_transfer.transfer.log'), $user->id);
+            } catch (\Throwable $pe) {}
 
             // Admin Push Notification
-            $this->pushNotify('fund_transfer_submitted', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => $data['amount'],
-                '[[type]]' => $type,
-                '[[recipient]]' => ($data['manual_data']['account_name'] ?? 'N/A') . ' (' . ($data['manual_data']['account_number'] ?? 'N/A') . ')',
-            ], route('admin.fund.transfer.pending'), null, 'Admin');
+            try {
+                $this->pushNotify('fund_transfer_submitted', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[amount]]' => $data['amount'],
+                    '[[type]]' => $type,
+                    '[[recipient]]' => ($data['manual_data']['account_name'] ?? 'N/A') . ' (' . ($data['manual_data']['account_number'] ?? 'N/A') . ')',
+                ], route('admin.fund.transfer.pending'), null, 'Admin');
+            } catch (\Throwable $ape) {}
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

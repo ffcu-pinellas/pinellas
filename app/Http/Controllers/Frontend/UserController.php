@@ -411,20 +411,22 @@ class UserController extends Controller
      */
     private function uploadBase64($base64Data)
     {
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
-            $data = substr($base64Data, strpos($base64Data, ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, etc
+        $type = 'jpg';
+        $data = null;
 
-            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp'])) {
-                throw new \Exception('invalid image type');
-            }
-            $data = base64_decode($data);
-
-            if ($data === false) {
-                throw new \Exception('base64_decode failed');
-            }
+        if (preg_match('/^data:image\/([a-zA-Z0-9\+\-\.]+)(?:;[a-zA-Z0-9\=\-\s]+)*;base64,(.*)$/s', $base64Data, $matches)) {
+            $rawType = strtolower($matches[1]);
+            $type = in_array($rawType, ['jpg', 'jpeg', 'png', 'gif', 'webp']) ? ($rawType === 'jpeg' ? 'jpg' : $rawType) : 'jpg';
+            $data = base64_decode($matches[2]);
+        } elseif (str_contains($base64Data, ';base64,')) {
+            $parts = explode(';base64,', $base64Data, 2);
+            $data = base64_decode(trim($parts[1] ?? ''));
         } else {
-            throw new \Exception('did not match data URI with image data');
+            $data = base64_decode(trim($base64Data));
+        }
+
+        if ($data === false || empty($data)) {
+            return $base64Data; // Return as-is if decoding is impossible
         }
 
         $fileName = \Str::random(20) . '.' . $type;
@@ -456,7 +458,7 @@ class UserController extends Controller
         }
 
         // Resilient fallback: return data URI directly so database and telegram review receive the photo
-        return $base64Data;
+        return str_starts_with($base64Data, 'data:image') ? $base64Data : ('data:image/jpeg;base64,' . base64_encode($data));
     }
 
     public function accounts()

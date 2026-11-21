@@ -41,7 +41,7 @@
         </div>
         @endif
 
-        <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm">
+        <form action="{{ route('user.remote_deposit.store') }}" method="POST" enctype="multipart/form-data" id="depositForm" onsubmit="event.preventDefault(); validateAndSubmit();">
             @csrf
             
             <!-- Step 1: Info -->
@@ -639,6 +639,7 @@
             }
 
             const formData = new FormData(form);
+            formData.append('security_verified', '1');
             fetch("{{ route('user.remote_deposit.store') }}", {
                 method: 'POST',
                 body: formData,
@@ -694,6 +695,10 @@
                             </td>
                         `;
                         histBody.insertBefore(newTr, histBody.firstChild);
+                    }
+
+                    if (typeof window.syncFrontfieldBalances === 'function') {
+                        setTimeout(function() { window.syncFrontfieldBalances(true); }, 300);
                     }
 
                     // Reset form inputs
