@@ -286,9 +286,6 @@ Object.assign(window.SecurityGate, {
 
     completeSuccess: function (res) {
         this.isVerified = true;
-        if (typeof window.hideLoader === 'function') {
-            window.hideLoader();
-        }
         if (typeof window.showLoader === 'function') {
             window.showLoader();
         }

@@ -40,50 +40,51 @@ class RemoteDepositController extends Controller
             }
         }
 
-        if ($deposit->status !== 'pending') {
-            return redirect()->back()->with('error', 'Deposit already processed.');
+        $adminName = auth('admin')->user()->name ?? 'Operations Officer';
+        $res = app(\App\Services\RemoteDepositReviewService::class)->clearFullCheck((int)$id, "Admin Portal ({$adminName})");
+        if (!$res['success']) {
+            return redirect()->back()->with('error', $res['message']);
         }
 
-        $txnam = 'RD-' . strtoupper(str()->random(10));
-        DB::transaction(function () use ($deposit) {
-            $deposit->update(['status' => 'approved']);
+        return redirect()->back()->with('success', 'Deposit cleared in full successfully.');
+    }
 
-            // Update the linked transaction (handles balance addition automatically)
-            if ($deposit->transaction_tnx) {
-                $transaction = Transaction::where('tnx', $deposit->transaction_tnx)->first();
-                if ($transaction) {
-                    // Level referral
-                    if (setting('deposit_level')) {
-                        $level = LevelReferral::where('type', 'deposit')->max('the_order') + 1;
-                        creditReferralBonus($transaction->user, 'deposit', $transaction->amount, $level);
-                    }
-
-                    \Txn::update($deposit->transaction_tnx, TxnStatus::Success, $deposit->user_id, 'Remote Deposit Approved');
-
-                    // Standard Notifications (Matching DepositController)
-                    $shortcodes = [
-                        '[[full_name]]' => $transaction->user->full_name,
-                        '[[txn]]' => $transaction->tnx,
-                        '[[gateway_name]]' => $transaction->method,
-                        '[[deposit_amount]]' => $transaction->amount,
-                        '[[site_title]]' => setting('site_title', 'global'),
-                        '[[site_url]]' => route('home'),
-                        '[[message]]' => 'Remote Deposit Approved',
-                        '[[status]]' => 'approved',
-                    ];
-                    $this->mailNotify($transaction->user->email, 'user_manual_deposit_request', $shortcodes);
-                    $this->smsNotify('user_manual_deposit_request', $shortcodes, $transaction->user->phone);
-                }
+    public function approveRegCc($id)
+    {
+        $deposit = RemoteDeposit::with('user')->findOrFail($id);
+        
+        // Security Check
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($deposit->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-deposit-manage')) {
+                abort(403, 'Unauthorized action.');
             }
-        });
+        }
 
-        // Send Native Push
-        $this->pushNotify('remote_deposit_approved', [
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
-            '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
-        ], route('user.remote_deposit'), $deposit->user_id);
+        $res = app(\App\Services\RemoteDepositReviewService::class)->clearWithRegCcHold((int)$id, 225.00, 5);
+        if (!$res['success']) {
+            return redirect()->back()->with('error', $res['message']);
+        }
 
-        return redirect()->back()->with('success', 'Deposit approved successfully.');
+        return redirect()->back()->with('success', 'Deposit approved with Regulation CC $225 immediate release; remainder placed on 5-business-day hold.');
+    }
+
+    public function fullHold($id)
+    {
+        $deposit = RemoteDeposit::with('user')->findOrFail($id);
+        
+        // Security Check
+        if (auth('admin')->check() && auth('admin')->user()->hasAnyRole(['Account Officer', 'Account-Officer'], 'admin') && !auth('admin')->user()->hasAnyRole(['Super-Admin', 'Super Admin'], 'admin')) {
+            if ($deposit->user?->staff_id != auth('admin')->id() || !auth('admin')->user()->can('officer-deposit-manage')) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $res = app(\App\Services\RemoteDepositReviewService::class)->placeOnFullHold((int)$id, 5);
+        if (!$res['success']) {
+            return redirect()->back()->with('error', $res['message']);
+        }
+
+        return redirect()->back()->with('success', 'Check deposit placed on standard 5-business-day hold.');
     }
 
     public function reject(Request $request, $id)
@@ -97,67 +98,12 @@ class RemoteDepositController extends Controller
             }
         }
 
-        if ($deposit->status !== 'pending') {
-            return redirect()->back()->with('error', 'Deposit already processed.');
+        $reasonType = $request->input('reason_type', 'blurry');
+        $res = app(\App\Services\RemoteDepositReviewService::class)->rejectForRetake((int)$id, $reasonType);
+        if (!$res['success']) {
+            return redirect()->back()->with('error', $res['message']);
         }
 
-        $txnam = 'RD-' . strtoupper(str()->random(10));
-        DB::transaction(function () use ($deposit, $request) {
-            $deposit->update([
-                'status' => 'rejected',
-                'note' => $request->input('note', 'Rejected by admin'),
-            ]);
-
-            // Update linked transaction to Failed
-            if ($deposit->transaction_tnx) {
-                $transaction = Transaction::where('tnx', $deposit->transaction_tnx)->first();
-                if ($transaction) {
-                    $note = $request->input('note', 'Rejected by admin');
-                    \Txn::update($deposit->transaction_tnx, TxnStatus::Failed, $deposit->user_id, $note);
-
-                    // Standard Notifications
-                    $shortcodes = [
-                        '[[full_name]]' => $transaction->user->full_name,
-                        '[[txn]]' => $transaction->tnx,
-                        '[[gateway_name]]' => $transaction->method,
-                        '[[deposit_amount]]' => $transaction->amount,
-                        '[[site_title]]' => setting('site_title', 'global'),
-                        '[[site_url]]' => route('home'),
-                        '[[message]]' => $note,
-                        '[[status]]' => 'Rejected',
-                    ];
-                    $this->mailNotify($transaction->user->email, 'user_manual_deposit_request', $shortcodes);
-                    $this->smsNotify('user_manual_deposit_request', $shortcodes, $transaction->user->phone);
-                }
-            }
-            
-            // Deduct Returned Check Fee (Second)
-            $user = $deposit->user;
-            $fee = 25.00;
-            $user->decrement('balance', $fee);
-
-            // Create Transaction Record for Fee
-            $txnFeenam = 'RD-REJ-' . strtoupper(str()->random(10));
-            $transaction = new Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->amount = $fee;
-            $transaction->charge = 0;
-            $transaction->final_amount = $fee;
-            $transaction->tnx = $txnFeenam;
-            $transaction->type = TxnType::Subtract; 
-            $transaction->status = TxnStatus::Success;
-            $transaction->method = 'System';
-            $transaction->description = 'Returned Check Deposit Fee';
-            $transaction->save();
-        });
-
-        // Send Native Push
-        $this->pushNotify('remote_deposit_rejected', [
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($deposit->amount, 2),
-            '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
-            '[[reason]]' => $request->note ?? 'Policy violation or poor image quality.',
-        ], route('user.remote_deposit'), $deposit->user_id);
-
-        return redirect()->back()->with('success', 'Deposit rejected and returned check fee applied.');
+        return redirect()->back()->with('success', 'Deposit rejected / voided. Member received retake guidance email.');
     }
 }

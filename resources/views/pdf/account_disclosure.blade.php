@@ -268,10 +268,67 @@
         <strong>Mobile Check Deposit Funds Availability:</strong> Deposits received and verified prior to 4:00 PM on any business day are considered received on that day. In accordance with Regulation CC, the first $225 of check deposits is available on the next business day. Funds exceeding $225 are generally available on the second business day following the day of deposit. Electronic direct deposits (ACH) and incoming wire transfers are available immediately on the day of receipt.
     </div>
 
-    <!-- Section 4: Regulatory & Insurance Disclosure -->
-    <div class="section-header">4. Regulatory Insurance &amp; Security Agreement</div>
-    <div style="font-size: 9.5px; color: #475569; margin-bottom: 12px;">
-        {{ $regulator }}. Your deposits are backed by the full faith and credit of the United States Government up to legal limits. Member agrees to safeguard all digital banking credentials, biometric passkeys, and two-factor authentication tokens. Report any unauthorized transactions or lost cards immediately by calling {{ $supportPhone ?? '216-230-1837' }}.
+    <!-- Section 4: Membership Agreement & General Account Terms -->
+    <div class="section-header">4. Deposit Account Agreement &amp; Membership Rules</div>
+    <div style="font-size: 9px; color: #475569; margin-bottom: 10px; line-height: 1.45;">
+        <strong>Account Ownership &amp; Authority:</strong> By maintaining an active account with {{ $siteTitle }}, you agree to the rules, bylaws, and regulations governing deposit accounts. All deposits are received subject to final verification and payment. You authorize {{ $siteTitle }} to recognize your electronic signature, digital credentials, or biometric authentication for all transactions and inquiries.
+        <br><br>
+        <strong>Right of Setoff:</strong> You grant the institution a contractual security interest in, and right of setoff against, all balances held now or in the future to satisfy any outstanding obligation owed by you to {{ $siteTitle }}.
+    </div>
+
+    <!-- Section 5: Regulation E Electronic Fund Transfers (EFT) -->
+    <div class="section-header">5. Electronic Fund Transfer (Reg E) Consumer Liability &amp; Error Resolution</div>
+    <div style="font-size: 9px; color: #475569; margin-bottom: 10px; line-height: 1.45;">
+        <strong>Consumer Liability:</strong> Tell us AT ONCE if you believe your debit card, PIN, password, or biometric credentials have been lost, stolen, or compromised. Telephoning is the fastest way of keeping your possible losses down. You could lose all the money in your account plus your maximum overdraft line of credit.
+        <br><br>
+        &bull; If you tell us within <strong>two (2) business days</strong> after learning of the loss or theft, you can lose no more than $50.00 if someone used your credentials without your permission.
+        <br>
+        &bull; If you do NOT tell us within two (2) business days, and we can prove we could have stopped someone from using your credentials had you told us, you could lose up to $500.00.
+        <br>
+        &bull; If your periodic statement shows transfers that you did not make, tell us at once. If you do not tell us within <strong>60 days</strong> after the statement was transmitted to you, you may not get back any money lost after the 60 days.
+    </div>
+
+    <!-- Section 6: Consumer Financial Privacy Policy (GLBA) -->
+    <div class="section-header">6. Consumer Financial Privacy Policy (Gramm-Leach-Bliley Act)</div>
+    <table class="limits-table" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+        <thead>
+            <tr>
+                <th style="width: 55%;">Reasons We Can Share Your Personal Information</th>
+                <th style="width: 25%;">Does {{ $siteTitle }} Share?</th>
+                <th style="width: 20%;">Can You Limit?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>For our everyday business purposes:</strong> Processing transactions, maintaining accounts, responding to court orders, reporting to credit bureaus.</td>
+                <td><strong>YES</strong></td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td><strong>For our marketing purposes:</strong> Offering our products and services to you.</td>
+                <td><strong>YES</strong></td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td><strong>For joint marketing with other financial companies:</strong> Specialized services.</td>
+                <td><strong>YES</strong></td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td><strong>For non-affiliates to market to you:</strong> Third-party product solicitations.</td>
+                <td><strong>NO</strong></td>
+                <td>We Do Not Share</td>
+            </tr>
+        </tbody>
+    </table>
+    <div style="font-size: 8.5px; color: #64748b; margin-bottom: 12px;">
+        <strong>How We Protect Your Personal Information:</strong> To protect your personal information from unauthorized access and use, we use security measures that comply with federal law. These measures include computer safeguards, secured files, and cryptographic data protocols.
+    </div>
+
+    <!-- Section 7: Regulatory Insurance & Security Agreement -->
+    <div class="section-header">7. Regulatory Insurance &amp; Electronic Signature Ratification</div>
+    <div style="font-size: 9px; color: #475569; margin-bottom: 12px; line-height: 1.45;">
+        {{ $regulator }}. Your deposits are backed by the full faith and credit of the United States Government up to legal limits ($250,000 per depositor/institution). Member agrees to safeguard all digital banking credentials, biometric passkeys, and two-factor authentication tokens. Report any unauthorized transactions or lost cards immediately by calling {{ $supportPhone ?? '216-230-1837' }}.
     </div>
 
     <!-- Signatures Table -->
@@ -281,8 +338,8 @@
                 <div style="font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; color: #1e3a8a; margin-bottom: 4px;">
                     &bull;&bull;&bull; ELECTRONICALLY VERIFIED &bull;&bull;&bull;
                 </div>
-                <div class="sign-label">Digital Banking Operations Officer</div>
-                <div style="font-size: 8.5px; color: #64748b;">{{ $siteTitle }} Electronic Transfer Division</div>
+                <div class="sign-label">Chief Banking Operations Officer</div>
+                <div style="font-size: 8.5px; color: #64748b;">{{ $siteTitle }} Consumer Banking Division</div>
             </td>
             <td style="width: 50%; text-align: right; vertical-align: bottom;">
                 <div style="display: inline-block; text-align: left;">
@@ -295,7 +352,7 @@
     </table>
 
     <div class="legal-footer">
-        &copy; {{ date('Y') }} {{ $siteTitle }}. All rights reserved. This document is an electronic disclosure under the Electronic Signatures in Global and National Commerce Act (E-SIGN Act). Please retain this copy for your permanent tax and banking records.
+        &copy; {{ date('Y') }} {{ $siteTitle }}. All rights reserved. This document constitutes an official Electronic Consumer Deposit Account Agreement and Funds Availability Disclosure delivered pursuant to the federal E-SIGN Act (15 U.S.C. &sect; 7001) and Gramm-Leach-Bliley Act (15 U.S.C. &sect; 6801). Please retain this document for your permanent records.
     </div>
 
 </body>

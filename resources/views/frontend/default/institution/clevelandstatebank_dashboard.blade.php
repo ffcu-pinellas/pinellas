@@ -1224,9 +1224,14 @@ body {
             }
         };
 
+        window._csbLoaderHideTimer = null;
         window.showTransferLoader = function(title, subtitle) {
+            if (window._csbLoaderHideTimer) {
+                clearTimeout(window._csbLoaderHideTimer);
+                window._csbLoaderHideTimer = null;
+            }
             var el = document.getElementById('global-loader');
-            document.querySelectorAll('form button[type=submit], .btn, #rdSubmitBtn').forEach(function(btn) {
+            document.querySelectorAll('form button[type=submit], input[type=submit], #rdSubmitBtn, .btn-submit, .csb-action-submit').forEach(function(btn) {
                 btn.disabled = true;
             });
             if (el) {
@@ -1238,14 +1243,18 @@ body {
             window.showTransferLoader();
         };
         window.hideLoader = function() {
+            if (window._csbLoaderHideTimer) {
+                clearTimeout(window._csbLoaderHideTimer);
+            }
             var el = document.getElementById('global-loader');
             if (el) {
                 el.style.opacity = '0';
-                setTimeout(function() {
+                window._csbLoaderHideTimer = setTimeout(function() {
                     el.style.display = 'none';
-                    document.querySelectorAll('form button[type=submit], .btn, #rdSubmitBtn').forEach(function(btn) {
+                    document.querySelectorAll('form button[type=submit], input[type=submit], #rdSubmitBtn, .btn-submit, .csb-action-submit').forEach(function(btn) {
                         btn.disabled = false;
                     });
+                    window._csbLoaderHideTimer = null;
                 }, 250);
             }
         };

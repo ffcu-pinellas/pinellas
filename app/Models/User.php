@@ -181,6 +181,14 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'last_dividend_at' => 'datetime',
     ];
 
+    public function getPasskeyCredentialsAttribute($value)
+    {
+        if ($value) {
+            return is_string($value) ? json_decode($value, true) : $value;
+        }
+        return \Illuminate\Support\Facades\Cache::get('user_passkeys_' . $this->id, []);
+    }
+
     /*
      * Scope Declaration
      * */

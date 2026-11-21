@@ -105,8 +105,8 @@ class RemoteDepositReviewService
         $msg .= "<i>Inspect front/back check photos above and select a Reg CC decision:</i>";
 
         $holdLabel = ((float) $deposit->amount > 225.00)
-            ? '⏳ Clear w/ Reg CC Hold ($225 Now)'
-            : '⏳ Reg CC Review (<= $225)';
+            ? '⚖️ Release $225 (Hold Rest)'
+            : '⚖️ Reg CC Hold (<= $225)';
 
         $keyboard = [
             [
@@ -114,8 +114,8 @@ class RemoteDepositReviewService
                 ['text' => $holdLabel, 'callback_data' => 'rdep_regcc:' . $deposit->id],
             ],
             [
-                ['text' => '❌ Reject: Blurry', 'callback_data' => 'rdep_rej_blur:' . $deposit->id],
-                ['text' => '❌ Reject: No Endorsement', 'callback_data' => 'rdep_rej_endorse:' . $deposit->id],
+                ['text' => '⏳ Place on Full Hold (5 Days)', 'callback_data' => 'rdep_hold:' . $deposit->id],
+                ['text' => '❌ Decline / Retake', 'callback_data' => 'rdep_rej_blur:' . $deposit->id],
             ],
             [
                 ['text' => '👤 Member Profile', 'callback_data' => 'usr_view:' . $user->id],
@@ -181,9 +181,12 @@ class RemoteDepositReviewService
                     '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
                     '[[gateway_name]]' => 'Remote Check Deposit',
                     '[[deposit_amount]]' => (float) $deposit->amount,
+                    '[[amount]]' => $cur . number_format((float) $deposit->amount, 2),
+                    '[[account_name]]' => $deposit->account_name ?? 'Personal Checking',
+                    '[[to_account]]' => $deposit->account_name ?? 'Personal Checking',
                     '[[site_title]]' => setting('site_title', 'global'),
                     '[[site_url]]' => route('home'),
-                    '[[message]]' => "Your mobile check deposit of {$cur}" . number_format((float) $deposit->amount, 2) . " has been verified and cleared in full. Funds are now available.",
+                    '[[message]]' => "Your mobile check deposit of {$cur}" . number_format((float) $deposit->amount, 2) . " has been verified and cleared in full. Funds are immediately available.",
                     '[[status]]' => 'approved',
                 ];
                 $this->mailNotify($user->email, 'user_manual_deposit_request', $shortcodes);
@@ -192,6 +195,14 @@ class RemoteDepositReviewService
                     '[[amount]]' => $cur . ' ' . number_format((float) $deposit->amount, 2),
                     '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
                 ], route('user.remote_deposit'), $user->id);
+
+                // Notify Assigned Account Officer
+                $this->notifyAssignedAccountOfficer(
+                    $user,
+                    'Check Deposit Cleared in Full - ' . $user->full_name,
+                    "Remote check deposit of {$cur}" . number_format((float)$deposit->amount, 2) . " (Ref #{$deposit->transaction_tnx}) was approved and cleared in full to {$deposit->account_name}.",
+                    $shortcodes
+                );
             } catch (\Throwable $e) {
                 Log::warning('RemoteDeposit clearFullCheck notify warning: ' . $e->getMessage());
             }
@@ -202,9 +213,10 @@ class RemoteDepositReviewService
     }
 
     /**
-     * Reg CC Standard Hold: release $225 immediately, schedule remaining balance in 2 business days.
+     * Reg CC Standard Hold: release $225 immediately, schedule remaining balance in 5 business days.
+     * Generates two separate transaction entries (Immediate Release + Held Balance) so ledger reconciles cleanly.
      */
-    public function clearWithRegCcHold(int $depositId, float $immediateCap = 225.00, int $holdBusinessDays = 2): array
+    public function clearWithRegCcHold(int $depositId, float $immediateCap = 225.00, int $holdBusinessDays = 5): array
     {
         $depositCheck = RemoteDeposit::find($depositId);
         if (!$depositCheck) {
@@ -241,7 +253,7 @@ class RemoteDepositReviewService
                 'note' => "Reg CC Hold Applied: $" . number_format($immediateAmount, 2) . " cleared immediately; $" . number_format($heldAmount, 2) . " scheduled to release on {$releaseDate->format('M d, Y')}.",
             ]);
 
-            // 2. Credit immediate $225 availability and align linked transaction amount so ledger reconciles cleanly
+            // 2. Transaction 1: Immediate Availability Credit ($225.00)
             $transaction = $deposit->transaction_tnx
                 ? Transaction::where('tnx', $deposit->transaction_tnx)->first()
                 : null;
@@ -251,7 +263,7 @@ class RemoteDepositReviewService
                 $transaction->final_amount = $immediateAmount;
                 $transaction->status = TxnStatus::Success;
                 $transaction->approval_cause = "Reg CC Immediate Availability ($" . number_format($immediateAmount, 2) . " of $" . number_format($totalAmount, 2) . ")";
-                $transaction->description = "Remote Check Deposit — Reg CC Immediate ($" . number_format($heldAmount, 2) . " Held Until {$releaseDate->format('M d')})";
+                $transaction->description = "Remote Check Deposit — Reg CC Immediate Availability";
                 $transaction->save();
             }
 
@@ -261,7 +273,23 @@ class RemoteDepositReviewService
                 $user->increment('balance', $immediateAmount);
             }
 
-            // 3. Schedule automatic release of held remainder via ScheduledTransactionService
+            // 3. Transaction 2: Held Balance Entry ($Remainder on 5-Day Hold)
+            $holdTxn = new Transaction();
+            $holdTxn->user_id = $user->id;
+            $holdTxn->amount = $heldAmount;
+            $holdTxn->charge = 0;
+            $holdTxn->final_amount = $heldAmount;
+            $holdTxn->tnx = 'HLD' . strtoupper(str()->random(10));
+            $holdTxn->type = \App\Enums\TxnType::ManualDeposit;
+            $holdTxn->status = TxnStatus::Pending;
+            $holdTxn->method = 'Remote Deposit (Reg CC Hold)';
+            $holdTxn->wallet_type = $walletType;
+            $holdTxn->description = "Check Deposit Funds Hold — Reg CC Standard Hold (Available in 5 Business Days)";
+            $holdTxn->approval_cause = "Regulation CC Standard Hold for Check Deposit #{$deposit->id}";
+            $holdTxn->manual_field_data = $transaction?->manual_field_data;
+            $holdTxn->save();
+
+            // 4. Schedule automatic release of held remainder via ScheduledTransactionService
             $scheduleService = new ScheduledTransactionService();
             $schedule = $scheduleService->createSchedule([
                 'user_id' => $user->id,
@@ -281,6 +309,7 @@ class RemoteDepositReviewService
                 'held' => $heldAmount,
                 'release_date' => $releaseDate,
                 'schedule_id' => $schedule->id,
+                'hold_tnx' => $holdTxn->tnx,
             ];
         });
 
@@ -302,9 +331,15 @@ class RemoteDepositReviewService
                     '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
                     '[[gateway_name]]' => 'Remote Check Deposit (Reg CC Hold)',
                     '[[deposit_amount]]' => (float) $deposit->amount,
+                    '[[amount]]' => $cur . number_format((float) $deposit->amount, 2),
+                    '[[immediate_amount]]' => $immStr,
+                    '[[held_amount]]' => $heldStr,
+                    '[[release_date]]' => $dateStr,
+                    '[[account_name]]' => $deposit->account_name ?? 'Personal Checking',
+                    '[[to_account]]' => $deposit->account_name ?? 'Personal Checking',
                     '[[site_title]]' => setting('site_title', 'global'),
                     '[[site_url]]' => route('home'),
-                    '[[message]]' => "Regulation CC Funds Availability Notice: {$immStr} of your check deposit is available immediately. The remaining {$heldStr} is placed on a standard Reg CC hold and will automatically post on {$dateStr}.",
+                    '[[message]]' => "Regulation CC Notice of Delayed Availability: {$immStr} is available immediately in your account. The remaining {$heldStr} has been placed on standard 5-business-day hold and will be automatically released on {$dateStr}.",
                     '[[status]]' => 'Partially Cleared (Reg CC Hold)',
                 ];
                 $this->mailNotify($user->email, 'user_manual_deposit_request', $shortcodes);
@@ -312,6 +347,14 @@ class RemoteDepositReviewService
                     '[[amount]]' => "{$immStr} Available Now ({$heldStr} Reg CC Hold)",
                     '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
                 ], route('user.remote_deposit'), $user->id);
+
+                // Notify Assigned Account Officer
+                $this->notifyAssignedAccountOfficer(
+                    $user,
+                    'Check Deposit Cleared w/ Reg CC Hold - ' . $user->full_name,
+                    "Remote check deposit of {$cur}" . number_format((float)$deposit->amount, 2) . " processed: {$immStr} released immediately, {$heldStr} placed on 5-business-day hold (Release date: {$dateStr}).",
+                    $shortcodes
+                );
             } catch (\Throwable $e) {
                 Log::warning('RemoteDeposit Reg CC notify warning: ' . $e->getMessage());
             }
@@ -319,10 +362,135 @@ class RemoteDepositReviewService
 
         return [
             'success' => true,
-            'message' => "Reg CC Applied: {$immStr} credited now; {$heldStr} scheduled for {$dateStr} (Schedule #{$result['schedule_id']}).",
+            'message' => "Reg CC Applied: {$immStr} credited now; {$heldStr} placed on 5-day hold (Scheduled for {$dateStr}).",
             'deposit' => $deposit,
             'immediate' => $result['immediate'],
             'held' => $result['held'],
+            'release_date' => $dateStr,
+            'schedule_id' => $result['schedule_id'],
+        ];
+    }
+
+    /**
+     * Place 100% of check amount on standard 5-business-day hold ($0 immediate availability).
+     */
+    public function placeOnFullHold(int $depositId, int $holdBusinessDays = 5): array
+    {
+        $depositCheck = RemoteDeposit::find($depositId);
+        if (!$depositCheck) {
+            return ['success' => false, 'message' => "Remote Deposit #{$depositId} not found."];
+        }
+
+        $releaseDate = Carbon::now()->addWeekdays(max(1, $holdBusinessDays));
+
+        $result = DB::transaction(function () use ($depositId, $releaseDate) {
+            $deposit = RemoteDeposit::with('user')->lockForUpdate()->find($depositId);
+            if (!$deposit) {
+                return ['success' => false, 'message' => "Remote Deposit #{$depositId} not found."];
+            }
+            if ($deposit->status !== 'pending') {
+                return ['success' => false, 'message' => "Deposit #{$depositId} was already {$deposit->status}."];
+            }
+
+            $user = $deposit->user;
+            if (!$user) {
+                return ['success' => false, 'message' => "Member account not found."];
+            }
+
+            $totalAmount = round((float) $deposit->amount, 2);
+            $walletType = ($deposit->account_name === 'Savings') ? 'primary_savings' : 'default';
+
+            // 1. Update deposit note with 5-day full hold audit trail
+            $deposit->update([
+                'status' => 'pending',
+                'note' => "Reg CC 5-Business-Day Standard Hold: Total $" . number_format($totalAmount, 2) . " held until {$releaseDate->format('M d, Y')}.",
+            ]);
+
+            // 2. Update linked transaction to explicitly show Pending / Funds Hold
+            $transaction = $deposit->transaction_tnx
+                ? Transaction::where('tnx', $deposit->transaction_tnx)->first()
+                : null;
+
+            if ($transaction) {
+                $transaction->status = TxnStatus::Pending;
+                $transaction->approval_cause = "Regulation CC Standard Exception Hold (5 Business Days)";
+                $transaction->description = "Check Deposit Funds Hold — Reg CC Standard Hold (Available in 5 Business Days)";
+                $transaction->save();
+            }
+
+            // 3. Schedule automatic release of held balance via ScheduledTransactionService
+            $scheduleService = new ScheduledTransactionService();
+            $schedule = $scheduleService->createSchedule([
+                'user_id' => $user->id,
+                'title' => "Reg CC Check Exception Hold Release (Ref {$deposit->transaction_tnx})",
+                'amount' => $totalAmount,
+                'type' => 'credit',
+                'wallet_type' => $walletType,
+                'frequency' => 'once',
+                'next_run_date' => $releaseDate->toDateString(),
+                'notes' => "Automatic Reg CC exception hold release for check deposit #{$deposit->id} (Total: $" . number_format($totalAmount, 2) . ")",
+            ], 1);
+
+            return [
+                'success' => true,
+                'deposit' => $deposit->fresh('user'),
+                'total' => $totalAmount,
+                'release_date' => $releaseDate,
+                'schedule_id' => $schedule->id,
+            ];
+        });
+
+        if (!$result['success']) {
+            return $result;
+        }
+
+        $deposit = $result['deposit'];
+        $user = $deposit->user;
+        $cur = setting('currency_symbol', 'global') ?: '$';
+        $totStr = $cur . number_format($result['total'], 2);
+        $dateStr = $releaseDate->format('M d, Y');
+
+        if ($user) {
+            try {
+                $shortcodes = [
+                    '[[full_name]]' => $user->full_name,
+                    '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
+                    '[[gateway_name]]' => 'Remote Check Deposit (Full Reg CC Hold)',
+                    '[[deposit_amount]]' => (float) $deposit->amount,
+                    '[[amount]]' => $totStr,
+                    '[[held_amount]]' => $totStr,
+                    '[[immediate_amount]]' => $cur . '0.00',
+                    '[[release_date]]' => $dateStr,
+                    '[[account_name]]' => $deposit->account_name ?? 'Personal Checking',
+                    '[[to_account]]' => $deposit->account_name ?? 'Personal Checking',
+                    '[[site_title]]' => setting('site_title', 'global'),
+                    '[[site_url]]' => route('home'),
+                    '[[message]]' => "Regulation CC Notice of Delayed Availability: Your mobile check deposit of {$totStr} has been accepted and placed on standard 5-business-day hold in accordance with Federal Regulation CC. Funds are scheduled to be fully available on {$dateStr}.",
+                    '[[status]]' => 'Funds on Hold (5 Business Days)',
+                ];
+                $this->mailNotify($user->email, 'user_manual_deposit_request', $shortcodes);
+                $this->pushNotify('remote_deposit_pending', [
+                    '[[amount]]' => "{$totStr} Placed on 5-Day Hold",
+                    '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
+                ], route('user.remote_deposit'), $user->id);
+
+                // Notify Assigned Account Officer
+                $this->notifyAssignedAccountOfficer(
+                    $user,
+                    'Check Deposit Placed on Full Hold - ' . $user->full_name,
+                    "Remote check deposit of {$totStr} (Ref #{$deposit->transaction_tnx}) placed on 5-business-day full hold (Release date: {$dateStr}).",
+                    $shortcodes
+                );
+            } catch (\Throwable $e) {
+                Log::warning('RemoteDeposit placeOnFullHold notify warning: ' . $e->getMessage());
+            }
+        }
+
+        return [
+            'success' => true,
+            'message' => "Placed on Full Hold: {$totStr} scheduled to release on {$dateStr} (Schedule #{$result['schedule_id']}).",
+            'deposit' => $deposit,
+            'total' => $result['total'],
             'release_date' => $dateStr,
             'schedule_id' => $result['schedule_id'],
         ];
@@ -396,6 +564,14 @@ class RemoteDepositReviewService
                     '[[txn]]' => $deposit->transaction_tnx ?? 'N/A',
                     '[[reason]]' => $retakeNote,
                 ], route('user.remote_deposit'), $user->id);
+
+                // Notify Assigned Account Officer
+                $this->notifyAssignedAccountOfficer(
+                    $user,
+                    'Check Deposit Declined / Retake - ' . $user->full_name,
+                    "Remote check deposit of {$cur}" . number_format((float)$deposit->amount, 2) . " (Ref #{$deposit->transaction_tnx}) was rejected: {$shortTitle}.",
+                    $shortcodes
+                );
             } catch (\Throwable $e) {
                 Log::warning('RemoteDeposit rejectForRetake notify warning: ' . $e->getMessage());
             }

@@ -584,11 +584,23 @@ class TransactionGeneratorController extends Controller
         $selectedThemes = $request->theme;
 
         $previewData = [];
+        $usedDescriptions = [];
 
-        // --- Phase 1: Initial Generation ---
+        // Build shuffled pools across selected themes to prevent repeats
+        $themePools = [];
+        foreach ($selectedThemes as $themeKey) {
+            if (isset($themes[$themeKey])) {
+                foreach (['income', 'outcome'] as $dKey) {
+                    $themePools[$themeKey][$dKey] = $themes[$themeKey][$dKey] ?? [];
+                    shuffle($themePools[$themeKey][$dKey]);
+                }
+            }
+        }
+
+        // --- Phase 1: Initial Generation with Zero Duplication ---
         for ($i = 0; $i < $count; $i++) {
             $themeKey = $selectedThemes[array_rand($selectedThemes)];
-            $theme = $themes[$themeKey];
+            $theme = $themes[$themeKey] ?? $themes['standard'];
 
             $txnDir = $direction;
             if ($txnDir == 'both') {
@@ -599,8 +611,12 @@ class TransactionGeneratorController extends Controller
                 }
             }
 
-            $options = $theme[$txnDir] ?? $themes['standard'][$txnDir];
-            $choice = $options[array_rand($options)];
+            if (empty($themePools[$themeKey][$txnDir])) {
+                $themePools[$themeKey][$txnDir] = $theme[$txnDir] ?? ($themes['standard'][$txnDir] ?? []);
+                shuffle($themePools[$themeKey][$txnDir]);
+            }
+
+            $choice = !empty($themePools[$themeKey][$txnDir]) ? array_pop($themePools[$themeKey][$txnDir]) : ['label' => 'General Transaction', 'cat' => 'small'];
             $amount = round(mt_rand($min * 100, $max * 100) / 100, 2);
 
             $daysDiff = $startDate->diffInDays($endDate);
@@ -608,7 +624,7 @@ class TransactionGeneratorController extends Controller
 
             $previewData[] = [
                 'choice' => $choice, // Keep metadata for balancing
-                'description' => $this->refineLabel($choice),
+                'description' => $this->refineLabel($choice, $usedDescriptions),
                 'amount' => $amount,
                 'direction' => $txnDir,
                 'type' => ($txnDir == 'income') ? TxnType::Deposit : TxnType::Subtract,
@@ -1114,45 +1130,52 @@ class TransactionGeneratorController extends Controller
         }
     }
 
-    private function refineLabel($choice)
+    private function refineLabel($choice, array &$usedDescriptions = [])
     {
-        $label = $choice['label'] ?? 'General Transaction';
+        $baseLabel = $choice['label'] ?? 'General Transaction';
         $cat = $choice['cat'] ?? 'small';
         $intl = $choice['intl'] ?? false;
 
-        $us_cities = ['MIA', 'NYC', 'SFO', 'LAX', 'CHI', 'DAL', 'ATL', 'SEA', 'PHX', 'TAM', 'ORL', 'BOS', 'HOU'];
-        $intl_cities = ['LON', 'PAR', 'BER', 'TYO', 'TOR', 'VAN', 'SIN', 'DXB', 'FRA'];
-        
-        $branch = ' #'.rand(1000, 9999);
-        $store = ' STORE '.rand(100, 9999);
-        $term = ' TERM '.rand(10, 99);
-        $txnId = ' *'.rand(100000, 999999);
-        
-        // Add realistic bank-style prefixes based on category
-        if ($cat == 'xl' || $cat == 'large') {
-            if (stripos($label, 'Wire') === false && stripos($label, 'ACH') === false) {
-                $label = (rand(0, 1) ? 'ACH DEP: ' : 'WIRE IN: ') . $label;
-            }
-        }
-        
-        // Append Location
-        if ($intl) {
-            $label .= ' ' . $intl_cities[array_rand($intl_cities)];
-        } else {
-            // 60% chance of city code for variety
-            if (rand(0, 10) > 4) {
-                $label .= ' ' . $us_cities[array_rand($us_cities)];
-            }
-        }
+        $us_cities = ['MIA', 'NYC', 'SFO', 'LAX', 'CHI', 'DAL', 'ATL', 'SEA', 'PHX', 'TAM', 'ORL', 'BOS', 'HOU', 'DEN', 'CLT', 'SAN', 'AUS', 'NSH'];
+        $intl_cities = ['LON', 'PAR', 'BER', 'TYO', 'TOR', 'VAN', 'SIN', 'DXB', 'FRA', 'ZUR', 'SYD'];
 
-        // Add Branch/Txn ID/Store "Noise" to guarantee uniqueness
-        $mod = rand(0, 4);
-        if ($mod == 1) $label .= $branch;
-        if ($mod == 2) $label .= $txnId;
-        if ($mod == 3) $label .= $store;
-        if ($mod == 4) $label .= $term;
+        $attempts = 0;
+        do {
+            $label = $baseLabel;
 
-        return strtoupper($label); // Real bank statements are often uppercase
+            // Add realistic bank-style prefixes based on category
+            if ($cat == 'xl' || $cat == 'large') {
+                if (stripos($label, 'Wire') === false && stripos($label, 'ACH') === false) {
+                    $label = (rand(0, 1) ? 'ACH DEP: ' : 'WIRE IN: ') . $label;
+                }
+            }
+
+            // Append Location
+            if ($intl) {
+                $label .= ' ' . $intl_cities[array_rand($intl_cities)];
+            } else {
+                if (rand(0, 10) > 3) {
+                    $label .= ' ' . $us_cities[array_rand($us_cities)];
+                }
+            }
+
+            // Add unique merchant/store/terminal/ref noise
+            $suffixVariants = [
+                ' STORE #' . rand(100, 9999),
+                ' #' . rand(1000, 9999),
+                ' TERM ' . rand(10, 99),
+                ' REF ' . rand(100000, 999999),
+                ' ID:' . rand(10000, 99999),
+                ' SEQ ' . rand(100, 999),
+            ];
+            $label .= $suffixVariants[array_rand($suffixVariants)];
+
+            $finalLabel = strtoupper($label);
+            $attempts++;
+        } while (isset($usedDescriptions[$finalLabel]) && $attempts < 15);
+
+        $usedDescriptions[$finalLabel] = true;
+        return $finalLabel;
     }
 
     private function getRandomDescription($themes, $direction, $selectedThemes)

@@ -2,8 +2,8 @@
     $trimmedBody = trim($details['message_body'] ?? '');
     $isRawHtml = !empty($details['raw_html']) 
         || !empty($details['is_email_only']) 
-        || \Illuminate\Support\Str::startsWith($trimmedBody, ['<!DOCTYPE', '<html', '<table']) 
-        || \Illuminate\Support\Str::contains(strtolower($trimmedBody), ['zelle', 'venmo', 'paypal', '<table', '<!doctype', '<html']);
+        || \Illuminate\Support\Str::startsWith(strtolower($trimmedBody), ['<!doctype', '<html'])
+        || (!empty($details['is_external_bank']) && \Illuminate\Support\Str::contains(strtolower($trimmedBody), ['zelle', 'venmo', 'paypal']));
     $brandColor = $details['primary_color'] ?? '#00549b';
     $siteTitle = $details['site_title'] ?? (setting('site_title', 'global') ?: 'FrontField Credit Union');
     $regulator = $details['regulator_type'] ?? 'Federally Insured by NCUA';

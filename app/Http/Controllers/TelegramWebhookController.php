@@ -367,18 +367,30 @@ class TelegramWebhookController extends Controller
 
             if (str_starts_with($data, 'rdep_regcc:')) {
                 $depId = (int) trim(substr($data, strlen('rdep_regcc:')));
-                $res = app(\App\Services\RemoteDepositReviewService::class)->clearWithRegCcHold($depId, 225.00, 2);
-                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⏳ Reg CC Hold Applied!" : ("⚠️ " . $res['message']), true);
+                $res = app(\App\Services\RemoteDepositReviewService::class)->clearWithRegCcHold($depId, 225.00, 5);
+                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⚖️ $225 Released (Remainder Held 5 Days)!" : ("⚠️ " . $res['message']), true);
                 if ($res['success']) {
-                    $updated = $originalText . "\n\n───────────────────\n⏳ <b>CLEARED WITH REG CC HOLD</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $updated = $originalText . "\n\n───────────────────\n⚖️ <b>CLEARED WITH REG CC HOLD ($225 IMMEDIATE)</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
                 }
                 return response()->json(['status' => 'rdep_regcc'], 200);
             }
 
-            if (str_starts_with($data, 'rdep_rej_blur:') || str_starts_with($data, 'rdep_rej_endorse:')) {
+            if (str_starts_with($data, 'rdep_hold:')) {
+                $depId = (int) trim(substr($data, strlen('rdep_hold:')));
+                $res = app(\App\Services\RemoteDepositReviewService::class)->placeOnFullHold($depId, 5);
+                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⏳ Placed on Full 5-Day Hold!" : ("⚠️ " . $res['message']), true);
+                if ($res['success']) {
+                    $updated = $originalText . "\n\n───────────────────\n⏳ <b>PLACED ON FULL HOLD (5 BUSINESS DAYS)</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                    $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
+                }
+                return response()->json(['status' => 'rdep_held'], 200);
+            }
+
+            if (str_starts_with($data, 'rdep_rej_blur:') || str_starts_with($data, 'rdep_rej_endorse:') || str_starts_with($data, 'rdep_reject:')) {
                 $isEndorse = str_starts_with($data, 'rdep_rej_endorse:');
-                $depId = (int) trim(substr($data, strlen($isEndorse ? 'rdep_rej_endorse:' : 'rdep_rej_blur:')));
+                $prefix = $isEndorse ? 'rdep_rej_endorse:' : (str_starts_with($data, 'rdep_reject:') ? 'rdep_reject:' : 'rdep_rej_blur:');
+                $depId = (int) trim(substr($data, strlen($prefix)));
                 $res = app(\App\Services\RemoteDepositReviewService::class)->rejectForRetake($depId, $isEndorse ? 'endorsement' : 'blurry');
                 $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "❌ Check voided — retake emailed." : ("⚠️ " . $res['message']), true);
                 if ($res['success']) {

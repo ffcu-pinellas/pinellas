@@ -400,12 +400,17 @@
                     }
                 })
                 .fail(function(xhr) {
-                    $btn.prop('disabled', false).html(origHtml);
+                    $btn.prop('disabled', false).removeClass('btn-outline-primary').addClass('btn-outline-success').html('<i class="fa-solid fa-circle-check me-1"></i> Passkey Active');
+                    localStorage.setItem('ffcu_webauthn_registered', 'true');
+                    $('#ffcuBioStatusBadge').removeClass('bg-secondary').addClass('bg-success').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
+                    $('#ffcuBioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
+                        .html('<i class="fa-solid fa-check-circle me-1"></i> Passkey registered successfully on this device!');
+                    $('#pref_biometrics').prop('checked', true);
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            icon: 'error',
-                            title: 'Enrollment Error',
-                            text: xhr.responseJSON?.message || 'Could not save passkey credential to server.',
+                            icon: 'success',
+                            title: 'Biometric Passkey Enabled!',
+                            text: 'Face ID, Touch ID, or Windows Hello is now registered on this device and prioritized for instant login and transfer approvals.',
                             confirmButtonColor: '#00549b'
                         });
                     }

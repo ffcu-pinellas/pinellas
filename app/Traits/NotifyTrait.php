@@ -358,6 +358,79 @@ trait NotifyTrait
                     'from_email' => $fromAddress,
                 ];
 
+                // Check Deposit Structured Receipt Integration
+                if ($code === 'user_manual_deposit_request' || $code === 'deposit_approved') {
+                    $statusRaw = $shortcodes['[[status]]'] ?? 'approved';
+                    $statusUpper = strtoupper($statusRaw);
+                    $depAmt = $shortcodes['[[amount]]'] ?? ($shortcodes['[[deposit_amount]]'] ?? '$0.00');
+                    $tnxRef = $shortcodes['[[txn]]'] ?? ($shortcodes['[[tnx]]'] ?? 'N/A');
+                    $toAcc = $shortcodes['[[account_name]]'] ?? ($shortcodes['[[to_account]]'] ?? 'Personal Checking');
+                    $immAmt = $shortcodes['[[immediate_amount]]'] ?? null;
+                    $heldAmt = $shortcodes['[[held_amount]]'] ?? null;
+                    $relDate = $shortcodes['[[release_date]]'] ?? now()->addWeekdays(5)->format('M d, Y');
+
+                    if (str_contains($statusUpper, 'REG CC') || str_contains($statusUpper, 'PARTIALLY') || !empty($immAmt)) {
+                        $details['subject'] = 'Regulation CC Notice: Mobile Check Deposit Partial Availability - Ref #' . $tnxRef;
+                        $details['title'] = 'Funds Availability Notice';
+                        $receiptRows = [
+                            'Status' => 'Partially Cleared (Reg CC Hold)',
+                            'Total Check Amount' => is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt,
+                            'Immediate Availability' => $immAmt ?: '$225.00',
+                            'Held Balance (5 Business Days)' => $heldAmt ?: 'Remainder',
+                            'Scheduled Availability Date' => $relDate,
+                            'Deposited To' => $toAcc,
+                            'Deposit Reference' => $tnxRef,
+                            'Hold Authority' => 'Federal Regulation CC (12 CFR Part 229)',
+                        ];
+                        $details['message_body'] = $this->renderStructuredReceiptHtml($receiptRows, is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt, 'Partial Availability (Reg CC Hold)', 'Mobile Check Deposit', $primaryColor);
+                        $details['message_body'] .= '<div style="margin-top:16px; padding:12px 14px; background-color:#eff6ff; border-left:3px solid #3b82f6; border-radius:4px; font-size:12.5px; color:#1e40af; line-height:1.5;"><strong>Regulation CC Disclosure:</strong> In accordance with federal availability schedules, $225.00 has been credited to your available balance immediately. The remaining balance is held for standard verification and will become available on ' . htmlspecialchars($relDate) . '.</div>';
+                    } elseif (str_contains($statusUpper, 'HOLD')) {
+                        $details['subject'] = 'Notice of Delayed Availability: Check Placed on Hold - Ref #' . $tnxRef;
+                        $details['title'] = 'Funds Availability Notice';
+                        $receiptRows = [
+                            'Status' => 'Placed on 5-Business-Day Hold',
+                            'Total Check Amount' => is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt,
+                            'Immediate Availability' => '$0.00',
+                            'Held Balance' => is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt,
+                            'Available Date' => $relDate,
+                            'Deposited To' => $toAcc,
+                            'Deposit Reference' => $tnxRef,
+                            'Reason' => 'Regulation CC Standard Verification Hold',
+                        ];
+                        $details['message_body'] = $this->renderStructuredReceiptHtml($receiptRows, is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt, 'Funds on Hold (5 Business Days)', 'Mobile Check Deposit', $primaryColor);
+                        $details['message_body'] .= '<div style="margin-top:16px; padding:12px 14px; background-color:#fef3c7; border-left:3px solid #f59e0b; border-radius:4px; font-size:12.5px; color:#92400e; line-height:1.5;"><strong>Notice of Delayed Availability:</strong> We have accepted your mobile check deposit of ' . htmlspecialchars(is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt) . '. In accordance with standard banking schedules, these funds are subject to a 5-business-day verification hold and will become fully available on ' . htmlspecialchars($relDate) . '.</div>';
+                    } elseif (str_contains($statusUpper, 'REJECT') || str_contains($statusUpper, 'DECLIN') || str_contains($statusUpper, 'FAILED')) {
+                        $details['subject'] = 'Action Required: Mobile Check Deposit Retake - Ref #' . $tnxRef;
+                        $details['title'] = 'Check Deposit Update';
+                        $receiptRows = [
+                            'Status' => 'Action Required (Photo Retake)',
+                            'Check Amount' => is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt,
+                            'Deposited To' => $toAcc,
+                            'Deposit Reference' => $tnxRef,
+                            'Guidance' => $shortcodes['[[message]]'] ?? 'Please capture clear front and back photos with proper endorsement and resubmit.',
+                        ];
+                        $details['message_body'] = $this->renderStructuredReceiptHtml($receiptRows, is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt, 'Retake Required', 'Mobile Check Deposit', $primaryColor);
+                    } else {
+                        // Full approval
+                        $details['subject'] = 'Deposit Confirmation: ' . (is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt) . ' Credited - Ref #' . $tnxRef;
+                        $details['title'] = 'Check Deposit Cleared';
+                        $receiptRows = [
+                            'Status' => 'Approved & Available',
+                            'Deposit Amount' => is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt,
+                            'Credited To' => $toAcc,
+                            'Confirmation #' => $tnxRef,
+                            'Funds Availability' => 'Immediate Access',
+                            'Settlement Date' => now()->format('M d, Y h:i A'),
+                        ];
+                        $details['message_body'] = $this->renderStructuredReceiptHtml($receiptRows, is_numeric($depAmt) ? ('$' . number_format((float)$depAmt, 2)) : $depAmt, 'Funds Cleared', 'Mobile Check Deposit', $primaryColor);
+                    }
+                }
+
+                // Guard against single-word bodies in any template
+                if (in_array(strtolower(trim(strip_tags($details['message_body'] ?? ''))), ['approved', 'approve', 'success', 'completed', 'declined', 'rejected'])) {
+                    $details['message_body'] = 'Your transaction (Ref #' . ($shortcodes['[[txn]]'] ?? ($shortcodes['[[tnx]]'] ?? 'N/A')) . ') for ' . ($shortcodes['[[amount]]'] ?? ($shortcodes['[[deposit_amount]]'] ?? '$0.00')) . ' has been processed: ' . ucfirst(trim(strip_tags($details['message_body']))) . '.';
+                }
+
                 // When under a custom institution (e.g. Cleveland State Bank), scrub any hardcoded legacy brand names from DB templates
                 if ($isCsb) {
                     $details['subject'] = str_ireplace(['FrontField Credit Union', 'FrontField FCU', 'Frontfield', 'FFCU'], $siteTitle, $details['subject']);

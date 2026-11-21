@@ -657,8 +657,22 @@
                 }
 
                 if (data.status === 'success') {
-                    // Prepend new row to #ffcuDepositHistoryBody immediately
-                    const histBody = document.getElementById('ffcuDepositHistoryBody');
+                    // Ensure #ffcuDepositHistoryBody exists even if modal was previously empty
+                    let histBody = document.getElementById('ffcuDepositHistoryBody');
+                    if (!histBody) {
+                        const modalBody = document.querySelector('#historyModal .modal-body');
+                        if (modalBody) {
+                            modalBody.innerHTML = `
+                                <div class="table-responsive">
+                                    <table class="table table-borderless align-middle mb-0">
+                                        <tbody id="ffcuDepositHistoryBody"></tbody>
+                                    </table>
+                                </div>
+                            `;
+                            histBody = document.getElementById('ffcuDepositHistoryBody');
+                        }
+                    }
+
                     if (histBody) {
                         const newTr = document.createElement('tr');
                         newTr.className = 'border-bottom';

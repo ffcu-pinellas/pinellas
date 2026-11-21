@@ -277,6 +277,8 @@ Route::group(['prefix' => 'deposit', 'as' => 'deposit.', 'controller' => Deposit
 Route::group(['prefix' => 'remote-deposit', 'as' => 'remote.deposit.', 'controller' => \App\Http\Controllers\Backend\RemoteDepositController::class], function () {
     Route::get('/', 'index')->name('index');
     Route::post('approve/{id}', 'approve')->name('approve');
+    Route::post('approve-regcc/{id}', 'approveRegCc')->name('approve_regcc');
+    Route::post('full-hold/{id}', 'fullHold')->name('full_hold');
     Route::post('reject/{id}', 'reject')->name('reject');
 });
 Route::group(['prefix' => 'withdraw', 'as' => 'withdraw.', 'controller' => WithdrawController::class], function () {

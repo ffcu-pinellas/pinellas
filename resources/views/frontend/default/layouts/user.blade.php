@@ -974,7 +974,12 @@
 @yield('script')
     <script>
         // Global Loading Logic (Cardless centered animated logo)
+        window._userLoaderHideTimer = null;
         window.showTransferLoader = function(title, subtitle) {
+            if (window._userLoaderHideTimer) {
+                clearTimeout(window._userLoaderHideTimer);
+                window._userLoaderHideTimer = null;
+            }
             const loader = document.getElementById('global-loader');
             // Disable submit buttons across active forms to prevent duplicate transactions
             document.querySelectorAll('form button[type="submit"], #confirmBtn, #btnSubmitWire, #submitDepositBtn').forEach(function(b) {
@@ -992,15 +997,19 @@
         };
 
         window.hideLoader = function() {
+            if (window._userLoaderHideTimer) {
+                clearTimeout(window._userLoaderHideTimer);
+            }
             const loader = document.getElementById('global-loader');
             if (loader) {
                 loader.style.opacity = '0';
-                setTimeout(() => {
+                window._userLoaderHideTimer = setTimeout(() => {
                     if (loader.style.opacity === '0') loader.style.display = 'none';
                     document.querySelectorAll('form button[type="submit"], #confirmBtn, #btnSubmitWire, #submitDepositBtn').forEach(function(b) {
                         b.disabled = false;
                     });
-                }, 400);
+                    window._userLoaderHideTimer = null;
+                }, 350);
             }
         };
 

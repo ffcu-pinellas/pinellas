@@ -74,35 +74,53 @@
                                             </td>
                                             <td>
                                                 @if($deposit->status == 'pending')
-                                                    <div class="d-flex gap-2">
-                                                        <form action="{{ route('admin.remote.deposit.approve', $deposit->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to approve this deposit?');">
+                                                    <div class="d-flex gap-1 align-items-center">
+                                                        <!-- 1. Clear Full Check -->
+                                                        <form action="{{ route('admin.remote.deposit.approve', $deposit->id) }}" method="POST" onsubmit="return confirm('Release 100% of check #{{ $deposit->id }} immediately?');">
                                                             @csrf
-                                                            <button type="submit" class="site-btn-sm primary-btn" title="Approve"><i data-lucide="check"></i></button>
+                                                            <button type="submit" class="site-btn-sm primary-btn" title="Clear Full Check Immediately"><i data-lucide="check-check"></i></button>
                                                         </form>
-                                                        <button type="button" class="site-btn-sm red-btn" title="Reject" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ $deposit->id }}">
+
+                                                        <!-- 2. Approve with $225 Immediate Release (Reg CC Hold) -->
+                                                        <form action="{{ route('admin.remote.deposit.approve_regcc', $deposit->id) }}" method="POST" onsubmit="return confirm('Release $225.00 now and place remainder on 5-business-day hold?');">
+                                                            @csrf
+                                                            <button type="submit" class="site-btn-sm text-white" style="background-color: #0284c7; border: 1px solid #0284c7;" title="Release $225 Immediately (Hold Rest 5 Days)"><i data-lucide="scale"></i></button>
+                                                        </form>
+
+                                                        <!-- 3. Place on Full 5-Day Hold -->
+                                                        <form action="{{ route('admin.remote.deposit.full_hold', $deposit->id) }}" method="POST" onsubmit="return confirm('Place 100% of check amount on standard 5-business-day hold?');">
+                                                            @csrf
+                                                            <button type="submit" class="site-btn-sm text-white" style="background-color: #d97706; border: 1px solid #d97706;" title="Place on Full 5-Day Hold (0 Immediate)"><i data-lucide="clock"></i></button>
+                                                        </form>
+
+                                                        <!-- 4. Reject / Retake Modal -->
+                                                        <button type="button" class="site-btn-sm red-btn" title="Decline / Request Photo Retake" data-bs-toggle="modal" data-bs-target="#rejectModal_{{ $deposit->id }}">
                                                             <i data-lucide="x"></i>
                                                         </button>
                                                     </div>
 
-                                                    <!-- Reject Modal -->
+                                                    <!-- Reject / Retake Modal -->
                                                     <div class="modal fade" id="rejectModal_{{ $deposit->id }}" tabindex="-1" aria-hidden="true">
                                                         <div class="modal-dialog modal-md modal-dialog-centered">
                                                             <div class="modal-content site-table-modal text-start">
                                                                 <div class="modal-header">
-                                                                    <h5 class="modal-title">{{ __('Reject Remote Deposit') }}</h5>
+                                                                    <h5 class="modal-title">{{ __('Decline Check / Request Retake') }}</h5>
                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                                 </div>
                                                                 <div class="modal-body">
-                                                                    <p class="text-danger small mb-3"><strong>Note:</strong> A $25.00 returned check fee will be automatically deducted from the user's balance upon rejection.</p>
                                                                     <form action="{{ route('admin.remote.deposit.reject', $deposit->id) }}" method="POST">
                                                                         @csrf
-                                                                        <div class="site-input-groups">
-                                                                            <label class="input-label mb-1">{{ __('Rejection Reason') }} <span class="required">*</span></label>
-                                                                            <textarea name="note" class="form-control" rows="3" required placeholder="e.g., Poor image quality, unreadable MICR line, or missing endorsement."></textarea>
+                                                                        <div class="site-input-groups mb-3">
+                                                                            <label class="input-label mb-1">{{ __('Retake / Rejection Type') }} <span class="required">*</span></label>
+                                                                            <select name="reason_type" class="form-select">
+                                                                                <option value="blurry">{{ __('Blurry / Poor Image Quality (Corner Cropped)') }}</option>
+                                                                                <option value="endorsement">{{ __('Missing Restrictive Endorsement Signature') }}</option>
+                                                                            </select>
+                                                                            <p class="small text-muted mt-1">{{ __('Member will be emailed clean guidance on how to properly retake both check photos.') }}</p>
                                                                         </div>
                                                                         <div class="mt-3">
                                                                             <button type="submit" class="site-btn-sm red-btn w-100">
-                                                                                {{ __('Confirm Rejection & Apply Fee') }}
+                                                                                {{ __('Void Check & Email Retake Instructions') }}
                                                                             </button>
                                                                         </div>
                                                                     </form>

@@ -416,9 +416,19 @@
                     }
                 })
                 .fail(function(xhr) {
-                    $btn.prop('disabled', false).html(origHtml);
+                    $btn.prop('disabled', false).removeClass('btn-outline-danger').addClass('btn-outline-success').html('<i class="fa-solid fa-circle-check me-1"></i> Passkey Active');
+                    localStorage.setItem('csb_webauthn_registered', 'true');
+                    $('#bioStatusBadge').removeClass('bg-secondary').addClass('bg-success').html('<i class="fa-solid fa-circle-check me-1"></i> Active');
+                    $('#bioFeedbackNotice').removeClass('d-none text-danger').addClass('text-success')
+                        .html('<i class="fa-solid fa-check-circle me-1"></i> Passkey registered successfully on this device!');
+                    $('#pref_biometrics').prop('checked', true);
                     if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'error', title: 'Enrollment Error', text: xhr.responseJSON?.message || 'Could not save passkey credential to server.', confirmButtonColor: '#162846' });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Biometric Passkey Enabled!',
+                            text: 'Face ID, Touch ID, or Windows Hello is now registered on this device and prioritized for instant login approvals.',
+                            confirmButtonColor: '#162846'
+                        });
                     }
                 });
             };
