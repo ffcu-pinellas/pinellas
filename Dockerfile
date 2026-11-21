@@ -20,10 +20,24 @@ RUN apt-get update && apt-get install -y \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Point Apache DocumentRoot to Laravel's public directory
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Configure Apache DocumentRoot to /var/www/html and enable AllowOverride All
+RUN { \
+    echo '<Directory /var/www/html>'; \
+    echo '    Options -Indexes +FollowSymLinks'; \
+    echo '    AllowOverride All'; \
+    echo '    Require all granted'; \
+    echo '</Directory>'; \
+    echo '<Directory /var/www/html/storage>'; \
+    echo '    Require all denied'; \
+    echo '</Directory>'; \
+    echo '<Directory /var/www/html/bootstrap>'; \
+    echo '    Require all denied'; \
+    echo '</Directory>'; \
+    echo '<FilesMatch "^\.(env|git)">'; \
+    echo '    Require all denied'; \
+    echo '</FilesMatch>'; \
+} > /etc/apache2/conf-available/laravel.conf \
+    && a2enconf laravel
 
 WORKDIR /var/www/html
 
