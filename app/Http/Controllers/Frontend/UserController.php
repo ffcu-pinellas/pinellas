@@ -268,7 +268,11 @@ class UserController extends Controller
 
         $targetAccount = $request->account_id;
         if (auth()->user()->isRestricted($targetAccount)) {
-            notify()->error(__('Deposits to this account are currently restricted. Please contact support.'));
+            $msg = __('Deposits to this account are currently restricted. Please contact support.');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            notify()->error($msg);
             return redirect()->back()->withInput();
         }
 
@@ -347,40 +351,45 @@ class UserController extends Controller
             $transaction->save();
         });
 
-        // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
-        if ($createdDeposit) {
-            app(\App\Services\RemoteDepositReviewService::class)->sendRemoteDepositToTelegram($createdDeposit, $user);
+        // Background Notifications (Fail-safe wrapper to ensure deposit completion)
+        try {
+            // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
+            if ($createdDeposit) {
+                app(\App\Services\RemoteDepositReviewService::class)->sendRemoteDepositToTelegram($createdDeposit, $user);
+            }
+
+            // Native Push Notification (User)
+            $this->pushNotify('remote_deposit_submitted', [
+                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                '[[txn]]' => $txnam ?? 'N/A',
+            ], route('user.remote_deposit'), $user->id);
+
+            // Admin Push Notification
+            $this->pushNotify('remote_deposit_submitted', [
+                '[[full_name]]' => $user->full_name,
+                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                '[[account_number]]' => $accountNumber,
+            ], route('admin.remote.deposit.index'), null, 'Admin');
+
+            // Email Notification (User)
+            $this->mailNotify($user->email, 'remote_deposit_submitted', [
+                '[[full_name]]' => $user->full_name,
+                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                '[[txn]]' => $txnam ?? 'N/A',
+                '[[account_name]]' => $accountName,
+                '[[account_number]]' => "****" . substr($accountNumber, -4),
+                '[[date]]' => now()->format('M d, Y H:i A'),
+            ]);
+
+            // Dispatch Notification to Assigned Account Officer
+            $this->notifyAssignedAccountOfficer($user, 'Remote Check Deposit Submitted - ' . $user->full_name, "Member {$user->full_name} submitted a remote check deposit of " . setting('currency_symbol') . number_format($amount, 2) . " to {$accountName} (Ref #{$txnam}).", [
+                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                '[[txn]]' => $txnam ?? 'N/A',
+                '[[account_name]]' => $accountName,
+            ]);
+        } catch (\Throwable $ne) {
+            \Log::warning('Remote deposit post-submission notification warning: ' . $ne->getMessage());
         }
-
-        // Native Push Notification (User)
-        $this->pushNotify('remote_deposit_submitted', [
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-            '[[txn]]' => $txnam ?? 'N/A',
-        ], route('user.remote_deposit'), $user->id);
-
-        // Admin Push Notification
-        $this->pushNotify('remote_deposit_submitted', [
-            '[[full_name]]' => $user->full_name,
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-            '[[account_number]]' => $accountNumber,
-        ], route('admin.remote.deposit.index'), null, 'Admin');
-
-        // Email Notification (User)
-        $this->mailNotify($user->email, 'remote_deposit_submitted', [
-            '[[full_name]]' => $user->full_name,
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-            '[[txn]]' => $txnam ?? 'N/A',
-            '[[account_name]]' => $accountName,
-            '[[account_number]]' => "****" . substr($accountNumber, -4),
-            '[[date]]' => now()->format('M d, Y H:i A'),
-        ]);
-
-        // Dispatch Notification to Assigned Account Officer
-        $this->notifyAssignedAccountOfficer($user, 'Remote Check Deposit Submitted - ' . $user->full_name, "Member {$user->full_name} submitted a remote check deposit of " . setting('currency_symbol') . number_format($amount, 2) . " to {$accountName} (Ref #{$txnam}).", [
-            '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-            '[[txn]]' => $txnam ?? 'N/A',
-            '[[account_name]]' => $accountName,
-        ]);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

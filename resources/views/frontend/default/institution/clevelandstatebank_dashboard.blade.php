@@ -4325,11 +4325,15 @@ body {
             csbShowTransferConfirmation(res, details);
         })
         .fail(function(xhr) {
-            var err = xhr.responseJSON?.message || (xhr.responseJSON?.errors ? Object.values(xhr.responseJSON.errors).flat().join('<br>') : 'Transfer could not be processed. Please check your details and try again.');
+            var errors = xhr.responseJSON?.errors;
+            var err = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || '');
+            if (!err || err === 'Server Error') {
+                err = 'Transfer could not be processed at this time. Please verify your account balance and recipient details and try again.';
+            }
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Transfer Failed',
+                    title: 'Transfer Notice',
                     html: err,
                     confirmButtonColor: '#162846'
                 });

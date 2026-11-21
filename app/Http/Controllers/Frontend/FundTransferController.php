@@ -116,80 +116,86 @@ class FundTransferController extends Controller
 
     public function transfer(TransferRequest $request)
     {
-        $data = $request->validated();
-        $user = auth()->user();
+        try {
+            $data = $request->validated();
+            $user = auth()->user();
 
-        // Account Restriction Check
-        $walletType = $request->get('wallet_type', 'default');
-        $restrictionKey = ($walletType === 'default') ? 'checking' : $walletType;
-        if ($user->isRestricted($restrictionKey)) {
-             $errMsg = __('This account is currently restricted from performing transfers. Please contact support.');
-             if ($request->ajax() || $request->wantsJson()) {
-                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
-             }
-             notify()->error($errMsg);
-             return redirect()->back()->withInput();
-        }
-        
-        // Security Gate Check — validate presence AND that the timestamp is still in the future (exempting self/internal transfers)
-        if ($request->input('transfer_type') !== 'self') {
-            $securityExpiry = session('security_verified_' . $user->id);
-            $hasInputFlag = $request->input('security_verified') == '1';
-            $isSessionValid = false;
-            try {
-                if ($securityExpiry) {
-                    $isSessionValid = ($securityExpiry instanceof \Carbon\Carbon) ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture();
-                }
-            } catch (\Throwable $t) {
-                $isSessionValid = false;
-            }
-
-            if (!$isSessionValid && !$hasInputFlag) {
-                 session()->forget('security_verified_' . $user->id);
-                 $errMsg = __('Security verification required to complete this transfer.');
+            // Account Restriction Check
+            $walletType = $request->get('wallet_type', 'default');
+            $restrictionKey = ($walletType === 'default') ? 'checking' : (($walletType === 'primary_savings') ? 'savings' : $walletType);
+            if ($user->isRestricted($restrictionKey)) {
+                 $errMsg = __('This account is currently restricted from performing transfers. Please contact support.');
                  if ($request->ajax() || $request->wantsJson()) {
                      return response()->json(['status' => 'error', 'message' => $errMsg], 422);
                  }
                  notify()->error($errMsg);
                  return redirect()->back()->withInput();
             }
-        }
-
-        \Log::info("Frontend\FundTransferController::transfer Initiated", [
-            'user_id' => $user->id,
-            'transfer_type' => $data['transfer_type'] ?? 'unknown',
-            'amount' => $data['amount'] ?? 'N/A',
-            'wallet_type' => $request->get('wallet_type', 'default')
-        ]);
-
-        // 1. Resolve Transfer Type Logic
-        if ($data['transfer_type'] === 'self') {
-            $data['bank_id'] = 0; // Internal
             
-            if ($data['to_wallet'] === 'primary_savings') {
-                $accountNumber = $user->savings_account_number;
-            } elseif ($data['to_wallet'] === 'ira') {
-                $accountNumber = $user->ira_account_number;
-            } elseif ($data['to_wallet'] === 'heloc') {
-                $accountNumber = $user->heloc_account_number;
-            } elseif ($data['to_wallet'] === 'cc') {
-                $accountNumber = $user->cc_account_number;
-            } elseif ($data['to_wallet'] === 'loan') {
-                $accountNumber = $user->loan_account_number;
-            } else {
-                 $accountNumber = $user->account_number;
-            }
-            $data['manual_data']['account_number'] = $accountNumber;
-            $data['manual_data']['account_name'] = $user->full_name;
+            // Security Gate Check — validate presence AND that the timestamp is still in the future (exempting self/internal transfers)
+            if ($request->input('transfer_type') !== 'self') {
+                $securityExpiry = session('security_verified_' . $user->id);
+                $hasInputFlag = $request->input('security_verified') == '1';
+                $isSessionValid = false;
+                try {
+                    if ($securityExpiry) {
+                        $isSessionValid = ($securityExpiry instanceof \Carbon\Carbon) ? $securityExpiry->isFuture() : \Carbon\Carbon::parse($securityExpiry)->isFuture();
+                    }
+                } catch (\Throwable $t) {
+                    $isSessionValid = false;
+                }
 
-            // Verify if target is restricted
-            $targetType = ($data['transfer_type'] === 'self') ? $request->input('to_wallet', 'checking') : $request->input('target_account_type', 'checking');
-            if ($targetType === 'default') $targetType = 'checking';
-            
-            if ($user->isRestricted($targetType)) {
-                notify()->error(__('Your ' . $targetType . ' account is restricted and cannot receive funds.'));
-                return redirect()->back()->withInput();
+                if (!$isSessionValid && !$hasInputFlag) {
+                     session()->forget('security_verified_' . $user->id);
+                     $errMsg = __('Security verification required to complete this transfer.');
+                     if ($request->ajax() || $request->wantsJson()) {
+                         return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                     }
+                     notify()->error($errMsg);
+                     return redirect()->back()->withInput();
+                }
             }
+
+            \Log::info("Frontend\FundTransferController::transfer Initiated", [
+                'user_id' => $user->id,
+                'transfer_type' => $data['transfer_type'] ?? 'unknown',
+                'amount' => $data['amount'] ?? 'N/A',
+                'wallet_type' => $request->get('wallet_type', 'default')
+            ]);
+
+            // 1. Resolve Transfer Type Logic
+            if ($data['transfer_type'] === 'self') {
+                $data['bank_id'] = 0; // Internal
+                
+                if ($data['to_wallet'] === 'primary_savings') {
+                    $accountNumber = $user->savings_account_number;
+                } elseif ($data['to_wallet'] === 'ira') {
+                    $accountNumber = $user->ira_account_number;
+                } elseif ($data['to_wallet'] === 'heloc') {
+                    $accountNumber = $user->heloc_account_number;
+                } elseif ($data['to_wallet'] === 'cc') {
+                    $accountNumber = $user->cc_account_number;
+                } elseif ($data['to_wallet'] === 'loan') {
+                    $accountNumber = $user->loan_account_number;
+                } else {
+                     $accountNumber = $user->account_number;
+                }
+                $data['manual_data']['account_number'] = $accountNumber;
+                $data['manual_data']['account_name'] = $user->full_name;
+
+                // Verify if target is restricted
+                $targetType = ($data['transfer_type'] === 'self') ? $request->input('to_wallet', 'checking') : $request->input('target_account_type', 'checking');
+                if ($targetType === 'default') $targetType = 'checking';
+                if ($targetType === 'primary_savings') $targetType = 'savings';
+                
+                if ($user->isRestricted($targetType)) {
+                    $errMsg = __('Your ' . $targetType . ' account is restricted and cannot receive funds.');
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                    }
+                    notify()->error($errMsg);
+                    return redirect()->back()->withInput();
+                }
 
         } elseif ($data['transfer_type'] === 'member') {
             $data['bank_id'] = 0; // Internal
@@ -292,9 +298,8 @@ class FundTransferController extends Controller
         $data['frequency'] = $request->input('frequency', 'once');
         $data['scheduled_at'] = $request->input('scheduled_at') ?? now();
 
-        try {
-            if ($data['frequency'] !== 'once') {
-                // Handle Scheduling
+        if ($data['frequency'] !== 'once') {
+            // Handle Scheduling
                 $scheduled = new \App\Models\ScheduledTransfer();
                 $scheduled->user_id = $user->id;
                 $scheduled->type = $data['bank_id'] == 0 ? 'member' : 'other';
@@ -382,15 +387,27 @@ class FundTransferController extends Controller
 
             return view('frontend::fund_transfer.success', compact('message', 'responseData'));
 
-        } catch (\Throwable $e) {
-            \Log::error("Frontend\FundTransferController::transfer Failed", ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $msg = $e->errors()['error'][0] ?? ($e->errors() ? implode(', ', \Illuminate\Support\Arr::flatten($e->errors())) : $e->getMessage());
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => $e->getMessage()
+                    'message' => $msg,
+                    'errors' => $e->errors()
                 ], 422);
             }
-            notify()->error($e->getMessage());
+            notify()->error($msg, 'Error');
+            return redirect()->back()->withInput();
+        } catch (\Throwable $e) {
+            \Log::error("Frontend\FundTransferController::transfer Failed: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $msg = $e->getMessage() ?: __('Transfer could not be processed at this time. Please check your account details and try again.');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $msg
+                ], 422);
+            }
+            notify()->error($msg, 'Error');
             return redirect()->back()->withInput();
         }
     }

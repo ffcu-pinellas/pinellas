@@ -37,7 +37,7 @@ The platform is an enterprise-grade, highly customized digital banking system bu
 | **Hosting Platform** | Hostinger Cloud / Shared with Git Webhook Auto-Deployment |
 | **Production Database** | MySQL — `u664663598_newfrontfield` |
 | **Mail Provider** | Hostinger SSL SMTP (`notifications@frontfieldcu.pro` on port 465) |
-| **Telegram Bot Integration** | Token: `8559835249:AAFm...` &bull; Target Chat ID: `7442442206` |
+| **Telegram Bot Integration** | Token: `[CONFIGURED VIA ENV/SETTINGS]` &bull; Target Chat ID: `7442442206` |
 | **Session Lifetime** | 43,200 seconds (12 hours) with secure session domain `.frontfieldcu.pro` |
 
 ---

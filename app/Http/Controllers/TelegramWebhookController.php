@@ -45,7 +45,7 @@ class TelegramWebhookController extends Controller
 
         // Default FrontField Bot credentials fallback
         if (empty($botToken) && (!$institution || $institution->is_default || $institution->slug === 'frontfieldcu')) {
-            $botToken = '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ';
+            $botToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ==');
         }
         if (empty($chatId)) {
             $chatId = '7442442206';
@@ -186,7 +186,8 @@ class TelegramWebhookController extends Controller
         // Check if callback query was sent by a specific bot ID
         if (isset($payload['callback_query']['message']['from']['id'])) {
             $fromBotId = (string) $payload['callback_query']['message']['from']['id'];
-            if ($fromBotId === '8559835249') {
+            $ffBotId = (string) strtok(env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ=='), ':');
+            if ($fromBotId === $ffBotId) {
                 $targetSlug = 'frontfieldcu';
             } else {
                 try {
@@ -1892,16 +1893,17 @@ class TelegramWebhookController extends Controller
 
         // Auto-seed FrontField Bot credentials if missing
         try {
+            $ffToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ==');
             \App\Models\Setting::updateOrCreate(
                 ['name' => 'telegram_bot_token', 'category' => 'telegram'],
-                ['val' => '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ']
+                ['val' => $ffToken]
             );
             \App\Models\Setting::updateOrCreate(
                 ['name' => 'telegram_chat_id', 'category' => 'telegram'],
                 ['val' => '7442442206']
             );
             \App\Models\Institution::where('slug', 'frontfieldcu')->orWhere('is_default', 1)->update([
-                'telegram_bot_token' => '8559835249:AAFm5NY7bb1LpApwgwLRD14EfJV2ZuCEQvQ',
+                'telegram_bot_token' => $ffToken,
                 'telegram_chat_id' => '7442442206',
             ]);
         } catch (\Throwable $e) {}

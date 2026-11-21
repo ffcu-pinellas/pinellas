@@ -380,37 +380,57 @@ class SecurityController extends Controller
      */
     public function biometricChallenge(Request $request)
     {
-        $user = Auth::user();
-        $challenge = bin2hex(random_bytes(32));
-        session()->put('webauthn_challenge_' . $user->id, $challenge);
-        session()->save();
-        Cache::put('webauthn_challenge_' . $user->id, $challenge, 300);
-
         try {
-            TransactionSecurityCode::updateOrCreate(
-                ['user_id' => $user->id, 'type' => 'biometric'],
-                ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
-            );
+            $user = Auth::user();
+            $challenge = bin2hex(random_bytes(32));
+            if ($user) {
+                session()->put('webauthn_challenge_' . $user->id, $challenge);
+                session()->save();
+                Cache::put('webauthn_challenge_' . $user->id, $challenge, 300);
+
+                try {
+                    TransactionSecurityCode::updateOrCreate(
+                        ['user_id' => $user->id, 'type' => 'biometric'],
+                        ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
+                    );
+                } catch (\Throwable $e) {
+                    \Log::warning('TransactionSecurityCode biometric challenge persistence warning: ' . $e->getMessage());
+                }
+            }
+
+            $inst = $user?->institution;
+            $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Cleveland State Bank');
+
+            return response()->json([
+                'status' => 'success',
+                'challenge' => $challenge,
+                'user' => [
+                    'id' => base64_encode((string) ($user?->id ?? 1)),
+                    'name' => $user?->username ?? 'member',
+                    'displayName' => $user?->full_name ?? 'Member',
+                ],
+                'rp' => [
+                    'name' => $rpName,
+                    'id' => request()->getHost(),
+                ]
+            ]);
         } catch (\Throwable $e) {
-            \Log::warning('TransactionSecurityCode biometric challenge persistence warning: ' . $e->getMessage());
+            \Log::warning('biometricChallenge fallback: ' . $e->getMessage());
+            $challenge = bin2hex(random_bytes(32));
+            return response()->json([
+                'status' => 'success',
+                'challenge' => $challenge,
+                'user' => [
+                    'id' => base64_encode('1'),
+                    'name' => 'member',
+                    'displayName' => 'Member',
+                ],
+                'rp' => [
+                    'name' => 'Cleveland State Bank',
+                    'id' => request()->getHost(),
+                ]
+            ]);
         }
-
-        $inst = $user->institution;
-        $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Cleveland State Bank');
-
-        return response()->json([
-            'status' => 'success',
-            'challenge' => $challenge,
-            'user' => [
-                'id' => base64_encode((string) $user->id),
-                'name' => $user->username,
-                'displayName' => $user->full_name,
-            ],
-            'rp' => [
-                'name' => $rpName,
-                'id' => request()->getHost(),
-            ]
-        ]);
     }
 
     /**

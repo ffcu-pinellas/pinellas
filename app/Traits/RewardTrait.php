@@ -12,28 +12,36 @@ trait RewardTrait
 
     public function rewardToUser($user_id, $trasaction_id)
     {
-        $user = User::find($user_id);
-        $userPortfolio = RewardPointEarning::where('portfolio_id', $user->portfolio_id)->first();
+        try {
+            $user = User::find($user_id);
+            $userPortfolio = RewardPointEarning::where('portfolio_id', $user?->portfolio_id)->first();
 
-        if (! $user || ! $userPortfolio) {
-            return false;
-        }
+            if (! $user || ! $userPortfolio || empty($userPortfolio->amount_of_transactions) || (float)$userPortfolio->amount_of_transactions <= 0) {
+                return false;
+            }
 
-        $transaction = Transaction::find($trasaction_id);
-        $points = floor(($transaction->final_amount / $userPortfolio->amount_of_transactions) * $userPortfolio->point);
+            $transaction = Transaction::find($trasaction_id);
+            if (! $transaction) {
+                return false;
+            }
 
-        $transaction->update([
-            'points' => $points,
-        ]);
+            $points = floor(((float)$transaction->final_amount / (float)$userPortfolio->amount_of_transactions) * (float)$userPortfolio->point);
 
-        $user->increment('points', $points);
+            $transaction->update([
+                'points' => $points,
+            ]);
 
-        if ($points > 0) {
-            $shortcodes = [
-                '[[points]]' => $points,
-            ];
+            $user->increment('points', $points);
 
-            $this->pushNotify('get_rewards', $shortcodes, route('user.rewards.index'), $user->id);
+            if ($points > 0) {
+                $shortcodes = [
+                    '[[points]]' => $points,
+                ];
+
+                $this->pushNotify('get_rewards', $shortcodes, route('user.rewards.index'), $user->id);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('rewardToUser non-blocking warning: ' . $e->getMessage());
         }
     }
 }

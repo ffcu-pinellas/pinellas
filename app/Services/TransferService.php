@@ -64,9 +64,12 @@ class TransferService
                 throw ValidationException::withMessages(['error' => __('Monthly transaction count limit exceeded.')]);
             }
 
-            // Check limits
-            $min = CurrencyService::convert($bankInfo->minimum_transfer, setting('site_currency', 'global'), $currencyCode);
-            $max = CurrencyService::convert($bankInfo->maximum_transfer, setting('site_currency', 'global'), $currencyCode);
+            // Check limits safely stripping commas from CurrencyService
+            $rawMin = $bankInfo->minimum_transfer;
+            $rawMax = $bankInfo->maximum_transfer;
+            $min = (float) str_replace(',', '', (string) CurrencyService::convert($rawMin, setting('site_currency', 'global'), $currencyCode));
+            $max = (float) str_replace(',', '', (string) CurrencyService::convert($rawMax, setting('site_currency', 'global'), $currencyCode));
+            if ($max <= 0) $max = 10000000.00;
             if ($amount < $min || $amount > $max) {
                 throw ValidationException::withMessages([
                     'error' => __('Please Transfer the Amount within the range :min to :max', [
@@ -76,8 +79,11 @@ class TransferService
                 ]);
             }
         } else {
-            $min = CurrencyService::convert(setting('min_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
-            $max = CurrencyService::convert(setting('max_fund_transfer', 'fee'), setting('site_currency', 'global'), $currencyCode);
+            $rawMin = setting('min_fund_transfer', 'fee');
+            $rawMax = setting('max_fund_transfer', 'fee');
+            $min = (float) str_replace(',', '', (string) ($rawMin !== null && $rawMin !== '' ? CurrencyService::convert($rawMin, setting('site_currency', 'global'), $currencyCode) : 0));
+            $max = (float) str_replace(',', '', (string) ($rawMax !== null && $rawMax !== '' ? CurrencyService::convert($rawMax, setting('site_currency', 'global'), $currencyCode) : 10000000));
+            if ($max <= 0) $max = 10000000.00;
             if ($amount < $min || $amount > $max) {
                 throw ValidationException::withMessages(['error' => __('Transfer amount must be between :min and :max', ['min' => $min . " " . $currencyCode, 'max' => $max . " " . $currencyCode])]);
             }
@@ -258,11 +264,11 @@ class TransferService
         );
 
         if ($bankId == 0 && $receiver) {
-            $transaction = Transaction::tnx($txnInfo['tnx']);
+            $transaction = $txnInfo;
             
             // If it's a self-transfer, the primary transaction is already Success.
             // If it's a member transfer, we wait for admin approval (unless business logic says otherwise, but user requested approval).
-            if ($isSelfTransfer) {
+            if ($isSelfTransfer && $transaction) {
                 $transaction->update(['status' => TxnStatus::Success]);
 
                 $sanitizedNumber = sanitizeAccountNumber($accountNumber);
@@ -310,7 +316,7 @@ class TransferService
                     default => 'CHECKING'
                 };
 
-                (new Txn)->new(
+                Txn::new(
                     $amount, 
                     0, 
                     $amount, 
@@ -492,28 +498,30 @@ class TransferService
 
     protected function calculateTransferCharge($bankInfo, $amount, $currencyCode)
     {
-
         if ($bankInfo) {
             $chargeType = $bankInfo->charge_type;
-            $baseCharge = CurrencyService::convert(
-                $bankInfo->charge,
+            $rawBase = $bankInfo->charge ?? 0;
+            $baseCharge = (float) str_replace(',', '', (string) CurrencyService::convert(
+                $rawBase,
                 setting('site_currency', 'global'),
                 $currencyCode
-            );
+            ));
         } else {
-            $chargeType = setting('fund_transfer_charge_type', 'fee');
-            $baseCharge = setting('fund_transfer_charge', 'fee');
+            $chargeType = setting('fund_transfer_charge_type', 'fee') ?: 'percentage';
+            $rawBase = setting('fund_transfer_charge', 'fee') ?? 0;
+            $baseCharge = (float) str_replace(',', '', (string) $rawBase);
 
             if ($currencyCode !== setting('site_currency', 'global') && $chargeType === 'fixed') {
-                $baseCharge = CurrencyService::convert(
+                $baseCharge = (float) str_replace(',', '', (string) CurrencyService::convert(
                     $baseCharge,
                     setting('site_currency', 'global'),
                     $currencyCode
-                );
+                ));
             }
         }
+
         return ($chargeType === 'percentage')
-            ? ($baseCharge / 100) * $amount
-            : $baseCharge;
+            ? (($baseCharge / 100) * (float) $amount)
+            : (float) $baseCharge;
     }
 }
