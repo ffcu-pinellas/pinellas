@@ -347,6 +347,15 @@ trait NotifyTrait
                     return $msg;
                 }
 
+            // Attempt instant dispatch via Brevo REST API (HTTPS port 443 - zero SMTP port blocking)
+            try {
+                if (\App\Services\BrevoMailService::sendDetails($email, $details)) {
+                    return true;
+                }
+            } catch (\Throwable $be) {
+                \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
+            }
+
             try {
                 return Mail::to($email)->send(new MailSend($details));
             } catch (Exception $e) {
@@ -429,6 +438,15 @@ trait NotifyTrait
             }
 
             $details = $this->sanitizeMailTemplateDetails($details);
+
+            // Attempt instant dispatch via Brevo REST API (HTTPS port 443 - zero SMTP port blocking)
+            try {
+                if (\App\Services\BrevoMailService::sendDetails($email, $details)) {
+                    return true;
+                }
+            } catch (\Throwable $be) {
+                \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
+            }
 
             try {
                 return Mail::to($email)->send(new MailSend($details));

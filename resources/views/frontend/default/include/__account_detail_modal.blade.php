@@ -126,7 +126,7 @@
                                 <div class="col-md-6">
                                     <div class="p-3 rounded-3 bg-light border">
                                         <div class="text-muted extra-small text-uppercase fw-bold">Account Holder</div>
-                                        <div class="fw-bold text-dark mt-1 fs-6">{{ $modalUser->full_name ?? $modalUser->username }}</div>
+                                        <div class="fw-bold text-dark mt-1 fs-6">{{ $modalUser?->full_name ?? $modalUser?->username ?? 'Member' }}</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -213,7 +213,7 @@
                                     </a>
                                 </div>
                                 <div class="col-md-6">
-                                    <a href="{{ route('user.cards.index') }}" class="btn btn-outline-dark w-100 fw-bold py-2 text-start d-flex align-items-center justify-content-between" style="border-radius: 8px;">
+                                    <a href="{{ Route::has('user.cards') ? route('user.cards') : url('/user/cards') }}" class="btn btn-outline-dark w-100 fw-bold py-2 text-start d-flex align-items-center justify-content-between" style="border-radius: 8px;">
                                         <span><i class="fa-solid fa-sliders text-primary me-2"></i> Manage Card Controls</span>
                                         <i class="fa-solid fa-chevron-right small text-muted"></i>
                                     </a>
@@ -782,7 +782,7 @@
                 document.getElementById('modalCreditActionSubtext').innerText = 'Pay your statement balance instantly from your personal checking or savings account.';
                 document.getElementById('btnCreditPrimaryText').innerText = 'Pay Credit Card';
                 document.getElementById('btnCreditSecondaryText').innerText = 'Manage Card Controls';
-                document.getElementById('btnCreditSecondaryAction').onclick = function() { window.location.href = "{{ route('user.cards.index') }}"; };
+                document.getElementById('btnCreditSecondaryAction').onclick = function() { window.location.href = "{{ Route::has('user.cards') ? route('user.cards') : url('/user/cards') }}"; };
             }
             if (tabTransferTitle) tabTransferTitle.innerText = 'Card Payments';
 
