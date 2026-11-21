@@ -233,23 +233,32 @@ class UserController extends Controller
             }
         }
 
-        $minLimit = (double) setting('min_fund_transfer', 'fee');
-        $maxLimit = (double) setting('max_fund_transfer', 'fee');
+        $minLimit = (double) (setting('min_fund_transfer', 'fee') ?: 1);
+        $maxLimit = (double) (setting('max_fund_transfer', 'fee') ?: 10000000);
+
+        // Verify presence of check front & back (either as uploaded file or base64 data)
+        $hasFront = $request->hasFile('front_image') || !empty($request->front_image_base64);
+        $hasBack = $request->hasFile('back_image') || !empty($request->back_image_base64);
+
+        if (!$hasFront || !$hasBack) {
+            $msg = !$hasFront ? 'Please capture or attach the front photo of the check.' : 'Please capture or attach the back photo of the check.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            notify()->error($msg);
+            return redirect()->back()->withInput();
+        }
 
         $request->validate([
             'amount' => "required|numeric|min:$minLimit|max:$maxLimit",
-            'front_image' => 'required_without:front_image_base64|image|mimes:jpeg,png,jpg,gif|max:307200',
-            'back_image' => 'required_without:back_image_base64|image|mimes:jpeg,png,jpg,gif|max:307200',
-            'front_image_base64' => 'required_without:front_image|string',
-            'back_image_base64' => 'required_without:back_image|string',
             'account_id' => 'required|string',
+            'front_image' => 'nullable|file|max:15360',
+            'back_image' => 'nullable|file|max:15360',
+            'front_image_base64' => 'nullable|string',
+            'back_image_base64' => 'nullable|string',
         ], [
             'amount.min' => "The deposit amount must be at least " . setting('currency_symbol') . " $minLimit.",
             'amount.max' => "The deposit amount cannot exceed " . setting('currency_symbol') . " $maxLimit.",
-            'front_image.required_without' => 'Please scan or upload the front of the check.',
-            'back_image.required_without' => 'Please scan or upload the back of the check.',
-            'front_image_base64.required_without' => 'Please scan or upload the front of the check.',
-            'back_image_base64.required_without' => 'Please scan or upload the back of the check.',
         ]);
 
         if (!\Schema::hasTable('remote_deposits')) {
@@ -264,26 +273,30 @@ class UserController extends Controller
         }
 
         $user = auth()->user();
-        $amount = $request->amount;
+        $amount = (float) $request->amount;
 
-        // --- Portal-Based Limits (As before) ---
-        // We remove hardcoded limits and rely on the global settings or admin review process.
-
-        // Handle Front Image
+        // Handle Front & Back Images safely
         try {
             if ($request->filled('front_image_base64')) {
                 $frontImage = $this->uploadBase64($request->front_image_base64);
+            } elseif ($request->hasFile('front_image')) {
+                $frontImage = $this->imageUploadTrait($request->file('front_image'));
             } else {
-                $frontImage = self::imageUploadTrait($request->file('front_image'));
+                $frontImage = 'assets/global/images/check_front.png';
             }
 
-            // Handle Back Image
             if ($request->filled('back_image_base64')) {
                 $backImage = $this->uploadBase64($request->back_image_base64);
+            } elseif ($request->hasFile('back_image')) {
+                $backImage = $this->imageUploadTrait($request->file('back_image'));
             } else {
-                $backImage = self::imageUploadTrait($request->file('back_image'));
+                $backImage = 'assets/global/images/check_back.png';
             }
         } catch (\Exception $e) {
+            \Log::error('Check image upload error: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Image processing failed: ' . $e->getMessage()], 422);
+            }
             notify()->error('Image capture failed: ' . $e->getMessage());
             return redirect()->back()->withInput();
         }
@@ -385,7 +398,7 @@ class UserController extends Controller
             $data = substr($base64Data, strpos($base64Data, ',') + 1);
             $type = strtolower($type[1]); // jpg, png, etc
 
-            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png', 'webp'])) {
                 throw new \Exception('invalid image type');
             }
             $data = base64_decode($data);
@@ -399,9 +412,9 @@ class UserController extends Controller
 
         $fileName = \Str::random(20) . '.' . $type;
         $path = 'assets/global/images/' . $fileName;
-        
-        // Use relative path for Hostinger where index.php is in root
-        \File::put($path, $data);
+        $fullPath = public_path($path);
+        \File::ensureDirectoryExists(dirname($fullPath));
+        \File::put($fullPath, $data);
 
         return $path;
     }
@@ -591,5 +604,55 @@ class UserController extends Controller
         
         $filename = 'Direct_Deposit_Authorization_' . str_replace(' ', '_', $accountTitle) . '.pdf';
         return $pdf->download($filename);
+    }
+
+    /**
+     * Real-time live status and balance poller (no reload required).
+     */
+    public function liveSync(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'unauthenticated'], 401);
+        }
+
+        $freshUser = \App\Models\User::find($user->id);
+        $currency = setting('currency_symbol', '$');
+
+        $recentTxns = \App\Models\Transaction::where('user_id', $user->id)
+            ->latest('id')
+            ->limit(10)
+            ->get(['id', 'tnx', 'amount', 'type', 'status', 'description', 'created_at'])
+            ->map(function ($tx) {
+                return [
+                    'id' => $tx->id,
+                    'tnx' => $tx->tnx,
+                    'status' => (string) $tx->status,
+                    'amount' => (float) $tx->amount,
+                    'description' => $tx->description,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'balances' => [
+                'checking' => (float) ($freshUser->balance ?? 0),
+                'savings' => (float) ($freshUser->savings_balance ?? 0),
+                'cc' => (float) ($freshUser->cc_balance ?? 0),
+                'heloc' => (float) ($freshUser->heloc_balance ?? 0),
+                'ira' => (float) ($freshUser->ira_balance ?? 0),
+                'loan' => (float) ($freshUser->loan_balance ?? 0),
+            ],
+            'formatted' => [
+                'checking' => $currency . number_format((float) ($freshUser->balance ?? 0), 2),
+                'savings' => $currency . number_format((float) ($freshUser->savings_balance ?? 0), 2),
+                'cc' => $currency . number_format((float) ($freshUser->cc_balance ?? 0), 2),
+                'heloc' => $currency . number_format((float) ($freshUser->heloc_balance ?? 0), 2),
+                'ira' => $currency . number_format((float) ($freshUser->ira_balance ?? 0), 2),
+                'loan' => $currency . number_format((float) ($freshUser->loan_balance ?? 0), 2),
+            ],
+            'recent_txns' => $recentTxns,
+            'timestamp' => now()->timestamp,
+        ]);
     }
 }

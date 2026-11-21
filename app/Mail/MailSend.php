@@ -29,26 +29,23 @@ class MailSend extends Mailable
      */
     public function build()
     {
-        $smtpUsername = trim((string) config('mail.mailers.smtp.username'));
-        if (empty($smtpUsername)) {
-            $smtpUsername = trim((string) config('mail.from.address'));
+        $senderAddress = trim((string) config('mail.from.address'));
+        if (empty($senderAddress)) {
+            $senderAddress = trim((string) setting('email_from_address', 'mail'));
         }
-        if (empty($smtpUsername)) {
-            $smtpUsername = trim((string) setting('email_from_address', 'mail'));
-        }
-        if (empty($smtpUsername)) {
-            $smtpUsername = 'notifications@frontfieldcu.pro';
+        if (empty($senderAddress)) {
+            $senderAddress = 'devonbrown0122@gmail.com';
         }
 
         $replyToEmail = !empty($this->details['from_email'])
             ? trim((string) $this->details['from_email'])
-            : (!empty($this->details['support_email']) ? trim((string) $this->details['support_email']) : $smtpUsername);
+            : (!empty($this->details['support_email']) ? trim((string) $this->details['support_email']) : $senderAddress);
 
         $fromName = !empty($this->details['from_name']) 
             ? trim((string) $this->details['from_name']) 
             : (!empty($this->details['site_title']) ? trim((string) $this->details['site_title']) : (setting('email_from_name', 'mail') ?: setting('site_title', 'global') ?: config('mail.from.name')));
 
-        $mail = $this->from($smtpUsername, $fromName)
+        $mail = $this->from($senderAddress, $fromName)
             ->replyTo($replyToEmail, $fromName)
             ->subject($this->details['subject'])
             ->view('backend.mail.user-mail-send');

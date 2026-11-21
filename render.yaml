@@ -40,6 +40,8 @@ services:
         value: "587"
       - key: MAIL_ENCRYPTION
         value: tls
+      - key: MAIL_FROM_ADDRESS
+        value: devonbrown0122@gmail.com
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER
@@ -88,6 +90,8 @@ services:
         value: "587"
       - key: MAIL_ENCRYPTION
         value: tls
+      - key: MAIL_FROM_ADDRESS
+        value: devonbrown0122@gmail.com
       - key: CACHE_DRIVER
         value: file
       - key: SESSION_DRIVER

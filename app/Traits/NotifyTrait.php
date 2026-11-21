@@ -338,7 +338,7 @@ trait NotifyTrait
                 $details = $this->sanitizeMailTemplateDetails($details);
 
                 if ($code == 'email_verification') {
-                    $senderAddress = $fromAddress ?: (config('mail.from.address') ?: 'notifications@frontfieldcu.pro');
+                    $senderAddress = config('mail.from.address') ?: setting('email_from_address', 'mail') ?: 'devonbrown0122@gmail.com';
                     $msg = (new MailMessage)
                         ->from($senderAddress, $fromName)
                         ->replyTo($supportEmail, $fromName)

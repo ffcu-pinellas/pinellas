@@ -743,7 +743,27 @@
             }
             return;
         }
-        SecurityGate.gate(document.getElementById('wireForm'));
+
+        const submitBtn = document.getElementById('btnSubmitWire');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Verifying...';
+        }
+
+        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.onCancelCb = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> {{ __("Authorize & Submit Wire") }}';
+                }
+            };
+            SecurityGate.gate(document.getElementById('wireForm'));
+        } else {
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Processing Wire Order...', 'Transmitting wire order securely...');
+            }
+            document.getElementById('wireForm').submit();
+        }
     }
 </script>
 @endsection

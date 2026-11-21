@@ -106,7 +106,7 @@
             </div>
 
             <!-- Submit -->
-            <button type="button" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="validateAndSubmit()">
+            <button type="button" id="submitDepositBtn" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow" onclick="validateAndSubmit()">
                 Submit deposit
             </button>
         </form>
@@ -607,7 +607,25 @@
         }
 
         // 3. Trigger Security Gate (which handles final submission)
-        SecurityGate.gate(form);
+        const submitBtn = document.getElementById('submitDepositBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Submitting...';
+        }
+        if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+            SecurityGate.onCancelCb = function() {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit deposit';
+                }
+            };
+            SecurityGate.gate(form);
+        } else {
+            if (typeof window.showLoader === 'function') {
+                window.showLoader('Uploading Check...', 'Securely encrypting and transmitting deposit...');
+            }
+            form.submit();
+        }
     };
 
     async function toggleFlash() {

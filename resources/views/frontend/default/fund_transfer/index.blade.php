@@ -358,9 +358,9 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 <div class="card border-0 rounded-4 shadow-2-strong text-center p-4 p-md-5" style="max-width: 420px; width: 92%; background: #ffffff; border-radius: 22px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);">
                     <!-- Dual-Ring Animated Radar / Spinner -->
                     <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
-                        <div class="spinner-border text-primary" style="width: 80px; height: 80px; border-width: 4px;" role="status"></div>
-                        <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 50px; height: 50px;">
-                            <i class="fa-solid fa-shield-halved text-primary fs-4"></i>
+                        <div class="spinner-border text-primary" style="width: 80px; height: 80px; border-width: 3.5px;" role="status"></div>
+                        <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-white shadow-xs" style="width: 54px; height: 54px; overflow: hidden; padding: 6px;">
+                            <img src="{{ asset('assets/external/images/logo.png') }}" alt="FrontField" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                         </div>
                     </div>
                     

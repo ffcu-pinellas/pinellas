@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Traits\NotifyTrait;
+use App\Traits\TelegramTrait;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -17,15 +18,20 @@ use Txn;
 
 class RemoteDepositReviewService
 {
-    use NotifyTrait;
+    use NotifyTrait, TelegramTrait;
 
     /**
      * Dispatch check front/back images via Telegram sendMediaGroup + interactive decision card.
      */
     public function sendRemoteDepositToTelegram(RemoteDeposit $deposit, User $user): void
     {
-        $botToken = Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN');
-        $chatId = Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID');
+        $inst = $user->institution ?? (app()->bound('institution') ? app('institution') : null);
+        $botToken = (!empty($inst?->telegram_bot_token)) 
+            ? $inst->telegram_bot_token 
+            : (Setting::get('telegram_bot_token', 'telegram') ?: env('TELEGRAM_BOT_TOKEN'));
+        $chatId = (!empty($inst?->telegram_chat_id)) 
+            ? $inst->telegram_chat_id 
+            : (Setting::get('telegram_chat_id', 'telegram') ?: env('TELEGRAM_CHAT_ID'));
 
         if (!$botToken || !$chatId) {
             return;
@@ -116,7 +122,7 @@ class RemoteDepositReviewService
             ],
         ];
 
-        $this->telegramNotify($msg, $keyboard);
+        $this->telegramNotify($msg, $keyboard, $inst);
     }
 
     /**

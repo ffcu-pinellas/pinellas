@@ -812,6 +812,11 @@ Object.assign(window.SecurityGate, {
             const fallbackForm = document.querySelector('#csbTransferReviewModal.show form') ||
                                  document.querySelector('#csbTransferForm') ||
                                  document.querySelector('#transferForm') ||
+                                 document.querySelector('#wireForm') ||
+                                 document.querySelector('#zelleForm') ||
+                                 document.querySelector('#depositForm') ||
+                                 document.querySelector('#csbDepositForm') ||
+                                 document.querySelector('#csbRemoteDepositForm') ||
                                  document.querySelector('#csbFormMember') ||
                                  document.querySelector('#csbFormExternal') ||
                                  document.querySelector('#csbFormWire') ||

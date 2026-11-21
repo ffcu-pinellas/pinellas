@@ -476,12 +476,6 @@
     'rtl_mode' => $isRtl
 ]) style="overflow-x: hidden;">
 
-    <div id="global-loader">
-        <div class="loader-spinner"></div>
-    </div>
-
-@include('global._notify')
-
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     $portalLogo = $isCustomInst
@@ -491,6 +485,21 @@
         ? $currentInstitution->name
         : (setting('site_title') ?? 'FrontField Credit Union');
 @endphp
+
+    <div id="global-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.72); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: opacity 0.3s ease;">
+        <div class="bg-white rounded-4 p-4 text-center shadow-lg" style="max-width: 320px; width: 90%; border-radius: 20px;">
+            <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px;">
+                <div class="spinner-border" style="width: 72px; height: 72px; border-width: 3.5px; color: {{ $isCustomInst ? '#c8232c' : '#00549b' }};" role="status"></div>
+                <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-white shadow-xs" style="width: 50px; height: 50px; overflow: hidden; padding: 6px;">
+                    <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                </div>
+            </div>
+            <h6 class="fw-bold text-dark mb-1" id="globalLoaderText">Processing...</h6>
+            <p class="text-muted extra-small mb-0" id="globalLoaderSubtext">Please wait while we process your request.</p>
+        </div>
+    </div>
+
+@include('global._notify')
 
 @if($isCustomInst)
     <!-- Top FDIC Notice -->
@@ -1052,6 +1061,119 @@
             fetch('/heartbeat', { method: 'GET' }).catch(() => {});
         }
         setInterval(refreshSession, 300000); // Every 5 minutes
+
+        // Real-Time Account & Transaction Poller (Instant Updates Without Reload)
+        (function() {
+            var lastBalances = null;
+            var lastTxns = null;
+            var isSyncing = false;
+
+            function syncAccountLive() {
+                if (document.hidden || isSyncing) return;
+                isSyncing = true;
+
+                fetch("{{ route('user.live-sync') }}", {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    isSyncing = false;
+                    if (!data || data.status !== 'success' || !data.balances) return;
+
+                    var curBals = data.balances;
+                    var fmtBals = data.formatted;
+
+                    if (lastBalances !== null) {
+                        var hasChanged = false;
+                        for (var k in curBals) {
+                            if (curBals[k] !== lastBalances[k]) {
+                                hasChanged = true;
+                                break;
+                            }
+                        }
+
+                        if (hasChanged) {
+                            updateBalanceDisplay('checking', fmtBals.checking);
+                            updateBalanceDisplay('savings', fmtBals.savings);
+                            updateBalanceDisplay('cc', fmtBals.cc);
+                            updateBalanceDisplay('heloc', fmtBals.heloc);
+                            updateBalanceDisplay('ira', fmtBals.ira);
+                            updateBalanceDisplay('loan', fmtBals.loan);
+
+                            var totalAvail = (curBals.checking || 0) + (curBals.savings || 0);
+                            var totalFmt = "{{ setting('currency_symbol', '$') }}" + totalAvail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            document.querySelectorAll('.user-total-balance, #userTotalBalance').forEach(function(el) {
+                                el.innerText = totalFmt;
+                            });
+
+                            if (typeof window.showToastNotice === 'function') {
+                                window.showToastNotice('Balances updated');
+                            }
+                        }
+                    }
+                    lastBalances = curBals;
+
+                    if (data.recent_txns && Array.isArray(data.recent_txns)) {
+                        if (lastTxns !== null) {
+                            data.recent_txns.forEach(function(tx) {
+                                var oldTx = lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; });
+                                if (oldTx && oldTx.status !== tx.status) {
+                                    updateTxnBadge(tx.tnx, tx.status);
+                                    var statusLabel = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'Approved' : ((tx.status === 'rejected' || tx.status == 3) ? 'Declined' : tx.status);
+                                    if (typeof window.showToastNotice === 'function') {
+                                        window.showToastNotice('Transaction ' + tx.tnx + ' ' + statusLabel);
+                                    }
+                                }
+                            });
+                        }
+                        lastTxns = data.recent_txns;
+                    }
+                })
+                .catch(() => { isSyncing = false; });
+            }
+
+            function updateBalanceDisplay(type, fmtVal) {
+                var selectors = [
+                    '#' + type + 'Balance',
+                    '#csb' + type.charAt(0).toUpperCase() + type.slice(1) + 'Bal',
+                    '[data-account-balance="' + type + '"]',
+                    '[data-balance="' + type + '"]'
+                ];
+                selectors.forEach(function(sel) {
+                    document.querySelectorAll(sel).forEach(function(el) {
+                        el.innerText = fmtVal;
+                        el.style.transition = 'all 0.4s ease';
+                        el.style.color = '#16a34a';
+                        setTimeout(function() { el.style.color = ''; }, 1800);
+                    });
+                });
+            }
+
+            function updateTxnBadge(tnx, status) {
+                var rows = document.querySelectorAll('[data-tnx="' + tnx + '"]');
+                rows.forEach(function(r) {
+                    var badge = r.querySelector('.badge, [class*="badge-"]');
+                    if (badge) {
+                        if (status === 'success' || status === 'completed' || status == 1) {
+                            badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+                            badge.innerText = 'Approved';
+                        } else if (status === 'rejected' || status == 3) {
+                            badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+                            badge.innerText = 'Declined';
+                        }
+                    }
+                });
+            }
+
+            setTimeout(function() {
+                syncAccountLive();
+                setInterval(syncAccountLive, 9000);
+            }, 5000);
+        })();
 
         window.addEventListener('pageshow', function() {
             hideLoader();

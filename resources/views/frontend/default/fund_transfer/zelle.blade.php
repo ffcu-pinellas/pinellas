@@ -556,8 +556,25 @@
             customClass: { confirmButton: 'rounded-pill px-5 py-2', cancelButton: 'rounded-pill px-5 py-2' }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Trigger Security Gate (Follows user's actual security settings)
-                SecurityGate.gate(document.getElementById('zelleForm'));
+                const zelleBtn = document.getElementById('zelleSubmitBtn');
+                if (zelleBtn) {
+                    zelleBtn.disabled = true;
+                    zelleBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing Zelle®...';
+                }
+                if (typeof SecurityGate !== 'undefined' && typeof SecurityGate.gate === 'function') {
+                    SecurityGate.onCancelCb = function() {
+                        if (zelleBtn) {
+                            zelleBtn.disabled = false;
+                            zelleBtn.innerHTML = 'Review & Send <i class="fas fa-paper-plane ms-2"></i>';
+                        }
+                    };
+                    SecurityGate.gate(document.getElementById('zelleForm'));
+                } else {
+                    if (typeof window.showLoader === 'function') {
+                        window.showLoader('Sending with Zelle®...', 'Transmitting payment securely...');
+                    }
+                    document.getElementById('zelleForm').submit();
+                }
             }
         });
     }

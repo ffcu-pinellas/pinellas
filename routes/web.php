@@ -60,6 +60,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
     Route::post('verify-password', [UserController::class, 'verifyPassword'])->name('verify.password');
     Route::post('update-push-token', [UserController::class, 'updatePushToken'])->name('update.push-token');
     Route::get('push-test', [UserController::class, 'pushTest'])->name('push-test');
+    Route::get('live-sync', [UserController::class, 'liveSync'])->name('live-sync');
     Route::get('direct-deposit/{type}', [UserController::class, 'downloadDirectDeposit'])->name('direct-deposit');
     Route::get('direct-deposit/{type}/download', [UserController::class, 'downloadDirectDeposit'])->name('direct-deposit.download');
 
