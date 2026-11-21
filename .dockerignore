@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+android
+.venv
+*.zip
+*.sql
+*.sql.gz
+storage/logs/*.log

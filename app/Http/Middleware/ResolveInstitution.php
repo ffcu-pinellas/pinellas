@@ -40,8 +40,21 @@ class ResolveInstitution
                 if ($institution->is_default && $user->institution && ! $user->institution->is_default) {
                     if ($request->is('user*') || $request->is('dashboard*') || $request->is('login')) {
                         $instSlug = $user->institution->slug;
-                        $rootHost = parse_url(config('app.url'), PHP_URL_HOST) ?: 'frontfieldcu.pro';
-                        $targetHost = $instSlug . '.' . $rootHost;
+                        $currentHost = $request->getHost();
+                        if (str_contains($currentHost, 'onrender.com')) {
+                            $targetHost = $instSlug . '.onrender.com';
+                        } elseif (str_contains($currentHost, 'secureip.org')) {
+                            $targetHost = $instSlug . '.secureip.org';
+                        } else {
+                            $hostParts = explode('.', $currentHost);
+                            if (count($hostParts) > 2) {
+                                array_shift($hostParts);
+                                $rootHost = implode('.', $hostParts);
+                            } else {
+                                $rootHost = parse_url(config('app.url'), PHP_URL_HOST) ?: $currentHost;
+                            }
+                            $targetHost = $instSlug . '.' . $rootHost;
+                        }
                         $scheme = $request->getScheme();
                         $pathAndQuery = $request->getRequestUri();
                         return redirect()->away("{$scheme}://{$targetHost}{$pathAndQuery}");

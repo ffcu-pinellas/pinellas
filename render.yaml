@@ -1,0 +1,80 @@
+services:
+  - type: web
+    name: frontfieldcu
+    env: docker
+    plan: free
+    region: ohio
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: APP_NAME
+        value: "FrontField Credit Union"
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        value: base64:mzw8xiKnl5Z0zb/ggmlPhWJ/mfQqi3JPfcXuyrXkIqk=
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://frontfieldcu.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: gateway01.us-east-1.prod.aws.tidbcloud.com
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_DATABASE
+        value: frontfield
+      - key: DB_USERNAME
+        value: 2KNmBekDy3AyaMs.root
+      - key: DB_PASSWORD
+        value: TBtcM3Ku9saWzuGV
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
+      - key: DEFAULT_INSTITUTION
+        value: frontfieldcu
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+
+  - type: web
+    name: clevelandstatebank
+    env: docker
+    plan: free
+    region: ohio
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: APP_NAME
+        value: "Cleveland State Bank"
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        value: base64:mzw8xiKnl5Z0zb/ggmlPhWJ/mfQqi3JPfcXuyrXkIqk=
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://clevelandstatebank.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: gateway01.us-east-1.prod.aws.tidbcloud.com
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_DATABASE
+        value: frontfield
+      - key: DB_USERNAME
+        value: 2KNmBekDy3AyaMs.root
+      - key: DB_PASSWORD
+        value: TBtcM3Ku9saWzuGV
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
+      - key: DEFAULT_INSTITUTION
+        value: clevelandstatebank
+      - key: CACHE_DRIVER
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync

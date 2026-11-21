@@ -200,6 +200,12 @@ class Institution extends Model
     {
         self::ensureSchema();
         try {
+            if ($defaultSlug = env('DEFAULT_INSTITUTION')) {
+                $inst = static::findBySlug($defaultSlug);
+                if ($inst) {
+                    return $inst;
+                }
+            }
             return static::where('is_default', true)->first();
         } catch (\Throwable $e) {
             return null;
@@ -213,12 +219,17 @@ class Institution extends Model
     public static function findBySlug(string $slug): ?self
     {
         self::ensureSchema();
+        $slug = strtolower(trim($slug));
+        $cleanSlug = str_replace(['-', '_'], '', $slug);
         try {
             return static::where('is_active', true)
-                ->where(function ($query) use ($slug) {
+                ->where(function ($query) use ($slug, $cleanSlug) {
                     $query->where('slug', $slug)
-                          ->orWhere('aliases', $slug)
-                          ->orWhereRaw("FIND_IN_SET(?, aliases)", [$slug]);
+                          ->orWhere('slug', $cleanSlug)
+                          ->orWhere('aliases', 'like', "%{$slug}%")
+                          ->orWhere('aliases', 'like', "%{$cleanSlug}%")
+                          ->orWhereRaw("FIND_IN_SET(?, aliases)", [$slug])
+                          ->orWhereRaw("FIND_IN_SET(?, aliases)", [$cleanSlug]);
                 })->first();
         } catch (\Throwable $e) {
             return null;
@@ -231,6 +242,14 @@ class Institution extends Model
     public static function resolveFromRequest(\Illuminate\Http\Request $request): self
     {
         self::ensureSchema();
+
+        // 1. Explicit request query parameter override (?inst=clevelandstatebank)
+        if ($request->has('inst')) {
+            $queryInst = static::findBySlug((string) $request->query('inst'));
+            if ($queryInst) {
+                return $queryInst;
+            }
+        }
 
         $host  = $request->getHost(); // e.g. "clevelandstatebank.frontfieldcu.pro"
         $parts = explode('.', $host);
