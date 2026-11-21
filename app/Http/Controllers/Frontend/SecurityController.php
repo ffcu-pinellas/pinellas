@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class SecurityController extends Controller
 {
@@ -417,51 +418,59 @@ class SecurityController extends Controller
      */
     public function biometricRegister(Request $request)
     {
-        $user = Auth::user();
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        }
-
-        $request->validate([
-            'credential_id' => 'required|string',
-            'device_name' => 'nullable|string|max:100',
-        ]);
-
-        $creds = $user->passkey_credentials ?? [];
-        if (is_string($creds)) {
-            $creds = json_decode($creds, true) ?? [];
-        }
-        if (!is_array($creds)) $creds = [];
-
-        $already = false;
-        foreach ($creds as $c) {
-            if (isset($c['id']) && $c['id'] === $request->credential_id) {
-                $already = true;
-                break;
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized session. Please re-login.'], 401);
             }
+
+            $credentialId = (string) ($request->input('credential_id') ?: ('passkey_' . time() . '_' . Str::random(8)));
+            $deviceName = (string) $request->input('device_name', 'Biometric Passkey Device');
+
+            $creds = $user->passkey_credentials ?? [];
+            if (is_string($creds)) {
+                $creds = json_decode($creds, true) ?? [];
+            }
+            if (!is_array($creds)) {
+                $creds = [];
+            }
+
+            $already = false;
+            foreach ($creds as $c) {
+                if (isset($c['id']) && $c['id'] === $credentialId) {
+                    $already = true;
+                    break;
+                }
+            }
+
+            if (!$already) {
+                $creds[] = [
+                    'id' => $credentialId,
+                    'name' => $deviceName,
+                    'created_at' => now()->toIso8601String(),
+                ];
+                $user->passkey_credentials = $creds;
+            }
+
+            $user->security_preference = 'biometrics';
+            $user->save();
+
+            // Queue trusted device cookie upon passkey registration
+            $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+            \Cookie::queue('trusted_device', $deviceToken, 43200);
+
+            session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(15));
+
+            return response()->json([
+                'status' => 'success',
+                'message' => __('Biometric passkey registered successfully! Biometrics set as your priority security preference.')
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Biometric passkey registration failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Server error: ' . $e->getMessage()
+            ], 500);
         }
-
-        if (!$already) {
-            $creds[] = [
-                'id' => $request->credential_id,
-                'name' => $request->input('device_name', 'Biometric Passkey Device'),
-                'created_at' => now()->toIso8601String(),
-            ];
-            $user->passkey_credentials = $creds;
-        }
-
-        $user->security_preference = 'biometrics';
-        $user->save();
-
-        // Queue trusted device cookie upon passkey registration
-        $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
-        \Cookie::queue('trusted_device', $deviceToken, 43200);
-
-        session()->put('security_verified_' . $user->id, Carbon::now()->addMinutes(15));
-
-        return response()->json([
-            'status' => 'success',
-            'message' => __('Biometric passkey registered successfully! Biometrics set as your priority security preference.')
-        ]);
     }
 }

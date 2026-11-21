@@ -354,13 +354,39 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
             </form>
 
             <!-- Institutional Transfer Processing Overlay -->
-            <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.7); z-index: 99999; backdrop-filter: blur(4px);">
-                <div class="bg-white rounded-4 p-4 p-md-5 text-center shadow-lg" style="max-width: 380px; width: 90%;">
-                    <div class="spinner-border text-primary mb-3" style="width: 3.25rem; height: 3.25rem;" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.78); z-index: 999999; backdrop-filter: blur(8px);">
+                <div class="card border-0 rounded-4 shadow-2-strong text-center p-4 p-md-5" style="max-width: 420px; width: 92%; background: #ffffff; border-radius: 22px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);">
+                    <!-- Dual-Ring Animated Radar / Spinner -->
+                    <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                        <div class="spinner-border text-primary" style="width: 80px; height: 80px; border-width: 4px;" role="status"></div>
+                        <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 50px; height: 50px;">
+                            <i class="fa-solid fa-shield-halved text-primary fs-4"></i>
+                        </div>
                     </div>
-                    <h5 class="fw-bold text-dark mb-1">Processing Transfer...</h5>
-                    <p class="text-muted small mb-0">Routing transfer securely. Please do not refresh or close this window.</p>
+                    
+                    <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.3px;">Processing Transfer</h4>
+                    <p class="text-muted small mb-3">Routing funds securely through interbank payment network</p>
+
+                    <!-- Steps Status Card -->
+                    <div class="bg-light rounded-3 p-3 text-start mb-3 border">
+                        <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Security verification approved</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-primary small fw-bold">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            <span>Settling transaction &amp; updating balances...</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-start d-flex align-items-center gap-2" style="background: #fff8e6; color: #855d00; border-radius: 10px; font-size: 12px;">
+                        <i class="fa-solid fa-triangle-exclamation flex-shrink-0"></i>
+                        <span>Please do not refresh, close, or navigate back while processing.</span>
+                    </div>
+
+                    <div class="text-muted extra-small" style="font-size: 11px;">
+                        <i class="fa-solid fa-lock me-1"></i> 256-bit Bank Grade Security &bull; Federally Insured by NCUA
+                    </div>
                 </div>
             </div>
         </div>

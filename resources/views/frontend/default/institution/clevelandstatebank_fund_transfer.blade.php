@@ -428,14 +428,40 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                     </div>
                 </div>
 
-                <!-- Simple Transfer Processing Overlay -->
-                <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.6); z-index: 99999; backdrop-filter: blur(4px);">
-                    <div class="bg-white rounded-3 p-4 text-center shadow-lg" style="max-width: 300px; width: 88%;">
-                        <div class="spinner-border text-danger mb-3" style="width: 2.75rem; height: 2.75rem;" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                <!-- CSB Institutional Transfer Processing Overlay -->
+                <div id="transferProcessingOverlay" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.78); z-index: 999999; backdrop-filter: blur(8px);">
+                    <div class="card border-0 rounded-4 shadow-2-strong text-center p-4 p-md-5" style="max-width: 420px; width: 92%; background: #ffffff; border-radius: 22px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35); border-top: 5px solid #c8232c !important;">
+                        <!-- Dual-Ring Animated Radar / Spinner -->
+                        <div class="position-relative d-inline-flex align-items-center justify-content-center mx-auto mb-4" style="width: 80px; height: 80px;">
+                            <div class="spinner-border" style="width: 80px; height: 80px; border-width: 4px; color: #c8232c;" role="status"></div>
+                            <div class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-light" style="width: 50px; height: 50px;">
+                                <i class="fa-solid fa-shield-halved fs-4" style="color: #c8232c;"></i>
+                            </div>
                         </div>
-                        <h6 class="fw-bold mb-1 text-dark" style="font-size: 16px;">Processing Transfer</h6>
-                        <p class="text-muted small mb-0" style="font-size: 12.5px;">Please wait while we complete your transfer...</p>
+                        
+                        <h4 class="fw-bold text-dark mb-1" style="letter-spacing: -0.3px;">Processing Transfer</h4>
+                        <p class="text-muted small mb-3">Routing payment securely via Cleveland State Bank ACH &amp; Wire Network</p>
+
+                        <!-- Steps Status Card -->
+                        <div class="bg-light rounded-3 p-3 text-start mb-3 border">
+                            <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Authorization verified</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 small fw-bold" style="color: #c8232c;">
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                <span>Transmitting transaction payload...</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning py-2 px-3 mb-3 border-0 small text-start d-flex align-items-center gap-2" style="background: #fff8e6; color: #855d00; border-radius: 10px; font-size: 12px;">
+                            <i class="fa-solid fa-triangle-exclamation flex-shrink-0"></i>
+                            <span>Please do not refresh, close, or leave this screen until confirmed.</span>
+                        </div>
+
+                        <div class="text-muted extra-small" style="font-size: 11px;">
+                            <i class="fa-solid fa-lock me-1"></i> 256-bit TLS Encrypted &bull; Member FDIC &bull; Routing #084301768
+                        </div>
                     </div>
                 </div>
             </form>
