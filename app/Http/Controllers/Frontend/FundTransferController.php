@@ -345,7 +345,7 @@ class FundTransferController extends Controller
                 }
 
                 $keyboard = null;
-                if (!empty($txnRef)) {
+                if (!empty($txnRef) && ($data['transfer_type'] ?? '') !== 'self') {
                     $keyboard = [
                         [
                             ['text' => '✅ Approve Transfer', 'callback_data' => 'txn_appr:' . $txnRef],
@@ -1082,11 +1082,13 @@ class FundTransferController extends Controller
 
             notify()->success(__('Your wire transfer request has been submitted and is pending.'));
 
+            $trx = is_array($receipt) ? ($receipt['tnx'] ?? null) : ($receipt->tnx ?? null);
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'success',
                     'message' => __('Your wire transfer request has been submitted and is pending.'),
-                    'trx' => $receipt->tnx ?? null,
+                    'trx' => $trx,
                     'amount' => $request->amount ?? null
                 ]);
             }

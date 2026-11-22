@@ -25,7 +25,7 @@
     }
 @endphp
 
-<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 2050;">
+<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">
             <div class="modal-header" style="background-color: #1e293b; color: #fff; border-bottom: 2px solid {{ $isCustomModalInst ? '#c8232c' : '#00549b' }};">
@@ -288,10 +288,14 @@ window.csbToggleCardFreeze = function(btn, cardId) {
                     title: 'Card Control Error',
                     text: errorMsg,
                     confirmButtonColor: '#162846'
+                }).then(function() {
+                    var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+                    if (cardsModal) cardsModal.show();
                 });
+            } else {
+                var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
+                if (cardsModal) cardsModal.show();
             }
-            var cardsModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manageCardsModal'));
-            if (cardsModal) cardsModal.show();
         });
     };
 

@@ -478,9 +478,11 @@
 
 @php
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
-    $portalLogo = $isCustomInst
-        ? ($currentInstitution->logo_path ? asset('assets/' . $currentInstitution->logo_path) : asset('assets/institutions/clevelandstatebank/images/logo.png'))
-        : asset('assets/external/images/logo.png');
+    $instLogoRaw = $currentInstitution->logo_path ?? null;
+    $instLogo = $instLogoRaw 
+        ? (str_starts_with($instLogoRaw, 'assets/') ? asset($instLogoRaw) : asset('assets/' . ltrim($instLogoRaw, '/')))
+        : asset('assets/institutions/clevelandstatebank/images/logo.png');
+    $portalLogo = $isCustomInst ? $instLogo : asset('assets/external/images/logo.png');
     $portalTitle = $isCustomInst
         ? $currentInstitution->name
         : (setting('site_title') ?? 'FrontField Credit Union');
@@ -490,7 +492,7 @@
         <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
             <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: {{ $isCustomInst ? '#c8232c' : '#00549b' }}; animation: globalPortalSpin 0.85s linear infinite;"></div>
             <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
-                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.src='{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}'">
             </div>
         </div>
     </div>
@@ -1139,18 +1141,34 @@
                     lastBalances = curBals;
 
                     if (data.recent_txns && Array.isArray(data.recent_txns)) {
-                        if (lastTxns !== null) {
-                            data.recent_txns.forEach(function(tx) {
-                                var oldTx = lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; });
-                                if (oldTx && oldTx.status !== tx.status) {
-                                    updateTxnBadge(tx.tnx, tx.status);
-                                    var statusLabel = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'Approved' : ((tx.status === 'rejected' || tx.status == 3) ? 'Declined' : tx.status);
-                                    if (typeof window.showToastNotice === 'function') {
-                                        window.showToastNotice('Transaction ' + tx.tnx + ' ' + statusLabel);
-                                    }
+                        data.recent_txns.forEach(function(tx) {
+                            var existingRow = document.querySelector('[data-tnx="' + tx.tnx + '"], [data-tx-trx="' + tx.tnx + '"]');
+                            if (!existingRow) {
+                                // Dynamic Prepend into FrontField table if present
+                                var tblBody = document.querySelector('.site-datatable table tbody, .data-table tbody');
+                                if (tblBody) {
+                                    var emptyRow = tblBody.querySelector('tr.centered');
+                                    if (emptyRow) emptyRow.remove();
+                                    var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
+                                    var sym = isCredit ? '+' : '-';
+                                    var colClass = isCredit ? 'green-color' : 'red-color';
+                                    var stClass = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'success' : ((tx.status === 'rejected' || tx.status == 3) ? 'primary-bg' : 'warnning');
+                                    var stText = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'Success' : ((tx.status === 'rejected' || tx.status == 3) ? 'Declined' : 'Pending');
+                                    var rowTr = document.createElement('tr');
+                                    rowTr.setAttribute('data-tnx', tx.tnx);
+                                    rowTr.innerHTML = '<td><div class="table-description"><div class="icon"><i class="fa-solid fa-arrow-' + (isCredit ? 'down-left' : 'right') + '"></i></div><div class="description"><strong>' + (tx.description || 'Transaction') + '</strong><div class="date">' + (tx.created_at || 'Just now') + '</div></div></div></td>' +
+                                        '<td><strong>' + tx.tnx + '</strong></td>' +
+                                        '<td><div class="site-badge primary-bg">' + (tx.type || 'Transfer') + '</div></td>' +
+                                        '<td><strong class="' + colClass + '">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</strong></td>' +
+                                        '<td><strong>$0.00</strong></td>' +
+                                        '<td><div class="site-badge ' + stClass + '">' + stText + '</div></td>' +
+                                        '<td><strong>Account Transfer</strong></td>';
+                                    tblBody.insertBefore(rowTr, tblBody.firstChild);
                                 }
-                            });
-                        }
+                            } else {
+                                updateTxnBadge(tx.tnx, tx.status);
+                            }
+                        });
                         lastTxns = data.recent_txns;
                     }
                 })

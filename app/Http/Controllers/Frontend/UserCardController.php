@@ -16,102 +16,119 @@ class UserCardController extends Controller
     use NotifyTrait;
     public function toggleStatus(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'card_id' => 'required|exists:user_cards,id',
-        ]);
-
-        if ($validator->fails()) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $validator->errors()->first()
-                ], 422);
-            }
-            throw new ValidationException($validator);
-        }
-
-        // Security Gate Check - Check both session and request (fallback for some mobile flows)
-        $isSecurityVerified = $request->filled('security_verified') ||
-                              $request->input('security_verified') == '1' ||
-                              session()->has('security_verified_' . auth()->id());
-
-        if (!$isSecurityVerified) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Security verification required.'
-                ], 403);
-            }
-            return response()->json(['message' => 'Security verification required.'], 403);
-        }
-
-        $card = UserCard::where('id', $request->card_id)
-                        ->where('user_id', auth()->id())
-                        ->first();
-
-        if (!$card) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Card not found or access denied.'
-                ], 422);
-            }
-            abort(404, 'Card not found');
-        }
-
-        // Toggle status based on current DB value
-        $card->status = ($card->status === 'active') ? 'inactive' : 'active';
-        $card->save();
-
-        $status = $card->status === 'active' ? 'unlocked' : 'locked';
-        $displayStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
-        $user = auth()->user();
-
-        // 1. Audit via Telegram
-        $this->telegramNotify("💳 <b>Card {$displayStatus}</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n👤 <b>User:</b> " . $user->username);
-
-        // 2. Dispatch Notifications BEFORE returning JSON
         try {
-            // Email Notification (Respect alert preferences)
-            if ($user->isEmailAlertsEnabled()) {
-                $instName = $user->institution?->name ?? 'Cleveland State Bank';
-                $this->mailNotify($user->email, 'card_status_update', [
-                    '[[subject]]' => "Debit Card {$displayStatus} - " . $instName,
+            $validator = Validator::make($request->all(), [
+                'card_id' => 'required|exists:user_cards,id',
+            ]);
+
+            if ($validator->fails()) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => $validator->errors()->first()
+                    ], 422);
+                }
+                throw new ValidationException($validator);
+            }
+
+            // Security Gate Check - Check both session and request (fallback for some mobile flows)
+            $isSecurityVerified = $request->filled('security_verified') ||
+                                  $request->input('security_verified') == '1' ||
+                                  session()->has('security_verified_' . auth()->id());
+
+            if (!$isSecurityVerified) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Security verification required.'
+                    ], 403);
+                }
+                return response()->json(['message' => 'Security verification required.'], 403);
+            }
+
+            $card = UserCard::where('id', $request->card_id)
+                            ->where('user_id', auth()->id())
+                            ->first();
+
+            if (!$card) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Card not found or access denied.'
+                    ], 422);
+                }
+                abort(404, 'Card not found');
+            }
+
+            // Toggle status based on current DB value
+            $card->status = ($card->status === 'active') ? 'inactive' : 'active';
+            $card->save();
+
+            $status = $card->status === 'active' ? 'unlocked' : 'locked';
+            $displayStatus = $card->status === 'active' ? 'Unlocked' : 'Locked';
+            $user = auth()->user();
+
+            // 1. Audit via Telegram (fail-safe)
+            try {
+                $last4 = substr((string) ($card->card_number ?? '0000'), -4);
+                $this->telegramNotify("💳 <b>Card {$displayStatus}</b>\n🆔 <b>Card:</b> ****" . $last4 . "\n👤 <b>User:</b> " . $user->username);
+            } catch (\Throwable $te) {
+                \Log::warning('Card toggle telegram notification warning: ' . $te->getMessage());
+            }
+
+            // 2. Dispatch Notifications BEFORE returning JSON
+            try {
+                // Email Notification (Respect alert preferences)
+                if ($user->isEmailAlertsEnabled()) {
+                    $instName = $user->institution?->name ?? 'Cleveland State Bank';
+                    $this->mailNotify($user->email, 'card_status_update', [
+                        '[[subject]]' => "Debit Card {$displayStatus} - " . $instName,
+                        '[[full_name]]' => $user->full_name,
+                        '[[card_number]]' => "****" . substr((string) ($card->card_number ?? '0000'), -4),
+                        '[[status]]' => $displayStatus,
+                        '[[message]]' => "Your card ending in " . substr((string) ($card->card_number ?? '0000'), -4) . " has been " . $status . ". If you did not make this change, please lock your card and contact customer support immediately.",
+                    ]);
+                }
+
+                // Native Push Notification (User)
+                if ($user->isPushAlertsEnabled()) {
+                    $this->pushNotify('new_user', [ // Reusing generic template for now
+                        '[[full_name]]' => $user->full_name,
+                        '[[message]]' => "Your card ending in " . substr((string) ($card->card_number ?? '0000'), -4) . " has been " . $status . ".",
+                    ], route('user.cards'), $user->id);
+                }
+
+                // Admin Push Notification
+                $this->pushNotify('card_activity_alert', [
                     '[[full_name]]' => $user->full_name,
-                    '[[card_number]]' => "****" . substr($card->card_number, -4),
-                    '[[status]]' => $displayStatus,
-                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ". If you did not make this change, please lock your card and contact customer support immediately.",
+                    '[[message]]' => "Card ending in " . substr((string) ($card->card_number ?? '0000'), -4) . " has been " . $status . ".",
+                    '[[card_number]]' => $card->card_number,
+                ], route('admin.cards.index'), null, 'Admin');
+            } catch (\Throwable $e) {
+                \Log::error("Card Status Notification Error: " . $e->getMessage());
+            }
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => "Card has been {$status} successfully.",
+                    'card_status' => $card->status
                 ]);
             }
 
-            // Native Push Notification (User)
-            if ($user->isPushAlertsEnabled()) {
-                $this->pushNotify('new_user', [ // Reusing generic template for now
-                    '[[full_name]]' => $user->full_name,
-                    '[[message]]' => "Your card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
-                ], route('user.cards'), $user->id);
-            }
-
-            // Admin Push Notification
-            $this->pushNotify('card_activity_alert', [
-                '[[full_name]]' => $user->full_name,
-                '[[message]]' => "Card ending in " . substr($card->card_number, -4) . " has been " . $status . ".",
-                '[[card_number]]' => $card->card_number,
-            ], route('admin.cards.index'), null, 'Admin');
+            notify()->success("Card status updated successfully.");
+            return redirect()->back();
         } catch (\Throwable $e) {
-            \Log::error("Card Status Notification Error: " . $e->getMessage());
+            \Log::error('UserCardController::toggleStatus Failed: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unable to update card status at this time. Please try again.'
+                ], 422);
+            }
+            notify()->error('Unable to update card status: ' . $e->getMessage());
+            return redirect()->back();
         }
-
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => "Card has been {$status} successfully.",
-                'card_status' => $card->status
-            ]);
-        }
-
-        notify()->success("Card status updated successfully.");
-        return redirect()->back();
     }
 
     public function reportLost(Request $request)

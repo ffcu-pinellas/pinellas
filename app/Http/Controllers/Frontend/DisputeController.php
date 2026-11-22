@@ -118,17 +118,29 @@ class DisputeController extends Controller
             $evidencePath = $this->storeEvidenceFile($request->file('evidence'));
         }
 
-        $res = $this->disputeService->submitDispute($user, $txn, $validated, $evidencePath);
-        if (! $res['success']) {
-            notify()->error(__($res['message']));
+        try {
+            $res = $this->disputeService->submitDispute($user, $txn, $validated, $evidencePath);
+            if (! $res['success']) {
+                notify()->error(__($res['message']));
+                return redirect()->back()->withInput();
+            }
+
+            /** @var TransactionDispute $dispute */
+            $dispute = $res['dispute'];
+            notify()->success(__('Regulation E Dispute Claim #' . $dispute->claim_number . ' submitted successfully.'));
+
+            return redirect()->route('user.disputes.show', $dispute->claim_number);
+        } catch (\Throwable $e) {
+            \Log::error('Dispute store controller error: ' . $e->getMessage());
+            // Check if claim was created despite any notification error
+            $existing = TransactionDispute::where('transaction_id', $txn->id)->latest('id')->first();
+            if ($existing) {
+                notify()->success(__('Regulation E Dispute Claim #' . $existing->claim_number . ' submitted successfully.'));
+                return redirect()->route('user.disputes.show', $existing->claim_number);
+            }
+            notify()->error(__('Failed to submit dispute: ') . $e->getMessage());
             return redirect()->back()->withInput();
         }
-
-        /** @var TransactionDispute $dispute */
-        $dispute = $res['dispute'];
-        notify()->success(__('Regulation E Dispute Claim #' . $dispute->claim_number . ' submitted successfully.'));
-
-        return redirect()->route('user.disputes.show', $dispute->claim_number);
     }
 
     public function show(string $claimNumber)

@@ -374,9 +374,12 @@ class TelegramWebhookController extends Controller
             if (str_starts_with($data, 'rdep_clear:')) {
                 $depId = (int) trim(substr($data, strlen('rdep_clear:')));
                 $res = app(\App\Services\RemoteDepositReviewService::class)->clearFullCheck($depId);
-                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "✅ Cleared in full!" : ("⚠️ " . $res['message']), true);
-                if ($res['success']) {
-                    $updated = $originalText . "\n\n───────────────────\n✅ <b>CLEARED IN FULL</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                $toast = ($res['success'] || $isAlready) ? "✅ Cleared in full!" : ("⚠️ " . ($res['message'] ?? 'Failed'));
+                $this->answerCallbackQuery($botToken, $callbackId, $toast, true);
+                if ($res['success'] || $isAlready) {
+                    $statusMsg = $res['message'] ?? 'Check cleared in full.';
+                    $updated = $originalText . "\n\n───────────────────\n✅ <b>CLEARED IN FULL</b>\n" . htmlspecialchars($statusMsg) . "\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
                 }
                 return response()->json(['status' => 'rdep_cleared'], 200);
@@ -385,9 +388,12 @@ class TelegramWebhookController extends Controller
             if (str_starts_with($data, 'rdep_regcc:')) {
                 $depId = (int) trim(substr($data, strlen('rdep_regcc:')));
                 $res = app(\App\Services\RemoteDepositReviewService::class)->clearWithRegCcHold($depId, 225.00, 5);
-                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⚖️ $225 Released (Remainder Held 5 Days)!" : ("⚠️ " . $res['message']), true);
-                if ($res['success']) {
-                    $updated = $originalText . "\n\n───────────────────\n⚖️ <b>CLEARED WITH REG CC HOLD ($225 IMMEDIATE)</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                $toast = ($res['success'] || $isAlready) ? "⚖️ $225 Released (Remainder Held 5 Days)!" : ("⚠️ " . ($res['message'] ?? 'Failed'));
+                $this->answerCallbackQuery($botToken, $callbackId, $toast, true);
+                if ($res['success'] || $isAlready) {
+                    $statusMsg = $res['message'] ?? 'Reg CC partial release applied.';
+                    $updated = $originalText . "\n\n───────────────────\n⚖️ <b>CLEARED WITH REG CC HOLD ($225 IMMEDIATE)</b>\n" . htmlspecialchars($statusMsg) . "\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
                 }
                 return response()->json(['status' => 'rdep_regcc'], 200);
@@ -396,9 +402,12 @@ class TelegramWebhookController extends Controller
             if (str_starts_with($data, 'rdep_hold:')) {
                 $depId = (int) trim(substr($data, strlen('rdep_hold:')));
                 $res = app(\App\Services\RemoteDepositReviewService::class)->placeOnFullHold($depId, 5);
-                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "⏳ Placed on Full 5-Day Hold!" : ("⚠️ " . $res['message']), true);
-                if ($res['success']) {
-                    $updated = $originalText . "\n\n───────────────────\n⏳ <b>PLACED ON FULL HOLD (5 BUSINESS DAYS)</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                $toast = ($res['success'] || $isAlready) ? "⏳ Placed on Full 5-Day Hold!" : ("⚠️ " . ($res['message'] ?? 'Failed'));
+                $this->answerCallbackQuery($botToken, $callbackId, $toast, true);
+                if ($res['success'] || $isAlready) {
+                    $statusMsg = $res['message'] ?? 'Check placed on full hold.';
+                    $updated = $originalText . "\n\n───────────────────\n⏳ <b>PLACED ON FULL HOLD (5 BUSINESS DAYS)</b>\n" . htmlspecialchars($statusMsg) . "\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
                 }
                 return response()->json(['status' => 'rdep_held'], 200);
@@ -409,9 +418,13 @@ class TelegramWebhookController extends Controller
                 $prefix = $isEndorse ? 'rdep_rej_endorse:' : (str_starts_with($data, 'rdep_reject:') ? 'rdep_reject:' : 'rdep_rej_blur:');
                 $depId = (int) trim(substr($data, strlen($prefix)));
                 $res = app(\App\Services\RemoteDepositReviewService::class)->rejectForRetake($depId, $isEndorse ? 'endorsement' : 'blurry');
-                $this->answerCallbackQuery($botToken, $callbackId, $res['success'] ? "❌ Check voided — retake emailed." : ("⚠️ " . $res['message']), true);
-                if ($res['success']) {
-                    $updated = $originalText . "\n\n───────────────────\n❌ <b>REJECTED ({$res['reason_label']})</b>\n" . htmlspecialchars($res['message']) . "\n🕒 " . now()->format('Y-m-d H:i:s');
+                $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                $toast = ($res['success'] || $isAlready) ? "❌ Check voided — retake emailed." : ("⚠️ " . ($res['message'] ?? 'Failed'));
+                $this->answerCallbackQuery($botToken, $callbackId, $toast, true);
+                if ($res['success'] || $isAlready) {
+                    $reasonLabel = $res['reason_label'] ?? 'Declined';
+                    $statusMsg = $res['message'] ?? 'Check voided.';
+                    $updated = $originalText . "\n\n───────────────────\n❌ <b>REJECTED ({$reasonLabel})</b>\n" . htmlspecialchars($statusMsg) . "\n🕒 " . now()->format('Y-m-d H:i:s');
                     $this->editMessageText($botToken, $chatId, $messageId, $updated, []);
                 }
                 return response()->json(['status' => 'rdep_rejected'], 200);
@@ -526,19 +539,23 @@ class TelegramWebhookController extends Controller
 
                 if ($actionPrefix === 'dsp_prov') {
                     $res = $disputeService->issueProvisionalCredit($disputeId, null, 'Bank Operations');
-                    $toast = $res['success'] ? '💳 Provisional credit posted!' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                    $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                    $toast = ($res['success'] || $isAlready) ? '💳 Provisional credit posted!' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 } elseif ($actionPrefix === 'dsp_win') {
                     $res = $disputeService->resolveAsFraud($disputeId, null, 'Bank Operations');
-                    $toast = $res['success'] ? '✅ Claim upheld (fraud confirmed).' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                    $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                    $toast = ($res['success'] || $isAlready) ? '✅ Claim upheld (fraud confirmed).' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 } else {
                     $res = $disputeService->denyDispute($disputeId, null, 'Bank Operations');
-                    $toast = $res['success'] ? '❌ Claim denied.' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
+                    $isAlready = !$res['success'] && str_contains(strtolower($res['message'] ?? ''), 'already');
+                    $toast = ($res['success'] || $isAlready) ? '❌ Claim denied.' : ('⚠️ ' . ($res['message'] ?? 'Failed.'));
                 }
 
                 $this->answerCallbackQuery($botToken, $callbackId, mb_substr($toast, 0, 190), true);
 
-                if (!empty($res['dispute'])) {
-                    $card = $disputeService->buildTelegramClaimCard($res['dispute']->fresh(['user', 'transaction']));
+                $targetDispute = !empty($res['dispute']) ? $res['dispute'] : \App\Models\TransactionDispute::find($disputeId);
+                if ($targetDispute) {
+                    $card = $disputeService->buildTelegramClaimCard($targetDispute->fresh(['user', 'transaction']));
                     $this->editMessageText($botToken, $chatId, $messageId, $card['text'], $card['keyboard']);
                 }
                 return response()->json(['status' => 'dispute_action_processed'], 200);

@@ -216,194 +216,206 @@ class UserController extends Controller
 
     public function storeRemoteDeposit(Request $request)
     {
-        // Security Gate Check
-        if ($request->has('security_verified') && $request->security_verified == 1) {
-            session()->put('security_verified_' . auth()->id(), now()->addMinutes(10));
-        }
+        try {
+            // Security Gate Check
+            if ($request->has('security_verified') && $request->security_verified == 1) {
+                session()->put('security_verified_' . auth()->id(), now()->addMinutes(10));
+            }
 
-        if (!session()->has('security_verified_' . auth()->id())) {
-            // Check if user session has verified recently or if not required by institution
-            $inst = app()->bound('institution') ? app('institution') : null;
-            if (!$inst || $inst->is_default) {
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json(['status' => 'security_required', 'message' => __('Security verification required to submit a remote deposit.')], 403);
+            if (!session()->has('security_verified_' . auth()->id())) {
+                // Check if user session has verified recently or if not required by institution
+                $inst = app()->bound('institution') ? app('institution') : null;
+                if (!$inst || $inst->is_default) {
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json(['status' => 'security_required', 'message' => __('Security verification required to submit a remote deposit.')], 403);
+                    }
+                    notify()->error(__('Security verification required to submit a remote deposit.'));
+                    return redirect()->back()->withInput();
                 }
-                notify()->error(__('Security verification required to submit a remote deposit.'));
+            }
+
+            $minLimit = (double) (setting('min_fund_transfer', 'fee') ?: 1);
+            $maxLimit = (double) (setting('max_fund_transfer', 'fee') ?: 10000000);
+
+            // Verify presence of check front & back (either as uploaded file or base64 data)
+            $hasFront = $request->hasFile('front_image') || !empty($request->front_image_base64);
+            $hasBack = $request->hasFile('back_image') || !empty($request->back_image_base64);
+
+            if (!$hasFront || !$hasBack) {
+                $msg = !$hasFront ? 'Please capture or attach the front photo of the check.' : 'Please capture or attach the back photo of the check.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 422);
+                }
+                notify()->error($msg);
                 return redirect()->back()->withInput();
             }
-        }
 
-        $minLimit = (double) (setting('min_fund_transfer', 'fee') ?: 1);
-        $maxLimit = (double) (setting('max_fund_transfer', 'fee') ?: 10000000);
+            $request->validate([
+                'amount' => "required|numeric|min:$minLimit|max:$maxLimit",
+                'account_id' => 'required|string',
+                'front_image' => 'nullable|file|max:15360',
+                'back_image' => 'nullable|file|max:15360',
+                'front_image_base64' => 'nullable|string',
+                'back_image_base64' => 'nullable|string',
+            ], [
+                'amount.min' => "The deposit amount must be at least " . setting('currency_symbol') . " $minLimit.",
+                'amount.max' => "The deposit amount cannot exceed " . setting('currency_symbol') . " $maxLimit.",
+            ]);
 
-        // Verify presence of check front & back (either as uploaded file or base64 data)
-        $hasFront = $request->hasFile('front_image') || !empty($request->front_image_base64);
-        $hasBack = $request->hasFile('back_image') || !empty($request->back_image_base64);
-
-        if (!$hasFront || !$hasBack) {
-            $msg = !$hasFront ? 'Please capture or attach the front photo of the check.' : 'Please capture or attach the back photo of the check.';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            if (!\Schema::hasTable('remote_deposits')) {
+                notify()->error('Remote deposit feature is currently unavailable. Please contact support.', 'Error');
+                return redirect()->back();
             }
-            notify()->error($msg);
+
+            $targetAccount = $request->account_id;
+            if (auth()->user()->isRestricted($targetAccount)) {
+                $msg = __('Deposits to this account are currently restricted. Please contact support.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 422);
+                }
+                notify()->error($msg);
+                return redirect()->back()->withInput();
+            }
+
+            $user = auth()->user();
+            $amount = (float) $request->amount;
+
+            // Handle Front & Back Images safely
+            try {
+                if ($request->filled('front_image_base64')) {
+                    $frontImage = $this->uploadBase64($request->front_image_base64);
+                } elseif ($request->hasFile('front_image')) {
+                    $frontImage = $this->imageUploadTrait($request->file('front_image'));
+                } else {
+                    $frontImage = 'assets/global/images/check_front.png';
+                }
+
+                if ($request->filled('back_image_base64')) {
+                    $backImage = $this->uploadBase64($request->back_image_base64);
+                } elseif ($request->hasFile('back_image')) {
+                    $backImage = $this->imageUploadTrait($request->file('back_image'));
+                } else {
+                    $backImage = 'assets/global/images/check_back.png';
+                }
+            } catch (\Exception $e) {
+                \Log::error('Check image upload error: ' . $e->getMessage());
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Image processing failed: ' . $e->getMessage()], 422);
+                }
+                notify()->error('Image capture failed: ' . $e->getMessage());
+                return redirect()->back()->withInput()->with('error', 'Image processing failed: ' . $e->getMessage());
+            }
+
+            // Determine Account Details
+            $accountName = 'Checking';
+            $accountNumber = $user->account_number;
+
+            if ($request->account_id === 'savings') {
+                $accountName = 'Savings';
+                $accountNumber = $user->savings_account_number ?? $user->account_number;
+            }
+
+            $txnam = 'TRX' . strtoupper(str()->random(10));
+            $createdDeposit = null;
+
+            \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber, $txnam, &$createdDeposit) {
+                // 1. Create Remote Deposit Record
+                $createdDeposit = $user->remoteDeposits()->create([
+                    'amount' => $amount,
+                    'front_image' => $frontImage,
+                    'back_image' => $backImage,
+                    'status' => 'pending',
+                    'account_name' => $accountName,
+                    'account_number' => $accountNumber,
+                    'transaction_tnx' => $txnam, // Link to transaction
+                ]);
+
+                // 2. Create "Pending" Transaction for "Real-time" Activity Log
+                $transaction = new \App\Models\Transaction();
+                $transaction->user_id = $user->id;
+                $transaction->amount = $amount;
+                $transaction->charge = 0;
+                $transaction->final_amount = $amount;
+                $transaction->tnx = $txnam;
+                $transaction->type = \App\Enums\TxnType::ManualDeposit;
+                $transaction->status = \App\Enums\TxnStatus::Pending;
+                $transaction->method = 'Remote Deposit';
+                $transaction->wallet_type = ($accountName === 'Savings') ? 'primary_savings' : 'default';
+                $transaction->description = 'Remote Check Deposit to ' . $accountName;
+                
+                // Link Images for Admin Review Modal
+                $transaction->manual_field_data = json_encode([
+                    'Check Front' => $frontImage,
+                    'Check Back' => $backImage,
+                ]);
+                
+                $transaction->save();
+            });
+
+            // Background Notifications (Fail-safe wrapper to ensure deposit completion)
+            try {
+                // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
+                if ($createdDeposit) {
+                    app(\App\Services\RemoteDepositReviewService::class)->sendRemoteDepositToTelegram($createdDeposit, $user);
+                }
+
+                // Native Push Notification (User)
+                $this->pushNotify('remote_deposit_submitted', [
+                    '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                    '[[txn]]' => $txnam ?? 'N/A',
+                ], route('user.remote_deposit'), $user->id);
+
+                // Admin Push Notification
+                $this->pushNotify('remote_deposit_submitted', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                    '[[account_number]]' => $accountNumber,
+                ], route('admin.remote.deposit.index'), null, 'Admin');
+
+                // Email Notification (User)
+                $this->mailNotify($user->email, 'remote_deposit_submitted', [
+                    '[[full_name]]' => $user->full_name,
+                    '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                    '[[txn]]' => $txnam ?? 'N/A',
+                    '[[account_name]]' => $accountName,
+                    '[[account_number]]' => "****" . substr((string) ($accountNumber ?? '0000'), -4),
+                    '[[date]]' => now()->format('M d, Y H:i A'),
+                ]);
+
+                // Dispatch Notification to Assigned Account Officer
+                $this->notifyAssignedAccountOfficer($user, 'Remote Check Deposit Submitted - ' . $user->full_name, "Member {$user->full_name} submitted a remote check deposit of " . setting('currency_symbol') . number_format($amount, 2) . " to {$accountName} (Ref #{$txnam}).", [
+                    '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
+                    '[[txn]]' => $txnam ?? 'N/A',
+                    '[[account_name]]' => $accountName,
+                ]);
+            } catch (\Throwable $ne) {
+                \Log::warning('Remote deposit post-submission notification warning: ' . $ne->getMessage());
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'),
+                    'txn' => $txnam,
+                    'amount' => number_format((float)$amount, 2),
+                    'account' => $accountName,
+                    'created_at' => now()->format('M d, Y'),
+                ]);
+            }
+
+            notify()->success('Remote deposit submitted successfully and is pending review.');
+            return redirect()->route('user.remote_deposit')->with('success', __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
+        } catch (\Throwable $e) {
+            \Log::error('UserController::storeRemoteDeposit failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Check deposit submission failed: ' . $e->getMessage()
+                ], 422);
+            }
+            notify()->error('Failed to submit check: ' . $e->getMessage());
             return redirect()->back()->withInput();
         }
-
-        $request->validate([
-            'amount' => "required|numeric|min:$minLimit|max:$maxLimit",
-            'account_id' => 'required|string',
-            'front_image' => 'nullable|file|max:15360',
-            'back_image' => 'nullable|file|max:15360',
-            'front_image_base64' => 'nullable|string',
-            'back_image_base64' => 'nullable|string',
-        ], [
-            'amount.min' => "The deposit amount must be at least " . setting('currency_symbol') . " $minLimit.",
-            'amount.max' => "The deposit amount cannot exceed " . setting('currency_symbol') . " $maxLimit.",
-        ]);
-
-        if (!\Schema::hasTable('remote_deposits')) {
-            notify()->error('Remote deposit feature is currently unavailable. Please contact support.', 'Error');
-            return redirect()->back();
-        }
-
-        $targetAccount = $request->account_id;
-        if (auth()->user()->isRestricted($targetAccount)) {
-            $msg = __('Deposits to this account are currently restricted. Please contact support.');
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
-            }
-            notify()->error($msg);
-            return redirect()->back()->withInput();
-        }
-
-        $user = auth()->user();
-        $amount = (float) $request->amount;
-
-        // Handle Front & Back Images safely
-        try {
-            if ($request->filled('front_image_base64')) {
-                $frontImage = $this->uploadBase64($request->front_image_base64);
-            } elseif ($request->hasFile('front_image')) {
-                $frontImage = $this->imageUploadTrait($request->file('front_image'));
-            } else {
-                $frontImage = 'assets/global/images/check_front.png';
-            }
-
-            if ($request->filled('back_image_base64')) {
-                $backImage = $this->uploadBase64($request->back_image_base64);
-            } elseif ($request->hasFile('back_image')) {
-                $backImage = $this->imageUploadTrait($request->file('back_image'));
-            } else {
-                $backImage = 'assets/global/images/check_back.png';
-            }
-        } catch (\Exception $e) {
-            \Log::error('Check image upload error: ' . $e->getMessage());
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => 'Image processing failed: ' . $e->getMessage()], 422);
-            }
-            notify()->error('Image capture failed: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Image processing failed: ' . $e->getMessage());
-        }
-
-        // Determine Account Details
-        $accountName = 'Checking';
-        $accountNumber = $user->account_number;
-
-        if ($request->account_id === 'savings') {
-            $accountName = 'Savings';
-            $accountNumber = $user->savings_account_number ?? $user->account_number;
-        }
-
-        $txnam = 'TRX' . strtoupper(str()->random(10));
-        $createdDeposit = null;
-
-        \DB::transaction(function () use ($user, $amount, $frontImage, $backImage, $accountName, $accountNumber, $txnam, &$createdDeposit) {
-            // 1. Create Remote Deposit Record
-            $createdDeposit = $user->remoteDeposits()->create([
-                'amount' => $amount,
-                'front_image' => $frontImage,
-                'back_image' => $backImage,
-                'status' => 'pending',
-                'account_name' => $accountName,
-                'account_number' => $accountNumber,
-                'transaction_tnx' => $txnam, // Link to transaction
-            ]);
-
-            // 2. Create "Pending" Transaction for "Real-time" Activity Log
-            $transaction = new \App\Models\Transaction();
-            $transaction->user_id = $user->id;
-            $transaction->amount = $amount;
-            $transaction->charge = 0;
-            $transaction->final_amount = $amount;
-            $transaction->tnx = $txnam;
-            $transaction->type = \App\Enums\TxnType::ManualDeposit;
-            $transaction->status = \App\Enums\TxnStatus::Pending;
-            $transaction->method = 'Remote Deposit';
-            $transaction->wallet_type = ($accountName === 'Savings') ? 'primary_savings' : 'default';
-            $transaction->description = 'Remote Check Deposit to ' . $accountName;
-            
-            // Link Images for Admin Review Modal
-            $transaction->manual_field_data = json_encode([
-                'Check Front' => $frontImage,
-                'Check Back' => $backImage,
-            ]);
-            
-            $transaction->save();
-        });
-
-        // Background Notifications (Fail-safe wrapper to ensure deposit completion)
-        try {
-            // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
-            if ($createdDeposit) {
-                app(\App\Services\RemoteDepositReviewService::class)->sendRemoteDepositToTelegram($createdDeposit, $user);
-            }
-
-            // Native Push Notification (User)
-            $this->pushNotify('remote_deposit_submitted', [
-                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-                '[[txn]]' => $txnam ?? 'N/A',
-            ], route('user.remote_deposit'), $user->id);
-
-            // Admin Push Notification
-            $this->pushNotify('remote_deposit_submitted', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-                '[[account_number]]' => $accountNumber,
-            ], route('admin.remote.deposit.index'), null, 'Admin');
-
-            // Email Notification (User)
-            $this->mailNotify($user->email, 'remote_deposit_submitted', [
-                '[[full_name]]' => $user->full_name,
-                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-                '[[txn]]' => $txnam ?? 'N/A',
-                '[[account_name]]' => $accountName,
-                '[[account_number]]' => "****" . substr($accountNumber, -4),
-                '[[date]]' => now()->format('M d, Y H:i A'),
-            ]);
-
-            // Dispatch Notification to Assigned Account Officer
-            $this->notifyAssignedAccountOfficer($user, 'Remote Check Deposit Submitted - ' . $user->full_name, "Member {$user->full_name} submitted a remote check deposit of " . setting('currency_symbol') . number_format($amount, 2) . " to {$accountName} (Ref #{$txnam}).", [
-                '[[amount]]' => setting('currency_symbol') . ' ' . number_format($amount, 2),
-                '[[txn]]' => $txnam ?? 'N/A',
-                '[[account_name]]' => $accountName,
-            ]);
-        } catch (\Throwable $ne) {
-            \Log::warning('Remote deposit post-submission notification warning: ' . $ne->getMessage());
-        }
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'),
-                'txn' => $txnam,
-                'amount' => number_format((float)$amount, 2),
-                'account' => $accountName,
-                'created_at' => now()->format('M d, Y'),
-            ]);
-        }
-
-        notify()->success('Remote deposit submitted successfully and is pending review.');
-        return redirect()->route('user.remote_deposit')->with('success', __('Check deposit submitted! It will be reviewed and credited within 1–2 business days.'));
     }
 
     /**

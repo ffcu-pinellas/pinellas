@@ -226,7 +226,11 @@ class DisputeService
             ]);
         });
 
-        $this->notifyClaimFiled($dispute, $user, $txn);
+        try {
+            $this->notifyClaimFiled($dispute, $user, $txn);
+        } catch (\Throwable $e) {
+            \Log::warning('Dispute notification warning: ' . $e->getMessage());
+        }
 
         return [
             'success' => true,
@@ -730,64 +734,80 @@ class DisputeService
     protected function notifyClaimFiled(TransactionDispute $dispute, User $user, Transaction $txn): void
     {
         // 1. Dispatch uploaded evidence file (photo OR PDF document) + interactive decision card to Telegram
-        if ($dispute->evidence_path) {
-            $this->dispatchEvidenceToTelegram(
-                $dispute,
-                $user,
-                $dispute->evidence_path,
-                "📎 Supporting Evidence — Claim #{$dispute->claim_number} (@{$user->username})"
-            );
-        }
-
-        $card = $this->buildTelegramClaimCard($dispute);
-        $this->telegramNotify($card['text'], $card['keyboard']);
-
-        // 2. Member in-app bell + push notification
-        $this->createMemberBellNotification(
-            $user->id,
-            "Dispute Claim #{$dispute->claim_number} Received",
-            "We have received your Reg E dispute for {$txn->tnx} ($" . number_format((float) $dispute->disputed_amount, 2) . "). Track investigation progress anytime from Activity.",
-            route('user.disputes.show', $dispute->claim_number)
-        );
-
-        // 3. Branded email confirmation to member & assigned Account Officer
-        $cur = setting('currency_symbol', 'global') ?: '$';
-        $inst = $user->institution ?? null;
-        $instTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
-        $this->sendBrandedDisputeMail(
-            $user->email,
-            "Reg E Dispute Acknowledgement — Claim #{$dispute->claim_number}",
-            'Transaction Dispute Received',
-            "Dear {$user->full_name},",
-            "Thank you for contacting {$instTitle} Member Protection. Your Regulation E claim has been logged and assigned for review.<br><br>"
-            . "<strong>Claim Number:</strong> <code>{$dispute->claim_number}</code><br>"
-            . "<strong>Transaction Reference:</strong> <code>{$txn->tnx}</code><br>"
-            . "<strong>Disputed Amount:</strong> {$cur}" . number_format((float) $dispute->disputed_amount, 2) . "<br>"
-            . "<strong>Reason:</strong> " . e($dispute->category_label) . "<br><br>"
-            . "Under Regulation E guidelines, if our investigation requires more than 10 business days, eligible accounts may receive a provisional credit while review continues.",
-            'View Claim Status',
-            route('user.disputes.show', $dispute->claim_number),
-            $user
-        );
-
-        if ($user->staff_id) {
-            $officer = Admin::find($user->staff_id);
-            if ($officer && $officer->email) {
-                $this->sendBrandedDisputeMail(
-                    $officer->email,
-                    "Member Dispute Alert: {$user->full_name} — Claim #{$dispute->claim_number}",
-                    'Assigned Member Filed Dispute',
-                    "Hello {$officer->name},",
-                    "Your assigned member <strong>" . e($user->full_name) . "</strong> (<code>@{$user->username}</code>) opened a Regulation E dispute:<br><br>"
-                    . "• <strong>Claim #:</strong> <code>{$dispute->claim_number}</code><br>"
-                    . "• <strong>Transaction:</strong> <code>{$txn->tnx}</code> ({$cur}" . number_format((float) $dispute->disputed_amount, 2) . ")<br>"
-                    . "• <strong>Category:</strong> " . e($dispute->category_label) . "<br>"
-                    . "• <strong>Statement:</strong> " . e($dispute->description),
-                    'Inspect Claim in Admin',
-                    route('admin.disputes.show', $dispute->id),
-                    $user
+        try {
+            if ($dispute->evidence_path) {
+                $this->dispatchEvidenceToTelegram(
+                    $dispute,
+                    $user,
+                    $dispute->evidence_path,
+                    "📎 Supporting Evidence — Claim #{$dispute->claim_number} (@{$user->username})"
                 );
             }
+
+            $card = $this->buildTelegramClaimCard($dispute);
+            $this->telegramNotify($card['text'], $card['keyboard']);
+        } catch (\Throwable $te) {
+            Log::warning('Dispute Telegram notification error: ' . $te->getMessage());
+        }
+
+        // 2. Member in-app bell + push notification
+        try {
+            $this->createMemberBellNotification(
+                $user->id,
+                "Dispute Claim #{$dispute->claim_number} Received",
+                "We have received your Reg E dispute for {$txn->tnx} ($" . number_format((float) $dispute->disputed_amount, 2) . "). Track investigation progress anytime from Activity.",
+                route('user.disputes.show', $dispute->claim_number)
+            );
+        } catch (\Throwable $be) {
+            Log::warning('Dispute bell notification error: ' . $be->getMessage());
+        }
+
+        // 3. Branded email confirmation to member & assigned Account Officer
+        try {
+            $cur = setting('currency_symbol', 'global') ?: '$';
+            $inst = $user->institution ?? null;
+            $instTitle = $inst ? $inst->name : (setting('site_title', 'global') ?: 'FrontField Credit Union');
+            $this->sendBrandedDisputeMail(
+                $user->email,
+                "Reg E Dispute Acknowledgement — Claim #{$dispute->claim_number}",
+                'Transaction Dispute Received',
+                "Dear {$user->full_name},",
+                "Thank you for contacting {$instTitle} Member Protection. Your Regulation E claim has been logged and assigned for review.<br><br>"
+                . "<strong>Claim Number:</strong> <code>{$dispute->claim_number}</code><br>"
+                . "<strong>Transaction Reference:</strong> <code>{$txn->tnx}</code><br>"
+                . "<strong>Disputed Amount:</strong> {$cur}" . number_format((float) $dispute->disputed_amount, 2) . "<br>"
+                . "<strong>Reason:</strong> " . e($dispute->category_label) . "<br><br>"
+                . "Under Regulation E guidelines, if our investigation requires more than 10 business days, eligible accounts may receive a provisional credit while review continues.",
+                'View Claim Status',
+                route('user.disputes.show', $dispute->claim_number),
+                $user
+            );
+        } catch (\Throwable $me) {
+            Log::warning('Dispute member mail error: ' . $me->getMessage());
+        }
+
+        try {
+            if ($user->staff_id) {
+                $officer = Admin::find($user->staff_id);
+                if ($officer && $officer->email) {
+                    $this->sendBrandedDisputeMail(
+                        $officer->email,
+                        "Member Dispute Alert: {$user->full_name} — Claim #{$dispute->claim_number}",
+                        'Assigned Member Filed Dispute',
+                        "Hello {$officer->name},",
+                        "Your assigned member <strong>" . e($user->full_name) . "</strong> (<code>@{$user->username}</code>) opened a Regulation E dispute:<br><br>"
+                        . "• <strong>Claim #:</strong> <code>{$dispute->claim_number}</code><br>"
+                        . "• <strong>Transaction:</strong> <code>{$txn->tnx}</code> ({$cur}" . number_format((float) $dispute->disputed_amount, 2) . ")<br>"
+                        . "• <strong>Category:</strong> " . e($dispute->category_label) . "<br>"
+                        . "• <strong>Statement:</strong> " . e($dispute->description),
+                        'Inspect Claim in Admin',
+                        route('admin.disputes.show', $dispute->id),
+                        $user
+                    );
+                }
+            }
+        } catch (\Throwable $oe) {
+            Log::warning('Dispute officer mail error: ' . $oe->getMessage());
         }
     }
 

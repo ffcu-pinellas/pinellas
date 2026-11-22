@@ -20,7 +20,7 @@
                         </thead>
                         <tbody>
                         @foreach($recentTransactions as $transaction )
-                            <tr>
+                            <tr data-tnx="{{ $transaction->tnx }}">
                                 <td>
                                     <div class="table-description">
                                         <div class="icon">

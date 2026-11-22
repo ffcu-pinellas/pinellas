@@ -4126,10 +4126,14 @@ body {
         var receiptUrl = '{{ url("/user/transactions/receipt") }}/' + encodeURIComponent(trx);
         var disputeUrl = '{{ url("/user/disputes/create") }}/' + encodeURIComponent(trx);
 
-        // Determine category icon
-        var catIcon = 'fa-solid fa-arrow-right-arrow-left';
-        var catBg = '#fee2e2';
-        var catColor = '#c8232c';
+        // Determine category icon & credit/debit orientation
+        var isCredit = (details && details.isPositive) || typeUpper.includes('DEPOSIT') || typeUpper.includes('CREDIT') || typeUpper.includes('INCOMING') || typeUpper.includes('PROVISIONAL') || typeUpper.includes('REFUND');
+        var amtPrefix = isCredit ? '+' : '-';
+        var amtClass = isCredit ? 'positive' : 'negative';
+
+        var catIcon = isCredit ? 'fa-solid fa-arrow-down' : 'fa-solid fa-arrow-right-arrow-left';
+        var catBg = isCredit ? '#dcfce7' : '#fee2e2';
+        var catColor = isCredit ? '#16a34a' : '#c8232c';
         if (typeUpper.includes('ZELLE')) {
             catIcon = 'fa-solid fa-bolt';
             catBg = '#f3e8ff';
@@ -4162,7 +4166,7 @@ body {
             ' data-tx-id="' + trx + '"' +
             ' data-tx-desc="' + escapedDesc + '"' +
             ' data-tx-trx="' + trx + '"' +
-            ' data-tx-amount="-' + amtFormatted + '"' +
+            ' data-tx-amount="' + amtPrefix + amtFormatted + '"' +
             ' data-tx-date="' + dateLong + '"' +
             ' data-tx-status="' + statusStr + '"' +
             ' data-tx-method="' + escapedType + '"' +
@@ -4188,7 +4192,7 @@ body {
             '      </div>' +
             '    </div>' +
             '    <div class="text-end" style="flex-shrink: 0; white-space: nowrap;">' +
-            '      <div class="txn-amount negative">-' + amtFormatted + '</div>' +
+            '      <div class="txn-amount ' + amtClass + '">' + amtPrefix + amtFormatted + '</div>' +
             '      <div class="small txn-status-badge" style="font-size: 0.72rem; font-weight: 600; margin-top: 2px;">' +
             '        ' + statusBadge +
             '      </div>' +
@@ -4931,11 +4935,25 @@ body {
                 }
                 lastBalances = curBals;
 
-                // Check recent transactions status update
+                // Check recent transactions status update & dynamic prepend
                 if (data.recent_txns && Array.isArray(data.recent_txns)) {
-                    if (lastTxns !== null) {
-                        data.recent_txns.forEach(function(tx) {
-                            var oldTx = lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; });
+                    data.recent_txns.forEach(function(tx) {
+                        var existingRow = document.querySelector('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"]');
+                        if (!existingRow) {
+                            // Brand new transaction! (e.g. from Telegram approval, provisional credit, or another channel)
+                            var isPos = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
+                            var badgeName = tx.description || (isPos ? 'Credit' : 'Transfer');
+                            if (typeof csbPrependTransactionRow === 'function') {
+                                csbPrependTransactionRow({ trx: tx.tnx, amount: tx.amount }, {
+                                    amount: '$' + parseFloat(tx.amount || 0).toFixed(2),
+                                    badge: badgeName,
+                                    walletType: tx.wallet_type || 'checking',
+                                    to: tx.description || 'Account Transfer',
+                                    isPositive: isPos
+                                });
+                            }
+                        } else {
+                            var oldTx = lastTxns ? lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; }) : null;
                             if (oldTx && oldTx.status !== tx.status) {
                                 var isApproved = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
                                 var isRejected = (tx.status === 'rejected' || tx.status == 3);
@@ -4944,14 +4962,12 @@ body {
                                 var rows = document.querySelectorAll('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"]');
                                 rows.forEach(function(r) {
                                     r.setAttribute('data-tx-status', statusLabel);
-                                    var badge = r.querySelector('.badge');
+                                    var badge = r.querySelector('.txn-status-badge, .badge');
                                     if (badge) {
                                         if (isApproved) {
-                                            badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
-                                            badge.textContent = 'Approved';
+                                            badge.innerHTML = '<span style="color: #059669;"><i class="fa-solid fa-circle-check me-1 small"></i>Completed</span>';
                                         } else if (isRejected) {
-                                            badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
-                                            badge.textContent = 'Declined';
+                                            badge.innerHTML = '<span style="color: #dc2626;"><i class="fa-solid fa-circle-xmark me-1 small"></i>Declined</span>';
                                         }
                                     }
                                 });
@@ -4971,9 +4987,36 @@ body {
                                     });
                                 }
                             }
+                        }
+                    });
+                    lastTxns = data.recent_txns;
+                }
+
+                // Check and live-sync remote deposit in-modal history
+                if (data.recent_deposits && Array.isArray(data.recent_deposits)) {
+                    var $depBody = $('#csbDepositHistoryBody');
+                    if ($depBody.length) {
+                        data.recent_deposits.forEach(function(dep) {
+                            var depTnx = dep.transaction_tnx || ('DEP-' + dep.id);
+                            var existingDepRow = $depBody.find('tr[data-dep-id="' + dep.id + '"], tr[data-dep-tnx="' + depTnx + '"]');
+                            var stBadge = (dep.status === 'approved' || dep.status == 1)
+                                ? '<span class="badge bg-success text-white">Approved</span>' 
+                                : ((dep.status === 'rejected' || dep.status == 3) ? '<span class="badge bg-danger text-white">Declined</span>' : '<span class="badge bg-warning text-dark">Pending</span>');
+                            if (!existingDepRow.length) {
+                                $depBody.find('tr:has(td[colspan])').remove();
+                                var newRow = '<tr data-dep-id="' + dep.id + '" data-dep-tnx="' + depTnx + '">' +
+                                    '<td class="small text-muted">' + (dep.created_at || 'Just now') + '</td>' +
+                                    '<td class="fw-semibold small">' + (dep.account_name || 'Checking') + '</td>' +
+                                    '<td class="fw-bold text-success">$' + parseFloat(dep.amount || 0).toFixed(2) + '</td>' +
+                                    '<td>' + stBadge + '</td>' +
+                                    '<td class="text-end text-muted small font-monospace">' + depTnx + '</td>' +
+                                    '</tr>';
+                                $depBody.prepend(newRow);
+                            } else {
+                                existingDepRow.find('td:nth-child(4)').html(stBadge);
+                            }
                         });
                     }
-                    lastTxns = data.recent_txns;
                 }
             })
             .catch(function() { isSyncing = false; });
