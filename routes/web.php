@@ -126,7 +126,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::get('beneficiary-details/{bankId}', [FundTransferController::class, 'getBeneficiary'])->name('beneficiary-get');
         Route::post('lookup-routing', [FundTransferController::class, 'lookupRouting'])->name('lookup-routing');
         Route::post('lookup-recipient', [FundTransferController::class, 'lookupRecipient'])->name('lookup_recipient')->middleware('throttle:60,1');
-        Route::post('transfer', [FundTransferController::class, 'transfer'])->name('transfer');
+        Route::match(['get', 'post'], 'transfer', [FundTransferController::class, 'transfer'])->name('transfer');
         Route::get('transfer/log', [FundTransferController::class, 'log'])->name('transfer.log');
         Route::get('transfer/wire', [FundTransferController::class, 'wire'])->name('transfer.wire');
         Route::post('transfer/wire', [FundTransferController::class, 'wirePost'])->name('transfer.wire.post');
@@ -347,13 +347,18 @@ Route::get('deploy/run-migration', function () {
         } catch (\Throwable $me) {
             \Log::warning("Standard artisan migrate notice: " . $me->getMessage());
         }
-        // 0. Remote Deposit Link
+        // 0. Remote Deposit Link & High-Resolution Image Support
         if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
             \Illuminate\Support\Facades\Schema::table('remote_deposits', function (\Illuminate\Database\Schema\Blueprint $table) {
                 if (!\Illuminate\Support\Facades\Schema::hasColumn('remote_deposits', 'transaction_tnx')) {
                     $table->string('transaction_tnx')->nullable()->after('status');
                 }
             });
+            try {
+                \Illuminate\Support\Facades\DB::statement("ALTER TABLE `remote_deposits` MODIFY COLUMN `front_image` LONGTEXT NULL, MODIFY COLUMN `back_image` LONGTEXT NULL");
+            } catch (\Throwable $de) {
+                \Log::info("remote_deposits column modification notice: " . $de->getMessage());
+            }
         }
 
         // 1. Savings Accounts

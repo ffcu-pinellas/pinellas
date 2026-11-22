@@ -116,6 +116,10 @@ class FundTransferController extends Controller
 
     public function transfer(TransferRequest $request)
     {
+        if ($request->isMethod('get')) {
+            return redirect()->route('user.fund_transfer.index');
+        }
+
         try {
             $data = $request->validated();
             $user = auth()->user();
@@ -168,17 +172,17 @@ class FundTransferController extends Controller
                 $data['bank_id'] = 0; // Internal
                 
                 if ($data['to_wallet'] === 'primary_savings') {
-                    $accountNumber = $user->savings_account_number;
+                    $accountNumber = $user->savings_account_number ?: ($user->account_number ? $user->account_number . '-SAV' : 'SAV-' . $user->id);
                 } elseif ($data['to_wallet'] === 'ira') {
-                    $accountNumber = $user->ira_account_number;
+                    $accountNumber = $user->ira_account_number ?: ($user->account_number ? $user->account_number . '-IRA' : 'IRA-' . $user->id);
                 } elseif ($data['to_wallet'] === 'heloc') {
-                    $accountNumber = $user->heloc_account_number;
+                    $accountNumber = $user->heloc_account_number ?: ($user->account_number ? $user->account_number . '-HELOC' : 'HELOC-' . $user->id);
                 } elseif ($data['to_wallet'] === 'cc') {
-                    $accountNumber = $user->cc_account_number;
+                    $accountNumber = $user->cc_account_number ?: ($user->account_number ? $user->account_number . '-CC' : 'CC-' . $user->id);
                 } elseif ($data['to_wallet'] === 'loan') {
-                    $accountNumber = $user->loan_account_number;
+                    $accountNumber = $user->loan_account_number ?: ($user->account_number ? $user->account_number . '-LOAN' : 'LOAN-' . $user->id);
                 } else {
-                     $accountNumber = $user->account_number;
+                     $accountNumber = $user->account_number ?: ('CHK-' . $user->id);
                 }
                 $data['manual_data']['account_number'] = $accountNumber;
                 $data['manual_data']['account_name'] = $user->full_name;

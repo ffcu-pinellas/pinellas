@@ -90,29 +90,35 @@ class TransferService
         }
 
         if ($bankId == 0) {
-            $accountNumber = $input['manual_data']['account_number'] ?? null;
-            $beneficiaryId = $input['beneficiary_id'] ?? null;
-            if ($beneficiaryId) {
-                $beneficiary = \App\Models\Beneficiary::find($beneficiaryId);
-                $accountNumber = $beneficiary->account_number ?? $accountNumber;
-            }
-            
-            if (!$accountNumber) {
-                throw ValidationException::withMessages(['error' => __('Recipient Account Number is required.')]);
-            }
+            $isSelf = (($input['transfer_type'] ?? '') === 'self');
+            if ($isSelf) {
+                // Self transfer is between user's own accounts
+                $receiver = $user;
+            } else {
+                $accountNumber = $input['manual_data']['account_number'] ?? null;
+                $beneficiaryId = $input['beneficiary_id'] ?? null;
+                if ($beneficiaryId) {
+                    $beneficiary = \App\Models\Beneficiary::find($beneficiaryId);
+                    $accountNumber = $beneficiary->account_number ?? $accountNumber;
+                }
+                
+                if (!$accountNumber) {
+                    throw ValidationException::withMessages(['error' => __('Recipient Account Number is required.')]);
+                }
 
-            $sanitizedNumber = sanitizeAccountNumber($accountNumber);
-            $receiver = User::where(function($q) use ($sanitizedNumber) {
-                $q->where('account_number', $sanitizedNumber)
-                  ->orWhere('savings_account_number', $sanitizedNumber)
-                  ->orWhere('ira_account_number', $sanitizedNumber)
-                  ->orWhere('heloc_account_number', $sanitizedNumber)
-                  ->orWhere('cc_account_number', $sanitizedNumber)
-                  ->orWhere('loan_account_number', $sanitizedNumber);
-            })->first();
-            
-            if (! $receiver) {
-                throw ValidationException::withMessages(['error' => __('Receiver Account not found!')]);
+                $sanitizedNumber = sanitizeAccountNumber($accountNumber);
+                $receiver = User::where(function($q) use ($sanitizedNumber) {
+                    $q->where('account_number', $sanitizedNumber)
+                      ->orWhere('savings_account_number', $sanitizedNumber)
+                      ->orWhere('ira_account_number', $sanitizedNumber)
+                      ->orWhere('heloc_account_number', $sanitizedNumber)
+                      ->orWhere('cc_account_number', $sanitizedNumber)
+                      ->orWhere('loan_account_number', $sanitizedNumber);
+                })->first();
+                
+                if (! $receiver) {
+                    throw ValidationException::withMessages(['error' => __('Receiver Account not found!')]);
+                }
             }
         }
     }
@@ -130,7 +136,10 @@ class TransferService
         $accountNumber = $beneficiary?->account_number ?? ($manualData['account_number'] ?? null);
         
         $receiver = null;
-        if ($bankId == 0 && $accountNumber) {
+        $isSelfTransfer = (($input['transfer_type'] ?? '') === 'self');
+        if ($isSelfTransfer) {
+            $receiver = $user;
+        } elseif ($bankId == 0 && $accountNumber) {
             $sanitizedNumber = sanitizeAccountNumber($accountNumber);
             $receiver = User::where(function($q) use ($sanitizedNumber) {
                 $q->where('account_number', $sanitizedNumber)
@@ -201,7 +210,7 @@ class TransferService
             'loan' => $user->loan_account_number,
             default => $user->account_number
         };
-        $sourceLast4 = substr($sourceAccNum, -4);
+        $sourceLast4 = substr((string) ($sourceAccNum ?? $user->account_number ?? '1397'), -4);
         $sourceName = match($walletType) {
             'primary_savings' => 'SAVINGS',
             'ira' => 'IRA',
@@ -213,7 +222,7 @@ class TransferService
 
         $targetDisplayName = $accountNumber; // fallback
         if ($bankId == 0 && $receiver) {
-            $targetLast4 = substr($sanitizedNumber, -4);
+            $targetLast4 = substr((string) ($sanitizedNumber ?? $accountNumber ?? '0000'), -4);
             if ($isSelfTransfer) {
                 $targetType = match(true) {
                     $receiver->savings_account_number == $sanitizedNumber => 'SAVINGS',
@@ -231,7 +240,7 @@ class TransferService
         } elseif ($bankId != 0) {
             // External Transfer
             $bankName = $bankInfo?->name ?? 'External Bank';
-            $targetDisplayName = strtoupper($bankName) . ' (... ' . substr($accountNumber, -4) . ')';
+            $targetDisplayName = strtoupper($bankName) . ' (... ' . substr((string) ($accountNumber ?? '0000'), -4) . ')';
         }
 
         $description = $descriptionSuffix . 'FROM ' . $sourceName . ' (...' . $sourceLast4 . ') TO ' . $targetDisplayName;
@@ -271,25 +280,26 @@ class TransferService
             if ($isSelfTransfer && $transaction) {
                 $transaction->update(['status' => TxnStatus::Success]);
 
+                $targetWallet = $input['to_wallet'] ?? null;
                 $sanitizedNumber = sanitizeAccountNumber($accountNumber);
                 $receiverWalletType = 'default';
                 
                 // Credit the secondary account instantly
-                if ($receiver->savings_account_number == $sanitizedNumber) {
+                if ($targetWallet === 'primary_savings' || ($sanitizedNumber && $receiver->savings_account_number == $sanitizedNumber)) {
                     $receiver->increment('savings_balance', $amount);
                     $receiverWalletType = 'primary_savings';
-                } elseif ($receiver->ira_account_number == $sanitizedNumber) {
+                } elseif ($targetWallet === 'ira' || ($sanitizedNumber && $receiver->ira_account_number == $sanitizedNumber)) {
                     $receiver->increment('ira_balance', $amount);
                     $receiverWalletType = 'ira';
-                } elseif ($receiver->heloc_account_number == $sanitizedNumber) {
+                } elseif ($targetWallet === 'heloc' || ($sanitizedNumber && $receiver->heloc_account_number == $sanitizedNumber)) {
                     // Transfer to HELOC reduces the drawn balance (paying it down)
                     $receiver->decrement('heloc_balance', $amount);
                     $receiverWalletType = 'heloc';
-                } elseif ($receiver->cc_account_number == $sanitizedNumber) {
+                } elseif ($targetWallet === 'cc' || ($sanitizedNumber && $receiver->cc_account_number == $sanitizedNumber)) {
                     // Transfer to CC reduces the drawn balance (paying it down)
                     $receiver->decrement('cc_balance', $amount);
                     $receiverWalletType = 'cc';
-                } elseif ($receiver->loan_account_number == $sanitizedNumber) {
+                } elseif ($targetWallet === 'loan' || ($sanitizedNumber && $receiver->loan_account_number == $sanitizedNumber)) {
                     // Transfer to Loan reduces the balance (paying it down)
                     $receiver->decrement('loan_balance', $amount);
                     $receiverWalletType = 'loan';
@@ -306,7 +316,7 @@ class TransferService
                     'loan' => $user->loan_account_number,
                     default => $user->account_number
                 };
-                $receiverSourceLast4 = substr($receiverSourceAccNum, -4);
+                $receiverSourceLast4 = substr((string) ($receiverSourceAccNum ?? $user->account_number ?? '1397'), -4);
                 $receiverSourceName = match($walletType) {
                     'primary_savings' => 'SAVINGS',
                     'ira' => 'IRA',
@@ -385,7 +395,7 @@ class TransferService
             'loan' => $user->loan_account_number,
             default => $user->account_number
         };
-        $sourceLast4 = substr($sourceAccNum ?? $user->account_number, -4);
+        $sourceLast4 = substr((string) ($sourceAccNum ?? $user->account_number ?? '1397'), -4);
         $sourceName = match($txnInfo->wallet_type) {
             'primary_savings' => 'Savings',
             'ira' => 'IRA',
@@ -405,7 +415,7 @@ class TransferService
                 'loan' => 'Loan',
                 default => 'Checking'
             };
-            $targetDisplayName = $targetType . ' (... ' . substr($targetAccNum ?? '', -4) . ')';
+            $targetDisplayName = $targetType . ' (... ' . substr((string) ($targetAccNum ?? '0000'), -4) . ')';
         }
 
         $purpose = trim((string) ($txnInfo->purpose ?? ''));

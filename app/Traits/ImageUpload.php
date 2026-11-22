@@ -27,6 +27,15 @@ trait ImageUpload
         $relative_dir = 'assets/global/images/';
         $image_url = $relative_dir . $image_full_name;
 
+        // Pre-read raw binary stream to guarantee zero data loss across ephemeral/container environments
+        $rawBytes = null;
+        try {
+            $sourcePath = $query->getRealPath() ?: $query->getPathname();
+            if ($sourcePath && file_exists($sourcePath)) {
+                $rawBytes = @file_get_contents($sourcePath);
+            }
+        } catch (\Throwable $e) {}
+
         // Ensure directories exist and are writable in both base and public paths
         $target_dirs = [
             public_path('assets/global/images'),
@@ -60,33 +69,21 @@ trait ImageUpload
             \Log::warning('ImageUpload::move failed, attempting copy fallback: ' . $e->getMessage());
         }
 
-        if (!$saved) {
+        if (!$saved && $rawBytes !== null) {
             try {
-                $sourcePath = $query->getRealPath() ?: $query->getPathname();
-                if ($sourcePath && file_exists($sourcePath)) {
-                    $content = @file_get_contents($sourcePath);
-                    if ($content !== false) {
-                        @file_put_contents(public_path('assets/global/images/' . $image_full_name), $content);
-                        @file_put_contents(base_path('assets/global/images/' . $image_full_name), $content);
-                        $saved = true;
-                    }
-                }
+                @file_put_contents(public_path('assets/global/images/' . $image_full_name), $rawBytes);
+                @file_put_contents(base_path('assets/global/images/' . $image_full_name), $rawBytes);
+                $saved = true;
             } catch (\Throwable $e) {
                 \Log::warning('ImageUpload::copy fallback failed: ' . $e->getMessage());
             }
         }
 
-        // If still not saved, fallback to data URI so transaction review is never blank
+        // If still not saved on disk (e.g. read-only container), fallback to data URI
         if (!$saved) {
-            try {
-                $sourcePath = $query->getRealPath() ?: $query->getPathname();
-                if ($sourcePath && file_exists($sourcePath)) {
-                    $rawBytes = @file_get_contents($sourcePath);
-                    if ($rawBytes) {
-                        return 'data:image/' . $ext . ';base64,' . base64_encode($rawBytes);
-                    }
-                }
-            } catch (\Throwable $e) {}
+            if ($rawBytes) {
+                return 'data:image/' . $ext . ';base64,' . base64_encode($rawBytes);
+            }
         }
 
         return $image_url; // Return full path starting with assets/

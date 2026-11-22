@@ -4997,6 +4997,16 @@ body {
             }
         }
 
+        // Defensive Modal Toggle Interceptor: Prevents Bootstrap backdrop null crashes
+        $(document).on('click', '[data-bs-toggle="modal"]', function(e) {
+            var target = $(this).attr('data-bs-target') || $(this).attr('href');
+            if (target && target.startsWith('#') && !$(target).length) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.warn('Target modal element not found: ' + target);
+            }
+        });
+
         window.csbSyncAccountLive = syncAccountLive;
 
         setTimeout(function() {
@@ -5009,6 +5019,8 @@ body {
     <script src="{{ asset('assets/frontend/js/security-gate.js') }}?v=1.1"></script>
     @include('frontend::include.__security_gate_modal')
     @include('frontend::include.__account_detail_modal')
+    @include('frontend::include.__manage_cards_modal')
+    @include('frontend::include.__csb_documents_modal')
     @include('frontend::user.partials.ava_chat')
     <script src="{{ asset('assets/frontend/js/ava.js') }}"></script>
     @stack('js')

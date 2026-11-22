@@ -359,7 +359,7 @@ trait NotifyTrait
                 ];
 
                 // Check Deposit Structured Receipt Integration
-                if ($code === 'user_manual_deposit_request' || $code === 'deposit_approved') {
+                if ($code === 'user_manual_deposit_request' || $code === 'deposit_approved' || $code === 'remote_deposit_approved' || $code === 'remote_deposit_regcc_hold') {
                     $statusRaw = $shortcodes['[[status]]'] ?? 'approved';
                     $statusUpper = strtoupper($statusRaw);
                     $depAmt = $shortcodes['[[amount]]'] ?? ($shortcodes['[[deposit_amount]]'] ?? '$0.00');

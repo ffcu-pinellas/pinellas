@@ -21,13 +21,17 @@ class TransferRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->isMethod('get')) {
+            return [];
+        }
+
         return [
             'bank_id' => 'nullable',
             'beneficiary_id' => 'nullable',
             'transfer_type' => 'required|in:self,member,external',
             'wallet_type' => 'required',
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'frequency' => 'required|in:once,daily,weekly,monthly',
+            'frequency' => 'nullable|in:once,daily,weekly,monthly',
             
             // Self Transfer
             'to_wallet' => 'required_if:transfer_type,self',
