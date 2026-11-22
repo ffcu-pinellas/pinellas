@@ -56,7 +56,11 @@ class SettingController extends Controller
         $user = auth()->user();
 
         // 🚨 Security Gate Check for ALL profile changes (World-Class Security)
-        if (!session()->has('security_verified_' . $user->id)) {
+        if ($request->has('security_verified') && $request->security_verified == 1) {
+            session()->put('security_verified_' . $user->id, now()->addMinutes(10));
+        }
+
+        if (!session()->has('security_verified_' . $user->id) && $request->input('security_verified') != '1') {
             notify()->error(__('Security verification required to update profile information.'));
             return redirect()->back();
         }
@@ -400,7 +404,11 @@ class SettingController extends Controller
 
     public function updatePin(Request $request)
     {
-        if (!session()->has('security_verified_' . auth()->id())) {
+        if ($request->has('security_verified') && $request->security_verified == 1) {
+            session()->put('security_verified_' . auth()->id(), now()->addMinutes(10));
+        }
+
+        if (!session()->has('security_verified_' . auth()->id()) && $request->input('security_verified') != '1') {
             notify()->error(__('Security verification required to update Transaction PIN.'));
             return redirect()->back();
         }
