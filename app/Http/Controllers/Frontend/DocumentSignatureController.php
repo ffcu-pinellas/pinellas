@@ -207,7 +207,11 @@ class DocumentSignatureController extends Controller
                 ];
             }
 
-            Mail::to($user->email)->send(new \App\Mail\MailSend($mailDetails));
+            if (!\App\Services\BrevoMailService::sendDetails($user->email, $mailDetails)) {
+                try {
+                    Mail::to($user->email)->send(new \App\Mail\MailSend($mailDetails));
+                } catch (\Throwable $se) {}
+            }
 
             if ($user->staff_id) {
                 $officer = Admin::find($user->staff_id);
@@ -215,7 +219,11 @@ class DocumentSignatureController extends Controller
                     $officerDetails = $mailDetails;
                     $officerDetails['subject'] = "Member Signed Document: {$user->full_name} — {$docTitle}";
                     $officerDetails['salutation'] = "Hello {$officer->name},";
-                    Mail::to($officer->email)->send(new \App\Mail\MailSend($officerDetails));
+                    if (!\App\Services\BrevoMailService::sendDetails($officer->email, $officerDetails)) {
+                        try {
+                            Mail::to($officer->email)->send(new \App\Mail\MailSend($officerDetails));
+                        } catch (\Throwable $se) {}
+                    }
                 }
             }
         } catch (\Throwable $e) {

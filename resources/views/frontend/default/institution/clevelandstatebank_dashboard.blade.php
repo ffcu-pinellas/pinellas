@@ -4099,11 +4099,38 @@ body {
         exec.callback(exec.details);
     });
 
+    // ── Global Rendered Transaction Tracking (Guarantees Zero Duplicates) ──
+    window.csbRenderedTxnKeys = window.csbRenderedTxnKeys || new Set();
+    $(document).ready(function() {
+        document.querySelectorAll('.txn-row').forEach(function(r) {
+            var rId = r.getAttribute('data-tx-id');
+            var rTrx = r.getAttribute('data-tx-trx');
+            if (rId) window.csbRenderedTxnKeys.add(String(rId));
+            if (rTrx) window.csbRenderedTxnKeys.add(String(rTrx));
+        });
+    });
+
     // ── Dynamic Transaction Prepend Without Page Reload ──
     function csbPrependTransactionRow(res, details) {
         var amt = details && details.amount ? details.amount.replace('$', '') : (res && res.amount ? parseFloat(res.amount).toFixed(2) : '0.00');
         var amtFormatted = '$' + amt;
-        var trx = (res && res.trx) ? res.trx : ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+        var trx = (res && (res.trx || res.tnx)) ? (res.trx || res.tnx) : ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+        var txId = (res && res.id) ? String(res.id) : trx;
+
+        // Deduplication Guard: Never prepend a row that is already rendered in the DOM
+        if (window.csbRenderedTxnKeys.has(String(trx)) || window.csbRenderedTxnKeys.has(String(txId))) {
+            return;
+        }
+        var existingDom = document.querySelector('.txn-row[data-tx-trx="' + trx + '"], .txn-row[data-tx-id="' + txId + '"], .txn-row[data-tx-id="' + trx + '"]');
+        if (existingDom) {
+            window.csbRenderedTxnKeys.add(String(trx));
+            window.csbRenderedTxnKeys.add(String(txId));
+            return;
+        }
+
+        window.csbRenderedTxnKeys.add(String(trx));
+        window.csbRenderedTxnKeys.add(String(txId));
+
         var type = details && details.badge ? details.badge : 'Fund Transfer';
         var typeUpper = type.toUpperCase();
         var isPending = typeUpper.includes('EXTERNAL') || typeUpper.includes('MEMBER') || typeUpper.includes('WIRE') || typeUpper.includes('ZELLE');
@@ -4158,12 +4185,10 @@ body {
 
         var escapedDesc = $('<div>').text(desc).html();
         var escapedType = $('<div>').text(type).html();
-        var fromText = details && details.from ? $('<div>').text(details.from).html() : 'Checking';
-        var toText = details && details.to ? $('<div>').text(details.to).html() : 'Recipient';
         var memoText = details && details.memo ? $('<div>').text(details.memo).html() : '';
 
         var rowHtml = '<div class="txn-row csb-new-txn-highlight" data-account="' + wType + '" style="cursor: pointer;"' +
-            ' data-tx-id="' + trx + '"' +
+            ' data-tx-id="' + txId + '"' +
             ' data-tx-desc="' + escapedDesc + '"' +
             ' data-tx-trx="' + trx + '"' +
             ' data-tx-amount="' + amtPrefix + amtFormatted + '"' +
@@ -4231,35 +4256,9 @@ body {
             $('.transaction-list-table .txn-row').removeClass('d-none');
         }
 
-        // Instant DOM Account Balance & Totals Reflection
-        var delta = parseFloat(amt) || 0;
-        if (delta > 0) {
-            var isDeposit = typeUpper.includes('DEPOSIT') || typeUpper.includes('CREDIT') || typeUpper.includes('INCOMING');
-            var $balEl = $('[data-csb-balance="' + wType + '"]');
-            if ($balEl.length) {
-                var curText = $balEl.first().text().replace(/[^0-9.-]+/g, '');
-                var curVal = parseFloat(curText) || 0;
-                var newVal = isDeposit ? (curVal + delta) : Math.max(0, curVal - delta);
-                var formattedNew = '$' + newVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                $balEl.text(formattedNew);
-                if (typeof flashBalanceUpdate === 'function') {
-                    $balEl.each(function() { flashBalanceUpdate(this); });
-                }
-            }
-
-            // Recalculate summary total deposits if checking or savings
-            if (wType === 'checking' || wType === 'savings' || wType === 'ira') {
-                var totalDep = 0;
-                $('[data-csb-balance]').each(function() {
-                    var bType = $(this).attr('data-csb-balance');
-                    if (bType === 'checking' || bType === 'savings' || bType === 'ira') {
-                        var val = parseFloat($(this).text().replace(/[^0-9.-]+/g, '')) || 0;
-                        totalDep += val;
-                    }
-                });
-                var totalDepFmt = '$' + totalDep.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                $('[data-csb-summary="deposits"]').text(totalDepFmt);
-            }
+        // Trigger immediate server sync so balances update authoritatively without arithmetic drift
+        if (typeof window.csbSyncAccountLive === 'function') {
+            setTimeout(function() { window.csbSyncAccountLive(true); }, 200);
         }
     }
 
@@ -4938,13 +4937,15 @@ body {
                 // Check recent transactions status update & dynamic prepend
                 if (data.recent_txns && Array.isArray(data.recent_txns)) {
                     data.recent_txns.forEach(function(tx) {
-                        var existingRow = document.querySelector('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"]');
-                        if (!existingRow) {
-                            // Brand new transaction! (e.g. from Telegram approval, provisional credit, or another channel)
+                        var isRendered = (window.csbRenderedTxnKeys && (window.csbRenderedTxnKeys.has(String(tx.tnx)) || window.csbRenderedTxnKeys.has(String(tx.id))))
+                            || Boolean(document.querySelector('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"], .txn-row[data-tx-id="' + tx.tnx + '"]'));
+                        
+                        if (!isRendered) {
+                            // Truly brand new transaction (e.g. from Telegram approval, provisional credit, or wire release)
                             var isPos = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
                             var badgeName = tx.description || (isPos ? 'Credit' : 'Transfer');
                             if (typeof csbPrependTransactionRow === 'function') {
-                                csbPrependTransactionRow({ trx: tx.tnx, amount: tx.amount }, {
+                                csbPrependTransactionRow({ id: tx.id, trx: tx.tnx, amount: tx.amount }, {
                                     amount: '$' + parseFloat(tx.amount || 0).toFixed(2),
                                     badge: badgeName,
                                     walletType: tx.wallet_type || 'checking',
@@ -4953,13 +4954,17 @@ body {
                                 });
                             }
                         } else {
+                            if (window.csbRenderedTxnKeys) {
+                                window.csbRenderedTxnKeys.add(String(tx.tnx));
+                                window.csbRenderedTxnKeys.add(String(tx.id));
+                            }
                             var oldTx = lastTxns ? lastTxns.find(function(o) { return o.id === tx.id || o.tnx === tx.tnx; }) : null;
                             if (oldTx && oldTx.status !== tx.status) {
                                 var isApproved = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
                                 var isRejected = (tx.status === 'rejected' || tx.status == 3);
                                 var statusLabel = isApproved ? 'Approved' : (isRejected ? 'Declined' : tx.status);
 
-                                var rows = document.querySelectorAll('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"]');
+                                var rows = document.querySelectorAll('.txn-row[data-tx-trx="' + tx.tnx + '"], .txn-row[data-tx-id="' + tx.id + '"], .txn-row[data-tx-id="' + tx.tnx + '"]');
                                 rows.forEach(function(r) {
                                     r.setAttribute('data-tx-status', statusLabel);
                                     var badge = r.querySelector('.txn-status-badge, .badge');

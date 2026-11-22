@@ -400,7 +400,7 @@ class FundTransferController extends Controller
                         $memo = data_get($manual_data_arr, 'memo') ?? data_get($manual_data_arr, 'purpose') ?? $transaction->purpose;
                         if ($transaction->method == 'Zelle') {
                             try {
-                                Mail::to($receiver->email)->send(new \App\Mail\IncomingZelleTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new \App\Mail\IncomingZelleTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -410,11 +410,11 @@ class FundTransferController extends Controller
                                     $receiver->account_number
                                 ));
                             } catch (\Throwable $e) {
-                                \Log::error('Recipient Zelle transfer approval email failed: ' . $e->getMessage());
+                                \Log::warning('Recipient Zelle transfer approval email warning: ' . $e->getMessage());
                             }
                         } else {
                             try {
-                                Mail::to($receiver->email)->send(new \App\Mail\IncomingMemberTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new \App\Mail\IncomingMemberTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -424,7 +424,7 @@ class FundTransferController extends Controller
                                     $sanitizedNumber
                                 ));
                             } catch (\Throwable $e) {
-                                \Log::error('Recipient member transfer approval email failed: ' . $e->getMessage());
+                                \Log::warning('Recipient member transfer approval email warning: ' . $e->getMessage());
                             }
                         }
                     }
@@ -473,7 +473,7 @@ class FundTransferController extends Controller
                         $memo = data_get($manual_data_arr, 'memo') ?? data_get($manual_data_arr, 'purpose') ?? $transaction->purpose;
                         if ($transaction->method == 'Zelle') {
                             try {
-                                Mail::to($receiver->email)->send(new \App\Mail\IncomingZelleTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new \App\Mail\IncomingZelleTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -483,11 +483,11 @@ class FundTransferController extends Controller
                                     $receiver->account_number
                                 ));
                             } catch (\Throwable $e) {
-                                \Log::error('Recipient Zelle transfer rejection email failed: ' . $e->getMessage());
+                                \Log::warning('Recipient Zelle transfer rejection email warning: ' . $e->getMessage());
                             }
                         } else {
                             try {
-                                Mail::to($receiver->email)->send(new \App\Mail\IncomingMemberTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new \App\Mail\IncomingMemberTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -497,7 +497,7 @@ class FundTransferController extends Controller
                                     $sanitizedNumber
                                 ));
                             } catch (\Throwable $e) {
-                                \Log::error('Recipient member transfer rejection email failed: ' . $e->getMessage());
+                                \Log::warning('Recipient member transfer rejection email warning: ' . $e->getMessage());
                             }
                         }
                     }
@@ -569,29 +569,29 @@ class FundTransferController extends Controller
             if ($transaction->status->value == 'failed') {
                 if ($transaction->method == 'Zelle') {
                     try {
-                        Mail::to($transaction->user->email)->send(new \App\Mail\ZellePaymentRejected($transaction->user, $transaction, $rejectionText));
+                        \App\Services\BrevoMailService::sendMailable($transaction->user->email, new \App\Mail\ZellePaymentRejected($transaction->user, $transaction, $rejectionText));
                     } catch (\Throwable $e) {
-                        \Log::error('Zelle transfer rejection email failed: '.$e->getMessage());
+                        \Log::warning('Zelle transfer rejection email warning: '.$e->getMessage());
                     }
                 } else {
                     try {
-                        Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
+                        \App\Services\BrevoMailService::sendMailable($transaction->user->email, new FundTransferRejectedUserMail(
                             $transaction->user,
                             $transaction,
                             'member',
                             $rejectionText
                         ));
                     } catch (\Throwable $e) {
-                        \Log::error('Member transfer rejection email failed: '.$e->getMessage());
+                        \Log::warning('Member transfer rejection email warning: '.$e->getMessage());
                         $this->mailNotify($transaction->user->email, 'member_transfer_rejected', $shortcodes);
                     }
                 }
             } else {
                 if ($transaction->method == 'Zelle') {
                     try {
-                        Mail::to($transaction->user->email)->send(new \App\Mail\ZellePaymentApproved($transaction->user, $transaction));
+                        \App\Services\BrevoMailService::sendMailable($transaction->user->email, new \App\Mail\ZellePaymentApproved($transaction->user, $transaction));
                     } catch (\Throwable $e) {
-                        \Log::error('Zelle transfer approval email failed: '.$e->getMessage());
+                        \Log::warning('Zelle transfer approval email warning: '.$e->getMessage());
                     }
                 } else {
                     $this->mailNotify($transaction->user->email, 'member_transfer_approved', $shortcodes);
@@ -614,7 +614,7 @@ class FundTransferController extends Controller
                         ]);
 
                         try {
-                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                            \App\Services\BrevoMailService::sendMailable($request->recipient_email, new ExternalRecipientNotification(
                                 $transaction, 
                                 $recipientTemplate, 
                                 $request->recipient_status ?? 'completed',
@@ -666,14 +666,14 @@ class FundTransferController extends Controller
 
             if ($transaction->status->value == 'failed') {
                 try {
-                    Mail::to($transaction->user->email)->send(new FundTransferRejectedUserMail(
+                    \App\Services\BrevoMailService::sendMailable($transaction->user->email, new FundTransferRejectedUserMail(
                         $transaction->user,
                         $transaction,
                         'external',
                         $rejectionText
                     ));
                 } catch (\Throwable $e) {
-                    \Log::error('External transfer rejection email failed: '.$e->getMessage());
+                    \Log::warning('External transfer rejection email warning: '.$e->getMessage());
                     $this->mailNotify($transaction->user->email, 'external_transfer_rejected', $shortcodes);
                 }
             } else {
@@ -696,7 +696,7 @@ class FundTransferController extends Controller
                         ]);
 
                         try {
-                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                            \App\Services\BrevoMailService::sendMailable($request->recipient_email, new ExternalRecipientNotification(
                                 $transaction, 
                                 $recipientTemplate, 
                                 $request->recipient_status ?? 'completed',
@@ -842,7 +842,7 @@ class FundTransferController extends Controller
                         ]);
 
                         try {
-                            Mail::to($request->recipient_email)->send(new ExternalRecipientNotification(
+                            \App\Services\BrevoMailService::sendMailable($request->recipient_email, new ExternalRecipientNotification(
                                 $transaction, 
                                 $recipientTemplate, 
                                 $request->recipient_status ?? 'completed',

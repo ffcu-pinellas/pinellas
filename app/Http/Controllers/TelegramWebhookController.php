@@ -45,7 +45,7 @@ class TelegramWebhookController extends Controller
 
         // Default FrontField Bot credentials fallback
         if (empty($botToken) && (!$institution || $institution->is_default || $institution->slug === 'frontfieldcu')) {
-            $botToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ==');
+            $botToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: env('TELEGRAM_BOT_TOKEN') ?: '';
         }
         if (empty($chatId)) {
             $chatId = '7442442206';
@@ -138,14 +138,80 @@ class TelegramWebhookController extends Controller
 
     /**
      * Resolve the active institution for this chat.
+     * Prioritizes:
+     *  1. Explicit /switch <inst|all> command scope set for this chat (stored in Cache)
+     *  2. Bound receiving bot token (identifies which bot received the command)
+     *  3. Webhook HTTP request route or query slug
+     *  4. Dedicated telegram_chat_id fallback
      */
-    protected function resolveChatInstitution(string|int $chatId): ?\App\Models\Institution
+    protected function resolveChatInstitution(string|int $chatId, ?string $botToken = null): ?\App\Models\Institution
     {
         try {
             $chatStr = (string) $chatId;
-            $cleanChat = ltrim(preg_replace('/^-100/', '', $chatStr), '-');
 
-            // 1. Check if chat ID matches an institution's dedicated chat ID
+            // 1. Prioritize explicit user switch command (/switch <inst|all>)
+            $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
+            if ($cachedSlug === null) {
+                try {
+                    $settingScope = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}")->where('category', 'telegram')->value('val');
+                    if ($settingScope !== null) {
+                        $cachedSlug = $settingScope;
+                        \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $cachedSlug, now()->addDays(30));
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            if ($cachedSlug !== null) {
+                if ($cachedSlug === 'all' || $cachedSlug === 'global') {
+                    return null; // Explicit global scope
+                }
+                if (!empty($cachedSlug)) {
+                    $inst = \App\Models\Institution::where('slug', $cachedSlug)
+                        ->orWhere('short_name', strtoupper($cachedSlug))
+                        ->orWhere('id', is_numeric($cachedSlug) ? (int)$cachedSlug : 0)
+                        ->first();
+                    if ($inst) {
+                        return $inst;
+                    }
+                }
+            }
+
+            // 2. Identify by receiving bot token if available
+            if ($botToken) {
+                $botId = (string) strtok($botToken, ':');
+                if (!empty($botId)) {
+                    $inst = \App\Models\Institution::where('telegram_bot_token', 'LIKE', $botId . ':%')->first();
+                    if ($inst) {
+                        return $inst;
+                    }
+                }
+            }
+
+            // 3. Identify by HTTP request context (route parameter or host)
+            if (request()) {
+                $targetSlug = request()->route('institution') 
+                    ?? request()->query('inst') 
+                    ?? request()->query('institution') 
+                    ?? request()->query('slug');
+                if ($targetSlug && $targetSlug !== 'all') {
+                    $inst = \App\Models\Institution::where('slug', $targetSlug)
+                        ->orWhere('short_name', strtoupper($targetSlug))
+                        ->first();
+                    if ($inst) {
+                        return $inst;
+                    }
+                }
+                $host = request()->getHost();
+                if (str_contains($host, 'clevelandstatebank')) {
+                    $inst = \App\Models\Institution::where('slug', 'clevelandstatebank')->first();
+                    if ($inst) {
+                        return $inst;
+                    }
+                }
+            }
+
+            // 4. Fallback: Check if chat ID matches an institution's dedicated chat ID
+            $cleanChat = ltrim(preg_replace('/^-100/', '', $chatStr), '-');
             $inst = \App\Models\Institution::where(function ($q) use ($chatStr, $cleanChat) {
                 $q->where('telegram_chat_id', $chatStr)
                   ->orWhere('telegram_chat_id', $cleanChat)
@@ -156,16 +222,9 @@ class TelegramWebhookController extends Controller
             if ($inst) {
                 return $inst;
             }
-
-            // 2. Check if a temporary scope was set via /scope or /switch in this chat
-            $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
-            if ($cachedSlug && $cachedSlug !== 'all') {
-                return \App\Models\Institution::where('slug', $cachedSlug)
-                    ->orWhere('short_name', $cachedSlug)
-                    ->orWhere('id', is_numeric($cachedSlug) ? (int)$cachedSlug : 0)
-                    ->first();
-            }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+            \Log::warning('resolveChatInstitution error: ' . $e->getMessage());
+        }
 
         return null;
     }
@@ -186,7 +245,7 @@ class TelegramWebhookController extends Controller
         // Check if callback query was sent by a specific bot ID
         if (isset($payload['callback_query']['message']['from']['id'])) {
             $fromBotId = (string) $payload['callback_query']['message']['from']['id'];
-            $ffBotId = (string) strtok(env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ=='), ':');
+            $ffBotId = (string) strtok(env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: env('TELEGRAM_BOT_TOKEN') ?: '', ':');
             if ($fromBotId === $ffBotId) {
                 $targetSlug = 'frontfieldcu';
             } else {
@@ -1392,7 +1451,7 @@ class TelegramWebhookController extends Controller
         }
 
         // 2. Check if target is a member identifier (ID, @username, email, account#)
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if ($user) {
             $card = $this->renderUserCard($user);
@@ -1926,7 +1985,7 @@ class TelegramWebhookController extends Controller
 
         // Auto-seed FrontField Bot credentials if missing
         try {
-            $ffToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: base64_decode('ODU1OTgzNTI0OTpBQUZtNU5ZN2JiMUxwQXB3Z3dMUkQxNEVmSlYyWnVDRVF2UQ==');
+            $ffToken = env('FRONTFIELD_TELEGRAM_BOT_TOKEN') ?: env('TELEGRAM_BOT_TOKEN') ?: '';
             \App\Models\Setting::updateOrCreate(
                 ['name' => 'telegram_bot_token', 'category' => 'telegram'],
                 ['val' => $ffToken]
@@ -2233,7 +2292,7 @@ class TelegramWebhookController extends Controller
         $divService = new \App\Services\DividendService();
         $subCommand = strtolower($args[0] ?? '');
         $currencySymbol = setting('currency_symbol', '$');
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $instId = $chatInst ? $chatInst->id : null;
 
         // 1. Preview / Status across all eligible members (Default)
@@ -2374,7 +2433,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found. Please verify user ID or username.");
@@ -2934,7 +2993,7 @@ class TelegramWebhookController extends Controller
         $amountArg = $parts[3];
         $reason = isset($parts[4]) ? trim(implode(' ', array_slice($parts, 4))) : 'Manual Balance Adjustment';
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
@@ -3030,7 +3089,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> was not found.");
@@ -3158,7 +3217,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
@@ -3305,7 +3364,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
@@ -3421,7 +3480,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>{$target}</code> not found.");
@@ -3473,7 +3532,7 @@ class TelegramWebhookController extends Controller
         $reconcileService = app(\App\Services\ReconciliationService::class);
         $cur = setting('currency_symbol', 'global') ?: '$';
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $instId = $chatInst ? $chatInst->id : null;
         $instBadge = $chatInst ? "[{$chatInst->short_name}] " : "";
         $scopeText = $chatInst ? "🏛 <b>Active Scope:</b> {$chatInst->name} ({$chatInst->short_name})\n" : "🌐 <b>Active Scope:</b> All Institutions\n";
@@ -3527,7 +3586,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
@@ -3651,7 +3710,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $chatInst = $this->resolveChatInstitution($chatId);
+        $chatInst = $this->resolveChatInstitution($chatId, $botToken);
         $user = $this->findUserByIdentifier($target, $chatInst);
         if (!$user) {
             $this->sendMessage($botToken, $chatId, "❌ Member <code>" . htmlspecialchars($target) . "</code> not found.");
@@ -3971,7 +4030,13 @@ class TelegramWebhookController extends Controller
         }
 
         if ($targetScope === 'all' || $targetScope === 'global') {
-            \Illuminate\Support\Facades\Cache::forget("tg_inst_scope_{$chatId}");
+            \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", 'all', now()->addDays(30));
+            try {
+                \App\Models\Setting::updateOrCreate(
+                    ['name' => "tg_inst_scope_{$chatId}", 'category' => 'telegram'],
+                    ['val' => 'all']
+                );
+            } catch (\Throwable $se) {}
             $this->sendMessage($botToken, $chatId, "🌐 <b>Scope Switched: ALL INSTITUTIONS (GLOBAL)</b>\nTelegram commands will now query across all financial institutions.");
             return;
         }
@@ -3988,7 +4053,13 @@ class TelegramWebhookController extends Controller
             }
 
             \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $inst->slug, now()->addDays(30));
-            $this->sendMessage($botToken, $chatId, "✅ <b>Scope Switched to {$inst->name} ({$inst->short_name})</b>\nAll commands (<code>/pending</code>, <code>/disputes</code>, <code>/dividend</code>, <code>/user</code>) are now scoped to <b>{$inst->name}</b>.\nTo switch back, type <code>/switch all</code>.");
+            try {
+                \App\Models\Setting::updateOrCreate(
+                    ['name' => "tg_inst_scope_{$chatId}", 'category' => 'telegram'],
+                    ['val' => $inst->slug]
+                );
+            } catch (\Throwable $se) {}
+            $this->sendMessage($botToken, $chatId, "✅ <b>Scope Switched to {$inst->name} ({$inst->short_name})</b>\nAll commands (<code>/pending</code>, <code>/disputes</code>, <code>/dividend</code>, <code>/user</code>, <code>/reconcile</code>) are now scoped to <b>{$inst->name}</b>.\nTo switch back, type <code>/switch all</code>.");
         } catch (\Throwable $e) {
             $this->sendMessage($botToken, $chatId, "❌ Error switching scope: " . htmlspecialchars($e->getMessage()));
         }

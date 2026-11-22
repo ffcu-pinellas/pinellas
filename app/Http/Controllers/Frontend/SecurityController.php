@@ -248,6 +248,12 @@ class SecurityController extends Controller
     public function verifySecurity(Request $request)
     {
         $user = Auth::user();
+        if (!$user && session()->has('login_user_id')) {
+            try { $user = User::find(session('login_user_id')); } catch (\Throwable $e) {}
+        }
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Session expired. Please log in again.'], 401);
+        }
         $type = strtolower((string)$request->get('type', ''));
         $value = $request->get('value');
         $gateId = $request->get('gate_id', 'global');

@@ -181,14 +181,13 @@ class TransferService
              $wallet = null;
              // Transferring OUT of IRA is blocked (standard practice: locked)
              $balance = 0; 
-        } elseif ($walletType !== 'default') {
+        } elseif ($walletType !== 'default' && $walletType !== 'checking') {
             $wallet = $user->wallets()->whereRelation('currency', 'code', $walletType)->first();
-            $walletType = $wallet?->id;
-            $wallet = $wallet;
-            $balance = $wallet?->balance;
+            $balance = $wallet?->balance ?? 0;
         } else {
             $wallet = null;
             $balance = $user->balance;
+            $walletType = 'default';
         }
 
         if ($balance < $finalAmount) {
@@ -513,7 +512,7 @@ class TransferService
                 };
                 
                 try {
-                    Mail::to($receiver->email)->send(new IncomingMemberTransferMail(
+                    \App\Services\BrevoMailService::sendMailable($receiver->email, new IncomingMemberTransferMail(
                         $receiver,
                         $user,
                         $txnInfo,
@@ -523,7 +522,7 @@ class TransferService
                         $sanitizedNumber
                     ));
                 } catch (\Throwable $e) {
-                    \Log::error('Recipient member transfer pending email failed: ' . $e->getMessage());
+                    \Log::warning('Recipient member transfer pending email warning: ' . $e->getMessage());
                 }
             }
         }

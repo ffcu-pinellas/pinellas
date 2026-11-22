@@ -301,11 +301,13 @@ class TransactionController extends Controller
             ];
 
             try {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+                if (!\App\Services\BrevoMailService::sendDetails($user->email, $details)) {
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+                }
                 notify()->success('eStatement has been sent to your email (' . safe($user->email) . ')', 'Success');
-            } catch (\Exception $e) {
-                \Log::error("eStatement email failed: " . $e->getMessage());
-                notify()->error('Failed to email statement, but you can still download it.', 'Error');
+            } catch (\Throwable $e) {
+                \Log::warning("eStatement email warning: " . $e->getMessage());
+                notify()->info('eStatement generated. You can download your copy below.', 'eStatement');
             }
         }
 
@@ -502,11 +504,13 @@ class TransactionController extends Controller
         ];
 
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+            if (!\App\Services\BrevoMailService::sendDetails($user->email, $details)) {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\MailSend($details));
+            }
             notify()->success('Receipt has been sent to your email.', 'Success');
-        } catch (\Exception $e) {
-            \Log::error("Receipt email failed: " . $e->getMessage());
-            notify()->error('Failed to email receipt.', 'Error');
+        } catch (\Throwable $e) {
+            \Log::warning("Receipt email warning: " . $e->getMessage());
+            notify()->info('Receipt ready for download.', 'Receipt');
         }
 
         return back();

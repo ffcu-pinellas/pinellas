@@ -20,7 +20,7 @@ class BrevoMailService
         }
 
         $senderEmail = self::VERIFIED_SENDER_EMAIL;
-        $senderName = $senderName ?: (function_exists('setting') ? setting('email_from_name', 'mail') : 'myEbanking') ?: 'myEbanking';
+        $senderName = $senderName ?: (function_exists('setting') ? setting('email_from_name', 'mail') : 'Online Banking') ?: 'Online Banking';
 
         $payload = [
             'sender' => [
@@ -58,7 +58,7 @@ class BrevoMailService
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $response = curl_exec($ch);
@@ -73,6 +73,51 @@ class BrevoMailService
 
         \Log::error("Brevo API: Failed to send email to $toEmail (HTTP $httpCode). Error: $err, Response: $response");
         return false;
+    }
+
+    /**
+     * Send any Mailable or MailMessage instance via Brevo REST API,
+     * with graceful fallback to standard Mail::to()->send()
+     */
+    public static function sendMailable($toEmail, $mailable): bool
+    {
+        try {
+            $apiKey = env('BREVO_API_KEY') ?: (function_exists('setting') ? setting('brevo_api_key') : null);
+            if (!empty($apiKey)) {
+                $html = '';
+                $subject = 'Official Banking Notification';
+
+                if (method_exists($mailable, 'render')) {
+                    $html = (string) $mailable->render();
+                }
+
+                if (property_exists($mailable, 'subject') && !empty($mailable->subject)) {
+                    $subject = $mailable->subject;
+                } elseif (method_exists($mailable, 'build')) {
+                    try {
+                        $built = $mailable->build();
+                        $subject = $built->subject ?? ($mailable->subject ?? 'Official Banking Notification');
+                    } catch (\Throwable $be) {}
+                }
+
+                if (!empty($html)) {
+                    if (self::send($toEmail, $subject, $html)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning("BrevoMailService sendMailable warning: " . $e->getMessage());
+        }
+
+        // Safe Fallback to standard Laravel Mail with try/catch
+        try {
+            \Mail::to($toEmail)->send($mailable);
+            return true;
+        } catch (\Throwable $e) {
+            \Log::warning("Standard Mail sending fallback failed for $toEmail: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

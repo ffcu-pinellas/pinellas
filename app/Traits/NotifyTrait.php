@@ -467,9 +467,8 @@ trait NotifyTrait
 
             try {
                 return Mail::to($email)->send(new MailSend($details));
-            } catch (Exception $e) {
-                \Log::error("Mail sending failed for $email: " . $e->getMessage());
-                notify()->error(__('Unable to send email notification at this time. Please try again later or contact support.'), __('Error'));
+            } catch (\Throwable $e) {
+                \Log::warning("Mail sending fallback failed for $email: " . $e->getMessage());
                 return false;
             }
         } else {
@@ -653,15 +652,13 @@ trait NotifyTrait
 
             try {
                 return Mail::to($email)->send(new MailSend($details));
-            } catch (Exception $e) {
-                \Log::error("Mail fallback sending failed for $email: " . $e->getMessage());
+            } catch (\Throwable $e) {
+                \Log::warning("Mail fallback sending failed for $email: " . $e->getMessage());
                 return false;
             }
         }
-    } catch (Exception $e) {
-        \Log::error("NotifyTrait mailNotify error: " . $e->getMessage());
-        notify()->error('Error preparing email: ' . $e->getMessage(), 'Error');
-
+    } catch (\Throwable $e) {
+        \Log::warning("NotifyTrait mailNotify error: " . $e->getMessage());
         return false;
     }
 }

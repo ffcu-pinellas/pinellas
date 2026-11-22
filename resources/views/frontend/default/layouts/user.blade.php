@@ -477,6 +477,11 @@
 ]) style="overflow-x: hidden;">
 
 @php
+    $currentInstitution = $currentInstitution 
+        ?? (app()->bound('institution') ? app('institution') : null) 
+        ?? (auth()->check() ? auth()->user()->institution : null)
+        ?? (str_contains(request()->getHost(), 'cleveland') ? \App\Models\Institution::where('slug', 'clevelandstatebank')->first() : null)
+        ?? \App\Models\Institution::getDefault();
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     $instLogoRaw = $currentInstitution->logo_path ?? null;
     $instLogo = $instLogoRaw 

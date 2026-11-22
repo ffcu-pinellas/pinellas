@@ -571,7 +571,7 @@ class FundTransferController extends Controller
 
         foreach ($recipients as $admin) {
             try {
-                Mail::to($admin->email)->send(new TransferPendingAdminMail(
+                \App\Services\BrevoMailService::sendMailable($admin->email, new TransferPendingAdminMail(
                     $admin,
                     $user,
                     $data,
@@ -580,7 +580,8 @@ class FundTransferController extends Controller
                     $transaction?->tnx ?? ($responseData['tnx'] ?? null)
                 ));
             } catch (\Throwable $e) {
-                \Log::error('Transfer pending admin mail failed: '.$e->getMessage(), ['admin_id' => $admin->id ?? null]);
+                \Log::warning('Transfer pending admin mail warning: '.$e->getMessage(), ['admin_id' => $admin->id ?? null]);
+                break; // Don't delay the user with multiple failed mail attempts
             }
         }
     }

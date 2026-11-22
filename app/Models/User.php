@@ -605,7 +605,9 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         ];
 
         try {
-            \Illuminate\Support\Facades\Mail::to($this->email)->send(new \App\Mail\MailSend($details));
+            if (!\App\Services\BrevoMailService::sendDetails($this->email, $details)) {
+                \Illuminate\Support\Facades\Mail::to($this->email)->send(new \App\Mail\MailSend($details));
+            }
         } catch (\Throwable $e) {
             \Log::error("Email verification send error: " . $e->getMessage());
         }

@@ -923,7 +923,7 @@ class DisputeService
             $siteLink = $isCustom ? "https://{$inst->slug}.frontfieldcu.pro" : route('home');
             $fromEmail = $inst->support_email ?? (setting('support_email', 'global') ?: 'notifications@frontfieldcu.pro');
 
-            Mail::to($toEmail)->send(new \App\Mail\MailSend([
+            $mailDetails = [
                 'from_email' => $fromEmail,
                 'from_name' => $siteTitle . ' Member Protection',
                 'subject' => $subject,
@@ -942,7 +942,15 @@ class DisputeService
                 'site_logo_path' => $logoPath,
                 'site_title' => $siteTitle,
                 'site_link' => $siteLink,
-            ]));
+            ];
+
+            if (!\App\Services\BrevoMailService::sendDetails($toEmail, $mailDetails)) {
+                try {
+                    Mail::to($toEmail)->send(new \App\Mail\MailSend($mailDetails));
+                } catch (\Throwable $se) {
+                    Log::warning("Dispute fallback email failed for {$toEmail}: " . $se->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
             Log::error("Dispute email delivery failed for {$toEmail}: " . $e->getMessage());
         }

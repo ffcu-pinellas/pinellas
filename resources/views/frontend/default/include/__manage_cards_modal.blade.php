@@ -25,6 +25,11 @@
     }
 @endphp
 
+<style>
+    .swal2-container {
+        z-index: 999999 !important;
+    }
+</style>
 <div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">

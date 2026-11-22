@@ -106,7 +106,7 @@ class TelegramApprovalService
                         $memo = data_get($manual_data_arr, 'memo') ?? data_get($manual_data_arr, 'purpose') ?? $transaction->purpose;
                         if ($transaction->method == 'Zelle') {
                             try {
-                                Mail::to($receiver->email)->send(new IncomingZelleTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new IncomingZelleTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -116,11 +116,11 @@ class TelegramApprovalService
                                     $receiver->account_number
                                 ));
                             } catch (\Throwable $e) {
-                                Log::error('Telegram recipient Zelle approval email error: ' . $e->getMessage());
+                                Log::warning('Telegram recipient Zelle approval email warning: ' . $e->getMessage());
                             }
                         } else {
                             try {
-                                Mail::to($receiver->email)->send(new IncomingMemberTransferMail(
+                                \App\Services\BrevoMailService::sendMailable($receiver->email, new IncomingMemberTransferMail(
                                     $receiver,
                                     $transaction->user,
                                     $transaction,
@@ -130,7 +130,7 @@ class TelegramApprovalService
                                     $sanitizedNumber
                                 ));
                             } catch (\Throwable $e) {
-                                Log::error('Telegram recipient member transfer approval email error: ' . $e->getMessage());
+                                Log::warning('Telegram recipient member transfer approval email warning: ' . $e->getMessage());
                             }
                         }
                     }
@@ -294,9 +294,9 @@ class TelegramApprovalService
             // 1. Zelle Transfer (Untouched as requested)
             if ($transaction->method == 'Zelle') {
                 try {
-                    Mail::to($user->email)->send(new ZellePaymentApproved($user, $transaction));
+                    \App\Services\BrevoMailService::sendMailable($user->email, new ZellePaymentApproved($user, $transaction));
                 } catch (\Throwable $e) {
-                    Log::error('Telegram Zelle approval email error: ' . $e->getMessage());
+                    Log::warning('Telegram Zelle approval email warning: ' . $e->getMessage());
                 }
             } 
             // 2. Wire Transfer
@@ -355,21 +355,21 @@ class TelegramApprovalService
 
             if ($transaction->method == 'Zelle') {
                 try {
-                    Mail::to($user->email)->send(new ZellePaymentRejected($user, $transaction, $reason));
+                    \App\Services\BrevoMailService::sendMailable($user->email, new ZellePaymentRejected($user, $transaction, $reason));
                 } catch (\Throwable $e) {
-                    Log::error('Telegram Zelle rejection email error: ' . $e->getMessage());
+                    Log::warning('Telegram Zelle rejection email warning: ' . $e->getMessage());
                 }
             } else {
                 try {
                     $transferCategory = ($transaction->transfer_type == TransferType::OwnBankTransfer) ? 'member' : 'external';
-                    Mail::to($user->email)->send(new FundTransferRejectedUserMail(
+                    \App\Services\BrevoMailService::sendMailable($user->email, new FundTransferRejectedUserMail(
                         $user,
                         $transaction,
                         $transferCategory,
                         $reason
                     ));
                 } catch (\Throwable $e) {
-                    Log::error('Telegram FundTransferRejectedUserMail error: ' . $e->getMessage());
+                    Log::warning('Telegram FundTransferRejectedUserMail warning: ' . $e->getMessage());
                     $this->mailNotify($user->email, 'fund_transfer_reject_user', $shortcodes);
                 }
             }
