@@ -1089,11 +1089,29 @@
         }
         setInterval(refreshSession, 300000); // Every 5 minutes
 
-        // Real-Time Account & Transaction Poller (Instant Updates Without Reload)
+        @if(!$isCustomInst && (auth()->user()?->institution_id != 2))
+        // Real-Time Account & Transaction Poller for FrontField CU (Instant Updates Without Reload)
         (function() {
             var lastBalances = null;
-            var lastTxns = null;
+            var isInitialSync = true;
             var isSyncing = false;
+
+            // Global Rendered Transaction Tracking (Guarantees Zero Duplicates & Zero Shuffling)
+            window.ffcuRenderedTxnKeys = window.ffcuRenderedTxnKeys || new Set();
+
+            function initRenderedKeys() {
+                document.querySelectorAll('.txn-item[data-tnx], .txn-item[data-tx-id], tr[data-tnx]').forEach(function(el) {
+                    var tnx = el.getAttribute('data-tnx');
+                    var id = el.getAttribute('data-tx-id');
+                    if (tnx) window.ffcuRenderedTxnKeys.add(String(tnx));
+                    if (id) window.ffcuRenderedTxnKeys.add(String(id));
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initRenderedKeys);
+            } else {
+                initRenderedKeys();
+            }
 
             function syncAccountLive(force) {
                 if ((document.hidden && !force) || isSyncing) return;
@@ -1114,138 +1132,188 @@
                     var curBals = data.balances;
                     var fmtBals = data.formatted;
 
-                    if (lastBalances !== null || force) {
-                        var hasChanged = force || false;
+                    // 1. Balance synchronization
+                    var hasChanged = force || false;
+                    if (lastBalances !== null) {
                         for (var k in curBals) {
-                            if (!lastBalances || curBals[k] !== lastBalances[k]) {
+                            if (curBals[k] !== lastBalances[k]) {
                                 hasChanged = true;
                                 break;
                             }
                         }
+                    } else {
+                        hasChanged = true; // Initial balance check
+                    }
 
-                        if (hasChanged) {
-                            updateBalanceDisplay('checking', fmtBals.checking);
-                            updateBalanceDisplay('savings', fmtBals.savings);
-                            updateBalanceDisplay('cc', fmtBals.cc);
-                            updateBalanceDisplay('heloc', fmtBals.heloc);
-                            updateBalanceDisplay('ira', fmtBals.ira);
-                            updateBalanceDisplay('loan', fmtBals.loan);
+                    if (hasChanged) {
+                        updateBalanceDisplay('checking', fmtBals.checking, curBals.checking);
+                        updateBalanceDisplay('savings', fmtBals.savings, curBals.savings);
+                        updateBalanceDisplay('cc', fmtBals.cc, curBals.cc);
+                        updateBalanceDisplay('heloc', fmtBals.heloc, curBals.heloc);
+                        updateBalanceDisplay('ira', fmtBals.ira, curBals.ira);
+                        updateBalanceDisplay('loan', fmtBals.loan, curBals.loan);
 
-                            var totalAvail = (curBals.checking || 0) + (curBals.savings || 0);
-                            var totalFmt = "{{ setting('currency_symbol', '$') }}" + totalAvail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            document.querySelectorAll('.user-total-balance, #userTotalBalance').forEach(function(el) {
-                                el.innerText = totalFmt;
+                        // CC & HELOC available credit & drawn amounts
+                        if (fmtBals.cc_avail) {
+                            document.querySelectorAll('[data-ffcu-avail="cc"]').forEach(function(el) {
+                                el.innerText = fmtBals.cc_avail;
                             });
+                        }
+                        if (fmtBals.cc) {
+                            document.querySelectorAll('[data-ffcu-drawn="cc"]').forEach(function(el) {
+                                el.innerText = 'Drawn: ' + fmtBals.cc;
+                            });
+                        }
+                        if (fmtBals.heloc_avail) {
+                            document.querySelectorAll('[data-ffcu-avail="heloc"]').forEach(function(el) {
+                                el.innerText = fmtBals.heloc_avail;
+                            });
+                        }
+                        if (fmtBals.heloc) {
+                            document.querySelectorAll('[data-ffcu-drawn="heloc"]').forEach(function(el) {
+                                el.innerText = 'Drawn: ' + fmtBals.heloc;
+                            });
+                        }
 
-                            if (typeof window.showToastNotice === 'function') {
-                                window.showToastNotice('Balances updated');
-                            }
+                        // Total available balance (checking + savings)
+                        var totalAvail = (curBals.checking || 0) + (curBals.savings || 0);
+                        var totalFmt = "{{ setting('currency_symbol', '$') }}" + totalAvail.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        document.querySelectorAll('.user-total-balance, #userTotalBalance').forEach(function(el) {
+                            el.innerText = totalFmt;
+                        });
+
+                        if (lastBalances !== null && typeof window.showToastNotice === 'function') {
+                            window.showToastNotice('Balances updated');
                         }
                     }
                     lastBalances = curBals;
 
+                    // 2. Transaction synchronization (Strict Zero-Duplicate / Zero-Shuffle Policy)
                     if (data.recent_txns && Array.isArray(data.recent_txns)) {
-                        data.recent_txns.forEach(function(tx) {
-                            var existingRow = document.querySelector('[data-tnx="' + tx.tnx + '"], [data-tx-trx="' + tx.tnx + '"]');
-                            if (!existingRow) {
-                                // Dynamic Prepend into FrontField dashboard list if present (.txn-list)
-                                var txnList = document.querySelector('.txn-list');
-                                if (txnList) {
-                                    var emptyLi = txnList.querySelector('li.text-center');
-                                    if (emptyLi) emptyLi.remove();
+                        if (isInitialSync) {
+                            // On the first poll after page load, seed all recent transaction keys
+                            // so historical items (e.g. items 6 to 15) are NOT falsely prepended!
+                            data.recent_txns.forEach(function(tx) {
+                                if (tx.tnx) window.ffcuRenderedTxnKeys.add(String(tx.tnx));
+                                if (tx.id) window.ffcuRenderedTxnKeys.add(String(tx.id));
+                            });
+                            isInitialSync = false;
+                        } else {
+                            // On subsequent polls, ONLY prepend genuinely NEW transactions
+                            data.recent_txns.forEach(function(tx) {
+                                var txKey = String(tx.tnx);
+                                var idKey = String(tx.id);
+                                if (!window.ffcuRenderedTxnKeys.has(txKey) && !window.ffcuRenderedTxnKeys.has(idKey)) {
+                                    // Brand new transaction! Register it immediately
+                                    window.ffcuRenderedTxnKeys.add(txKey);
+                                    window.ffcuRenderedTxnKeys.add(idKey);
 
-                                    var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
-                                    var sym = isCredit ? '+' : '';
-                                    var amtClass = isCredit ? 'text-success' : 'text-dark';
-                                    var isSuccess = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
-                                    var isDeclined = (tx.status === 'rejected' || tx.status == 3);
-                                    var statusHtml = isSuccess
-                                        ? '<span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>'
-                                        : (isDeclined ? '<span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>' : '<span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>');
+                                    var txnList = document.querySelector('.txn-list');
+                                    if (txnList) {
+                                        var emptyLi = txnList.querySelector('li.text-center');
+                                        if (emptyLi) emptyLi.remove();
 
-                                    var walletLabel = (tx.wallet_type === 'default' || tx.wallet_type === 'checking') ? '0010 CHECKING' : ((tx.wallet_type === 'primary_savings' || tx.wallet_type === 'savings') ? '0000 SAVINGS' : 'ACCOUNT');
+                                        var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
+                                        var sym = isCredit ? '+' : '';
+                                        var amtClass = isCredit ? 'text-success' : 'text-dark';
+                                        var isSuccess = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
+                                        var isDeclined = (tx.status === 'rejected' || tx.status == 3);
+                                        var statusHtml = isSuccess
+                                            ? '<span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>'
+                                            : (isDeclined ? '<span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>' : '<span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>');
 
-                                    var newLi = document.createElement('li');
-                                    newLi.className = 'txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light';
-                                    newLi.style.cssText = 'cursor: pointer; border-color: rgba(0,0,0,0.05) !important; background-color: #f0fdf4; transition: background-color 2s ease;';
-                                    newLi.setAttribute('data-tnx', tx.tnx);
-                                    newLi.onclick = function() { window.location.href = "{{ route('user.transactions') }}"; };
-                                    newLi.innerHTML = '<div style="min-width: 0;">' +
-                                        '<div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">' + (tx.description ? tx.description.toUpperCase() : 'TRANSACTION') + '</div>' +
-                                        '<div class="small text-muted" style="font-size: 0.75rem; font-weight: 500;">' + (tx.created_at || 'Just now') + ' • ' + walletLabel + '</div>' +
-                                        '</div>' +
-                                        '<div class="text-end ms-3">' +
-                                        '<div class="txn-amount fw-bold ' + amtClass + '" style="font-size: 0.85rem;">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</div>' +
-                                        '<div class="small" style="font-size: 0.7rem; font-weight: 600;">' + statusHtml + '</div>' +
-                                        '</div>';
-                                    txnList.insertBefore(newLi, txnList.firstChild);
-                                    setTimeout(function() { newLi.style.backgroundColor = ''; }, 2500);
+                                        var walletLabel = (tx.wallet_type === 'default' || tx.wallet_type === 'checking') ? '0010 CHECKING' : ((tx.wallet_type === 'primary_savings' || tx.wallet_type === 'savings') ? '0000 SAVINGS' : 'ACCOUNT');
 
-                                    var allItems = txnList.querySelectorAll('.txn-item');
-                                    if (allItems.length > 5) {
-                                        allItems[allItems.length - 1].remove();
+                                        var newLi = document.createElement('li');
+                                        newLi.className = 'txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light';
+                                        newLi.style.cssText = 'cursor: pointer; border-color: rgba(0,0,0,0.05) !important; background-color: #f0fdf4; transition: background-color 2s ease;';
+                                        newLi.setAttribute('data-tnx', tx.tnx);
+                                        newLi.setAttribute('data-tx-id', tx.id);
+                                        newLi.onclick = function() { window.location.href = "{{ route('user.transactions') }}"; };
+                                        newLi.innerHTML = '<div style="min-width: 0;">' +
+                                            '<div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">' + (tx.description ? tx.description.toUpperCase() : 'TRANSACTION') + '</div>' +
+                                            '<div class="small text-muted" style="font-size: 0.75rem; font-weight: 500;">' + (tx.created_at || 'Just now') + ' • ' + walletLabel + '</div>' +
+                                            '</div>' +
+                                            '<div class="text-end ms-3">' +
+                                            '<div class="txn-amount fw-bold ' + amtClass + '" style="font-size: 0.85rem;">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</div>' +
+                                            '<div class="small" style="font-size: 0.7rem; font-weight: 600;">' + statusHtml + '</div>' +
+                                            '</div>';
+                                        txnList.insertBefore(newLi, txnList.firstChild);
+                                        setTimeout(function() { newLi.style.backgroundColor = ''; }, 2500);
+
+                                        var allItems = txnList.querySelectorAll('.txn-item');
+                                        if (allItems.length > 5) {
+                                            allItems[allItems.length - 1].remove();
+                                        }
                                     }
-                                }
 
-                                // Dynamic Prepend into FrontField table if present
-                                var tblBody = document.querySelector('.site-datatable table tbody, .data-table tbody');
-                                if (tblBody) {
-                                    var emptyRow = tblBody.querySelector('tr.centered');
-                                    if (emptyRow) emptyRow.remove();
-                                    var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
-                                    var sym = isCredit ? '+' : '-';
-                                    var colClass = isCredit ? 'green-color' : 'red-color';
-                                    var stClass = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'success' : ((tx.status === 'rejected' || tx.status == 3) ? 'primary-bg' : 'warnning');
-                                    var stText = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'Success' : ((tx.status === 'rejected' || tx.status == 3) ? 'Declined' : 'Pending');
-                                    var rowTr = document.createElement('tr');
-                                    rowTr.setAttribute('data-tnx', tx.tnx);
-                                    rowTr.innerHTML = '<td><div class="table-description"><div class="icon"><i class="fa-solid fa-arrow-' + (isCredit ? 'down-left' : 'right') + '"></i></div><div class="description"><strong>' + (tx.description || 'Transaction') + '</strong><div class="date">' + (tx.created_at || 'Just now') + '</div></div></div></td>' +
-                                        '<td><strong>' + tx.tnx + '</strong></td>' +
-                                        '<td><div class="site-badge primary-bg">' + (tx.type || 'Transfer') + '</div></td>' +
-                                        '<td><strong class="' + colClass + '">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</strong></td>' +
-                                        '<td><strong>$0.00</strong></td>' +
-                                        '<td><div class="site-badge ' + stClass + '">' + stText + '</div></td>' +
-                                        '<td><strong>Account Transfer</strong></td>';
-                                    tblBody.insertBefore(rowTr, tblBody.firstChild);
+                                    // Dynamic Prepend into FrontField transactions table if present
+                                    var tblBody = document.querySelector('.site-datatable table tbody, .data-table tbody');
+                                    if (tblBody) {
+                                        var emptyRow = tblBody.querySelector('tr.centered');
+                                        if (emptyRow) emptyRow.remove();
+                                        var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
+                                        var sym = isCredit ? '+' : '-';
+                                        var colClass = isCredit ? 'green-color' : 'red-color';
+                                        var stClass = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'success' : ((tx.status === 'rejected' || tx.status == 3) ? 'primary-bg' : 'warnning');
+                                        var stText = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1) ? 'Success' : ((tx.status === 'rejected' || tx.status == 3) ? 'Declined' : 'Pending');
+                                        var rowTr = document.createElement('tr');
+                                        rowTr.setAttribute('data-tnx', tx.tnx);
+                                        rowTr.innerHTML = '<td><div class="table-description"><div class="icon"><i class="fa-solid fa-arrow-' + (isCredit ? 'down-left' : 'right') + '"></i></div><div class="description"><strong>' + (tx.description || 'Transaction') + '</strong><div class="date">' + (tx.created_at || 'Just now') + '</div></div></div></td>' +
+                                            '<td><strong>' + tx.tnx + '</strong></td>' +
+                                            '<td><div class="site-badge primary-bg">' + (tx.type || 'Transfer') + '</div></td>' +
+                                            '<td><strong class="' + colClass + '">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</strong></td>' +
+                                            '<td><strong>$0.00</strong></td>' +
+                                            '<td><div class="site-badge ' + stClass + '">' + stText + '</div></td>' +
+                                            '<td><strong>Account Transfer</strong></td>';
+                                        tblBody.insertBefore(rowTr, tblBody.firstChild);
+                                    }
+                                } else {
+                                    updateTxnBadge(tx.tnx, tx.status);
                                 }
-                            } else {
-                                updateTxnBadge(tx.tnx, tx.status);
-                            }
-                        });
-                        lastTxns = data.recent_txns;
+                            });
+                        }
                     }
                 })
                 .catch(() => { isSyncing = false; });
             }
 
-            function updateBalanceDisplay(type, fmtVal) {
+            function updateBalanceDisplay(type, fmtVal, rawVal) {
                 var selectors = [
+                    '[data-ffcu-balance="' + type + '"]',
+                    '[data-ffcu-ledger="' + type + '"]',
                     '#' + type + 'Balance',
-                    '#csb' + type.charAt(0).toUpperCase() + type.slice(1) + 'Bal',
-                    '[data-account-balance="' + type + '"]',
-                    '[data-balance="' + type + '"]'
+                    '[data-account-balance="' + type + '"]'
                 ];
                 selectors.forEach(function(sel) {
                     document.querySelectorAll(sel).forEach(function(el) {
-                        el.innerText = fmtVal;
-                        el.style.transition = 'all 0.4s ease';
-                        el.style.color = '#16a34a';
-                        setTimeout(function() { el.style.color = ''; }, 1800);
+                        if (el.innerText !== fmtVal) {
+                            el.innerText = fmtVal;
+                            el.style.transition = 'all 0.4s ease';
+                            el.style.color = '#16a34a';
+                            setTimeout(function() { el.style.color = ''; }, 1800);
+                        }
                     });
                 });
+
+                if (rawVal !== undefined && rawVal !== null) {
+                    document.querySelectorAll('.account-card[data-type="' + type + '"]').forEach(function(card) {
+                        card.dataset.balance = rawVal;
+                    });
+                }
             }
 
             function updateTxnBadge(tnx, status) {
                 var rows = document.querySelectorAll('[data-tnx="' + tnx + '"]');
                 rows.forEach(function(r) {
-                    var badge = r.querySelector('.badge, [class*="badge-"]');
+                    var badge = r.querySelector('.badge, [class*="badge-"], .small span');
                     if (badge) {
                         if (status === 'success' || status === 'completed' || status == 1) {
-                            badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
-                            badge.innerText = 'Approved';
+                            badge.className = 'text-success';
+                            badge.innerHTML = '<i class="fas fa-check-circle me-1 small"></i>Completed';
                         } else if (status === 'rejected' || status == 3) {
-                            badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
-                            badge.innerText = 'Declined';
+                            badge.className = 'text-danger';
+                            badge.innerHTML = '<i class="fas fa-times-circle me-1 small"></i>Declined';
                         }
                     }
                 });
@@ -1255,9 +1323,10 @@
 
             setTimeout(function() {
                 syncAccountLive();
-                setInterval(syncAccountLive, 25000);
-            }, 5000);
+                setInterval(syncAccountLive, 10000);
+            }, 3000);
         })();
+        @endif
 
         window.addEventListener('pageshow', function() {
             hideLoader();

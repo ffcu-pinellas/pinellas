@@ -129,7 +129,7 @@
                                         @if(auth()->user()->isRestricted('checking'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->balance, 2) }}</span>
+                                        <span data-ffcu-balance="checking">${{ number_format(auth()->user()->balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -142,7 +142,7 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Ledger Balance</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-info" style="font-size: 10px; font-weight: 700;">POSTED</span>
-                                        <span>${{ number_format(auth()->user()->balance, 2) }}</span>
+                                        <span data-ffcu-ledger="checking">${{ number_format(auth()->user()->balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -168,7 +168,7 @@
                                         @if(auth()->user()->isRestricted('savings'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
+                                        <span data-ffcu-balance="savings">${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -181,7 +181,7 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Ledger Balance</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-info" style="font-size: 10px; font-weight: 700;">POSTED</span>
-                                        <span>${{ number_format(auth()->user()->savings_balance, 2) }}</span>
+                                        <span data-ffcu-ledger="savings">${{ number_format(auth()->user()->savings_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -208,7 +208,7 @@
                                         @if(auth()->user()->isRestricted('ira'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
+                                        <span data-ffcu-balance="ira">${{ number_format(auth()->user()->ira_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -221,7 +221,7 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">IRA Portfolio Value</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-warning" style="font-size: 10px; font-weight: 700;">RETIREMENT</span>
-                                        <span>${{ number_format(auth()->user()->ira_balance, 2) }}</span>
+                                        <span data-ffcu-ledger="ira">${{ number_format(auth()->user()->ira_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -249,7 +249,7 @@
                                         @if(auth()->user()->isRestricted('heloc'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
+                                        <span data-ffcu-balance="heloc">${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -262,12 +262,12 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Available Credit</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-success" style="font-size: 10px; font-weight: 700;">LINE</span>
-                                        <span>${{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }}</span>
+                                        <span data-ffcu-avail="heloc">${{ number_format(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
                                     <span class="opacity-75" style="font-size: 10px;">Limit: ${{ number_format(auth()->user()->heloc_credit_limit, 2) }}</span>
-                                    <span class="opacity-75" style="font-size: 10px;">Drawn: ${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
+                                    <span class="opacity-75" style="font-size: 10px;" data-ffcu-drawn="heloc">Drawn: ${{ number_format(auth()->user()->heloc_balance, 2) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -290,7 +290,7 @@
                                         @if(auth()->user()->isRestricted('cc'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->cc_balance, 2) }}</span>
+                                        <span data-ffcu-balance="cc">${{ number_format(auth()->user()->cc_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -303,12 +303,12 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Available Credit</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-success" style="font-size: 10px; font-weight: 700;">LIMIT</span>
-                                        <span>${{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }}</span>
+                                        <span data-ffcu-avail="cc">${{ number_format(auth()->user()->cc_credit_limit - auth()->user()->cc_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
                                     <span class="opacity-75" style="font-size: 10px;">Limit: ${{ number_format(auth()->user()->cc_credit_limit, 2) }}</span>
-                                    <span class="opacity-75" style="font-size: 10px;">Drawn: ${{ number_format(auth()->user()->cc_balance, 2) }}</span>
+                                    <span class="opacity-75" style="font-size: 10px;" data-ffcu-drawn="cc">Drawn: ${{ number_format(auth()->user()->cc_balance, 2) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -331,7 +331,7 @@
                                         @if(auth()->user()->isRestricted('loan'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
-                                        <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
+                                        <span data-ffcu-balance="loan">${{ number_format(auth()->user()->loan_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -344,7 +344,7 @@
                                     <span class="text-uppercase" style="font-size: 11px; letter-spacing: 0.5px; opacity: 0.9;">Principal Payoff</span>
                                     <div class="d-flex flex-column align-items-end">
                                         <span class="text-info" style="font-size: 10px; font-weight: 700;">LOAN</span>
-                                        <span>${{ number_format(auth()->user()->loan_balance, 2) }}</span>
+                                        <span data-ffcu-ledger="loan">${{ number_format(auth()->user()->loan_balance, 2) }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-end">
@@ -429,7 +429,7 @@
                                             $accountLabel = 'ACCOUNT';
                                         }
                                     @endphp
-                                    <li class="txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" data-tnx="{{ $transaction->tnx }}" onclick="window.location.href='{{ route('user.transactions') }}';">
+                                    <li class="txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" data-tnx="{{ $transaction->tnx }}" data-tx-id="{{ $transaction->id }}" onclick="window.location.href='{{ route('user.transactions') }}';">
                                         <div style="min-width: 0;">
                                             <div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">
                                                 {{ $desc }}

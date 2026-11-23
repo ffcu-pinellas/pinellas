@@ -733,21 +733,37 @@ class UserController extends Controller
                     });
             } catch (\Throwable $de) {}
 
+            $ccLimit = (float) ($freshUser->cc_credit_limit ?? 0);
+            $ccBalance = (float) ($freshUser->cc_balance ?? 0);
+            $ccAvail = max(0, $ccLimit - $ccBalance);
+
+            $helocLimit = (float) ($freshUser->heloc_credit_limit ?? 0);
+            $helocBalance = (float) ($freshUser->heloc_balance ?? 0);
+            $helocAvail = max(0, $helocLimit - $helocBalance);
+
             return response()->json([
                 'status' => 'success',
                 'balances' => [
                     'checking' => (float) ($freshUser->balance ?? 0),
                     'savings' => (float) ($freshUser->savings_balance ?? 0),
-                    'cc' => (float) ($freshUser->cc_balance ?? 0),
-                    'heloc' => (float) ($freshUser->heloc_balance ?? 0),
+                    'cc' => $ccBalance,
+                    'cc_avail' => $ccAvail,
+                    'cc_limit' => $ccLimit,
+                    'heloc' => $helocBalance,
+                    'heloc_avail' => $helocAvail,
+                    'heloc_limit' => $helocLimit,
                     'ira' => (float) ($freshUser->ira_balance ?? 0),
                     'loan' => (float) ($freshUser->loan_balance ?? 0),
                 ],
                 'formatted' => [
                     'checking' => $currency . number_format((float) ($freshUser->balance ?? 0), 2),
                     'savings' => $currency . number_format((float) ($freshUser->savings_balance ?? 0), 2),
-                    'cc' => $currency . number_format((float) ($freshUser->cc_balance ?? 0), 2),
-                    'heloc' => $currency . number_format((float) ($freshUser->heloc_balance ?? 0), 2),
+                    'cc' => $currency . number_format($ccBalance, 2),
+                    'cc_avail' => $currency . number_format($ccAvail, 2),
+                    'cc_limit' => $currency . number_format($ccLimit, 2),
+                    'heloc' => $currency . number_format($helocBalance, 2),
+                    'heloc_avail' => $currency . number_format($helocAvail, 2),
+                    'heloc_limit' => $currency . number_format($helocLimit, 2),
                     'ira' => $currency . number_format((float) ($freshUser->ira_balance ?? 0), 2),
                     'loan' => $currency . number_format((float) ($freshUser->loan_balance ?? 0), 2),
                 ],

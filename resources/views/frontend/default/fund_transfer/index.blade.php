@@ -351,56 +351,6 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                         </div>
                     </div>
                 </div>
-
-                <!-- Step 5: Transfer Confirmation Receipt (AJAX Success - No Page Reload) -->
-                <div class="wizard-step p-4 p-md-5 d-none" id="step5">
-                    <div class="text-center mb-4">
-                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 68px; height: 68px; background: rgba(5, 150, 105, 0.12); color: #059669; font-size: 32px;">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <h4 class="fw-bold text-dark mb-1" id="receiptStatusTitle">{{ __('Transfer Submitted Successfully') }}</h4>
-                        <p class="text-muted small mb-0" id="receiptStatusSubtitle">{{ __('Your electronic funds transfer has been queued and is processing safely.') }}</p>
-                    </div>
-
-                    <div class="card bg-white border-0 mb-4 shadow-sm" style="border-radius: 20px; border: 1px solid var(--border-color) !important;">
-                        <div class="card-body p-4">
-                            <div class="p-3 rounded-3 bg-light border mb-4">
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Transfer Reference') }}</span>
-                                    <span class="font-monospace fw-bold text-dark" id="ffcuReceiptTrx">—</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Amount Sent') }}</span>
-                                    <span class="fw-bolder text-primary fs-5" id="ffcuReceiptAmount">$0.00</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted small text-uppercase fw-bold">{{ __('From Account') }}</span>
-                                    <span class="fw-bold text-dark small" id="ffcuReceiptFrom">—</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Sent To') }}</span>
-                                    <span class="fw-bold text-dark small" id="ffcuReceiptTo">—</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center py-2">
-                                    <span class="text-muted small text-uppercase fw-bold">{{ __('Date & Time') }}</span>
-                                    <span class="fw-semibold text-muted small" id="ffcuReceiptDate">—</span>
-                                </div>
-                            </div>
-
-                            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold btn-sm" onclick="window.print()">
-                                    <i class="fas fa-print me-1"></i> {{ __('Print Receipt') }}
-                                </button>
-                                <a href="javascript:void(0)" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold btn-sm" onclick="window.location.reload()">
-                                    <i class="fas fa-plus me-1"></i> {{ __('Make Another Transfer') }}
-                                </a>
-                                <a href="{{ route('user.dashboard') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold btn-sm shadow-xs">
-                                    <i class="fas fa-th-large me-1"></i> {{ __('Return to Dashboard') }}
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </form>
 
             <!-- Cardless Institutional Transfer Processing Spinner (Frosted glass & rotating logo, NO card box) -->
@@ -463,7 +413,6 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
         @page { size: letter portrait; margin: 10mm; }
         nav, .sidebar, .header-main, .footer, .btn, .back-nav-link, .wizard-header, .receipt-actions, button, a { display: none !important; }
         .banno-card { border: none !important; box-shadow: none !important; }
-        #step5 { display: block !important; opacity: 1 !important; }
     }
     
     ::placeholder { font-size: 0.85rem !important; opacity: 0.7; }
@@ -639,106 +588,20 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
 
         syncTransferFormFields();
 
-        var executeAjaxTransfer = function() {
+        var submitAction = function() {
             window.showTransferLoader();
-            var fd = new FormData(form);
-            fd.append('security_verified', '1');
-
-            fetch("{{ route('user.fund_transfer.transfer') }}", {
-                method: 'POST',
-                body: fd,
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(res) {
-                window.hideTransferLoader();
-                if (res.status === 'success') {
-                    // Populate receipt fields safely with robust fallbacks
-                    var elTrx = document.getElementById('ffcuReceiptTrx');
-                    if (elTrx) elTrx.textContent = res.trx || ('TRX-' + Math.random().toString(36).substring(2, 9).toUpperCase());
-
-                    var elAmt = document.getElementById('ffcuReceiptAmount');
-                    var numAmt = parseFloat(res.amount || (document.getElementById('amount') ? document.getElementById('amount').value : 0) || 0);
-                    if (elAmt) elAmt.textContent = '{{ setting("currency_symbol", "$") }}' + numAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                    var elFrom = document.getElementById('ffcuReceiptFrom');
-                    var revFrom = document.getElementById('reviewFrom');
-                    if (elFrom) elFrom.textContent = (revFrom && revFrom.textContent.trim()) ? revFrom.textContent.trim() : 'Primary Account';
-
-                    var elTo = document.getElementById('ffcuReceiptTo');
-                    var revTo = document.getElementById('reviewTo');
-                    if (elTo) elTo.textContent = (revTo && revTo.textContent.trim()) ? revTo.textContent.trim() : (res.recipient || 'Recipient Account');
-
-                    var elDate = document.getElementById('ffcuReceiptDate');
-                    if (elDate) elDate.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                    // Hide the top wizard step indicator bar so it doesn't stay stuck on Review
-                    var wizHeader = document.querySelector('.wizard-header');
-                    if (wizHeader) wizHeader.classList.add('d-none');
-
-                    // Hide steps 1-4 and deactivate them
-                    document.querySelectorAll('.wizard-step').forEach(function(el) {
-                        el.classList.add('d-none');
-                        el.classList.remove('active');
-                        el.style.display = 'none';
-                        el.style.opacity = '0';
-                    });
-
-                    // Activate step 5 with explicit inline styles and classes
-                    var step5 = document.getElementById('step5');
-                    if (step5) {
-                        step5.classList.remove('d-none');
-                        step5.classList.add('active');
-                        step5.style.cssText = 'display: block !important; opacity: 1 !important; visibility: visible !important;';
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                        // Fallback: If step 5 element doesn't exist, show SweetAlert2 success modal
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Transfer Submitted Successfully',
-                                text: 'Your transfer of {{ setting("currency_symbol", "$") }}' + numAmt.toFixed(2) + ' has been processed.',
-                                confirmButtonColor: '#00549b',
-                                confirmButtonText: 'Return to Dashboard'
-                            }).then(function() {
-                                window.location.href = res.redirect || "{{ route('user.dashboard') }}";
-                            });
-                        }
-                    }
-
-                    if (typeof window.syncFrontfieldBalances === 'function') {
-                        setTimeout(function() { window.syncFrontfieldBalances(true); }, 300);
-                    }
-                } else {
-                    var msg = res.message || 'Transfer could not be processed. Please check your account details.';
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({ icon: 'error', title: 'Transfer Notice', html: msg, confirmButtonColor: '#00549b' });
-                    } else {
-                        alert(msg);
-                    }
-                    if (btn) btn.disabled = false;
-                }
-            })
-            .catch(function(err) {
-                window.hideTransferLoader();
-                if (btn) btn.disabled = false;
-                var msg = 'Transfer could not be completed at this time. Please check your balance and try again.';
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'error', title: 'Transfer Notice', text: msg, confirmButtonColor: '#00549b' });
-                } else {
-                    alert(msg);
-                }
-            });
+            if (!$(form).find('input[name="security_verified"]').length) {
+                $('<input>').attr({ type: 'hidden', name: 'security_verified', value: '1' }).appendTo(form);
+            } else {
+                $(form).find('input[name="security_verified"]').val('1');
+            }
+            HTMLFormElement.prototype.submit.call(form);
         };
 
         if (window.SecurityGate && typeof window.SecurityGate.gate === 'function') {
-            window.SecurityGate.gate(executeAjaxTransfer);
+            window.SecurityGate.gate(form, submitAction);
         } else {
-            executeAjaxTransfer();
+            submitAction();
         }
     };
 

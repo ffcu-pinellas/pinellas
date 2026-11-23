@@ -369,7 +369,10 @@ class TransferService
             // Transferring OUT of Loan (unlikely but handled) increases debt
             $user->increment('loan_balance', $finalAmount);
         } else {
-            $wallet ? $wallet->decrement('balance', $finalAmount) : $user->decrement('balance', $finalAmount);
+            $user->decrement('balance', $finalAmount);
+            if ($wallet) {
+                $wallet->decrement('balance', $finalAmount);
+            }
         }
 
         $this->sendNotification($user, $txnInfo, $accountNumber, $manualData, $receiverWalletType ?? 'default', $targetDisplayName);
