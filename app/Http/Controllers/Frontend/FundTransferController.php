@@ -398,6 +398,7 @@ class FundTransferController extends Controller
                     'message' => $message,
                     'trx' => $txnRef,
                     'amount' => $data['amount'],
+                    'recipient' => $data['manual_data']['account_name'] ?? ($data['manual_data']['account_number'] ?? null),
                     'redirect' => route('user.dashboard')
                 ]);
             }

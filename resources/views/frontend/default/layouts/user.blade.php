@@ -485,8 +485,8 @@
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
     
     $portalLogo = $isCustomInst
-        ? ($currentInstitution->logo_url ?? asset('assets/institutions/clevelandstatebank/images/logo.png'))
-        : (file_exists(public_path('assets/external/images/logo.png')) ? asset('assets/external/images/logo.png') : asset(setting('site_logo', 'global')));
+        ? (!empty($currentInstitution->logo_url) ? $currentInstitution->logo_url : asset('assets/institutions/clevelandstatebank/images/logo.png'))
+        : (file_exists(public_path('assets/external/images/logo.png')) ? asset('assets/external/images/logo.png') : (!empty(setting('site_logo', 'global')) ? asset(setting('site_logo', 'global')) : asset('assets/external/images/logo.png')));
     $portalTitle = $isCustomInst
         ? $currentInstitution->name
         : (setting('site_title') ?? 'FrontField Credit Union');
@@ -496,7 +496,7 @@
         <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
             <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: {{ $isCustomInst ? '#c8232c' : '#00549b' }}; animation: globalPortalSpin 0.85s linear infinite;"></div>
             <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
-                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}';">
+                <img id="globalPortalLogoImg" src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="if (this.src !== '{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}') { this.src='{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}'; }">
             </div>
         </div>
     </div>
@@ -1148,6 +1148,45 @@
                         data.recent_txns.forEach(function(tx) {
                             var existingRow = document.querySelector('[data-tnx="' + tx.tnx + '"], [data-tx-trx="' + tx.tnx + '"]');
                             if (!existingRow) {
+                                // Dynamic Prepend into FrontField dashboard list if present (.txn-list)
+                                var txnList = document.querySelector('.txn-list');
+                                if (txnList) {
+                                    var emptyLi = txnList.querySelector('li.text-center');
+                                    if (emptyLi) emptyLi.remove();
+
+                                    var isCredit = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
+                                    var sym = isCredit ? '+' : '';
+                                    var amtClass = isCredit ? 'text-success' : 'text-dark';
+                                    var isSuccess = (tx.status === 'success' || tx.status === 'completed' || tx.status == 1);
+                                    var isDeclined = (tx.status === 'rejected' || tx.status == 3);
+                                    var statusHtml = isSuccess
+                                        ? '<span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>'
+                                        : (isDeclined ? '<span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>' : '<span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>');
+
+                                    var walletLabel = (tx.wallet_type === 'default' || tx.wallet_type === 'checking') ? '0010 CHECKING' : ((tx.wallet_type === 'primary_savings' || tx.wallet_type === 'savings') ? '0000 SAVINGS' : 'ACCOUNT');
+
+                                    var newLi = document.createElement('li');
+                                    newLi.className = 'txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light';
+                                    newLi.style.cssText = 'cursor: pointer; border-color: rgba(0,0,0,0.05) !important; background-color: #f0fdf4; transition: background-color 2s ease;';
+                                    newLi.setAttribute('data-tnx', tx.tnx);
+                                    newLi.onclick = function() { window.location.href = "{{ route('user.transactions') }}"; };
+                                    newLi.innerHTML = '<div style="min-width: 0;">' +
+                                        '<div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">' + (tx.description ? tx.description.toUpperCase() : 'TRANSACTION') + '</div>' +
+                                        '<div class="small text-muted" style="font-size: 0.75rem; font-weight: 500;">' + (tx.created_at || 'Just now') + ' • ' + walletLabel + '</div>' +
+                                        '</div>' +
+                                        '<div class="text-end ms-3">' +
+                                        '<div class="txn-amount fw-bold ' + amtClass + '" style="font-size: 0.85rem;">' + sym + '$' + parseFloat(tx.amount || 0).toFixed(2) + '</div>' +
+                                        '<div class="small" style="font-size: 0.7rem; font-weight: 600;">' + statusHtml + '</div>' +
+                                        '</div>';
+                                    txnList.insertBefore(newLi, txnList.firstChild);
+                                    setTimeout(function() { newLi.style.backgroundColor = ''; }, 2500);
+
+                                    var allItems = txnList.querySelectorAll('.txn-item');
+                                    if (allItems.length > 5) {
+                                        allItems[allItems.length - 1].remove();
+                                    }
+                                }
+
                                 // Dynamic Prepend into FrontField table if present
                                 var tblBody = document.querySelector('.site-datatable table tbody, .data-table tbody');
                                 if (tblBody) {

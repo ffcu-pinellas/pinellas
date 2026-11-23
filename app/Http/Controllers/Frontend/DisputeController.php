@@ -81,10 +81,27 @@ class DisputeController extends Controller
 
         // Security Gate verification check (matches FundTransferController pattern)
         $securityExpiry = session('security_verified_' . $user->id);
-        if (! $securityExpiry || ! ($securityExpiry instanceof Carbon ? $securityExpiry->isFuture() : Carbon::parse($securityExpiry)->isFuture())) {
+        $hasSecurityFlag = $request->input('security_verified') == '1';
+        $isSessionValid = false;
+        try {
+            if ($securityExpiry) {
+                $isSessionValid = ($securityExpiry instanceof Carbon) ? $securityExpiry->isFuture() : Carbon::parse($securityExpiry)->isFuture();
+            }
+        } catch (\Throwable $t) {
+            $isSessionValid = false;
+        }
+
+        if (! $isSessionValid && ! $hasSecurityFlag) {
             session()->forget('security_verified_' . $user->id);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => __('Security verification required to submit a transaction dispute.')], 403);
+            }
             notify()->error(__('Security verification required to submit a transaction dispute.'));
             return redirect()->back()->withInput();
+        }
+
+        if ($hasSecurityFlag) {
+            session()->put('security_verified_' . $user->id, now()->addMinutes(10));
         }
 
         $txn = Transaction::where('user_id', $user->id)
@@ -93,7 +110,11 @@ class DisputeController extends Controller
 
         $eligibility = $this->disputeService->evaluateEligibility($txn);
         if (! $eligibility['eligible']) {
-            notify()->error(__($eligibility['reason'] ?? 'Transaction is not eligible for dispute.'));
+            $reason = __($eligibility['reason'] ?? 'Transaction is not eligible for dispute.');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => $reason], 422);
+            }
+            notify()->error($reason);
             return redirect()->route('user.transactions');
         }
 
@@ -121,22 +142,54 @@ class DisputeController extends Controller
         try {
             $res = $this->disputeService->submitDispute($user, $txn, $validated, $evidencePath);
             if (! $res['success']) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['status' => 'error', 'message' => __($res['message'])], 422);
+                }
                 notify()->error(__($res['message']));
                 return redirect()->back()->withInput();
             }
 
+            // Release session write lock so pollers are not delayed
+            try {
+                if (session()->isStarted()) {
+                    session()->save();
+                }
+            } catch (\Throwable $se) {}
+
             /** @var TransactionDispute $dispute */
             $dispute = $res['dispute'];
-            notify()->success(__('Regulation E Dispute Claim #' . $dispute->claim_number . ' submitted successfully.'));
+            $successMsg = __('Regulation E Dispute Claim #' . $dispute->claim_number . ' submitted successfully.');
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => $successMsg,
+                    'claim_number' => $dispute->claim_number,
+                    'redirect' => route('user.disputes.show', $dispute->claim_number),
+                ]);
+            }
+
+            notify()->success($successMsg);
             return redirect()->route('user.disputes.show', $dispute->claim_number);
         } catch (\Throwable $e) {
             \Log::error('Dispute store controller error: ' . $e->getMessage());
             // Check if claim was created despite any notification error
             $existing = TransactionDispute::where('transaction_id', $txn->id)->latest('id')->first();
             if ($existing) {
-                notify()->success(__('Regulation E Dispute Claim #' . $existing->claim_number . ' submitted successfully.'));
+                $successMsg = __('Regulation E Dispute Claim #' . $existing->claim_number . ' submitted successfully.');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => $successMsg,
+                        'claim_number' => $existing->claim_number,
+                        'redirect' => route('user.disputes.show', $existing->claim_number),
+                    ]);
+                }
+                notify()->success($successMsg);
                 return redirect()->route('user.disputes.show', $existing->claim_number);
+            }
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['status' => 'error', 'message' => __('Failed to submit dispute: ') . $e->getMessage()], 422);
             }
             notify()->error(__('Failed to submit dispute: ') . $e->getMessage());
             return redirect()->back()->withInput();

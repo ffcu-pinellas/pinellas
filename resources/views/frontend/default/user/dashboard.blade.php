@@ -429,7 +429,7 @@
                                             $accountLabel = 'ACCOUNT';
                                         }
                                     @endphp
-                                    <li class="txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" onclick="window.location.href='{{ route('user.transactions') }}';">
+                                    <li class="txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light" style="cursor: pointer; border-color: rgba(0,0,0,0.05) !important;" data-tnx="{{ $transaction->tnx }}" onclick="window.location.href='{{ route('user.transactions') }}';">
                                         <div style="min-width: 0;">
                                             <div class="txn-desc fw-bold text-dark text-truncate mb-1" style="font-size: 0.85rem; letter-spacing: 0.01em;">
                                                 {{ $desc }}
