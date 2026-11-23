@@ -328,6 +328,14 @@ class FundTransferController extends Controller
 
             $this->transferService->validate($user, $data, $request->get('wallet_type', 'default'));
             $responseData = $this->transferService->process($user, $data, $request->get('wallet_type', 'default'));
+            
+            // Release session file lock immediately so background pollers/requests are never blocked
+            try {
+                if (session()->isStarted()) {
+                    session()->save();
+                }
+            } catch (\Throwable $se) {}
+
             $message = __('Fund Transfer Successful!');
             $data['purpose'] = $request->input('purpose');
             $data['wallet_type'] = $request->get('wallet_type', 'default');
@@ -412,7 +420,7 @@ class FundTransferController extends Controller
                     'message' => $msg,
                     'errors' => $e->errors(),
                     'debug_error' => $e->getMessage(),
-                ], 422);
+                ], 200);
             }
             notify()->error($msg, 'Error');
             return redirect()->back()->withInput();
@@ -426,7 +434,7 @@ class FundTransferController extends Controller
                     'debug_error' => $e->getMessage(),
                     'debug_file' => basename($e->getFile()),
                     'debug_line' => $e->getLine(),
-                ], 422);
+                ], 200);
             }
             notify()->error($msg, 'Error');
             return redirect()->back()->withInput();

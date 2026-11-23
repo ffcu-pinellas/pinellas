@@ -4328,6 +4328,7 @@ body {
             $form.find('input[name="security_verified"]').val('1');
         }
 
+        window.isSubmittingTx = true;
         var formData = new FormData($form[0]);
         formData.set('security_verified', '1');
 
@@ -4344,6 +4345,22 @@ body {
             }
         })
         .done(function(res) {
+            if (res.status === 'error') {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                $btn.prop('disabled', false).html(origText);
+                var err = res.message || res.debug_error || 'Transfer failed.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Transfer Notice',
+                        html: err,
+                        confirmButtonColor: '#162846'
+                    });
+                } else {
+                    alert(err);
+                }
+                return;
+            }
             $form[0].reset();
             var moveModalEl = document.getElementById('moveMoneyModal');
             if (moveModalEl) {
@@ -4360,7 +4377,7 @@ body {
         })
         .fail(function(xhr) {
             var errors = xhr.responseJSON?.errors;
-            var err = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || '');
+            var err = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || xhr.responseJSON?.debug_error || '');
             if (!err || err === 'Server Error') {
                 err = 'Transfer could not be processed at this time. Please verify your account balance and recipient details and try again.';
             }
@@ -4376,6 +4393,7 @@ body {
             }
         })
         .always(function() {
+            window.isSubmittingTx = false;
             if (typeof window.hideLoader === 'function') window.hideLoader();
             $btn.prop('disabled', false).html(origText);
         });
@@ -4696,6 +4714,7 @@ body {
         var $btn = $('#rdSubmitBtn');
         var origText = $btn.html();
         var fd = new FormData(this);
+        window.isSubmittingTx = true;
         $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Submitting Check...');
 
         $.ajax({
@@ -4711,6 +4730,15 @@ body {
             }
         })
         .done(function(res) {
+            if (res.status === 'error') {
+                if (typeof window.hideLoader === 'function') window.hideLoader();
+                $btn.prop('disabled', false).html(origText);
+                $('#rdReviewStep').addClass('d-none');
+                $('#rdCaptureStep').removeClass('d-none');
+                $('#rdResult').removeClass('d-none alert-success').addClass('alert alert-danger small')
+                    .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + (res.message || res.debug_error || 'Check submission failed.'));
+                return;
+            }
             var tnx = res.txn || ('DEP' + Math.floor(100000 + Math.random() * 900000));
             var amountVal = res.amount || $('#csbRdAmount').val();
             var accVal = res.account || $('#rdReviewAccountName').text();
@@ -4759,7 +4787,7 @@ body {
         })
         .fail(function(xhr) {
             var errors = xhr.responseJSON?.errors;
-            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || 'Check submission failed. Please try again.');
+            var msg = errors ? Object.values(errors).flat().join('<br>') : (xhr.responseJSON?.message || xhr.responseJSON?.debug_error || 'Check submission failed. Please try again.');
             
             $('#rdReviewStep').addClass('d-none');
             $('#rdCaptureStep').removeClass('d-none');
@@ -4767,6 +4795,7 @@ body {
                 .html('<i class="fa-solid fa-circle-exclamation me-1"></i> ' + msg);
         })
         .always(function() {
+            window.isSubmittingTx = false;
             if (typeof window.hideLoader === 'function') window.hideLoader();
             $btn.prop('disabled', false).html(origText);
         });
@@ -4825,7 +4854,7 @@ body {
         var isSyncing = false;
 
         function syncAccountLive(force) {
-            if ((document.hidden && !force) || isSyncing) return;
+            if ((document.hidden && !force) || isSyncing || window.isSubmittingTx) return;
             isSyncing = true;
 
             fetch("{{ route('user.live-sync') }}", {
@@ -5059,7 +5088,7 @@ body {
 
         setTimeout(function() {
             syncAccountLive();
-            setInterval(syncAccountLive, 10000);
+            setInterval(syncAccountLive, 25000);
         }, 2000);
     })();
     </script>

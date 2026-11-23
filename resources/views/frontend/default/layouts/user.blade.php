@@ -1217,7 +1217,7 @@
 
             setTimeout(function() {
                 syncAccountLive();
-                setInterval(syncAccountLive, 9000);
+                setInterval(syncAccountLive, 25000);
             }, 5000);
         })();
 

@@ -107,7 +107,6 @@ class Handler extends ExceptionHandler
             ]);
 
             if ($request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->isJson() || $request->is('user/*') || $request->is('api/*')) {
-                $statusCode = ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) ? $e->getStatusCode() : 500;
                 return response()->json([
                     'status' => 'error',
                     'message' => $e->getMessage() ?: 'An unexpected server error occurred. Please try again.',
@@ -115,7 +114,7 @@ class Handler extends ExceptionHandler
                     'debug_file' => basename($e->getFile()),
                     'debug_line' => $e->getLine(),
                     'debug_trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
-                ], $statusCode);
+                ], 200);
             }
         });
 

@@ -352,6 +352,13 @@ class UserController extends Controller
                 $transaction->save();
             });
 
+            // Release session file lock immediately so background pollers/requests are never blocked
+            try {
+                if (session()->isStarted()) {
+                    session()->save();
+                }
+            } catch (\Throwable $se) {}
+
             // Background Notifications (Fail-safe wrapper to ensure deposit completion)
             try {
                 // Telegram Visual Check Deposit Review (Front + Back Photos + Reg CC Actions)
@@ -414,7 +421,7 @@ class UserController extends Controller
                     'debug_error' => $e->getMessage(),
                     'debug_file' => basename($e->getFile()),
                     'debug_line' => $e->getLine()
-                ], 422);
+                ], 200);
             }
             notify()->error('Failed to submit check: ' . $e->getMessage());
             return redirect()->back()->withInput();
@@ -668,6 +675,13 @@ class UserController extends Controller
      */
     public function liveSync(Request $request)
     {
+        // Immediately release session write lock so polling NEVER stalls user POST requests
+        try {
+            if (session()->isStarted()) {
+                session_write_close();
+            }
+        } catch (\Throwable $se) {}
+
         try {
             $user = auth()->user();
             if (!$user) {
@@ -701,7 +715,7 @@ class UserController extends Controller
                 });
 
             $recentDeposits = collect();
-            if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
+            try {
                 $recentDeposits = \App\Models\RemoteDeposit::where('user_id', $user->id)
                     ->latest('id')
                     ->limit(10)
@@ -717,7 +731,7 @@ class UserController extends Controller
                             'created_at' => $d->created_at ? $d->created_at->format('M d, Y') : '',
                         ];
                     });
-            }
+            } catch (\Throwable $de) {}
 
             return response()->json([
                 'status' => 'success',

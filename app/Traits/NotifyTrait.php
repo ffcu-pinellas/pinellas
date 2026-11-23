@@ -718,8 +718,8 @@ trait NotifyTrait
                             $this->sendFcmPush($admin->fcm_token, $data['title'], $data['notice'], $action);
                         }
                     } else {
-                        // Optional: Broadcast to all admins who have a token
-                        $adminsWithTokens = \App\Models\Admin::whereNotNull('fcm_token')->get();
+                        // Optional: Broadcast to admin who has a token (capped at 1 to prevent thread latency)
+                        $adminsWithTokens = \App\Models\Admin::whereNotNull('fcm_token')->limit(1)->get();
                         foreach ($adminsWithTokens as $admin) {
                             $this->sendFcmPush($admin->fcm_token, $data['title'], $data['notice'], $action);
                         }

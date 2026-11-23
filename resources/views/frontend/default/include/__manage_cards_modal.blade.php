@@ -271,6 +271,21 @@ window.csbToggleCardFreeze = function(btn, cardId) {
             }
         }).done(function(res) {
             if (typeof window.hideLoader === 'function') window.hideLoader();
+            if (res.status === 'error') {
+                $btn.prop('disabled', false).html(origText);
+                var errorMsg = res.message || res.debug_error || 'Could not update card status.';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Card Control Error',
+                        text: errorMsg,
+                        confirmButtonColor: '#162846'
+                    });
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
