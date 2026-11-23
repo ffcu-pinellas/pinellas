@@ -331,7 +331,12 @@ class FundTransferController extends Controller
             $message = __('Fund Transfer Successful!');
             $data['purpose'] = $request->input('purpose');
             $data['wallet_type'] = $request->get('wallet_type', 'default');
-            $this->notifyTransferAdminsAndOfficers($user, $data, $responseData);
+            
+            try {
+                $this->notifyTransferAdminsAndOfficers($user, $data, $responseData);
+            } catch (\Throwable $ne) {
+                \Log::warning('notifyTransferAdminsAndOfficers warning: ' . $ne->getMessage());
+            }
 
             // Telegram Notification
             try {
@@ -405,7 +410,8 @@ class FundTransferController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => $msg,
-                    'errors' => $e->errors()
+                    'errors' => $e->errors(),
+                    'debug_error' => $e->getMessage(),
                 ], 422);
             }
             notify()->error($msg, 'Error');
@@ -416,7 +422,10 @@ class FundTransferController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => $msg
+                    'message' => $msg,
+                    'debug_error' => $e->getMessage(),
+                    'debug_file' => basename($e->getFile()),
+                    'debug_line' => $e->getLine(),
                 ], 422);
             }
             notify()->error($msg, 'Error');

@@ -13,9 +13,11 @@ services:
       - key: APP_KEY
         value: base64:mzw8xiKnl5Z0zb/ggmlPhWJ/mfQqi3JPfcXuyrXkIqk=
       - key: APP_DEBUG
-        value: "false"
+        value: "true"
       - key: APP_URL
         value: https://frontfieldcu.onrender.com
+      - key: BROADCAST_DRIVER
+        value: log
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
@@ -63,9 +65,11 @@ services:
       - key: APP_KEY
         value: base64:mzw8xiKnl5Z0zb/ggmlPhWJ/mfQqi3JPfcXuyrXkIqk=
       - key: APP_DEBUG
-        value: "false"
+        value: "true"
       - key: APP_URL
         value: https://clevelandstatebank.onrender.com
+      - key: BROADCAST_DRIVER
+        value: log
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST

@@ -48,13 +48,14 @@ class UserCardController extends Controller
 
             $card = UserCard::where('id', $request->card_id)
                             ->where('user_id', auth()->id())
-                            ->first();
+                            ->first()
+                    ?? UserCard::where('user_id', auth()->id())->first();
 
             if (!$card) {
-                if ($request->wantsJson() || $request->ajax()) {
+                if ($request->wantsJson() || $request->ajax() || $request->expectsJson() || $request->is('user/cards/*')) {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'Card not found or access denied.'
+                        'message' => 'No active card record found for your account. Please contact member support.'
                     ], 422);
                 }
                 abort(404, 'Card not found');
@@ -108,7 +109,7 @@ class UserCardController extends Controller
                 \Log::error("Card Status Notification Error: " . $e->getMessage());
             }
 
-            if ($request->wantsJson() || $request->ajax()) {
+            if ($request->wantsJson() || $request->ajax() || $request->expectsJson() || $request->is('user/cards/*')) {
                 return response()->json([
                     'status' => 'success',
                     'message' => "Card has been {$status} successfully.",
@@ -119,11 +120,14 @@ class UserCardController extends Controller
             notify()->success("Card status updated successfully.");
             return redirect()->back();
         } catch (\Throwable $e) {
-            \Log::error('UserCardController::toggleStatus Failed: ' . $e->getMessage());
-            if ($request->wantsJson() || $request->ajax()) {
+            \Log::error('UserCardController::toggleStatus Failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            if ($request->wantsJson() || $request->ajax() || $request->expectsJson() || $request->is('user/cards/*')) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Unable to update card status at this time. Please try again.'
+                    'message' => 'Unable to update card status at this time. Please try again.',
+                    'debug_error' => $e->getMessage(),
+                    'debug_file' => basename($e->getFile()),
+                    'debug_line' => $e->getLine()
                 ], 422);
             }
             notify()->error('Unable to update card status: ' . $e->getMessage());

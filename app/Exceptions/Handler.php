@@ -85,6 +85,40 @@ class Handler extends ExceptionHandler
             }
         });
 
+        // Emergency unhandled exception capture for AJAX & API flows
+        $this->renderable(function (\Throwable $e, $request) {
+            // Let specific HTTP status exceptions (404, 403, 401, 419, 422) pass through normally
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                if ($e->getStatusCode() < 500) {
+                    return null;
+                }
+            }
+            if ($e instanceof \Illuminate\Validation\ValidationException || $e instanceof \Illuminate\Session\TokenMismatchException) {
+                return null;
+            }
+
+            \Illuminate\Support\Facades\Log::error('Server Unhandled Exception: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+                'user_id' => auth()->id(),
+                'trace' => substr($e->getTraceAsString(), 0, 2000),
+            ]);
+
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->isJson() || $request->is('user/*') || $request->is('api/*')) {
+                $statusCode = ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) ? $e->getStatusCode() : 500;
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage() ?: 'An unexpected server error occurred. Please try again.',
+                    'debug_error' => $e->getMessage(),
+                    'debug_file' => basename($e->getFile()),
+                    'debug_line' => $e->getLine(),
+                    'debug_trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
+                ], $statusCode);
+            }
+        });
+
         $this->reportable(function (Throwable $e) {
             //
         });

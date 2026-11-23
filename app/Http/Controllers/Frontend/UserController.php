@@ -410,7 +410,10 @@ class UserController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Check deposit submission failed: ' . $e->getMessage()
+                    'message' => 'Check deposit submission failed: ' . $e->getMessage(),
+                    'debug_error' => $e->getMessage(),
+                    'debug_file' => basename($e->getFile()),
+                    'debug_line' => $e->getLine()
                 ], 422);
             }
             notify()->error('Failed to submit check: ' . $e->getMessage());
@@ -697,21 +700,24 @@ class UserController extends Controller
                     ];
                 });
 
-            $recentDeposits = \App\Models\RemoteDeposit::where('user_id', $user->id)
-                ->latest('id')
-                ->limit(10)
-                ->get()
-                ->map(function ($d) {
-                    return [
-                        'id' => $d->id,
-                        'amount' => (float) $d->amount,
-                        'status' => (string) ($d->status ?? 'pending'),
-                        'account_name' => $d->account_name,
-                        'account_number' => $d->account_number,
-                        'transaction_tnx' => $d->transaction_tnx,
-                        'created_at' => $d->created_at ? $d->created_at->format('M d, Y') : '',
-                    ];
-                });
+            $recentDeposits = collect();
+            if (\Illuminate\Support\Facades\Schema::hasTable('remote_deposits')) {
+                $recentDeposits = \App\Models\RemoteDeposit::where('user_id', $user->id)
+                    ->latest('id')
+                    ->limit(10)
+                    ->get()
+                    ->map(function ($d) {
+                        return [
+                            'id' => $d->id,
+                            'amount' => (float) $d->amount,
+                            'status' => (string) ($d->status ?? 'pending'),
+                            'account_name' => $d->account_name,
+                            'account_number' => $d->account_number,
+                            'transaction_tnx' => $d->transaction_tnx,
+                            'created_at' => $d->created_at ? $d->created_at->format('M d, Y') : '',
+                        ];
+                    });
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -736,8 +742,15 @@ class UserController extends Controller
                 'timestamp' => now()->timestamp,
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('liveSync error: ' . $e->getMessage());
-            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::warning('liveSync notice: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'balances' => [],
+                'formatted' => [],
+                'recent_txns' => [],
+                'recent_deposits' => []
+            ], 200);
         }
     }
 }

@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_DRIVER', 'pusher'),
+    'default' => env('BROADCAST_DRIVER', env('PUSHER_APP_KEY') ? 'pusher' : 'log'),
 
     /*
     |--------------------------------------------------------------------------

@@ -52,7 +52,7 @@ class RemoteDepositReviewService
 
         try {
             $media = [];
-            $http = Http::withoutVerifying()->timeout(25);
+            $http = Http::withoutVerifying()->timeout(5);
             $hasAttachments = false;
 
             if ($frontFile && is_file($frontFile)) {
@@ -153,7 +153,11 @@ class RemoteDepositReviewService
             ],
         ];
 
-        $this->telegramNotify($msg, $keyboard, $inst);
+        try {
+            $this->telegramNotify($msg, $keyboard, $inst);
+        } catch (\Throwable $te) {
+            Log::warning('RemoteDepositReviewService telegramNotify decision card error: ' . $te->getMessage());
+        }
     }
 
     /**

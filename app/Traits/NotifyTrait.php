@@ -697,13 +697,14 @@ trait NotifyTrait
 
                 // Internal Socket Event (Pusher)
                 try {
-                    $pusher_credentials = config('broadcasting.connections.pusher');
-                    if ($pusher_credentials && $pusher_credentials['key']) {
+                    $broadcastDriver = config('broadcasting.default');
+                    $pusherKey = config('broadcasting.connections.pusher.key');
+                    if ($broadcastDriver === 'pusher' && !empty($pusherKey)) {
                         $uID = $template->for == 'Admin' ? '' : $userId;
                         event(new NotificationEvent($template->for, $data, $uID));
                     }
-                } catch (Exception $e) {
-                    \Log::warning("Pusher broadcast failed (Code 404 usually means cluster mismatch): " . $e->getMessage());
+                } catch (\Throwable $e) {
+                    \Log::warning("Pusher broadcast skipped: " . $e->getMessage());
                 }
 
                 // Native Push via FCM
@@ -725,7 +726,7 @@ trait NotifyTrait
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Push Notification Error: " . $e->getMessage());
         }
     }
@@ -791,6 +792,8 @@ trait NotifyTrait
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
         $result = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -872,6 +875,8 @@ trait NotifyTrait
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
             'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion' => $jwt,
@@ -914,7 +919,7 @@ trait NotifyTrait
                 self::sendSms($phone, $message);
             }
 
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             return false;
         }
 

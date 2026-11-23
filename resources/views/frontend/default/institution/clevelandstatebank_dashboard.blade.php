@@ -5059,7 +5059,7 @@ body {
 
         setTimeout(function() {
             syncAccountLive();
-            setInterval(syncAccountLive, 4000);
+            setInterval(syncAccountLive, 10000);
         }, 2000);
     })();
     </script>
