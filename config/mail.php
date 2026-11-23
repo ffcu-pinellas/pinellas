@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => (str_contains(env('MAIL_HOST', ''), 'hostinger') && env('MAIL_MAILER') === 'smtp') ? 'log' : env('MAIL_MAILER', 'log'),
+    'default' => (str_contains(env('MAIL_HOST', ''), 'hostinger') && env('MAIL_MAILER') === 'smtp') ? 'log' : env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -36,12 +36,12 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
+            'host' => env('MAIL_HOST', 'smtp.resend.com'),
             'port' => env('MAIL_PORT', 587),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
+            'username' => env('MAIL_USERNAME', 'resend'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => 5,
+            'timeout' => 4,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
         ],
 

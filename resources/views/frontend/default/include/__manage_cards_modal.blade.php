@@ -30,7 +30,7 @@
         z-index: 999999 !important;
     }
 </style>
-<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
+<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 2055;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">
             <div class="modal-header" style="background-color: #1e293b; color: #fff; border-bottom: 2px solid {{ $isCustomModalInst ? '#c8232c' : '#00549b' }};">

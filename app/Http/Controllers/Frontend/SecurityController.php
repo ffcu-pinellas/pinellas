@@ -406,7 +406,7 @@ class SecurityController extends Controller
                     if (\Illuminate\Support\Facades\Schema::hasTable('transaction_security_codes')) {
                         TransactionSecurityCode::updateOrCreate(
                             ['user_id' => $user->id, 'type' => 'biometric'],
-                            ['code' => $challenge, 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
+                            ['code' => substr($challenge, 0, 6), 'tries' => 0, 'expires_at' => Carbon::now()->addMinutes(10)]
                         );
                     }
                 } catch (\Throwable $e) {}

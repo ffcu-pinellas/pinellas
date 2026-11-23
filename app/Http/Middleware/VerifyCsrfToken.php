@@ -16,5 +16,8 @@ class VerifyCsrfToken extends Middleware
         'telegram/webhook',
         'telegram/*',
         'api/telegram/*',
+        'login-verify/biometric/challenge',
+        'user/security-gate/biometric/challenge',
+        'security/webauthn-challenge',
     ];
 }

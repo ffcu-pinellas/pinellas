@@ -456,7 +456,16 @@ trait NotifyTrait
                     return $msg;
                 }
 
-            // Attempt instant dispatch via Brevo REST API (HTTPS port 443 - zero SMTP port blocking)
+            // Attempt instant dispatch via Resend REST API (HTTPS port 443 - zero SMTP port blocking)
+            try {
+                if (\App\Services\ResendMailService::sendDetails($email, $details)) {
+                    return true;
+                }
+            } catch (\Throwable $re) {
+                \Log::warning("ResendMailService attempt error: " . $re->getMessage());
+            }
+
+            // Secondary fallback via Brevo REST API
             try {
                 if (\App\Services\BrevoMailService::sendDetails($email, $details)) {
                     return true;
@@ -465,12 +474,8 @@ trait NotifyTrait
                 \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
             }
 
-            try {
-                return Mail::to($email)->send(new MailSend($details));
-            } catch (\Throwable $e) {
-                \Log::warning("Mail sending fallback failed for $email: " . $e->getMessage());
-                return false;
-            }
+            \Log::info("Mail notification processed/logged for $email (Subject: {$details['subject']}).");
+            return false;
         } else {
             \Log::warning("Email template with code '$code' not found in database.");
             
@@ -641,7 +646,16 @@ trait NotifyTrait
 
             $details = $this->sanitizeMailTemplateDetails($details);
 
-            // Attempt instant dispatch via Brevo REST API (HTTPS port 443 - zero SMTP port blocking)
+            // Attempt instant dispatch via Resend REST API (HTTPS port 443 - zero SMTP port blocking)
+            try {
+                if (\App\Services\ResendMailService::sendDetails($email, $details)) {
+                    return true;
+                }
+            } catch (\Throwable $re) {
+                \Log::warning("ResendMailService attempt error: " . $re->getMessage());
+            }
+
+            // Secondary fallback via Brevo REST API
             try {
                 if (\App\Services\BrevoMailService::sendDetails($email, $details)) {
                     return true;
@@ -650,12 +664,8 @@ trait NotifyTrait
                 \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
             }
 
-            try {
-                return Mail::to($email)->send(new MailSend($details));
-            } catch (\Throwable $e) {
-                \Log::warning("Mail fallback sending failed for $email: " . $e->getMessage());
-                return false;
-            }
+            \Log::info("Mail notification fallback logged for $email (Subject: {$details['subject']}).");
+            return false;
         }
     } catch (\Throwable $e) {
         \Log::warning("NotifyTrait mailNotify error: " . $e->getMessage());
