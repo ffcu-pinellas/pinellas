@@ -31,6 +31,57 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'home'])->name('home');
 Route::post('subscriber', [HomeController::class, 'subscribeNow'])->name('subscriber');
 Route::get('/heartbeat', function() { return response()->json(['status' => 'alive']); });
+Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
+    $out = [];
+    $out['php_version'] = PHP_VERSION;
+    $out['env_app_env'] = config('app.env');
+    $out['db_connection'] = config('database.default');
+    
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $out['db_status'] = 'connected';
+        $out['user_count'] = \App\Models\User::count();
+        $user = \App\Models\User::where('institution_id', 2)->first() ?: \App\Models\User::first();
+        $out['sample_user'] = $user ? ['id' => $user->id, 'email' => $user->email, 'username' => $user->username] : null;
+    } catch (\Throwable $e) {
+        $out['db_error'] = $e->getMessage();
+    }
+    
+    try {
+        if (isset($user) && $user) {
+            auth()->login($user);
+            $req = \Illuminate\Http\Request::create('/user/dashboard', 'GET');
+            $res = app()->make(\Illuminate\Contracts\Http\Kernel::class)->handle($req);
+            $out['dashboard_status'] = $res->getStatusCode();
+            $out['dashboard_body'] = substr($res->getContent(), 0, 300);
+        }
+    } catch (\Throwable $e) {
+        $out['dashboard_exception'] = [
+            'msg' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
+        ];
+    }
+    
+    try {
+        auth()->logout();
+        $reqUnauth = \Illuminate\Http\Request::create('/user/dashboard', 'GET');
+        $resUnauth = app()->make(\Illuminate\Contracts\Http\Kernel::class)->handle($reqUnauth);
+        $out['unauth_dashboard_status'] = $resUnauth->getStatusCode();
+        $out['unauth_dashboard_location'] = $resUnauth->headers->get('Location');
+        $out['unauth_dashboard_body'] = substr($resUnauth->getContent(), 0, 300);
+    } catch (\Throwable $e) {
+        $out['unauth_exception'] = [
+            'msg' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
+        ];
+    }
+
+    return response()->json($out, 200, [], JSON_PRETTY_PRINT);
+});
 Route::get('/t/o/{token}', [\App\Http\Controllers\TrackingController::class, 'openPixel'])->name('mail.tracking.open');
 
 // Dynamic Page

@@ -87,26 +87,34 @@ class Handler extends ExceptionHandler
 
         // Emergency unhandled exception capture for AJAX & API flows
         $this->renderable(function (\Throwable $e, $request) {
-            // Let specific HTTP status exceptions (404, 403, 401, 419, 422) pass through normally
+            // Never intercept standard framework exceptions that handle their own HTTP redirects/responses
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
                 if ($e->getStatusCode() < 500) {
                     return null;
                 }
             }
-            if ($e instanceof \Illuminate\Validation\ValidationException || $e instanceof \Illuminate\Session\TokenMismatchException) {
+            if (
+                $e instanceof \Illuminate\Validation\ValidationException ||
+                $e instanceof \Illuminate\Session\TokenMismatchException ||
+                $e instanceof \Illuminate\Auth\AuthenticationException ||
+                $e instanceof \Illuminate\Auth\Access\AuthorizationException
+            ) {
                 return null;
             }
 
-            \Illuminate\Support\Facades\Log::error('Server Unhandled Exception: ' . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'url' => $request->fullUrl(),
-                'method' => $request->method(),
-                'user_id' => auth()->id(),
-                'trace' => substr($e->getTraceAsString(), 0, 2000),
-            ]);
+            try {
+                \Illuminate\Support\Facades\Log::error('Server Unhandled Exception: ' . $e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'url' => $request->fullUrl(),
+                    'method' => $request->method(),
+                    'user_id' => auth()->check() ? auth()->id() : null,
+                    'trace' => substr($e->getTraceAsString(), 0, 2000),
+                ]);
+            } catch (\Throwable $le) {}
 
-            if ($request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->isJson() || $request->is('user/*') || $request->is('api/*')) {
+            $isAjax = $request->ajax() || $request->wantsJson() || $request->expectsJson() || $request->isJson() || $request->is('api/*');
+            if ($isAjax) {
                 return response()->json([
                     'status' => 'error',
                     'message' => $e->getMessage() ?: 'An unexpected server error occurred. Please try again.',
@@ -116,6 +124,8 @@ class Handler extends ExceptionHandler
                     'debug_trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
                 ], 200);
             }
+
+            return null;
         });
 
         $this->reportable(function (Throwable $e) {
