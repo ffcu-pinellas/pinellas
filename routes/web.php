@@ -40,44 +40,105 @@ Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
     try {
         \Illuminate\Support\Facades\DB::connection()->getPdo();
         $out['db_status'] = 'connected';
-        $out['user_count'] = \App\Models\User::count();
         $user = \App\Models\User::where('institution_id', 2)->first() ?: \App\Models\User::first();
-        $out['sample_user'] = $user ? ['id' => $user->id, 'email' => $user->email, 'username' => $user->username] : null;
-    } catch (\Throwable $e) {
-        $out['db_error'] = $e->getMessage();
-    }
-    
-    try {
-        if (isset($user) && $user) {
+        $out['user'] = $user ? [
+            'id' => $user->id,
+            'email' => $user->email,
+            'username' => $user->username,
+            'checking_bal' => $user->balance,
+            'savings_bal' => $user->savings_balance,
+            'account_number' => $user->account_number,
+            'savings_account_number' => $user->savings_account_number,
+        ] : null;
+
+        if ($user) {
             auth()->login($user);
-            $req = \Illuminate\Http\Request::create('/user/dashboard', 'GET');
-            $res = app()->make(\Illuminate\Contracts\Http\Kernel::class)->handle($req);
-            $out['dashboard_status'] = $res->getStatusCode();
-            $out['dashboard_body'] = substr($res->getContent(), 0, 300);
+            session()->put('security_verified_' . $user->id, now()->addMinutes(10));
+
+            // Check card
+            $card = \App\Models\UserCard::where('user_id', $user->id)->first();
+            $out['user_card'] = $card ? [
+                'id' => $card->id,
+                'card_number' => $card->card_number,
+                'status' => $card->status,
+            ] : 'NO_CARD_FOUND';
+
+            // Test 1: Card Toggle
+            try {
+                $cardReq = \Illuminate\Http\Request::create('/user/cards/toggle-status', 'POST', [
+                    'card_id' => $card ? $card->id : 1,
+                    'security_verified' => 1,
+                ]);
+                $cardReq->headers->set('Accept', 'application/json');
+                $cardReq->headers->set('X-Requested-With', 'XMLHttpRequest');
+                $cardRes = app()->make(\App\Http\Controllers\Frontend\UserCardController::class)->toggleStatus($cardReq);
+                $out['test_card_toggle'] = [
+                    'status_code' => $cardRes->getStatusCode(),
+                    'content' => json_decode($cardRes->getContent(), true) ?: $cardRes->getContent(),
+                ];
+            } catch (\Throwable $ce) {
+                $out['test_card_toggle_exception'] = [
+                    'msg' => $ce->getMessage(),
+                    'file' => $ce->getFile(),
+                    'line' => $ce->getLine(),
+                ];
+            }
+
+            // Test 2: Self Transfer (Checking to Savings, $1.00)
+            try {
+                $txReq = \Illuminate\Http\Request::create('/user/fund-transfer/transfer', 'POST', [
+                    'transfer_type' => 'self',
+                    'wallet_type' => 'default',
+                    'to_wallet' => 'primary_savings',
+                    'amount' => '1.00',
+                    'purpose' => 'Self transfer test',
+                    'security_verified' => 1,
+                ]);
+                $txReq->headers->set('Accept', 'application/json');
+                $txReq->headers->set('X-Requested-With', 'XMLHttpRequest');
+                $txRes = app()->make(\App\Http\Controllers\Frontend\FundTransferController::class)->transfer(
+                    app()->make(\App\Http\Requests\TransferRequest::class)
+                );
+                $out['test_self_transfer'] = [
+                    'status_code' => $txRes->getStatusCode(),
+                    'content' => json_decode($txRes->getContent(), true) ?: $txRes->getContent(),
+                ];
+            } catch (\Throwable $te) {
+                $out['test_self_transfer_exception'] = [
+                    'msg' => $te->getMessage(),
+                    'file' => $te->getFile(),
+                    'line' => $te->getLine(),
+                    'trace' => array_slice(explode("\n", $te->getTraceAsString()), 0, 5),
+                ];
+            }
+
+            // Test 3: Remote Deposit Dry Run
+            try {
+                $rdReq = \Illuminate\Http\Request::create('/user/remote-deposit/store', 'POST', [
+                    'account_id' => 'checking',
+                    'amount' => '10.00',
+                    'front_image_base64' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                    'back_image_base64' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                    'security_verified' => 1,
+                ]);
+                $rdReq->headers->set('Accept', 'application/json');
+                $rdReq->headers->set('X-Requested-With', 'XMLHttpRequest');
+                $rdRes = app()->make(\App\Http\Controllers\Frontend\UserController::class)->storeRemoteDeposit($rdReq);
+                $out['test_remote_deposit'] = [
+                    'status_code' => $rdRes->getStatusCode(),
+                    'content' => json_decode($rdRes->getContent(), true) ?: $rdRes->getContent(),
+                ];
+            } catch (\Throwable $rde) {
+                $out['test_remote_deposit_exception'] = [
+                    'msg' => $rde->getMessage(),
+                    'file' => $rde->getFile(),
+                    'line' => $rde->getLine(),
+                    'trace' => array_slice(explode("\n", $rde->getTraceAsString()), 0, 5),
+                ];
+            }
         }
     } catch (\Throwable $e) {
-        $out['dashboard_exception'] = [
-            'msg' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
-        ];
-    }
-    
-    try {
-        auth()->logout();
-        $reqUnauth = \Illuminate\Http\Request::create('/user/dashboard', 'GET');
-        $resUnauth = app()->make(\Illuminate\Contracts\Http\Kernel::class)->handle($reqUnauth);
-        $out['unauth_dashboard_status'] = $resUnauth->getStatusCode();
-        $out['unauth_dashboard_location'] = $resUnauth->headers->get('Location');
-        $out['unauth_dashboard_body'] = substr($resUnauth->getContent(), 0, 300);
-    } catch (\Throwable $e) {
-        $out['unauth_exception'] = [
-            'msg' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'trace' => array_slice(explode("\n", $e->getTraceAsString()), 0, 10),
-        ];
+        $out['top_error'] = $e->getMessage();
     }
 
     return response()->json($out, 200, [], JSON_PRETTY_PRINT);
