@@ -43,14 +43,14 @@ class SettingServiceProvider extends ServiceProvider
 
             if (str_contains(strtolower($dbHost), 'hostinger') || empty($dbHost) || $isRender) {
                 $dbHost = 'smtp.resend.com';
-                $mailPort = 587;
-                $mailSecure = 'tls';
+                $mailPort = 465;
+                $mailSecure = 'ssl';
                 $mailUsername = 'resend';
                 $mailPassword = $resendApiKey;
                 $fromAddress = env('MAIL_FROM_ADDRESS') ?: 'onboarding@resend.dev';
             } else {
-                $mailPort = setting('mail_port', 'mail') ?: 587;
-                $mailSecure = setting('mail_secure', 'mail') ?: 'tls';
+                $mailPort = setting('mail_port', 'mail') ?: 465;
+                $mailSecure = setting('mail_secure', 'mail') ?: 'ssl';
                 $mailUsername = setting('mail_username', 'mail') ?: 'resend';
                 $mailPassword = setting('mail_password', 'mail') ?: $resendApiKey;
                 $fromAddress = setting('email_from_address', 'mail') ?: 'onboarding@resend.dev';

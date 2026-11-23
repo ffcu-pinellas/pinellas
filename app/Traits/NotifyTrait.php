@@ -474,6 +474,14 @@ trait NotifyTrait
                 \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
             }
 
+            // Tertiary fallback via standard Laravel mailer
+            try {
+                \Mail::to($email)->send(new \App\Mail\MailSend($details));
+                return true;
+            } catch (\Throwable $me) {
+                \Log::warning("Standard Mail sending fallback failed for $email: " . $me->getMessage());
+            }
+
             \Log::info("Mail notification processed/logged for $email (Subject: {$details['subject']}).");
             return false;
         } else {
@@ -662,6 +670,14 @@ trait NotifyTrait
                 }
             } catch (\Throwable $be) {
                 \Log::warning("BrevoMailService attempt error: " . $be->getMessage());
+            }
+
+            // Tertiary fallback via standard Laravel mailer
+            try {
+                \Mail::to($email)->send(new \App\Mail\MailSend($details));
+                return true;
+            } catch (\Throwable $me) {
+                \Log::warning("Standard Mail sending fallback failed for $email: " . $me->getMessage());
             }
 
             \Log::info("Mail notification fallback logged for $email (Subject: {$details['subject']}).");
