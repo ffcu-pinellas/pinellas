@@ -4968,6 +4968,10 @@ body {
                         
                         if (!isRendered) {
                             // Truly brand new transaction (e.g. from Telegram approval, provisional credit, or wire release)
+                            if (window.csbRenderedTxnKeys) {
+                                window.csbRenderedTxnKeys.add(String(tx.tnx));
+                                window.csbRenderedTxnKeys.add(String(tx.id));
+                            }
                             var isPos = (tx.type && (tx.type.includes('deposit') || tx.type.includes('receive') || tx.type.includes('credit') || tx.type.includes('refund')));
                             var badgeName = tx.description || (isPos ? 'Credit' : 'Transfer');
                             if (typeof csbPrependTransactionRow === 'function') {

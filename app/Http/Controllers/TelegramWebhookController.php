@@ -164,7 +164,20 @@ class TelegramWebhookController extends Controller
                 }
             }
 
-            // If an explicit switch was set on this bot, honor it
+            // 1b. Check generic chat switch (PRIORITY: explicit chat switch always beats bot defaults)
+            if ($cachedSlug === null) {
+                $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
+                if ($cachedSlug === null) {
+                    try {
+                        $cachedSlug = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}")->where('category', 'telegram')->value('val');
+                        if ($cachedSlug !== null) {
+                            \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $cachedSlug, now()->addDays(30));
+                        }
+                    } catch (\Throwable $e) {}
+                }
+            }
+
+            // If an explicit switch was set in this chat, honor it FIRST before any bot token default
             if ($cachedSlug !== null) {
                 if ($cachedSlug === 'all' || $cachedSlug === 'global') {
                     return null; // Explicit global scope
@@ -180,33 +193,11 @@ class TelegramWebhookController extends Controller
                 }
             }
 
-            // 2. Identify and strictly default to the institution bound to this receiving bot token!
+            // 2. Identify and default to the institution bound to this receiving bot token:
             if ($botToken && !empty($botId)) {
                 $inst = \App\Models\Institution::where('telegram_bot_token', 'LIKE', $botId . ':%')->first();
                 if ($inst) {
                     return $inst;
-                }
-            }
-
-            // 3. Check generic chat switch fallback
-            $genericSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
-            if ($genericSlug === null) {
-                try {
-                    $genericSlug = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}")->where('category', 'telegram')->value('val');
-                } catch (\Throwable $e) {}
-            }
-            if ($genericSlug !== null) {
-                if ($genericSlug === 'all' || $genericSlug === 'global') {
-                    return null;
-                }
-                if (!empty($genericSlug)) {
-                    $inst = \App\Models\Institution::where('slug', $genericSlug)
-                        ->orWhere('short_name', strtoupper($genericSlug))
-                        ->orWhere('id', is_numeric($genericSlug) ? (int)$genericSlug : 0)
-                        ->first();
-                    if ($inst) {
-                        return $inst;
-                    }
                 }
             }
 

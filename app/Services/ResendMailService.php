@@ -13,7 +13,7 @@ class ResendMailService
         $apiKey = env('RESEND_API_KEY') 
             ?: (function_exists('setting') ? setting('resend_api_key') : null) 
             ?: env('MAIL_PASSWORD')
-            ?: base64_decode('cmVfamJMQ3RnR0xfOWtBQ1Bab0F3b2FyTVI2ZDNhVEdoOUE2');
+            ?: config('mail.mailers.smtp.password');
 
         if (empty($apiKey)) {
             \Log::warning("[ResendMailService] Resend API key is not configured.");

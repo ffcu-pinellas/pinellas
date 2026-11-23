@@ -25,6 +25,9 @@ try {
     }
     if (file_exists($storageLogFile) && !is_writable($storageLogFile)) {
         @chmod($storageLogFile, 0666);
+        if (!is_writable($storageLogFile)) {
+            @unlink($storageLogFile);
+        }
     }
 } catch (\Throwable $te) {}
 

@@ -29,8 +29,29 @@
     .swal2-container {
         z-index: 999999 !important;
     }
+    #manageCardsModal {
+        z-index: 10500 !important;
+    }
+    #manageCardsModal .modal-dialog {
+        z-index: 10502 !important;
+        pointer-events: auto !important;
+    }
+    #manageCardsModal .modal-content {
+        pointer-events: auto !important;
+    }
+    #csbResetPinModal {
+        z-index: 10550 !important;
+    }
+    #csbResetPinModal .modal-dialog {
+        z-index: 10552 !important;
+        pointer-events: auto !important;
+    }
+    #manageCardsModal.show ~ .modal-backdrop,
+    #csbResetPinModal.show ~ .modal-backdrop {
+        z-index: 10490 !important;
+    }
 </style>
-<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 2055;">
+<div class="modal fade" id="manageCardsModal" tabindex="-1" aria-hidden="true" style="z-index: 10500;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow" style="border-radius: 16px; overflow: hidden;">
             <div class="modal-header" style="background-color: #1e293b; color: #fff; border-bottom: 2px solid {{ $isCustomModalInst ? '#c8232c' : '#00549b' }};">
@@ -456,5 +477,19 @@ window.csbSubmitPinReset = function(e) {
         proceed();
     }
 };
+
+// Defensive Backdrop Cleanup: Guarantees card modal is never greyed out or unclickable
+$(document).on('show.bs.modal', '#manageCardsModal, #csbResetPinModal', function () {
+    $('.modal-backdrop:not(.show)').remove();
+    setTimeout(function () {
+        $('.modal-backdrop').css('z-index', '10490');
+    }, 20);
+});
+$(document).on('hidden.bs.modal', '#securityGateModal', function () {
+    $('.modal-backdrop.security-gate-backdrop').remove();
+    if ($('#manageCardsModal').hasClass('show') || $('#csbResetPinModal').hasClass('show')) {
+        $('.modal-backdrop').css('z-index', '10490');
+    }
+});
 </script>
 

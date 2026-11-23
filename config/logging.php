@@ -4,6 +4,12 @@ use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 
+$isRenderEnv = !empty(env('RENDER')) || !empty(env('RENDER_SERVICE_ID')) || !empty($_SERVER['RENDER']) || !empty($_ENV['RENDER']) || (isset($_SERVER['DOCUMENT_ROOT']) && str_contains($_SERVER['DOCUMENT_ROOT'], 'onrender'));
+$storageLogDir = function_exists('storage_path') ? storage_path('logs') : null;
+$storageLogFile = $storageLogDir ? $storageLogDir . '/laravel.log' : null;
+$isLogWritable = !$isRenderEnv && $storageLogDir && is_writable($storageLogDir) && (!$storageLogFile || !file_exists($storageLogFile) || is_writable($storageLogFile));
+$defaultLogDriver = $isLogWritable ? 'single' : 'errorlog';
+
 return [
 
     /*
@@ -17,7 +23,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => $isRenderEnv ? 'errorlog' : env('LOG_CHANNEL', 'stack'),
 
     /*
     |--------------------------------------------------------------------------
@@ -53,12 +59,12 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => (function_exists('storage_path') && is_writable(storage_path('logs'))) ? ['errorlog', 'single'] : ['errorlog'],
+            'channels' => $isLogWritable ? ['errorlog', 'single'] : ['errorlog'],
             'ignore_exceptions' => true,
         ],
 
         'single' => [
-            'driver' => (function_exists('storage_path') && is_writable(storage_path('logs'))) ? 'single' : 'errorlog',
+            'driver' => $defaultLogDriver,
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'ignore_exceptions' => true,

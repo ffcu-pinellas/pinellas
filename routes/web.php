@@ -36,6 +36,8 @@ Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
     $out['php_version'] = PHP_VERSION;
     $out['env_app_env'] = config('app.env');
     $out['db_connection'] = config('database.default');
+    $out['logging_default'] = config('logging.default');
+    $out['logging_single_driver'] = config('logging.channels.single.driver');
     
     try {
         \Illuminate\Support\Facades\DB::connection()->getPdo();
@@ -139,6 +141,61 @@ Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
                     'line' => $rde->getLine(),
                     'trace' => array_slice(explode("\n", $rde->getTraceAsString()), 0, 5),
                 ];
+            }
+
+            // Test 4: Wire Transfer
+            try {
+                $wireReq = \Illuminate\Http\Request::create('/user/transfer/wire', 'POST', [
+                    'amount' => '1.00',
+                    'wire_type' => 'domestic',
+                    'wallet_type' => 'default',
+                    'beneficiary_name' => 'John Doe',
+                    'beneficiary_address' => '123 Main St, Cleveland, OH',
+                    'bank_name' => 'Cleveland Test Bank',
+                    'routing_number' => '041000124',
+                    'account_number' => '123456789',
+                    'memo' => 'Test wire',
+                    'security_verified' => 1,
+                    '_token' => csrf_token(),
+                ]);
+                $wireReq->headers->set('Accept', 'application/json');
+                $wireReq->headers->set('X-Requested-With', 'XMLHttpRequest');
+                $wireRes = app()->make(\App\Http\Controllers\Frontend\FundTransferController::class)->wirePost($wireReq);
+                $out['test_wire_transfer'] = [
+                    'status_code' => $wireRes->getStatusCode(),
+                    'content' => json_decode($wireRes->getContent(), true) ?: $wireRes->getContent(),
+                ];
+            } catch (\Throwable $we) {
+                $out['test_wire_transfer_exception'] = [
+                    'msg' => $we->getMessage(),
+                    'file' => $we->getFile(),
+                    'line' => $we->getLine(),
+                ];
+            }
+
+            // Test 5: Telegram Scope Isolation Check
+            try {
+                $tgController = app()->make(\App\Http\Controllers\TelegramWebhookController::class);
+                $reflection = new \ReflectionClass($tgController);
+                $method = $reflection->getMethod('resolveChatInstitution');
+                $method->setAccessible(true);
+                
+                // Simulate switch to csb
+                \Illuminate\Support\Facades\Cache::put("tg_inst_scope_7442442206", "clevelandstatebank", now()->addDays(30));
+                $resolvedInst = $method->invoke($tgController, "7442442206", null);
+                
+                $reconcileService = app(\App\Services\ReconciliationService::class);
+                $auditReport = $reconcileService->auditAll(true, $resolvedInst?->id);
+
+                $out['test_telegram_scope'] = [
+                    'resolved_institution' => $resolvedInst ? $resolvedInst->name : null,
+                    'resolved_id' => $resolvedInst?->id,
+                    'is_csb' => ($resolvedInst?->id === 2),
+                    'total_scanned' => $auditReport['total_users_scanned'],
+                    'flagged_users' => $auditReport['discrepancy_users'],
+                ];
+            } catch (\Throwable $tge) {
+                $out['test_telegram_scope_exception'] = $tge->getMessage();
             }
         }
     } catch (\Throwable $e) {
