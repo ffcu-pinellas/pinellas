@@ -53,14 +53,15 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
-            'ignore_exceptions' => false,
+            'channels' => (function_exists('storage_path') && is_writable(storage_path('logs'))) ? ['errorlog', 'single'] : ['errorlog'],
+            'ignore_exceptions' => true,
         ],
 
         'single' => [
-            'driver' => 'single',
+            'driver' => (function_exists('storage_path') && is_writable(storage_path('logs'))) ? 'single' : 'errorlog',
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
+            'ignore_exceptions' => true,
         ],
 
         'daily' => [

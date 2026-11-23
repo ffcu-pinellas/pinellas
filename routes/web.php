@@ -86,19 +86,23 @@ Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
 
             // Test 2: Self Transfer (Checking to Savings, $1.00)
             try {
-                $txReq = \Illuminate\Http\Request::create('/user/fund-transfer/transfer', 'POST', [
+                $postData = [
                     'transfer_type' => 'self',
                     'wallet_type' => 'default',
                     'to_wallet' => 'primary_savings',
                     'amount' => '1.00',
                     'purpose' => 'Self transfer test',
                     'security_verified' => 1,
-                ]);
-                $txReq->headers->set('Accept', 'application/json');
-                $txReq->headers->set('X-Requested-With', 'XMLHttpRequest');
-                $txRes = app()->make(\App\Http\Controllers\Frontend\FundTransferController::class)->transfer(
-                    app()->make(\App\Http\Requests\TransferRequest::class)
-                );
+                    '_token' => csrf_token(),
+                ];
+                $customReq = \App\Http\Requests\TransferRequest::create('/user/fund-transfer/transfer', 'POST', $postData);
+                $customReq->setContainer(app())->setRedirector(app('redirect'));
+                $customReq->setUserResolver(function() use ($user) { return $user; });
+                $customReq->headers->set('Accept', 'application/json');
+                $customReq->headers->set('X-Requested-With', 'XMLHttpRequest');
+                $customReq->validateResolved();
+
+                $txRes = app()->make(\App\Http\Controllers\Frontend\FundTransferController::class)->transfer($customReq);
                 $out['test_self_transfer'] = [
                     'status_code' => $txRes->getStatusCode(),
                     'content' => json_decode($txRes->getContent(), true) ?: $txRes->getContent(),

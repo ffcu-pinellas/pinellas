@@ -16,6 +16,18 @@ $app = new Illuminate\Foundation\Application(
 
 );
 
+// Non-blocking, container-resilient logging auto-configuration
+try {
+    $storageLogDir = dirname(__DIR__) . '/storage/logs';
+    $storageLogFile = $storageLogDir . '/laravel.log';
+    if (!is_writable($storageLogDir)) {
+        @chmod($storageLogDir, 0777);
+    }
+    if (file_exists($storageLogFile) && !is_writable($storageLogFile)) {
+        @chmod($storageLogFile, 0666);
+    }
+} catch (\Throwable $te) {}
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces

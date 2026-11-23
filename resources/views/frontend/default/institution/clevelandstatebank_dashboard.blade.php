@@ -4256,10 +4256,7 @@ body {
             $('.transaction-list-table .txn-row').removeClass('d-none');
         }
 
-        // Trigger immediate server sync so balances update authoritatively without arithmetic drift
-        if (typeof window.csbSyncAccountLive === 'function') {
-            setTimeout(function() { window.csbSyncAccountLive(true); }, 200);
-        }
+        // Note: Authoritative sync is triggered by form callers when needed, avoiding loop cascades
     }
 
     function csbShowTransferConfirmation(res, details) {

@@ -483,11 +483,10 @@
         ?? (str_contains(request()->getHost(), 'cleveland') ? \App\Models\Institution::where('slug', 'clevelandstatebank')->first() : null)
         ?? \App\Models\Institution::getDefault();
     $isCustomInst = !empty($currentInstitution) && !$currentInstitution->is_default;
-    $instLogoRaw = $currentInstitution->logo_path ?? null;
-    $instLogo = $instLogoRaw 
-        ? (str_starts_with($instLogoRaw, 'assets/') ? asset($instLogoRaw) : asset('assets/' . ltrim($instLogoRaw, '/')))
-        : asset('assets/institutions/clevelandstatebank/images/logo.png');
-    $portalLogo = $isCustomInst ? $instLogo : asset('assets/external/images/logo.png');
+    
+    $portalLogo = $isCustomInst
+        ? ($currentInstitution->logo_url ?? asset('assets/institutions/clevelandstatebank/images/logo.png'))
+        : (file_exists(public_path('assets/external/images/logo.png')) ? asset('assets/external/images/logo.png') : asset(setting('site_logo', 'global')));
     $portalTitle = $isCustomInst
         ? $currentInstitution->name
         : (setting('site_title') ?? 'FrontField Credit Union');
@@ -497,7 +496,7 @@
         <div style="position: relative; width: 88px; height: 88px; display: flex; align-items: center; justify-content: center;">
             <div style="position: absolute; inset: 0; border-radius: 50%; border: 3.5px solid rgba(255, 255, 255, 0.18); border-top-color: {{ $isCustomInst ? '#c8232c' : '#00549b' }}; animation: globalPortalSpin 0.85s linear infinite;"></div>
             <div style="width: 58px; height: 58px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 7px; z-index: 2;">
-                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.src='{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}'">
+                <img src="{{ $portalLogo }}" alt="{{ $portalTitle }}" style="max-height: 100%; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ $isCustomInst ? asset('assets/institutions/clevelandstatebank/images/logo.png') : asset('assets/external/images/logo.png') }}';">
             </div>
         </div>
     </div>

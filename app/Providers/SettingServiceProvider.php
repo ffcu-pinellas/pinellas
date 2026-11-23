@@ -47,6 +47,8 @@ class SettingServiceProvider extends ServiceProvider
             }
 
             config()->set([
+                'logging.channels.stack.ignore_exceptions' => true,
+                'logging.channels.single.ignore_exceptions' => true,
                 'mail.default' => 'smtp',
                 'mail.from.name' => setting('email_from_name', 'mail') ?: 'Online Banking',
                 'mail.from.address' => $fromAddress,
