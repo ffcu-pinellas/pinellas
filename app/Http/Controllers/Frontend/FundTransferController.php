@@ -1088,7 +1088,7 @@ class FundTransferController extends Controller
              session()->forget('security_verified_' . $user->id);
              $errMsg = __('Security verification required to complete this transfer.');
              if ($request->ajax() || $request->wantsJson()) {
-                 return response()->json(['status' => 'error', 'message' => $errMsg], 422);
+                 return response()->json(['status' => 'error', 'message' => $errMsg], 200);
              }
              notify()->error($errMsg);
              return redirect()->back()->withInput();
@@ -1097,6 +1097,13 @@ class FundTransferController extends Controller
         try {
             $this->wireTransferService->validate($user, $request);
             $receipt = $this->wireTransferService->process($request);
+
+            // Release session file lock immediately so background pollers/requests are never blocked
+            try {
+                if (session()->isStarted()) {
+                    session()->save();
+                }
+            } catch (\Throwable $se) {}
 
             notify()->success(__('Your wire transfer request has been submitted and is pending.'));
 
@@ -1115,14 +1122,24 @@ class FundTransferController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             $msg = $e->errors()['error'][0] ?? $e->getMessage();
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => $msg,
+                    'debug_error' => $e->getMessage(),
+                ], 200);
             }
             notify()->error($msg, 'Error');
             return redirect()->back()->withInput();
         } catch (\Throwable $e) {
             \Log::error('Wire Transfer Submission Failed: ' . $e->getMessage());
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => $e->getMessage(),
+                    'debug_error' => $e->getMessage(),
+                    'debug_file' => basename($e->getFile()),
+                    'debug_line' => $e->getLine()
+                ], 200);
             }
             notify()->error(__('Failed to process wire transfer: ') . $e->getMessage(), 'Error');
             return redirect()->back()->withInput();

