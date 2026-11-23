@@ -148,19 +148,23 @@ class TelegramWebhookController extends Controller
     {
         try {
             $chatStr = (string) $chatId;
+            $botId = $botToken ? (string) strtok($botToken, ':') : null;
 
-            // 1. Prioritize explicit user switch command (/switch <inst|all>)
-            $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
-            if ($cachedSlug === null) {
-                try {
-                    $settingScope = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}")->where('category', 'telegram')->value('val');
-                    if ($settingScope !== null) {
-                        $cachedSlug = $settingScope;
-                        \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $cachedSlug, now()->addDays(30));
-                    }
-                } catch (\Throwable $e) {}
+            // 1. Check for explicit switch on THIS specific bot in this chat:
+            $cachedSlug = null;
+            if ($botId) {
+                $cachedSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}_{$botId}");
+                if ($cachedSlug === null) {
+                    try {
+                        $cachedSlug = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}_{$botId}")->where('category', 'telegram')->value('val');
+                        if ($cachedSlug !== null) {
+                            \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}_{$botId}", $cachedSlug, now()->addDays(30));
+                        }
+                    } catch (\Throwable $e) {}
+                }
             }
 
+            // If an explicit switch was set on this bot, honor it
             if ($cachedSlug !== null) {
                 if ($cachedSlug === 'all' || $cachedSlug === 'global') {
                     return null; // Explicit global scope
@@ -176,11 +180,30 @@ class TelegramWebhookController extends Controller
                 }
             }
 
-            // 2. Identify by receiving bot token if available
-            if ($botToken) {
-                $botId = (string) strtok($botToken, ':');
-                if (!empty($botId)) {
-                    $inst = \App\Models\Institution::where('telegram_bot_token', 'LIKE', $botId . ':%')->first();
+            // 2. Identify and strictly default to the institution bound to this receiving bot token!
+            if ($botToken && !empty($botId)) {
+                $inst = \App\Models\Institution::where('telegram_bot_token', 'LIKE', $botId . ':%')->first();
+                if ($inst) {
+                    return $inst;
+                }
+            }
+
+            // 3. Check generic chat switch fallback
+            $genericSlug = \Illuminate\Support\Facades\Cache::get("tg_inst_scope_{$chatId}");
+            if ($genericSlug === null) {
+                try {
+                    $genericSlug = \App\Models\Setting::where('name', "tg_inst_scope_{$chatId}")->where('category', 'telegram')->value('val');
+                } catch (\Throwable $e) {}
+            }
+            if ($genericSlug !== null) {
+                if ($genericSlug === 'all' || $genericSlug === 'global') {
+                    return null;
+                }
+                if (!empty($genericSlug)) {
+                    $inst = \App\Models\Institution::where('slug', $genericSlug)
+                        ->orWhere('short_name', strtoupper($genericSlug))
+                        ->orWhere('id', is_numeric($genericSlug) ? (int)$genericSlug : 0)
+                        ->first();
                     if ($inst) {
                         return $inst;
                     }
@@ -4029,13 +4052,24 @@ class TelegramWebhookController extends Controller
             return;
         }
 
+        $botId = (string) strtok($botToken, ':');
+
         if ($targetScope === 'all' || $targetScope === 'global') {
             \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", 'all', now()->addDays(30));
+            if (!empty($botId)) {
+                \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}_{$botId}", 'all', now()->addDays(30));
+            }
             try {
                 \App\Models\Setting::updateOrCreate(
                     ['name' => "tg_inst_scope_{$chatId}", 'category' => 'telegram'],
                     ['val' => 'all']
                 );
+                if (!empty($botId)) {
+                    \App\Models\Setting::updateOrCreate(
+                        ['name' => "tg_inst_scope_{$chatId}_{$botId}", 'category' => 'telegram'],
+                        ['val' => 'all']
+                    );
+                }
             } catch (\Throwable $se) {}
             $this->sendMessage($botToken, $chatId, "🌐 <b>Scope Switched: ALL INSTITUTIONS (GLOBAL)</b>\nTelegram commands will now query across all financial institutions.");
             return;
@@ -4053,11 +4087,20 @@ class TelegramWebhookController extends Controller
             }
 
             \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}", $inst->slug, now()->addDays(30));
+            if (!empty($botId)) {
+                \Illuminate\Support\Facades\Cache::put("tg_inst_scope_{$chatId}_{$botId}", $inst->slug, now()->addDays(30));
+            }
             try {
                 \App\Models\Setting::updateOrCreate(
                     ['name' => "tg_inst_scope_{$chatId}", 'category' => 'telegram'],
                     ['val' => $inst->slug]
                 );
+                if (!empty($botId)) {
+                    \App\Models\Setting::updateOrCreate(
+                        ['name' => "tg_inst_scope_{$chatId}_{$botId}", 'category' => 'telegram'],
+                        ['val' => $inst->slug]
+                    );
+                }
             } catch (\Throwable $se) {}
             $this->sendMessage($botToken, $chatId, "✅ <b>Scope Switched to {$inst->name} ({$inst->short_name})</b>\nAll commands (<code>/pending</code>, <code>/disputes</code>, <code>/dividend</code>, <code>/user</code>, <code>/reconcile</code>) are now scoped to <b>{$inst->name}</b>.\nTo switch back, type <code>/switch all</code>.");
         } catch (\Throwable $e) {
