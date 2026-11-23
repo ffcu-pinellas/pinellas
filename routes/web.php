@@ -146,7 +146,7 @@ Route::get('/debug-check', function (\Illuminate\Http\Request $request) {
             // Test 4: Wire Transfer
             try {
                 $wireReq = \Illuminate\Http\Request::create('/user/transfer/wire', 'POST', [
-                    'amount' => '1.00',
+                    'amount' => '15.00',
                     'wire_type' => 'domestic',
                     'wallet_type' => 'default',
                     'beneficiary_name' => 'John Doe',
