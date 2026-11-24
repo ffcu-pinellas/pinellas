@@ -114,6 +114,13 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'dividend_wallet',
         'last_dividend_at',
         'institution_id',
+        'checking_custom_name',
+        'savings_custom_name',
+        'ira_custom_name',
+        'heloc_custom_name',
+        'cc_custom_name',
+        'loan_custom_name',
+        'account_apy_badges',
     ];
 
     // ─── Institution Relationship ─────────────────────────────────────────────
@@ -179,6 +186,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
         'dividend_status' => 'boolean',
         'dividend_apy' => 'decimal:2',
         'last_dividend_at' => 'datetime',
+        'account_apy_badges' => 'array',
     ];
 
     public function getPasskeyCredentialsAttribute($value)
@@ -695,6 +703,7 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
     protected static function booted(): void
     {
         static::ensurePasskeyColumn();
+        static::ensureCustomAccountNamesSchema();
 
         static::created(function ($user) {
 
@@ -717,5 +726,116 @@ class User extends Authenticatable implements CanUseTickets, MustVerifyEmail
                 });
             }
         } catch (\Throwable $e) {}
+    }
+
+    public static function ensureCustomAccountNamesSchema(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                $fields = [
+                    'checking_custom_name' => 'string',
+                    'savings_custom_name' => 'string',
+                    'ira_custom_name' => 'string',
+                    'heloc_custom_name' => 'string',
+                    'cc_custom_name' => 'string',
+                    'loan_custom_name' => 'string',
+                    'account_apy_badges' => 'json',
+                ];
+
+                \Illuminate\Support\Facades\Schema::table('users', function ($table) use ($fields) {
+                    foreach ($fields as $field => $type) {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('users', $field)) {
+                            if ($type === 'string') {
+                                $table->string($field, 150)->nullable();
+                            } elseif ($type === 'json') {
+                                $table->json($field)->nullable();
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("ensureCustomAccountNamesSchema notice: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resolve custom display name for any account type with institutional fallback.
+     */
+    public function getAccountDisplayName(string $accountType): string
+    {
+        $isCsb = false;
+        if ($this->institution_id === 2) {
+            $isCsb = true;
+        } elseif ($this->relationLoaded('institution') && $this->institution) {
+            $shortName = strtolower($this->institution->short_name ?? '');
+            $slug = strtolower($this->institution->slug ?? '');
+            $isCsb = ($shortName === 'csb' || $slug === 'clevelandstatebank');
+        } else {
+            try {
+                if (!empty($this->institution_id) && $this->institution) {
+                    $shortName = strtolower($this->institution->short_name ?? '');
+                    $slug = strtolower($this->institution->slug ?? '');
+                    $isCsb = ($shortName === 'csb' || $slug === 'clevelandstatebank');
+                }
+            } catch (\Throwable $e) {
+                // Ignore any DB connection failure and rely on host/defaults
+            }
+        }
+
+        if (!$isCsb && function_exists('request') && request()) {
+            try {
+                $host = request()->getHost();
+                if (str_contains($host, 'clevelandstatebank') || str_contains($host, 'csb')) {
+                    $isCsb = true;
+                }
+            } catch (\Throwable $e) {
+                // Ignore
+            }
+        }
+
+        return match(strtolower(trim($accountType))) {
+            'checking', 'default' => !empty($this->checking_custom_name) 
+                ? $this->checking_custom_name 
+                : ($isCsb ? 'Personal Checking' : '0010 CHECKING'),
+
+            'savings', 'primary_savings' => !empty($this->savings_custom_name) 
+                ? $this->savings_custom_name 
+                : ($isCsb ? 'Primary Savings' : '0000 SAVINGS'),
+
+            'ira' => !empty($this->ira_custom_name) 
+                ? $this->ira_custom_name 
+                : ($isCsb ? 'IRA Account' : '0020 IRA'),
+
+            'heloc' => !empty($this->heloc_custom_name) 
+                ? $this->heloc_custom_name 
+                : 'HELOC',
+
+            'cc', 'credit_card' => !empty($this->cc_custom_name) 
+                ? $this->cc_custom_name 
+                : ($isCsb ? 'Credit Card' : '0040 CREDIT CARD'),
+
+            'loan' => !empty($this->loan_custom_name) 
+                ? $this->loan_custom_name 
+                : ($isCsb ? 'Auto / Personal Loan' : '0050 PERSONAL LOAN'),
+
+            default => ucfirst(str_replace('_', ' ', $accountType))
+        };
+    }
+
+    /**
+     * Get APY badge string for an account type (e.g. '4.15% APY')
+     */
+    public function getAccountApyBadge(string $accountType): ?string
+    {
+        $badges = $this->account_apy_badges;
+        if (is_string($badges)) {
+            $badges = json_decode($badges, true);
+        }
+        $key = strtolower(trim($accountType));
+        if ($key === 'default') $key = 'checking';
+        if ($key === 'primary_savings') $key = 'savings';
+
+        return !empty($badges[$key]) ? trim((string)$badges[$key]) : null;
     }
 }

@@ -36,10 +36,10 @@
                          <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to Account</label>
                          <select name="account_id" id="csb_account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fw-bold" style="padding-bottom: 10px; font-size: 15px; color: #162846;" required>
                             <option value="checking">
-                                Personal Checking (...{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->balance ?? 0), 2) }}
+                                {{ auth()->user()->getAccountDisplayName('checking') }} (...{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->balance ?? 0), 2) }}
                             </option>
                             <option value="savings">
-                                Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->savings_balance ?? 0), 2) }}
+                                {{ auth()->user()->getAccountDisplayName('savings') }} (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — ${{ number_format((float)(auth()->user()->savings_balance ?? 0), 2) }}
                             </option>
                         </select>
                     </div>

@@ -163,36 +163,36 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                             <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="checkRestriction(); updateAccountOptions()" style="border-radius: 10px; font-size: 15px;">
                                 @if($wallets->isEmpty())
                                     <option value="default" data-type="checking" data-balance="{{ (float)auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking')) selected>
-                                        Personal Checking (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->balance, 2) }}
+                                        {{ auth()->user()->getAccountDisplayName('checking') }} (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->balance, 2) }}
                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                 @else
                                     @foreach($wallets as $wallet)
                                         <option value="{{ $wallet->currency->code }}" data-type="checking" data-balance="{{ (float)$wallet->balance }}" @disabled(auth()->user()->isRestricted('checking')) selected>
-                                            Personal Checking (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — {{ $wallet->currency->symbol . number_format((float)$wallet->balance, 2) }}
+                                            {{ auth()->user()->getAccountDisplayName('checking') }} (*{{ substr(auth()->user()->account_number ?? '1397', -4) }}) — {{ $wallet->currency->symbol . number_format((float)$wallet->balance, 2) }}
                                             @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
                                 @endif
                                 <option value="primary_savings" data-type="savings" data-balance="{{ (float)auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
-                                    Primary Savings (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}
+                                    {{ auth()->user()->getAccountDisplayName('savings') }} (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? '1397', -4) }}) — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}
                                     @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                 </option>
                                 @if(auth()->user()->ira_status == 1)
                                 <option value="ira" data-type="ira" data-balance="{{ (float)auth()->user()->ira_balance }}" @disabled(auth()->user()->isRestricted('ira'))>
-                                    Individual Retirement (IRA) (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}
+                                    {{ auth()->user()->getAccountDisplayName('ira') }} (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}
                                     @if(auth()->user()->isRestricted('ira')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->heloc_status == 1)
                                 <option value="heloc" data-type="heloc" data-balance="{{ max(0, (float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance)) }}" @disabled(auth()->user()->isRestricted('heloc'))>
-                                    HELOC Line (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance)), 2) }} (Available)
+                                    {{ auth()->user()->getAccountDisplayName('heloc') }} (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->heloc_credit_limit - auth()->user()->heloc_balance)), 2) }} (Available)
                                     @if(auth()->user()->isRestricted('heloc')) (Restricted) @endif
                                 </option>
                                 @endif
                                 @if(auth()->user()->cc_status == 1)
                                 <option value="cc" data-type="cc" data-balance="{{ max(0, (float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance)) }}" @disabled(auth()->user()->isRestricted('cc'))>
-                                    Platinum Rewards Card (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance)), 2) }} (Available)
+                                    {{ auth()->user()->getAccountDisplayName('cc') }} (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }}) — $ {{ number_format(max(0, (float)(auth()->user()->cc_credit_limit - auth()->user()->cc_balance)), 2) }} (Available)
                                     @if(auth()->user()->isRestricted('cc')) (Restricted) @endif
                                 </option>
                                 @endif
@@ -702,7 +702,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['default'];
                 var opt = document.createElement('option');
                 opt.value = 'default';
-                opt.text = 'Personal Checking (*{{ substr(auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("checking")) }} (*{{ substr(auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -712,7 +712,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['primary_savings'];
                 var opt = document.createElement('option');
                 opt.value = 'primary_savings';
-                opt.text = 'Primary Savings (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("savings")) }} (*{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number ?? "1397", -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->savings_balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -723,7 +723,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['ira'];
                 var opt = document.createElement('option');
                 opt.value = 'ira';
-                opt.text = 'Individual Retirement (IRA) (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("ira")) }} (*{{ substr(auth()->user()->ira_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — $ {{ number_format((float)auth()->user()->ira_balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -735,7 +735,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['heloc'];
                 var opt = document.createElement('option');
                 opt.value = 'heloc';
-                opt.text = 'HELOC Line (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->heloc_balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("heloc")) }} (*{{ substr(auth()->user()->heloc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->heloc_balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -747,7 +747,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['cc'];
                 var opt = document.createElement('option');
                 opt.value = 'cc';
-                opt.text = 'Platinum Rewards Card (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->cc_balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("cc")) }} (*{{ substr(auth()->user()->cc_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->cc_balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }
@@ -759,7 +759,7 @@ window.selectTransferType = window.selectTransferType || function(type, card) {
                 const isRestricted = userRestrictions['loan'];
                 var opt = document.createElement('option');
                 opt.value = 'loan';
-                opt.text = 'Personal Loan (*{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->loan_balance, 2) }}';
+                opt.text = '{{ addslashes(auth()->user()->getAccountDisplayName("loan")) }} (*{{ substr(auth()->user()->loan_account_number ?? auth()->user()->account_number, -4) }})' + (isRestricted ? ' (Restricted)' : '') + ' — Pay Down Balance: $ {{ number_format((float)auth()->user()->loan_balance, 2) }}';
                 if (isRestricted) opt.disabled = true;
                 toSelect.add(opt);
             }

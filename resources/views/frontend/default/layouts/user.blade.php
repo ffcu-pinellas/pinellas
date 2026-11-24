@@ -1222,7 +1222,13 @@
                                             ? '<span class="text-success"><i class="fas fa-check-circle me-1 small"></i>Completed</span>'
                                             : (isDeclined ? '<span class="text-danger"><i class="fas fa-times-circle me-1 small"></i>Failed</span>' : '<span class="text-warning"><i class="fas fa-clock me-1 small"></i>Pending</span>');
 
-                                        var walletLabel = (tx.wallet_type === 'default' || tx.wallet_type === 'checking') ? '0010 CHECKING' : ((tx.wallet_type === 'primary_savings' || tx.wallet_type === 'savings') ? '0000 SAVINGS' : 'ACCOUNT');
+                                        var customChecking = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("checking") : "0010 CHECKING") }}';
+                                        var customSavings = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("savings") : "0000 SAVINGS") }}';
+                                        var customIra = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("ira") : "0020 IRA") }}';
+                                        var customHeloc = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("heloc") : "HELOC") }}';
+                                        var customCc = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("cc") : "0040 CREDIT CARD") }}';
+                                        var customLoan = '{{ addslashes(auth()->user() ? auth()->user()->getAccountDisplayName("loan") : "0050 PERSONAL LOAN") }}';
+                                        var walletLabel = (tx.wallet_type === 'default' || tx.wallet_type === 'checking') ? customChecking : ((tx.wallet_type === 'primary_savings' || tx.wallet_type === 'savings') ? customSavings : (tx.wallet_type === 'ira' ? customIra : (tx.wallet_type === 'heloc' ? customHeloc : (tx.wallet_type === 'cc' ? customCc : (tx.wallet_type === 'loan' ? customLoan : 'ACCOUNT')))));
 
                                         var newLi = document.createElement('li');
                                         newLi.className = 'txn-item px-3 py-2 border-bottom d-flex justify-content-between align-items-center transition-all hover-bg-light';

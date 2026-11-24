@@ -1462,15 +1462,22 @@ body {
             </div>
 
             <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
+            <!-- Account Tiles Grid (Checking + Savings + IRA + HELOC + Credit Card + Loan Account) -->
             <div class="account-tiles-grid">
                 <!-- Checking Card 3D Flip Tile -->
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Checking', '{{ $user->account_number ?? '1397' }}', {{ $checkingBal }}, 0, 'checking')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('checking')) }}', '{{ $user->account_number ?? '1397' }}', {{ $checkingBal }}, 0, 'checking')">
                     <div class="csb-account-card-inner">
                         <!-- Front Face: Available Balance -->
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">Checking <i class="fa-solid fa-star star-icon"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->account_number ?? '1397', -4) }}</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('checking') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('checking') }}</span>
+                                    @if($user->getAccountApyBadge('checking'))
+                                        <span class="badge bg-success-subtle text-success border border-success ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('checking') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-star star-icon ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->account_number ?? '1397', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="checking">
@@ -1498,12 +1505,18 @@ body {
 
                 <!-- Primary Savings 3D Flip Tile -->
                 @if($hasSavings)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Primary Savings', '{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}', {{ $savingsBal }}, 0, 'savings')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('savings')) }}', '{{ $user->savings_account_number ?? $user->account_number ?? '4902' }}', {{ $savingsBal }}, 0, 'savings')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">Primary Savings <i class="fa-solid fa-star star-icon"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('savings') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('savings') }}</span>
+                                    @if($user->getAccountApyBadge('savings'))
+                                        <span class="badge bg-success-subtle text-success border border-success ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('savings') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-star star-icon ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->savings_account_number ?? $user->account_number ?? '4902', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="savings">
@@ -1531,12 +1544,18 @@ body {
 
                 <!-- IRA 3D Flip Tile -->
                 @if($hasIra)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'IRA Account', '{{ $user->ira_account_number ?? $user->account_number ?? '0000' }}', {{ $iraBal }}, 0, 'ira')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('ira')) }}', '{{ $user->ira_account_number ?? $user->account_number ?? '0000' }}', {{ $iraBal }}, 0, 'ira')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">IRA Account <i class="fa-solid fa-piggy-bank text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->ira_account_number ?? $user->account_number ?? '0000', -4) }}</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('ira') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('ira') }}</span>
+                                    @if($user->getAccountApyBadge('ira'))
+                                        <span class="badge bg-success-subtle text-success border border-success ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('ira') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-piggy-bank text-muted ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->ira_account_number ?? $user->account_number ?? '0000', -4) }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="ira">
@@ -1564,12 +1583,18 @@ body {
 
                 <!-- HELOC 3D Flip Tile -->
                 @if($hasHeloc)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number ?? '0000' }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('heloc')) }}', '{{ $user->heloc_account_number ?? $user->account_number ?? '0000' }}', {{ $helocBal }}, {{ (float)($user->heloc_credit_limit ?? 0) }}, 'heloc')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">HELOC <i class="fa-solid fa-house-chimney text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H00</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('heloc') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('heloc') }}</span>
+                                    @if($user->getAccountApyBadge('heloc'))
+                                        <span class="badge bg-info-subtle text-info border border-info ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('heloc') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-house-chimney text-muted ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}H00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="heloc">
@@ -1597,12 +1622,18 @@ body {
 
                 <!-- Credit Card 3D Flip Tile -->
                 @if($hasCc)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('cc')) }}', '{{ $user->cc_account_number ?? $user->account_number ?? '9538' }}', {{ $ccBal }}, {{ $ccLimit }}, 'cc')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">Credit Card <i class="fa-solid fa-credit-card text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}C00</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('cc') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('cc') }}</span>
+                                    @if($user->getAccountApyBadge('cc'))
+                                        <span class="badge bg-primary-subtle text-primary border border-primary ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('cc') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-credit-card text-muted ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->cc_account_number ?? $user->account_number ?? '9538', -4) }}C00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="cc">
@@ -1630,12 +1661,18 @@ body {
 
                 <!-- Loan Account 3D Flip Tile -->
                 @if($hasLoan)
-                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, 'Personal Loan Account', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
+                <div class="csb-account-card" role="button" onclick="csbHandleTileTap(this, event, '{{ addslashes($user->getAccountDisplayName('loan')) }}', '{{ $user->loan_account_number ?? $user->account_number ?? '8859' }}', {{ $loanBal }}, {{ $loanOrig }}, 'loan')">
                     <div class="csb-account-card-inner">
                         <div class="csb-account-card-front">
-                            <div class="tile-header">
-                                <span class="tile-name">Loan Account <i class="fa-solid fa-file-contract text-muted ms-1"></i></span>
-                                <span class="tile-account-no">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}L00</span>
+                            <div class="tile-header d-flex justify-content-between align-items-center">
+                                <span class="tile-name text-truncate" style="max-width: 170px; display: inline-flex; align-items: center;" title="{{ $user->getAccountDisplayName('loan') }}">
+                                    <span class="text-truncate">{{ $user->getAccountDisplayName('loan') }}</span>
+                                    @if($user->getAccountApyBadge('loan'))
+                                        <span class="badge bg-warning-subtle text-dark border border-warning ms-1 flex-shrink-0" style="font-size: 9.5px; padding: 1px 5px; font-weight: 600;">{{ $user->getAccountApyBadge('loan') }}</span>
+                                    @endif
+                                    <i class="fa-solid fa-file-contract text-muted ms-1 flex-shrink-0"></i>
+                                </span>
+                                <span class="tile-account-no flex-shrink-0 ms-1">*{{ substr($user->loan_account_number ?? $user->account_number ?? '8859', -4) }}L00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="tile-balance" data-csb-balance="loan">
@@ -1660,6 +1697,7 @@ body {
                     </div>
                 </div>
                 @endif
+            </div>
             </div>
 
             <!-- Two Column Lower Cards -->

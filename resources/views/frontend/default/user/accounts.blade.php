@@ -29,17 +29,22 @@
             <div class="col-lg-4 col-md-6">
                     <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                         style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                        onclick="window.showAccountDetails('Personal Checking', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')">
+                        onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('checking')) }}', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Personal Checking</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('checking') }}">{{ auth()->user()->getAccountDisplayName('checking') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('checking'))
+                                        <span class="badge bg-success text-white py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('checking') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Checking', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('checking')) }}', '{{ auth()->user()->account_number }}', {{ auth()->user()->balance ?? 0 }}, 0, 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -59,17 +64,22 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="window.showAccountDetails('Primary Savings', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')">
+                    onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('savings')) }}', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Primary Savings</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('savings') }}">{{ auth()->user()->getAccountDisplayName('savings') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('savings'))
+                                        <span class="badge bg-success text-white py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('savings') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ $savingsAccountNumber }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Primary Savings', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('savings')) }}', '{{ $savingsAccountNumber }}', {{ auth()->user()->savings_balance ?? 0 }}, 0, 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -121,17 +131,22 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="window.showAccountDetails('IRA Account', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')">
+                    onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('ira')) }}', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">IRA Account</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('ira') }}">{{ auth()->user()->getAccountDisplayName('ira') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('ira'))
+                                        <span class="badge bg-success text-white py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('ira') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('IRA Account', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('ira')) }}', '{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->ira_balance ?? 0 }}, 0, 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -153,17 +168,22 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="window.showAccountDetails('HELOC Account', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')">
+                    onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('heloc')) }}', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">HELOC Account</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('heloc') }}">{{ auth()->user()->getAccountDisplayName('heloc') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('heloc'))
+                                        <span class="badge bg-info text-white py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('heloc') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('HELOC Account', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('heloc')) }}', '{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->heloc_balance ?? 0 }}, {{ auth()->user()->heloc_credit_limit ?? 0 }}, 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>
@@ -186,17 +206,22 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="window.showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')">
+                    onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('cc')) }}', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Credit Card</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('cc') }}">{{ auth()->user()->getAccountDisplayName('cc') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('cc'))
+                                        <span class="badge bg-warning text-dark py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('cc') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Credit Card', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('cc')) }}', '{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->cc_balance ?? 0 }}, {{ auth()->user()->cc_credit_limit ?? 0 }}, 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Pay Bill</a></li>
                                 </ul>
@@ -219,17 +244,22 @@
             <div class="col-lg-4 col-md-6">
                 <div class="site-card h-100 shadow-lg border-0 account-detail-trigger" 
                     style="border-radius: 12px; transition: transform 0.3s ease; cursor: pointer;"
-                    onclick="window.showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')">
+                    onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('loan')) }}', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')">
                     <div class="p-4 bg-white">
                         <div class="d-flex justify-content-between mb-4">
                             <div>
-                                <h5 class="fw-bold mb-0" style="color: var(--account-card-primary-background-color);">Loan Account</h5>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h5 class="fw-bold mb-0 text-truncate" style="color: var(--account-card-primary-background-color); max-width: 200px;" title="{{ auth()->user()->getAccountDisplayName('loan') }}">{{ auth()->user()->getAccountDisplayName('loan') }}</h5>
+                                    @if(auth()->user()->getAccountApyBadge('loan'))
+                                        <span class="badge bg-secondary text-white py-1 px-2" style="font-size: 10px;">{{ auth()->user()->getAccountApyBadge('loan') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted small">{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}</div>
                             </div>
                             <div class="dropdown" onclick="event.stopPropagation()">
                                 <i class="fas fa-ellipsis-v text-muted" role="button" data-bs-toggle="dropdown"></i>
                                 <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('Loan Account', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
+                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes(auth()->user()->getAccountDisplayName('loan')) }}', '{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}', {{ auth()->user()->loan_balance ?? 0 }}, {{ auth()->user()->loan_original_amount ?? 0 }}, 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account details</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.transactions') }}">View activity</a></li>
                                     <li><a class="dropdown-item" href="{{ route('user.fund_transfer.index') }}">Transfer funds</a></li>
                                 </ul>

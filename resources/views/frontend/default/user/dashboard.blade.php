@@ -115,17 +115,22 @@
                 <!-- Dynamic Accounts Carousel -->
                 <div class="banno-accounts-scroll d-flex gap-2 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                     <!-- Checking Account -->
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('checking')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="0010 CHECKING" data-account="{{ auth()->user()->account_number }}" data-balance="{{ auth()->user()->balance ?? 0 }}" data-limit="0" data-type="checking">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('checking')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('checking') }}" data-account="{{ auth()->user()->account_number }}" data-balance="{{ auth()->user()->balance ?? 0 }}" data-limit="0" data-type="checking">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        0010 CHECKING
-                                        @if(auth()->user()->isRestricted('checking'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('checking') }}">
+                                            {{ auth()->user()->getAccountDisplayName('checking') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('checking'))
+                                            <span class="badge bg-success text-white px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('checking') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('checking'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('checking'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -154,17 +159,22 @@
                     </div>
 
                     <!-- Primary Savings Account -->
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('savings')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="0000 SAVINGS" data-account="{{ $savingsAccountNumber ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->savings_balance ?? 0 }}" data-limit="0" data-type="savings">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('savings')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('savings') }}" data-account="{{ $savingsAccountNumber ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->savings_balance ?? 0 }}" data-limit="0" data-type="savings">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        0000 SAVINGS
-                                        @if(auth()->user()->isRestricted('savings'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('savings') }}">
+                                            {{ auth()->user()->getAccountDisplayName('savings') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('savings'))
+                                            <span class="badge bg-success text-white px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('savings') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('savings'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('savings'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -194,17 +204,22 @@
 
                     <!-- IRA Account -->
                     @if(auth()->user()->ira_status == 1)
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('ira')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="IRA ACCOUNT" data-account="{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->ira_balance ?? 0 }}" data-limit="0" data-type="ira">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('ira')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('ira') }}" data-account="{{ auth()->user()->ira_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->ira_balance ?? 0 }}" data-limit="0" data-type="ira">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        IRA ACCOUNT
-                                        @if(auth()->user()->isRestricted('ira'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('ira') }}">
+                                            {{ auth()->user()->getAccountDisplayName('ira') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('ira'))
+                                            <span class="badge bg-success text-white px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('ira') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('ira'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('ira'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -235,17 +250,22 @@
 
                     <!-- HELOC Account -->
                     @if(auth()->user()->heloc_status == 1)
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('heloc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="HELOC" data-account="{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->heloc_balance ?? 0 }}" data-limit="{{ auth()->useriloc_credit_limit ?? 0 }}" data-type="heloc">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('heloc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('heloc') }}" data-account="{{ auth()->user()->heloc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->heloc_balance ?? 0 }}" data-limit="{{ auth()->user()->heloc_credit_limit ?? 0 }}" data-type="heloc">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        HELOC
-                                        @if(auth()->user()->isRestricted('heloc'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('heloc') }}">
+                                            {{ auth()->user()->getAccountDisplayName('heloc') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('heloc'))
+                                            <span class="badge bg-info text-white px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('heloc') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('heloc'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('heloc'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -276,17 +296,22 @@
 
                     <!-- Credit Card -->
                     @if(auth()->user()->cc_status == 1)
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('cc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="CREDIT CARD" data-account="{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->cc_balance ?? 0 }}" data-limit="{{ auth()->user()->cc_credit_limit ?? 0 }}" data-type="cc">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('cc')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('cc') }}" data-account="{{ auth()->user()->cc_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->cc_balance ?? 0 }}" data-limit="{{ auth()->user()->cc_credit_limit ?? 0 }}" data-type="cc">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        CREDIT CARD
-                                        @if(auth()->user()->isRestricted('cc'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('cc') }}">
+                                            {{ auth()->user()->getAccountDisplayName('cc') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('cc'))
+                                            <span class="badge bg-warning text-dark px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('cc') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('cc'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('cc'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -317,17 +342,22 @@
 
                     <!-- Loan Account -->
                     @if(auth()->user()->loan_account_status == 1)
-                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('loan')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="PERSONAL LOAN" data-account="{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->loan_balance ?? 0 }}" data-limit="{{ auth()->user()->loan_credit_limit ?? 0 }}" data-type="loan">
+                    <div class="flex-grow-1 account-card position-relative" style="min-width: 280px; width: 100%; cursor: pointer; @if(auth()->user()->isRestricted('loan')) filter: grayscale(0.5) opacity(0.8); @endif" data-title="{{ auth()->user()->getAccountDisplayName('loan') }}" data-account="{{ auth()->user()->loan_account_number ?? auth()->user()->account_number }}" data-balance="{{ auth()->user()->loan_balance ?? 0 }}" data-limit="{{ auth()->user()->loan_credit_limit ?? 0 }}" data-type="loan">
                         <div class="account-card-inner">
                             <div class="account-card-front p-3 rounded-3 premium-shimmer">
                                 <div class="d-flex justify-content-between align-items-start small fw-bold mb-1">
-                                    <span>
-                                        LOAN ACCOUNT
-                                        @if(auth()->user()->isRestricted('loan'))
-                                            <i class="fas fa-lock ms-1" style="font-size: 10px; color: #ff9a9a;"></i>
+                                    <div class="d-flex align-items-center gap-1 min-w-0" style="max-width: 175px;">
+                                        <span class="text-truncate fw-bold" title="{{ auth()->user()->getAccountDisplayName('loan') }}">
+                                            {{ auth()->user()->getAccountDisplayName('loan') }}
+                                        </span>
+                                        @if(auth()->user()->getAccountApyBadge('loan'))
+                                            <span class="badge bg-secondary text-white px-1 py-0 flex-shrink-0" style="font-size: 9.5px; border-radius: 4px;">{{ auth()->user()->getAccountApyBadge('loan') }}</span>
                                         @endif
-                                    </span>
-                                    <div class="d-flex flex-column align-items-end">
+                                        @if(auth()->user()->isRestricted('loan'))
+                                            <i class="fas fa-lock ms-1 flex-shrink-0" style="font-size: 10px; color: #ff9a9a;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex flex-column align-items-end flex-shrink-0">
                                         @if(auth()->user()->isRestricted('loan'))
                                             <span class="badge bg-danger mb-1" style="font-size: 10px; padding: 2px 6px; border-radius: 50px;">RESTRICTED</span>
                                         @endif
@@ -421,10 +451,18 @@
                                         
                                         // Account Label Logic
                                         $wallet = $transaction->wallet_type;
-                                        if ($wallet == 'default') {
-                                            $accountLabel = '0010 CHECKING';
-                                        } elseif ($wallet == 'savings_primary' || str_starts_with($wallet, 'savings_')) {
-                                            $accountLabel = '0000 SAVINGS';
+                                        if ($wallet == 'default' || $wallet == 'checking') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('checking');
+                                        } elseif ($wallet == 'savings_primary' || $wallet == 'primary_savings' || str_starts_with($wallet, 'savings_') || $wallet == 'savings') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('savings');
+                                        } elseif ($wallet == 'ira') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('ira');
+                                        } elseif ($wallet == 'heloc') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('heloc');
+                                        } elseif ($wallet == 'cc') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('cc');
+                                        } elseif ($wallet == 'loan') {
+                                            $accountLabel = auth()->user()->getAccountDisplayName('loan');
                                         } else {
                                             $accountLabel = 'ACCOUNT';
                                         }

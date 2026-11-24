@@ -1020,7 +1020,7 @@ class FundTransferController extends Controller
         $accounts = [];
         $accounts[] = [
             'id' => 'default',
-            'name' => 'Checking Account',
+            'name' => $user->getAccountDisplayName('checking'),
             'account_number' => $user->account_number,
             'balance' => $user->balance,
             'is_restricted' => $user->isRestricted('checking'),
@@ -1028,7 +1028,7 @@ class FundTransferController extends Controller
         if (!empty($user->savings_account_number)) {
             $accounts[] = [
                 'id' => 'primary_savings',
-                'name' => 'Primary Savings',
+                'name' => $user->getAccountDisplayName('savings'),
                 'account_number' => $user->savings_account_number,
                 'balance' => $user->savings_balance,
                 'is_restricted' => $user->isRestricted('savings'),
@@ -1037,7 +1037,7 @@ class FundTransferController extends Controller
         if ($user->ira_status == 1 && !empty($user->ira_account_number)) {
             $accounts[] = [
                 'id' => 'ira',
-                'name' => 'IRA Account',
+                'name' => $user->getAccountDisplayName('ira'),
                 'account_number' => $user->ira_account_number,
                 'balance' => $user->ira_balance,
                 'is_restricted' => $user->isRestricted('ira'),
@@ -1047,7 +1047,7 @@ class FundTransferController extends Controller
             $availableCredit = max(0, (float)$user->heloc_credit_limit - (float)$user->heloc_balance);
             $accounts[] = [
                 'id' => 'heloc',
-                'name' => 'HELOC (Home Equity)',
+                'name' => $user->getAccountDisplayName('heloc'),
                 'account_number' => $user->heloc_account_number,
                 'balance' => $availableCredit,
                 'is_restricted' => $user->isRestricted('heloc'),

@@ -51,11 +51,11 @@
                          <label class="small text-muted mb-1 fw-bold text-uppercase">Deposit to</label>
                          <select name="account_id" id="account_id" class="form-select border-0 border-bottom shadow-none rounded-0 px-0 fw-600" style="padding-bottom: 10px; font-size: 14px;" required onchange="checkAccountRestriction()">
                             <option value="checking" @disabled(auth()->user()->isRestricted('checking'))>
-                                Personal Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}
+                                {{ auth()->user()->getAccountDisplayName('checking') }} (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->balance, 2) }}
                                 @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                             </option>
                             <option value="savings" @disabled(auth()->user()->isRestricted('savings'))>
-                                Primary Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}
+                                {{ auth()->user()->getAccountDisplayName('savings') }} (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}) - ${{ number_format(auth()->user()->savings_balance, 2) }}
                                 @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                             </option>
                         </select>

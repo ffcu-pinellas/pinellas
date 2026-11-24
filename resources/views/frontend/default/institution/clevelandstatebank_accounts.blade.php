@@ -102,17 +102,20 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('checking')) }}', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #c8232c;">
                             <i class="fa-solid fa-money-check fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Personal Checking</h5>
-                                <i class="fa-solid fa-star text-warning" style="font-size: 11px;" title="Favorite Account"></i>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('checking') }}">{{ $user->getAccountDisplayName('checking') }}</h5>
+                                <i class="fa-solid fa-star text-warning flex-shrink-0" style="font-size: 11px;" title="Favorite Account"></i>
+                                @if($user->getAccountApyBadge('checking'))
+                                    <span class="badge bg-success text-white py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('checking') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</div>
                         </div>
@@ -122,7 +125,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Checking', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details &amp; Routing</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('checking')) }}', '{{ $user->account_number }}', '{{ (float)($user->balance ?? 0) }}', '0', 'checking')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details &amp; Routing</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'checking']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Transfer Funds</a></li>
                             <li><a class="dropdown-item py-2" href="{{ Route::has('user.direct-deposit') ? route('user.direct-deposit', 'checking') : url('/user/direct-deposit/checking') }}"><i class="fa-solid fa-file-pdf text-danger me-2"></i> Direct Deposit Form</a></li>
@@ -148,17 +151,20 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('savings')) }}', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #162846;">
                             <i class="fa-solid fa-piggy-bank fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Primary Savings</h5>
-                                <i class="fa-solid fa-star text-warning" style="font-size: 11px;" title="Favorite Account"></i>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('savings') }}">{{ $user->getAccountDisplayName('savings') }}</h5>
+                                <i class="fa-solid fa-star text-warning flex-shrink-0" style="font-size: 11px;" title="Favorite Account"></i>
+                                @if($user->getAccountApyBadge('savings'))
+                                    <span class="badge bg-success text-white py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('savings') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</div>
                         </div>
@@ -168,7 +174,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Primary Savings', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('savings')) }}', '{{ $user->savings_account_number ?? $user->account_number }}', '{{ (float)($user->savings_balance ?? 0) }}', '0', 'savings')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'savings']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Transfer Funds</a></li>
                         </ul>
@@ -239,16 +245,19 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('ira')) }}', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #1b325f;">
                             <i class="fa-solid fa-landmark fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Individual Retirement (IRA)</h5>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('ira') }}">{{ $user->getAccountDisplayName('ira') }}</h5>
+                                @if($user->getAccountApyBadge('ira'))
+                                    <span class="badge bg-success text-white py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('ira') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</div>
                         </div>
@@ -258,7 +267,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Individual Retirement (IRA)', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('ira')) }}', '{{ $user->ira_account_number ?? $user->account_number }}', '{{ (float)($user->ira_balance ?? 0) }}', '0', 'ira')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Account Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'ira']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Deposit / Transfer</a></li>
                         </ul>
@@ -271,7 +280,7 @@
                         $ {{ number_format($user->ira_balance ?? 0, 2) }}
                     </div>
                     <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top text-muted" style="font-size: 11.5px;">
-                        <span>Growth APY: <strong class="text-success">4.25%</strong></span>
+                        <span>Growth APY: <strong class="text-success">{{ $user->getAccountApyBadge('ira') ?: '4.25%' }}</strong></span>
                         <span class="badge bg-primary-subtle text-primary fw-bold">Tax-Advantaged</span>
                     </div>
                 </div>
@@ -285,16 +294,19 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('heloc')) }}', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #0d9488;">
                             <i class="fa-solid fa-house-chimney fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">HELOC Revolving</h5>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('heloc') }}">{{ $user->getAccountDisplayName('heloc') }}</h5>
+                                @if($user->getAccountApyBadge('heloc'))
+                                    <span class="badge bg-info text-white py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('heloc') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">Line (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }})</div>
                         </div>
@@ -304,7 +316,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Home Equity Line of Credit', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('heloc')) }}', '{{ $user->heloc_account_number ?? $user->account_number }}', '{{ (float)($user->heloc_balance ?? 0) }}', '{{ (float)($user->heloc_credit_limit ?? 0) }}', 'heloc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Credit Line Details</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'heloc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Pay Down / Draw</a></li>
                         </ul>
@@ -331,16 +343,19 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('cc')) }}', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #6366f1;">
                             <i class="fa-solid fa-credit-card fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Platinum Rewards Card</h5>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('cc') }}">{{ $user->getAccountDisplayName('cc') }}</h5>
+                                @if($user->getAccountApyBadge('cc'))
+                                    <span class="badge bg-warning text-dark py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('cc') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">Card (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }})</div>
                         </div>
@@ -350,7 +365,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Platinum Rewards Credit Card', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('cc')) }}', '{{ $user->cc_account_number ?? $user->account_number }}', '{{ (float)($user->cc_balance ?? 0) }}', '{{ (float)($user->cc_credit_limit ?? 0) }}', 'cc')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Card Details &amp; Limit</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'cc']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>
@@ -377,16 +392,19 @@
     <div class="col-lg-4 col-md-6">
         <div class="site-card h-100 shadow-sm border bg-white position-relative account-detail-trigger" 
             style="border-radius: 14px; transition: all 0.25s ease; cursor: pointer;"
-            onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')">
+            onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('loan')) }}', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')">
             <div class="p-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center gap-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: #c8232c;">
                             <i class="fa-solid fa-file-contract fs-5"></i>
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-1">
-                                <h5 class="fw-bold mb-0" style="color: #162846; font-size: 16px;">Personal Loan</h5>
+                        <div class="min-w-0" style="max-width: 200px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <h5 class="fw-bold mb-0 text-truncate" style="color: #162846; font-size: 16px;" title="{{ $user->getAccountDisplayName('loan') }}">{{ $user->getAccountDisplayName('loan') }}</h5>
+                                @if($user->getAccountApyBadge('loan'))
+                                    <span class="badge bg-secondary text-white py-1 px-2 flex-shrink-0" style="font-size: 10px;">{{ $user->getAccountApyBadge('loan') }}</span>
+                                @endif
                             </div>
                             <div class="text-muted small font-monospace">Loan (*{{ substr($user->loan_account_number ?? $user->account_number, -4) }})</div>
                         </div>
@@ -396,7 +414,7 @@
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end border shadow-sm" style="border-radius: 10px; font-size: 13px;">
-                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('Personal Installment Loan', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
+                            <li><a class="dropdown-item py-2" href="javascript:void(0)" onclick="window.showAccountDetails('{{ addslashes($user->getAccountDisplayName('loan')) }}', '{{ $user->loan_account_number ?? $user->account_number }}', '{{ (float)($user->loan_balance ?? 0) }}', '{{ (float)($user->loan_original_amount ?? 0) }}', 'loan')"><i class="fa-solid fa-circle-info text-primary me-2"></i> Loan Details &amp; Payoff</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.transactions', ['wallet' => 'loan']) }}"><i class="fa-solid fa-list text-muted me-2"></i> View Activity</a></li>
                             <li><a class="dropdown-item py-2" href="{{ route('user.fund_transfer.index') }}"><i class="fa-solid fa-arrow-right-arrow-left text-success me-2"></i> Make Payment</a></li>
                         </ul>

@@ -14,10 +14,10 @@
             <!-- Modal Header -->
             <div class="modal-header border-0 pb-3 pt-4 px-4 d-flex align-items-center justify-content-between" id="modalAccountHeader" style="background: #162846; color: #ffffff; transition: background 0.3s ease;">
                 <div class="d-flex align-items-center gap-3">
-                    <div>
+                    <div class="min-w-0">
                         <div class="d-flex align-items-center gap-2">
-                            <h5 class="modal-title fw-bold mb-0 text-white" id="modalAccountTitle" style="font-size: 1.25rem;">Account Details</h5>
-                            <span id="modalTypeBadge" class="badge bg-white text-dark py-1 px-2 fw-semibold" style="font-size: 11px; display: none;"></span>
+                            <h5 class="modal-title fw-bold mb-0 text-white text-truncate" id="modalAccountTitle" style="font-size: 1.25rem; max-width: 340px;">Account Details</h5>
+                            <span id="modalTypeBadge" class="badge bg-white text-dark py-1 px-2 fw-semibold flex-shrink-0" style="font-size: 11px; display: none;"></span>
                         </div>
                         <div class="d-flex align-items-center gap-2 mt-1">
                             <span class="text-white-50 small" id="modalAccountNumber" data-full-number="" style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">x0000</span>

@@ -726,6 +726,27 @@ class UserController extends Controller
         $input['custom_zelle_daily_limit'] = (isset($request->custom_zelle_daily_limit) && $request->custom_zelle_daily_limit !== '' && is_numeric($request->custom_zelle_daily_limit)) ? (float) $request->custom_zelle_daily_limit : null;
         $input['custom_zelle_monthly_limit'] = (isset($request->custom_zelle_monthly_limit) && $request->custom_zelle_monthly_limit !== '' && is_numeric($request->custom_zelle_monthly_limit)) ? (float) $request->custom_zelle_monthly_limit : null;
 
+        // Custom Account Product Display Names (per-client customization)
+        foreach (['checking_custom_name', 'savings_custom_name', 'ira_custom_name', 'heloc_custom_name', 'cc_custom_name', 'loan_custom_name'] as $nameField) {
+            if ($request->has($nameField)) {
+                $val = trim((string) $request->input($nameField));
+                $input[$nameField] = ($val !== '') ? $val : null;
+            }
+        }
+
+        // Account APY Badges / Rates
+        if ($request->has('account_apy')) {
+            $apyInputs = (array) $request->input('account_apy');
+            $cleanApy = [];
+            foreach ($apyInputs as $k => $v) {
+                $v = trim((string) $v);
+                if ($v !== '') {
+                    $cleanApy[$k] = $v;
+                }
+            }
+            $input['account_apy_badges'] = !empty($cleanApy) ? $cleanApy : null;
+        }
+
         $validator = Validator::make($input, [
             'first_name' => 'required',
             'last_name' => 'required',

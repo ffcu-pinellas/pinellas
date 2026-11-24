@@ -166,6 +166,98 @@
                                                required="" disabled>
                                     </div>
                                 </div>
+
+                                {{-- Custom Account Product Names & APY Tiers (Per-Client) --}}
+                                <div class="col-xl-12 mt-4 mb-2">
+                                    <h5 style="color: #27ae60; font-weight: 600; border-bottom: 2px solid #27ae60; padding-bottom: 5px; display: inline-block;">
+                                        <i data-lucide="tag" class="icon-xs me-1"></i> {{ __('Custom Account Product Names & APY Tiers (Per-Client)') }}
+                                    </h5>
+                                    <p class="text-muted small">{{ __('Customize the displayed product name and APY badge for this specific client (e.g. "Commercial High-Yield Checking" or "Community Member Savings"). Leave empty to use system defaults.') }}</p>
+                                </div>
+
+                                {{-- Checking Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Checking Account Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="checking_custom_name" value="{{ $user->checking_custom_name }}" placeholder="e.g. Commercial High-Yield Checking (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Checking APY / Subtitle Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[checking]" value="{{ $user->getAccountApyBadge('checking') }}" placeholder="e.g. 4.15% APY">
+                                    </div>
+                                </div>
+
+                                {{-- Savings Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Savings Account Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="savings_custom_name" value="{{ $user->savings_custom_name }}" placeholder="e.g. Community Member Savings (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Savings APY / Subtitle Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[savings]" value="{{ $user->getAccountApyBadge('savings') }}" placeholder="e.g. 3.80% APY">
+                                    </div>
+                                </div>
+
+                                {{-- IRA Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('IRA Account Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="ira_custom_name" value="{{ $user->ira_custom_name }}" placeholder="e.g. Premier Growth Roth IRA (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('IRA APY / Subtitle Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[ira]" value="{{ $user->getAccountApyBadge('ira') }}" placeholder="e.g. 5.25% APY">
+                                    </div>
+                                </div>
+
+                                {{-- HELOC Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('HELOC Account Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="heloc_custom_name" value="{{ $user->heloc_custom_name }}" placeholder="e.g. Prime Floating HELOC (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('HELOC APR / Subtitle Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[heloc]" value="{{ $user->getAccountApyBadge('heloc') }}" placeholder="e.g. 7.50% APR">
+                                    </div>
+                                </div>
+
+                                {{-- Credit Card Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Credit Card Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="cc_custom_name" value="{{ $user->cc_custom_name }}" placeholder="e.g. Executive Platinum Visa® (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Credit Card Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[cc]" value="{{ $user->getAccountApyBadge('cc') }}" placeholder="e.g. 1.5% Cash Back">
+                                    </div>
+                                </div>
+
+                                {{-- Loan Custom Name & APY --}}
+                                <div class="col-xl-8 col-lg-8 col-md-7 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Loan Account Display Name:') }}</label>
+                                        <input type="text" class="box-input" name="loan_custom_name" value="{{ $user->loan_custom_name }}" placeholder="e.g. Commercial Equipment Loan (Leave blank for default)">
+                                    </div>
+                                </div>
+                                <div class="col-xl-4 col-lg-4 col-md-5 col-sm-12">
+                                    <div class="site-input-groups">
+                                        <label for="" class="box-input-label text-success">{{ __('Loan APR / Subtitle Badge:') }}</label>
+                                        <input type="text" class="box-input" name="account_apy[loan]" value="{{ $user->getAccountApyBadge('loan') }}" placeholder="e.g. 6.25% Fixed APR">
+                                    </div>
+                                </div>
                                 
                                 <div class="col-xl-12 mt-3 mb-2">
                                     <h5 style="color: #5d78ff; font-weight: 600; border-bottom: 2px solid #5d78ff; padding-bottom: 5px; display: inline-block;">{{ __('Specialized Accounts (IRA, HELOC, CC, Loan)') }}</h5>
