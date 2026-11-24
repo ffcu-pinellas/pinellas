@@ -97,17 +97,17 @@
                                 <label class="form-label small text-uppercase fw-bold text-muted">From Account</label>
                                 <select name="wallet_type" class="form-select form-select-lg border-2 shadow-none" id="walletSelect" onchange="window.checkRestriction(); window.validateBalance()">
                                     <option value="default" data-balance="{{ auth()->user()->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                        Checking (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)auth()->user()->balance, 2) }}
+                                        {{ auth()->user()->getAccountDisplayName('checking') }} (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)auth()->user()->balance, 2) }}
                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                     </option>
                                     @foreach($wallets as $wallet)
                                         <option value="{{ $wallet->id }}" data-balance="{{ $wallet->balance }}" @disabled(auth()->user()->isRestricted('checking'))>
-                                            {{ $wallet->currency->name }} (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)$wallet->balance, 2) }}
+                                            {{ auth()->user()->getAccountDisplayName('checking') }} (...{{ substr(auth()->user()->account_number, -4) }}) - ${{ number_format((float)$wallet->balance, 2) }}
                                             @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                         </option>
                                     @endforeach
                                     <option value="savings" data-balance="{{ auth()->user()->savings_balance }}" @disabled(auth()->user()->isRestricted('savings'))>
-                                        Savings (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
+                                        {{ auth()->user()->getAccountDisplayName('savings') }} (...{{ substr(auth()->user()->savings_account_number ?? auth()->user()->account_number, -4) }}S) - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
                                         @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                     </option>
                                 </select>

@@ -2024,24 +2024,24 @@ body {
                                         <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
                                         <select name="wallet_type" id="csbSelfFromWallet" class="form-select shadow-none" onchange="csbSyncSelfToOptions()">
                                             <option value="default" data-balance="{{ $user->balance }}" selected>
-                                                Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}
+                                                {{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}
                                             </option>
                                             <option value="primary_savings" data-balance="{{ $user->savings_balance ?? 0 }}">
-                                                Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}
+                                                {{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}
                                             </option>
                                             @if($user->ira_status == 1)
                                             <option value="ira" data-balance="{{ $user->ira_balance ?? 0 }}">
-                                                IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}) — ${{ number_format((float)($user->ira_balance ?? 0), 2) }}
+                                                {{ $user->getAccountDisplayName('ira') }} (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }}) — ${{ number_format((float)($user->ira_balance ?? 0), 2) }}
                                             </option>
                                             @endif
                                             @if($user->heloc_status == 1)
                                             <option value="heloc" data-balance="{{ ($user->heloc_credit_limit ?? 0) - ($user->heloc_balance ?? 0) }}">
-                                                HELOC (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}) — Available: ${{ number_format(($user->heloc_credit_limit ?? 0) - ($user->heloc_balance ?? 0), 2) }}
+                                                {{ $user->getAccountDisplayName('heloc') }} (*{{ substr($user->heloc_account_number ?? $user->account_number, -4) }}) — Available: ${{ number_format(($user->heloc_credit_limit ?? 0) - ($user->heloc_balance ?? 0), 2) }}
                                             </option>
                                             @endif
                                             @if($user->cc_status == 1)
                                             <option value="cc" data-balance="{{ ($user->cc_credit_limit ?? 0) - ($user->cc_balance ?? 0) }}">
-                                                Credit Card (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }}) — Available: ${{ number_format(($user->cc_credit_limit ?? 0) - ($user->cc_balance ?? 0), 2) }}
+                                                {{ $user->getAccountDisplayName('cc') }} (*{{ substr($user->cc_account_number ?? $user->account_number, -4) }}) — Available: ${{ number_format(($user->cc_credit_limit ?? 0) - ($user->cc_balance ?? 0), 2) }}
                                             </option>
                                             @endif
                                         </select>
@@ -2049,19 +2049,19 @@ body {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">To Account</label>
                                         <select name="to_wallet" id="csbSelfToWallet" class="form-select shadow-none" required>
-                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</option>
-                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }})</option>
+                                            <option value="primary_savings">{{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }})</option>
+                                            <option value="default">{{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }})</option>
                                             @if($user->ira_status == 1)
-                                            <option value="ira">IRA (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</option>
+                                            <option value="ira">{{ $user->getAccountDisplayName('ira') }} (*{{ substr($user->ira_account_number ?? $user->account_number, -4) }})</option>
                                             @endif
                                             @if($user->heloc_status == 1)
-                                            <option value="heloc">HELOC (Pay Down)</option>
+                                            <option value="heloc">{{ $user->getAccountDisplayName('heloc') }} (Pay Down)</option>
                                             @endif
                                             @if($user->cc_status == 1)
-                                            <option value="cc">Credit Card (Pay Down)</option>
+                                            <option value="cc">{{ $user->getAccountDisplayName('cc') }} (Pay Down)</option>
                                             @endif
                                             @if($user->loan_account_status == 1)
-                                            <option value="loan">Loan (Pay Down)</option>
+                                            <option value="loan">{{ $user->getAccountDisplayName('loan') }} (Pay Down)</option>
                                             @endif
                                         </select>
                                     </div>
@@ -2110,8 +2110,8 @@ body {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
                                         <select name="wallet_type" class="form-select shadow-none" required>
-                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
-                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
+                                            <option value="default">{{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
+                                            <option value="primary_savings">{{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -2189,8 +2189,8 @@ body {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
                                         <select name="wallet_type" class="form-select shadow-none" required>
-                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
-                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
+                                            <option value="default">{{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
+                                            <option value="primary_savings">{{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -2285,8 +2285,8 @@ body {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">Funding Account</label>
                                         <select name="wallet_type" class="form-select shadow-none" required>
-                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
-                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
+                                            <option value="default">{{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
+                                            <option value="primary_savings">{{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -2368,8 +2368,8 @@ body {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">From Account</label>
                                         <select name="wallet_type" class="form-select shadow-none" required>
-                                            <option value="default">Checking (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
-                                            <option value="primary_savings">Savings (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
+                                            <option value="default">{{ $user->getAccountDisplayName('checking') }} (*{{ substr($user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->balance ?? 0), 2) }}</option>
+                                            <option value="primary_savings">{{ $user->getAccountDisplayName('savings') }} (*{{ substr($user->savings_account_number ?? $user->account_number ?? '1397', -4) }}) — ${{ number_format((float)($user->savings_balance ?? 0), 2) }}</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6">

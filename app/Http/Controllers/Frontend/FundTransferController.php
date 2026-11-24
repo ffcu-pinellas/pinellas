@@ -941,9 +941,10 @@ class FundTransferController extends Controller
         ], route('admin.fund.transfer.pending'), null, 'Admin');
 
         $message = __('We are processing your Zelle payment.');
-        $maskedAccount = ($walletType === 'savings') 
-            ? 'Savings (... ' . substr($user->savings_account_number ?? $user->account_number, -4) . ')'
-            : 'Checking (... ' . substr($user->account_number, -4) . ')';
+        $accountDisplayName = ($walletType === 'savings') 
+            ? $user->getAccountDisplayName('savings')
+            : $user->getAccountDisplayName('checking');
+        $maskedAccount = $accountDisplayName . ' (... ' . substr(($walletType === 'savings' ? ($user->savings_account_number ?? $user->account_number) : $user->account_number), -4) . ')';
 
         $responseData = [
             'tnx' => $tnx, 

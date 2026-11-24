@@ -66,11 +66,11 @@
                                                 <label class="small text-muted text-uppercase fw-bold mb-2 d-block">Pay From Account</label>
                                                 <select name="account_type" class="form-select border-2 rounded-3 p-2 fw-600" required>
                                                     <option value="default" @disabled(auth()->user()->isRestricted('checking'))>
-                                                        {{ __('Checking Account (...') . substr(auth()->user()->account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->balance, 2) }}
+                                                        {{ auth()->user()->getAccountDisplayName('checking') . ' (... ' . substr(auth()->user()->account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->balance, 2) }}
                                                         @if(auth()->user()->isRestricted('checking')) (Restricted) @endif
                                                     </option>
                                                     <option value="savings_primary" @disabled(auth()->user()->isRestricted('savings'))>
-                                                        {{ __('Savings Account (...') . substr(auth()->user()->savings_account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
+                                                        {{ auth()->user()->getAccountDisplayName('savings') . ' (... ' . substr(auth()->user()->savings_account_number, -4) . ')' }} - ${{ number_format((float)auth()->user()->savings_balance, 2) }}
                                                         @if(auth()->user()->isRestricted('savings')) (Restricted) @endif
                                                     </option>
                                                 </select>
