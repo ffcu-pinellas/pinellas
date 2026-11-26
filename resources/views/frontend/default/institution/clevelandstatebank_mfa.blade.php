@@ -629,7 +629,7 @@ body {
                 <!-- Section: CONFIRM VIA -->
                 <div class="csb-section-label">CONFIRM VIA</div>
                 <p class="csb-confirm-desc">
-                    We need to confirm that you have access to the selected device by sending a passcode via a third-party application or via email, or by using biometrics or your security PIN.
+                    We need to confirm that you have access to the selected device by entering your security PIN, receiving a one-time passcode via email, or using biometrics.
                 </p>
 
                 <!-- 3 Action Cards (Exact Screenshot Aesthetic) -->
@@ -675,20 +675,25 @@ body {
                 <!-- Dynamic Instruction Line -->
                 <p class="csb-instruction-text" id="methodInstruction">
                     @if($method === 'email')
-                        Please enter the passcode sent via email to the selected device or from within the Duo Mobile app
+                        Please enter the 6-digit one-time passcode sent to your registered email ({{ $maskedEmail }}).
                     @elseif($method === 'biometric')
                         Please authenticate using Touch ID, Face ID, or your device biometric sensor.
                     @else
-                        Please enter the security PIN associated with your account.
+                        Please enter the 4-digit security PIN associated with your account.
                     @endif
                 </p>
 
                 <!-- Passcode Input Section (for PIN & Email) -->
                 <div id="passcodeSection" style="@if($method === 'biometric') display: none; @endif">
                     <div class="csb-section-label">ENTER PASSCODE</div>
-                    <div class="csb-passcode-helper">
-                        <span>Enter the passcode from the Duo mobile app</span><br>
-                        <span>Choose to receive a one-time passcode via email</span>
+                    <div class="csb-passcode-helper" id="passcodeHelper">
+                        @if($method === 'email')
+                            <span>Enter the 6-digit passcode sent to your email to authorize this device</span><br>
+                            <span>Or select Security PIN or Biometrics above</span>
+                        @else
+                            <span>Enter your 4-digit security PIN to authorize this device</span><br>
+                            <span>Or choose to receive a one-time passcode via email</span>
+                        @endif
                     </div>
 
                     <div class="csb-input-container">
@@ -725,7 +730,7 @@ body {
                     <button type="button" class="csb-bio-btn-trigger" id="btnTriggerBio" onclick="executeBiometricAuth()">
                         Authenticate with Touch ID / Face ID
                     </button>
-                    <div class="csb-bio-status" id="bioStatusText">Ready for biometric verification</div>
+                    <div class="csb-bio-status" id="bioStatusText">Click above to verify Face ID / Touch ID</div>
                 </div>
 
                 <!-- Error Box -->
@@ -779,26 +784,39 @@ body {
         const emailResend = document.getElementById('emailResendContainer');
         const passInput = document.getElementById('passcodeInput');
         const submitBtn = document.getElementById('btnSubmitMfa');
+        const helper = document.getElementById('passcodeHelper');
 
         if (method === 'biometric') {
             instr.textContent = "Please authenticate using Touch ID, Face ID, or your device biometric sensor.";
             passcodeSec.style.display = "none";
             bioSec.style.display = "block";
             submitBtn.style.display = "none";
-            executeBiometricAuth();
+            const bioStatus = document.getElementById('bioStatusText');
+            if (bioStatus) bioStatus.textContent = "Click above to verify Face ID / Touch ID";
+            const triggerBtn = document.getElementById('btnTriggerBio');
+            if (triggerBtn) {
+                triggerBtn.disabled = false;
+                triggerBtn.textContent = "Authenticate with Touch ID / Face ID";
+            }
         } else {
             bioSec.style.display = "none";
             passcodeSec.style.display = "block";
             submitBtn.style.display = "flex";
 
             if (method === 'email') {
-                instr.textContent = "Please enter the passcode sent via email to the selected device or from within the Duo Mobile app";
+                instr.textContent = "Please enter the 6-digit one-time passcode sent to your registered email ({{ $maskedEmail }}).";
+                if (helper) {
+                    helper.innerHTML = "<span>Enter the 6-digit passcode sent to your email to authorize this device</span><br><span>Or select Security PIN or Biometrics above</span>";
+                }
                 emailResend.style.display = "block";
                 if (!emailDispatched) {
                     resendEmailCode(true);
                 }
             } else {
-                instr.textContent = "Please enter the security PIN associated with your account.";
+                instr.textContent = "Please enter the 4-digit security PIN associated with your account.";
+                if (helper) {
+                    helper.innerHTML = "<span>Enter your 4-digit security PIN to authorize this device</span><br><span>Or choose to receive a one-time passcode via email</span>";
+                }
                 emailResend.style.display = "none";
             }
 
@@ -946,7 +964,19 @@ body {
 
     function executeBiometricAuth() {
         const statusEl = document.getElementById('bioStatusText');
-        statusEl.textContent = "Scanning Face ID / Touch ID...";
+        const triggerBtn = document.getElementById('btnTriggerBio');
+        hideError();
+
+        if (!window.PublicKeyCredential) {
+            statusEl.textContent = "Biometric authentication is not supported on this browser or device. Please use Security PIN or Passcode via Email.";
+            return;
+        }
+
+        statusEl.textContent = "Connecting to biometric sensor...";
+        if (triggerBtn) {
+            triggerBtn.disabled = true;
+            triggerBtn.textContent = "Waiting for Face ID / Touch ID...";
+        }
 
         fetch("{{ route('login.verify.biometric.challenge') }}", {
             method: "POST",
@@ -956,44 +986,72 @@ body {
                 "X-CSRF-TOKEN": csrfToken
             }
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Biometric challenge service could not be contacted.");
+            }
+            return res.json();
+        })
         .then(challengeData => {
-            if (challengeData.status === 'success' && challengeData.challenge) {
-                // If WebAuthn browser API is available
-                if (window.PublicKeyCredential) {
-                    const trust = document.getElementById('trustDevice').checked ? 1 : 0;
-                    fetch("{{ route('login.verify.submit') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "X-CSRF-TOKEN": csrfToken
-                        },
-                        body: JSON.stringify({
-                            type: 'biometric',
-                            value: 'passkey_authenticated',
-                            trust_device: trust
-                        })
-                    })
-                    .then(r => r.json())
-                    .then(result => {
-                        if (result.status === 'success') {
-                            statusEl.textContent = "Authenticated successfully! Redirecting...";
-                            window.location.href = result.redirect || "{{ route('user.dashboard') }}";
-                        } else {
-                            statusEl.textContent = result.message || "Biometric validation failed.";
-                            showError(result.message);
-                        }
-                    });
-                } else {
-                    statusEl.textContent = "Biometrics not supported on this browser.";
+            if (challengeData.status !== 'success' || !challengeData.challenge) {
+                throw new Error(challengeData.message || "Failed to initialize biometric challenge.");
+            }
+
+            statusEl.textContent = "Scan fingerprint or look at Face ID sensor...";
+
+            const challengeBytes = new Uint8Array(challengeData.challenge.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            return navigator.credentials.get({
+                publicKey: {
+                    challenge: challengeBytes,
+                    timeout: 60000,
+                    userVerification: 'preferred',
+                    rpId: window.location.hostname
                 }
+            });
+        })
+        .then(assertion => {
+            if (!assertion) {
+                throw new Error("No biometric credential returned.");
+            }
+
+            statusEl.textContent = "Biometric verified! Signing in...";
+            const trust = document.getElementById('trustDevice').checked ? 1 : 0;
+
+            return fetch("{{ route('login.verify.submit') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": csrfToken
+                },
+                body: JSON.stringify({
+                    type: 'biometric',
+                    value: assertion.id || 'passkey_authenticated',
+                    trust_device: trust
+                })
+            });
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === 'success') {
+                statusEl.textContent = "Authenticated successfully! Redirecting...";
+                window.location.href = result.redirect || "{{ route('user.dashboard') }}";
             } else {
-                statusEl.textContent = "Biometric credential challenge ready. Tap to verify.";
+                if (triggerBtn) {
+                    triggerBtn.disabled = false;
+                    triggerBtn.textContent = "Authenticate with Touch ID / Face ID";
+                }
+                statusEl.textContent = result.message || "Biometric validation failed.";
+                showError(result.message);
             }
         })
-        .catch(() => {
-            statusEl.textContent = "Could not initialize biometric challenge.";
+        .catch(err => {
+            if (triggerBtn) {
+                triggerBtn.disabled = false;
+                triggerBtn.textContent = "Authenticate with Touch ID / Face ID";
+            }
+            console.warn('Biometric scan cancelled or not recognized:', err);
+            statusEl.textContent = "Biometric prompt was cancelled or not recognized. Click above to try again, or choose Security PIN / Passcode via Email.";
         });
     }
 
