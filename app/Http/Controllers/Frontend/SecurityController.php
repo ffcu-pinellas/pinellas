@@ -42,6 +42,15 @@ class SecurityController extends Controller
         $maskedEmail = substr($user->email, 0, 3) . '***' . substr($user->email, strpos($user->email, '@'));
         $isNewDevice = !$isRecognizedDevice;
 
+        $currentInst = app()->bound('institution') ? app('institution') : ($user->institution ?? null);
+        $isCsb = ($currentInst && ($currentInst->slug === 'clevelandstatebank' || str_contains(request()->getHost(), 'clevelandstatebank')))
+                 || (isset($user) && $user->institution && $user->institution->slug === 'clevelandstatebank')
+                 || str_contains(request()->getHost(), 'clevelandstatebank');
+
+        if ($isCsb && view()->exists('frontend::institution.clevelandstatebank_mfa')) {
+            return view('frontend::institution.clevelandstatebank_mfa', compact('user', 'method', 'maskedEmail', 'isNewDevice', 'currentInst'));
+        }
+
         return view('frontend::auth.mfa', compact('user', 'method', 'maskedEmail', 'isNewDevice'));
     }
 
