@@ -20,6 +20,12 @@
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f4f5f7;
@@ -39,6 +45,7 @@ body {
     align-items: center;
     gap: 8px;
     border-bottom: 1px solid #edf0f4;
+    flex-shrink: 0;
 }
 
 .csb-fdic-badge {
@@ -57,9 +64,10 @@ body {
     padding: 0 16px;
     gap: 16px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: sticky;
+    position: relative;
     top: 0;
     z-index: 1000;
+    flex-shrink: 0;
 }
 
 .csb-toggle-sidebar-btn {
@@ -82,7 +90,8 @@ body {
 .csb-layout-wrapper {
     display: flex;
     flex: 1;
-    min-height: calc(100vh - 80px);
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ── Left Sidebar (#262626) ── */
@@ -94,9 +103,9 @@ body {
     flex-direction: column;
     flex-shrink: 0;
     transition: all 0.25s ease;
-    position: sticky;
-    top: 80px;
-    height: calc(100vh - 80px);
+    height: 100%;
+    position: relative;
+    top: 0;
     overflow: hidden;
     z-index: 99;
 }
@@ -713,12 +722,47 @@ body {
 }
 
 /* Responsive Layout */
+@media (min-width: 992px) {
+    html, body {
+        height: 100vh;
+        overflow: hidden;
+    }
+    .csb-layout-wrapper {
+        height: calc(100vh - 78px);
+        overflow: hidden;
+    }
+    .csb-sidebar {
+        height: 100%;
+        position: relative;
+        top: 0;
+    }
+    .csb-main-content {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+}
+
 @media (max-width: 991.98px) {
+    body {
+        overflow-y: auto;
+        min-height: 100vh;
+    }
+    .csb-navbar-header {
+        position: sticky !important;
+        top: 0 !important;
+    }
+    .csb-layout-wrapper {
+        min-height: calc(100vh - 78px) !important;
+        overflow: visible !important;
+    }
     .dashboard-grid-2 {
         grid-template-columns: 1fr;
     }
     .csb-main-content {
         padding: 16px 16px 36px !important;
+        overflow-y: visible !important;
+        height: auto !important;
     }
     .csb-sidebar {
         position: fixed !important;
