@@ -20,11 +20,6 @@
     padding: 0;
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-}
-
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f4f5f7;
@@ -44,7 +39,6 @@ body {
     align-items: center;
     gap: 8px;
     border-bottom: 1px solid #edf0f4;
-    flex-shrink: 0;
 }
 
 .csb-fdic-badge {
@@ -66,7 +60,6 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
-    flex-shrink: 0;
 }
 
 .csb-toggle-sidebar-btn {
@@ -87,35 +80,30 @@ body {
 
 /* ── Layout Shell ── */
 .csb-layout-wrapper {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
+    display: flex;
     flex: 1;
     min-height: calc(100vh - 80px);
-    width: 100%;
-    position: relative;
+    align-items: flex-start;
 }
 
 /* ── Left Sidebar (#262626) ── */
 .csb-sidebar {
-    width: 240px !important;
-    min-width: 240px !important;
-    max-width: 240px !important;
+    width: 240px;
     background-color: #262626;
     color: #e0e0e0;
-    display: flex !important;
-    flex-direction: column !important;
-    flex-shrink: 0 !important;
-    transition: margin-left 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: all 0.25s ease;
     position: sticky;
-    top: 50px;
-    height: calc(100vh - 50px);
-    overflow-y: auto;
+    top: 80px;
+    height: calc(100vh - 80px);
+    overflow: hidden;
     z-index: 99;
 }
 
 .csb-sidebar.collapsed {
-    margin-left: -240px !important;
+    margin-left: -240px;
 }
 
 .csb-user-profile-widget {
@@ -243,11 +231,10 @@ body {
 
 /* ── Main Content Area ── */
 .csb-main-content {
-    flex: 1 1 0% !important;
-    min-width: 0 !important;
+    flex: 1;
     padding: 28px 36px 40px;
     background-color: #ffffff;
-    display: block !important;
+    overflow-y: auto;
 }
 
 .overview-header {
@@ -749,7 +736,6 @@ body {
         box-shadow: none;
         display: flex !important;
         flex-direction: column !important;
-        overflow-y: auto !important;
     }
     .csb-sidebar.show {
         transform: translateX(0) !important;
