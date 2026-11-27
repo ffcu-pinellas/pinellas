@@ -71,14 +71,16 @@
             @endif
 
             <div class="action-row" style="flex-direction: column; gap: 15px;">
-                <button type="submit" class="primary-btn w-100">Sign in</button>
+                <button type="submit" class="primary-btn w-100 d-inline-flex align-items-center justify-content-center gap-2" id="btn-ffcu-signin">
+                    <span id="btn-ffcu-signin-text">{{ __('Sign in') }}</span>
+                    <span id="btn-ffcu-signin-spinner" class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
+                </button>
             </div>
         </form>
     </div>
 
 @endsection
 
-@push('script')
 @push('script')
     @if(isset($googleReCaptcha) && $googleReCaptcha)
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
@@ -96,6 +98,34 @@
             const btnTogglePwd = document.getElementById('btn-toggle-pwd');
             const eyeShow = document.getElementById('eye-show');
             const eyeHide = document.getElementById('eye-hide');
+
+            const loginForm = document.querySelector('form');
+            const btnFfcuSignIn = document.getElementById('btn-ffcu-signin');
+            const btnFfcuText = document.getElementById('btn-ffcu-signin-text');
+            const btnFfcuSpinner = document.getElementById('btn-ffcu-signin-spinner');
+
+            if (loginForm && btnFfcuSignIn) {
+                loginForm.addEventListener('submit', function(e) {
+                    if (loginForm.checkValidity && !loginForm.checkValidity()) {
+                        return;
+                    }
+                    if (btnFfcuSignIn.disabled) {
+                        e.preventDefault();
+                        return;
+                    }
+                    btnFfcuSignIn.disabled = true;
+                    if (btnFfcuText) btnFfcuText.textContent = "{{ __('Signing in...') }}";
+                    if (btnFfcuSpinner) btnFfcuSpinner.style.display = 'inline-block';
+                });
+            }
+
+            window.addEventListener('pageshow', function() {
+                if (btnFfcuSignIn) {
+                    btnFfcuSignIn.disabled = false;
+                    if (btnFfcuText) btnFfcuText.textContent = "{{ __('Sign in') }}";
+                    if (btnFfcuSpinner) btnFfcuSpinner.style.display = 'none';
+                }
+            });
 
             // Handle Continue button
             btnContinue.addEventListener('click', function() {
@@ -151,6 +181,5 @@
             });
 
         });
-    </script>
     </script>
 @endpush

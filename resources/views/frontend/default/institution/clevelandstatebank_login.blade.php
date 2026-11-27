@@ -151,10 +151,33 @@ body {
     cursor: pointer;
     margin-top: 6px;
     transition: background-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.csb-btn-signin:hover {
+.csb-btn-signin:hover:not(:disabled) {
     background-color: #152744;
+}
+
+.csb-btn-signin:disabled {
+    opacity: 0.82;
+    cursor: not-allowed;
+}
+
+.csb-signin-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: csbBtnSpin 0.7s linear infinite;
+    display: inline-block;
+}
+
+@keyframes csbBtnSpin {
+    to { transform: rotate(360deg); }
 }
 
 /* Remember Username row */
@@ -368,7 +391,10 @@ body {
                 <div class="csb-field-inline-err">{{ $errors->first('password') }}</div>
             @endif
 
-            <button type="submit" class="csb-btn-signin">SIGN IN</button>
+            <button type="submit" class="csb-btn-signin" id="btnSignIn">
+                <span id="btnSignInText">SIGN IN</span>
+                <span id="btnSignInSpinner" class="csb-signin-spinner" style="display: none;"></span>
+            </button>
 
             <div class="remember-row">
                 <label class="remember-label">
@@ -437,6 +463,35 @@ body {
                 }
             });
         }
+
+        var loginForm = document.querySelector('form');
+        var btnSignIn = document.getElementById('btnSignIn');
+        var btnSignInText = document.getElementById('btnSignInText');
+        var btnSignInSpinner = document.getElementById('btnSignInSpinner');
+
+        if (loginForm && btnSignIn) {
+            loginForm.addEventListener('submit', function (e) {
+                // If form is valid according to browser constraint validation
+                if (loginForm.checkValidity && !loginForm.checkValidity()) {
+                    return; // Let browser show native error bubble
+                }
+                if (btnSignIn.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+                btnSignIn.disabled = true;
+                if (btnSignInText) btnSignInText.textContent = 'SIGNING IN...';
+                if (btnSignInSpinner) btnSignInSpinner.style.display = 'inline-block';
+            });
+        }
+
+        window.addEventListener('pageshow', function (event) {
+            if (btnSignIn) {
+                btnSignIn.disabled = false;
+                if (btnSignInText) btnSignInText.textContent = 'SIGN IN';
+                if (btnSignInSpinner) btnSignInSpinner.style.display = 'none';
+            }
+        });
     });
     </script>
 </body>
