@@ -21,7 +21,6 @@
 }
 
 html, body {
-    height: 100%;
     margin: 0;
     padding: 0;
 }
@@ -64,7 +63,7 @@ body {
     padding: 0 16px;
     gap: 16px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    position: relative;
+    position: sticky;
     top: 0;
     z-index: 1000;
     flex-shrink: 0;
@@ -88,30 +87,35 @@ body {
 
 /* ── Layout Shell ── */
 .csb-layout-wrapper {
-    display: flex;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     flex: 1;
-    min-height: 0;
-    overflow: hidden;
+    min-height: calc(100vh - 80px);
+    width: 100%;
+    position: relative;
 }
 
 /* ── Left Sidebar (#262626) ── */
 .csb-sidebar {
-    width: 240px;
+    width: 240px !important;
+    min-width: 240px !important;
+    max-width: 240px !important;
     background-color: #262626;
     color: #e0e0e0;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    transition: all 0.25s ease;
-    height: 100%;
-    position: relative;
-    top: 0;
-    overflow: hidden;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    transition: margin-left 0.25s ease;
+    position: sticky;
+    top: 50px;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
     z-index: 99;
 }
 
 .csb-sidebar.collapsed {
-    margin-left: -240px;
+    margin-left: -240px !important;
 }
 
 .csb-user-profile-widget {
@@ -239,10 +243,11 @@ body {
 
 /* ── Main Content Area ── */
 .csb-main-content {
-    flex: 1;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
     padding: 28px 36px 40px;
     background-color: #ffffff;
-    overflow-y: auto;
+    display: block !important;
 }
 
 .overview-header {
@@ -722,47 +727,12 @@ body {
 }
 
 /* Responsive Layout */
-@media (min-width: 992px) {
-    html, body {
-        height: 100vh;
-        overflow: hidden;
-    }
-    .csb-layout-wrapper {
-        height: calc(100vh - 78px);
-        overflow: hidden;
-    }
-    .csb-sidebar {
-        height: 100%;
-        position: relative;
-        top: 0;
-    }
-    .csb-main-content {
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-}
-
 @media (max-width: 991.98px) {
-    body {
-        overflow-y: auto;
-        min-height: 100vh;
-    }
-    .csb-navbar-header {
-        position: sticky !important;
-        top: 0 !important;
-    }
-    .csb-layout-wrapper {
-        min-height: calc(100vh - 78px) !important;
-        overflow: visible !important;
-    }
     .dashboard-grid-2 {
         grid-template-columns: 1fr;
     }
     .csb-main-content {
         padding: 16px 16px 36px !important;
-        overflow-y: visible !important;
-        height: auto !important;
     }
     .csb-sidebar {
         position: fixed !important;
@@ -779,6 +749,7 @@ body {
         box-shadow: none;
         display: flex !important;
         flex-direction: column !important;
+        overflow-y: auto !important;
     }
     .csb-sidebar.show {
         transform: translateX(0) !important;
