@@ -83,7 +83,8 @@ body {
     display: flex;
     flex: 1;
     min-height: calc(100vh - 80px);
-    align-items: flex-start;
+    align-items: stretch;
+    overflow: hidden;
 }
 
 /* ── Left Sidebar (#262626) ── */
@@ -94,11 +95,12 @@ body {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    transition: all 0.25s ease;
+    transition: width 0.25s ease, margin-left 0.25s ease;
     position: sticky;
-    top: 80px;
+    top: 0;
     height: calc(100vh - 80px);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     z-index: 99;
 }
 
@@ -235,6 +237,8 @@ body {
     padding: 28px 36px 40px;
     background-color: #ffffff;
     overflow-y: auto;
+    height: calc(100vh - 80px);
+    min-width: 0;
 }
 
 .overview-header {
