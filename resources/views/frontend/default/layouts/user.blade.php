@@ -145,19 +145,20 @@
             overflow: hidden;
             z-index: 1020;
         }
-        @media (max-width: 991.98px) {
 .csb-sidebar.collapsed { display: none !important; }
-                position: fixed;
-                top: 52px;
-                left: 0;
-                bottom: 0;
-                height: calc(100vh - 52px);
-                z-index: 1050;
-                transform: translateX(-100%);
-            }
-            .csb-sidebar.show {
-                transform: translateX(0);
-            }
+@media (max-width: 991.98px) {
+    .csb-sidebar {
+        position: fixed;
+        top: 52px;
+        left: 0;
+        bottom: 0;
+        height: calc(100vh - 52px);
+        z-index: 1050;
+        transform: translateX(-100%) !important;
+    }
+    .csb-sidebar.show {
+        transform: translateX(0) !important;
+    }
         }
         .csb-user-profile-widget {
             padding: 16px;
