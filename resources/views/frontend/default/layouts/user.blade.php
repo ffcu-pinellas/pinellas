@@ -146,7 +146,7 @@
             z-index: 1020;
         }
         @media (max-width: 991.98px) {
-            .csb-sidebar {
+.csb-sidebar.collapsed { display: none !important; }
                 position: fixed;
                 top: 52px;
                 left: 0;
@@ -840,9 +840,13 @@
         if (csbToggle && csbSidebar) {
             csbToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
-                csbSidebar.classList.toggle('show');
-                if (csbOverlay) csbOverlay.classList.toggle('show');
-                document.body.style.overflow = csbSidebar.classList.contains('show') ? 'hidden' : '';
+                if (window.innerWidth < 992) {
+                    csbSidebar.classList.toggle('show');
+                    if (csbOverlay) csbOverlay.classList.toggle('show');
+                    document.body.style.overflow = csbSidebar.classList.contains('show') ? 'hidden' : '';
+                } else {
+                    csbSidebar.classList.toggle('collapsed');
+                }
             });
         }
         if (csbOverlay) {

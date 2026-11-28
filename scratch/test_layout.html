@@ -1,0 +1,31 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: sans-serif; background: #f4f5f7; display: flex; flex-direction: column; min-height: 100vh; }
+.csb-fdic-topbar { background: #fff; padding: 6px 20px; font-size: 11px; height: 28px; }
+.csb-navbar-header { background: #c8232c; height: 50px; position: sticky; top: 0; z-index: 1000; }
+.csb-layout-wrapper { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; flex: 1; min-height: calc(100vh - 78px); width: 100%; position: relative; }
+.csb-sidebar { width: 240px !important; min-width: 240px !important; max-width: 240px !important; background: #262626; color: #fff; display: flex !important; flex-direction: column !important; flex-shrink: 0 !important; position: sticky; top: 50px; height: calc(100vh - 50px); overflow-y: auto; }
+.csb-main-content { flex: 1 1 0% !important; min-width: 0 !important; padding: 28px 36px 40px; background: #fff; }
+.dashboard-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.widget-card { background: #fafafa; border: 1px solid #ddd; padding: 20px; min-height: 200px; }
+</style>
+</head>
+<body>
+<div class='csb-fdic-topbar'>FDIC</div>
+<header class='csb-navbar-header'>Header</header>
+<div class='csb-layout-wrapper'>
+  <aside class='csb-sidebar'>Sidebar</aside>
+  <main class='csb-main-content'>
+    <h1>Account Overview</h1>
+    <div class='dashboard-grid-2'>
+      <div class='widget-card'>Recent Transactions</div>
+      <div class='widget-card'>Favorite Payees</div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

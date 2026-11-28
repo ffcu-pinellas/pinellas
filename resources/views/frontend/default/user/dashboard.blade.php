@@ -426,9 +426,9 @@
     </div>
 </div>
 
-<div class="row g-4 centering-fix">
+<div class="row g-4">
     <!-- Left Column: Accounts & Transactions -->
-    <div class="col-lg-6 col-12">
+    <div class="col-12 col-md-6">
 
         <!-- Recent Transactions -->
                         <!-- Recent Transactions (Widget Index: transactions) -->
@@ -502,7 +502,7 @@
     </div>
 
     <!-- Right Column: Sidebar Widgets -->
-    <div class="col-lg-6 col-12">
+    <div class="col-12 col-md-6">
         <div id="dashboard-widgets" class="row">
             @foreach($widgetOrder as $widget)
                 <div class="col-12 mb-4" data-id="{{ $widget }}">
