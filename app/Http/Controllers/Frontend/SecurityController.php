@@ -487,7 +487,7 @@ $credentialId = (string) $request->input('credential_id');
         } catch (\Throwable $e) {
             \Log::warning('biometricRevoke error: ' . $e->getMessage());
         }
-        return response()->json(['status' => 'success', 'message' => __('Biometric passkey revoked.')]);
+        return response()->json(['status' => 'success', 'message' => __('Biometric passkey removed.')]);
     }
 
     /**

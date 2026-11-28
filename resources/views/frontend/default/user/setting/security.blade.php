@@ -50,7 +50,7 @@
                         </button>
                         <button type="button" onclick="ffcuRevokeBiometricPasskey()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 w-100 w-sm-auto" style="white-space: nowrap;">
                             <i class="fa-solid fa-trash"></i>
-                            <span>Revoke Passkey</span>
+                            <span>Remove Passkey</span>
                         </button>
                     </div>
 
@@ -448,7 +448,7 @@
         $.post("{{ route('user.security_gate.biometric.revoke') }}", { _token: '{{ csrf_token() }}', credential_id: '' })
             .done(function(res) {
                 if (typeof Swal !== 'undefined') {
-                    Swal.fire({ icon: 'success', title: 'Revoked', text: res.message || 'Biometric passkeys revoked.', confirmButtonColor: '#00549b' });
+                    Swal.fire({ icon: 'success', title: 'Removed', text: res.message || 'Biometric passkeys removed.', confirmButtonColor: '#00549b' });
                 } else {
                     alert(res.message || 'Biometric passkeys revoked.');
                 }
