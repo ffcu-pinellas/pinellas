@@ -41,7 +41,8 @@ class TransactionGeneratorController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'theme' => 'required|array',
             'theme.*' => 'in:standard,crypto,military,real_estate,contractor,lifestyle,travel,entertainment,healthcare,medical,musical_artist,professional_services,tech_executive',
-            'wallet_type' => 'required',
+            'wallet_type' => 'required|array',
+            'wallet_type.*' => 'string',
         ]);
 
         if ($validator->fails()) {
@@ -61,7 +62,14 @@ class TransactionGeneratorController extends Controller
                     ['label' => 'Rental Reimbursement', 'cat' => 'medium', 'range' => [20, 400]],
                     ['label' => 'Insurance Claim Settlement Payout', 'cat' => 'large', 'range' => [50, 1200]],
                     ['label' => 'Gift - Birthday / Celebration Funds', 'cat' => 'small', 'range' => [10, 120]],
-                    ['label' => 'Mobile Remote Check Deposit', 'cat' => 'medium', 'range' => [20, 400]],
+                    ['label' => 'Mobile Remote Check Deposit', 'cat' => 'medium', 'range' => [50, 2500]],
+                    ['label' => 'Remote Check Deposit - Branch Capture', 'cat' => 'medium', 'range' => [50, 2500]],
+                    ['label' => 'Mobile Remote Deposit - Business Check', 'cat' => 'large', 'range' => [100, 5000]],
+                    ['label' => 'Remote Deposit - Personal Check', 'cat' => 'medium', 'range' => [25, 1500]],
+                    ['label' => 'Zelle Payment Received from Contact', 'cat' => 'small', 'range' => [10, 120]],
+                    ['label' => 'Zelle Payment Received - Personal', 'cat' => 'small', 'range' => [10, 500]],
+                    ['label' => 'Zelle Payment Received - Business', 'cat' => 'medium', 'range' => [20, 1000]],
+                    ['label' => 'Zelle Instant Transfer Credit', 'cat' => 'small', 'range' => [10, 300]],
                     ['label' => 'ATM Cash Deposit', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Dividend Payout - Fidelity Investments', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Vanguard Index Fund Distribution', 'cat' => 'medium', 'range' => [20, 400]],
@@ -72,7 +80,6 @@ class TransactionGeneratorController extends Controller
                     ['label' => 'Square Inc Merchant Daily Payout', 'cat' => 'medium', 'range' => [20, 400]],
                     ['label' => 'PayPal Transfer to Bank Account', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Venmo Cashout Transfer', 'cat' => 'small', 'range' => [10, 120]],
-                    ['label' => 'Zelle Payment Received from Contact', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Cash App Cash Out Direct Dep', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Interest Payment Credit', 'cat' => 'micro', 'range' => [3, 15]],
                     ['label' => 'Annual Cash Back Bonus Reward', 'cat' => 'small', 'range' => [10, 120]],
@@ -253,6 +260,10 @@ class TransactionGeneratorController extends Controller
                     ['label' => 'One Medical Primary Care Membership', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Dental Care Group Copay & Exam', 'cat' => 'small', 'range' => [10, 120]],
                     ['label' => 'Visionworks Eyewear & Contact Lenses', 'cat' => 'small', 'range' => [10, 120]],
+                    ['label' => 'Zelle Payment Sent to Contact', 'cat' => 'small', 'range' => [10, 120]],
+                    ['label' => 'Zelle Payment Sent - Personal', 'cat' => 'small', 'range' => [10, 500]],
+                    ['label' => 'Zelle Payment Sent - Business', 'cat' => 'medium', 'range' => [20, 1000]],
+                    ['label' => 'Zelle Instant Transfer Debit', 'cat' => 'small', 'range' => [10, 300]],
                 ]
             ],
             'crypto' => [
@@ -1484,6 +1495,24 @@ $wallet_name = $this->getWalletName($user, $wallet_type);
         $attempts = 0;
         do {
             $label = $baseLabel;
+
+            // Zelle payments: append randomized contact name
+            if (stripos($label, 'Zelle') !== false) {
+                $firstNames = ['JAMES', 'MARY', 'JOHN', 'PATRICIA', 'ROBERT', 'JENNIFER', 'MICHAEL', 'LINDA', 'WILLIAM', 'ELIZABETH', 'DAVID', 'BARBARA', 'RICHARD', 'SUSAN', 'JOSEPH', 'JESSICA', 'THOMAS', 'SARAH', 'CHARLES', 'KAREN'];
+                $lastNames = ['SMITH', 'JOHNSON', 'WILLIAMS', 'BROWN', 'JONES', 'GARCIA', 'MILLER', 'DAVIS', 'RODRIGUEZ', 'MARTINEZ', 'HERNANDEZ', 'LOPEZ', 'GONZALEZ', 'WILSON', 'ANDERSON', 'THOMAS', 'TAYLOR', 'MOORE', 'JACKSON', 'MARTIN'];
+                $contact = $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
+                if (stripos($label, 'from Contact') !== false || stripos($label, 'to Contact') !== false) {
+                    $label = str_ireplace('Contact', $contact, $label);
+                } else {
+                    $label .= ' - ' . $contact;
+                }
+            }
+
+            // Remote check deposits: consistent naming
+            if (stripos($label, 'Remote') !== false && (stripos($label, 'Check') !== false || stripos($label, 'Deposit') !== false)) {
+                $checkNo = rand(1000, 9999);
+                $label = 'REMOTE CHECK DEPOSIT #' . $checkNo;
+            }
 
             // Add realistic bank-style prefixes based on category
             if ($cat == 'xl' || $cat == 'large') {
