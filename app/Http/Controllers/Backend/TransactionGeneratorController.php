@@ -1089,7 +1089,7 @@ class TransactionGeneratorController extends Controller
             'micro'  => ['min' => 2,    'max' => 30],
             'small'  => ['min' => 30,   'max' => 300],
             'medium' => ['min' => 300,  'max' => 3000],
-            'large'  => ['min' => 3000, 'max' => 1000000], // Use high max for large items
+            'large'  => ['min' => 3000, 'max' => 10000], // capped realistic
             'flex'   => ['min' => $reqMin, 'max' => $reqMax],
         ];
 
