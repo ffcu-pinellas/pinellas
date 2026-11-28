@@ -12,6 +12,7 @@
         ? substr($sgUserEmail, 0, min(3, $sgAtPos)) . '***' . substr($sgUserEmail, $sgAtPos)
         : ($sgUserEmail ?: 'registered email');
     $sgHasPin = !empty($sgAuthUser?->transaction_pin) || !empty($sgAuthUser?->passcode);
+$method = $method ?? 'pin';
 @endphp
 
 @if($isCsb)
@@ -920,7 +921,7 @@
             const token = this.csrfToken;
             if (!token) return;
 
-            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge.direct') ? route('user.security_gate.biometric.challenge.direct') : url('/user/security-gate/biometric/challenge') }}";
 
             fetch(challengeUrl, {
                 method: "POST",
@@ -1036,7 +1037,7 @@
                 return;
             }
 
-            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge.direct') ? route('user.security_gate.biometric.challenge.direct') : url('/user/security-gate/biometric/challenge') }}";
 
             fetch(challengeUrl, {
                 method: "POST",
@@ -1641,7 +1642,7 @@
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
             if (!token) return;
 
-            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge.direct') ? route('user.security_gate.biometric.challenge.direct') : url('/user/security-gate/biometric/challenge') }}";
 
             $.post(challengeUrl, {
                 _token: token,
@@ -1728,7 +1729,7 @@
             }
 
             const token = $('meta[name="csrf-token"]').attr('content') || "{{ csrf_token() }}";
-            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge') ? route('user.security_gate.biometric.challenge') : url('/user/security-gate/biometric/challenge') }}";
+            const challengeUrl = "{{ Route::has('user.security_gate.biometric.challenge.direct') ? route('user.security_gate.biometric.challenge.direct') : url('/user/security-gate/biometric/challenge') }}";
 
             $.post(challengeUrl, {
                 _token: token,
