@@ -32,7 +32,7 @@ class TransactionGeneratorController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'count' => 'required|integer|min:1|max:100',
+            'count' => 'required|integer|min:1|max:500',
             'min_amount' => 'required|numeric|min:0.01',
             'max_amount' => 'required|numeric|min:0.01|gte:min_amount',
             'direction' => 'required|in:income,outcome,both',
