@@ -96,7 +96,7 @@ class TransactionGeneratorController extends Controller
                 'outcome' => [
                     ['label' => 'Amazon.com Marketplace Order', 'cat' => 'small'],
                     ['label' => 'Amazon Prime Monthly Membership', 'cat' => 'sub'],
-                    ['label' => 'Starbucks Coffee Drive-Thru', 'cat' => 'micro'],
+                    ['label' => 'Starbucks Coffee Drive-Thru', 'cat' => 'micro', 'range' => [3, 15]],
                     ['label' => 'Dunkin Donuts Coffee', 'cat' => 'micro'],
                     ['label' => 'Tim Hortons Coffee', 'cat' => 'micro'],
                     ['label' => 'Peet\'s Coffee Tea', 'cat' => 'micro'],
@@ -656,7 +656,12 @@ class TransactionGeneratorController extends Controller
             }
 
             $choice = !empty($themePools[$themeKey][$txnDir]) ? array_pop($themePools[$themeKey][$txnDir]) : ['label' => 'General Transaction', 'cat' => 'small'];
-            $amount = round(mt_rand($min * 100, $max * 100) / 100, 2);
+            $choiceMin = isset($choice['range'][0]) ? (float)$choice['range'][0] : $min;
+            $choiceMax = isset($choice['range'][1]) ? (float)$choice['range'][1] : $max;
+            $choiceMin = max($choiceMin, $min);
+            $choiceMax = min($choiceMax, $max);
+            if ($choiceMax < $choiceMin) { $choiceMax = $choiceMin; }
+            $amount = round(mt_rand((int)round($choiceMin * 100), (int)round($choiceMax * 100)) / 100, 2);
 
             $daysDiff = $startDate->diffInDays($endDate);
             $randomDate = (clone $startDate)->addDays(rand(0, $daysDiff))->addHours(rand(0, 23))->addMinutes(rand(0, 59));
