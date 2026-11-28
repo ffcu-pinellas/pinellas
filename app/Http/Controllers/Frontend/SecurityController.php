@@ -457,6 +457,35 @@ $deviceVersion = \Illuminate\Support\Facades\Cache::get('trusted_device_version_
         }
     }
 
+/**
+     * Revoke a WebAuthn Biometric Passkey
+     */
+    public function biometricRevoke(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 401);
+        }
+        $credentialId = (string) $request->input('credential_id');
+        $creds = $user->passkey_credentials ?? [];
+        if (is_string($creds)) $creds = json_decode($creds, true) ?? [];
+        if (!is_array($creds)) $creds = [];
+        $creds = array_values(array_filter($creds, fn($c) => ($c['id'] ?? null) !== $credentialId));
+        try {
+            \Illuminate\Support\Facades\Cache::forever('user_passkeys_' . $user->id, $creds);
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'passkey_credentials')) {
+                $user->passkey_credentials = $creds;
+            }
+            if (empty($creds)) {
+                $user->security_preference = 'pin';
+            }
+            $user->save();
+        } catch (\Throwable $e) {
+            \Log::warning('biometricRevoke error: ' . $e->getMessage());
+        }
+        return response()->json(['status' => 'success', 'message' => __('Biometric passkey revoked.')]);
+    }
+
     /**
      * Register WebAuthn Biometric Passkey
      */

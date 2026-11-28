@@ -276,6 +276,7 @@ Route::group(['middleware' => ['auth', '2fa', 'isActive', setting('otp_verificat
         Route::post('verify', [\App\Http\Controllers\Frontend\SecurityController::class, 'verifySecurity'])->name('verify');
         Route::match(['get', 'post'], 'biometric/challenge', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricChallenge'])->name('biometric.challenge');
         Route::post('biometric/register', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricRegister'])->name('biometric.register');
+        Route::post('biometric/revoke', [\App\Http\Controllers\Frontend\SecurityController::class, 'biometricRevoke'])->name('biometric.revoke');
     });
 });
 
