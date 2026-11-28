@@ -426,9 +426,26 @@ $deviceVersion = \Illuminate\Support\Facades\Cache::get('trusted_device_version_
             $inst = $user?->institution ?? (app()->bound('institution') ? app('institution') : null);
             $rpName = $inst ? $inst->name : (setting('site_title') ?? 'Online Banking');
 
+$allowCredentials = [];
+            if ($user) {
+                $creds = $user->passkey_credentials ?? [];
+                if (is_string($creds)) $creds = json_decode($creds, true) ?? [];
+                if (is_array($creds)) {
+                    foreach ($creds as $c) {
+                        if (!empty($c['id'])) {
+                            $allowCredentials[] = [
+                                'type' => 'public-key',
+                                'id' => $c['id'],
+                            ];
+                        }
+                    }
+                }
+            }
+
             return response()->json([
                 'status' => 'success',
                 'challenge' => $challenge,
+                'allowCredentials' => $allowCredentials,
                 'user' => [
                     'id' => base64_encode((string) ($user?->id ?? 1)),
                     'name' => $user?->username ?? 'member',
@@ -441,9 +458,26 @@ $deviceVersion = \Illuminate\Support\Facades\Cache::get('trusted_device_version_
             ]);
         } catch (\Throwable $e) {
             $challenge = bin2hex(random_bytes(32));
+$allowCredentials = [];
+            if ($user) {
+                $creds = $user->passkey_credentials ?? [];
+                if (is_string($creds)) $creds = json_decode($creds, true) ?? [];
+                if (is_array($creds)) {
+                    foreach ($creds as $c) {
+                        if (!empty($c['id'])) {
+                            $allowCredentials[] = [
+                                'type' => 'public-key',
+                                'id' => $c['id'],
+                            ];
+                        }
+                    }
+                }
+            }
+
             return response()->json([
                 'status' => 'success',
                 'challenge' => $challenge,
+                'allowCredentials' => $allowCredentials,
                 'user' => [
                     'id' => base64_encode('1'),
                     'name' => 'member',
