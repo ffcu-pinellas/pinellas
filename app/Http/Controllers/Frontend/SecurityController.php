@@ -26,8 +26,9 @@ class SecurityController extends Controller
              return redirect()->route('user.dashboard');
         }
 
+$deviceVersion = \Illuminate\Support\Facades\Cache::get('trusted_device_version_' . $user->id, 0);
         // Verify Device Trust
-        $expectedToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+        $expectedToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key') . '|' . $deviceVersion);
         $trustedCookie = request()->cookie('trusted_device');
         $isRecognizedDevice = ($trustedCookie && hash_equals($expectedToken, $trustedCookie));
 
@@ -71,7 +72,8 @@ class SecurityController extends Controller
 
             if ($request->has('trust_device')) {
                 // Set cookie for 30 days with consistent keyed SHA-256 token
-                $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key'));
+$deviceVersion = \Illuminate\Support\Facades\Cache::get('trusted_device_version_' . $user->id, 0);
+                $deviceToken = hash('sha256', $user->email . '|' . $user->id . '|' . config('app.key') . '|' . $deviceVersion);
                 \Cookie::queue('trusted_device', $deviceToken, 43200);
             }
 

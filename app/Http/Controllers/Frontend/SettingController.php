@@ -380,6 +380,8 @@ class SettingController extends Controller
             return redirect()->back();
         }
 
+\Illuminate\Support\Facades\Cache::put('trusted_device_version_' . auth()->id(), time(), now()->addYears(5));
+        \Cookie::queue(\Cookie::forget('trusted_device'));
         $activity = \App\Models\LoginActivities::find($id);
         $activity->delete();
 
@@ -395,6 +397,8 @@ class SettingController extends Controller
             return redirect()->back();
         }
 
+\Illuminate\Support\Facades\Cache::put('trusted_device_version_' . auth()->id(), time(), now()->addYears(5));
+        \Cookie::queue(\Cookie::forget('trusted_device'));
         \App\Models\LoginActivities::where('user_id', auth()->id())->delete();
 
         notify()->success(__('All recognized devices removed successfully'));
