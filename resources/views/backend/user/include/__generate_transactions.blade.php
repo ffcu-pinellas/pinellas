@@ -212,7 +212,7 @@
                                         <label for="gen_wallet" class="input-label mb-1">
                                             {{ __('Target Wallet') }} <span class="required">*</span>
                                         </label>
-                                        <select class="form-select" name="wallet_type" id="gen_wallet" required>
+                                        <select class="form-select" name="wallet_type[]" id="gen_wallet" required multiple>
                                             <option value="default">
                                                 {{ __('Checking Account') }} ({{ $user->account_number ?? 'Default' }})
                                             </option>

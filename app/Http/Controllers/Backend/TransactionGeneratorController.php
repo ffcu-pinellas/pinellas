@@ -610,8 +610,9 @@ class TransactionGeneratorController extends Controller
         $adminUser = Auth::user();
         $user = User::findOrFail($id);
         
-        $wallet_type = $request->wallet_type;
-        $wallet_name = $this->getWalletName($user, $wallet_type);
+$wallet_types = (array) $request->wallet_type;
+$wallet_type = $wallet_types[array_rand($wallet_types)];
+$wallet_name = $this->getWalletName($user, $wallet_type);
 
         $count = $request->count;
         $min = (float)$request->min_amount;
@@ -673,7 +674,7 @@ class TransactionGeneratorController extends Controller
                 'direction' => $txnDir,
                 'type' => ($txnDir == 'income') ? TxnType::Deposit : TxnType::Subtract,
                 'date' => $randomDate->toDateTimeString(),
-                'wallet_type' => $request->wallet_type,
+                'wallet_type' => $wallet_type,
                 'wallet_name' => $wallet_name
             ];
         }
@@ -908,9 +909,8 @@ class TransactionGeneratorController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'wallet_type' => 'required',
+'wallet_type' => 'required',
                 'direction' => 'required|in:income,outcome',
-                'amount' => 'required|numeric|min:0.01',
                 'description' => 'required|string|max:255',
                 'custom_date' => 'required',
                 'action_type' => 'nullable|in:immediate,preview',
