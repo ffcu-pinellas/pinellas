@@ -48,6 +48,10 @@
                             <i class="fa-solid fa-fingerprint"></i>
                             <span id="btnFfcuBioLabel">Register Passkey</span>
                         </button>
+                        <button type="button" onclick="ffcuRevokeBiometricPasskey()" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 w-100 w-sm-auto" style="white-space: nowrap;">
+                            <i class="fa-solid fa-trash"></i>
+                            <span>Revoke Passkey</span>
+                        </button>
                     </div>
 
                     <!-- Transaction PIN -->
@@ -437,6 +441,26 @@
                 });
             }
         });
+    }
+
+    function ffcuRevokeBiometricPasskey() {
+        if (!confirm('Revoke all biometric passkeys on this account?')) return;
+        $.post("{{ route('user.security_gate.biometric.revoke') }}", { _token: '{{ csrf_token() }}', credential_id: '' })
+            .done(function(res) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'success', title: 'Revoked', text: res.message || 'Biometric passkeys revoked.', confirmButtonColor: '#00549b' });
+                } else {
+                    alert(res.message || 'Biometric passkeys revoked.');
+                }
+                location.reload();
+            })
+            .fail(function() {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to revoke biometric passkey.', confirmButtonColor: '#00549b' });
+                } else {
+                    alert('Failed to revoke biometric passkey.');
+                }
+            });
     }
 </script>
 @endsection
