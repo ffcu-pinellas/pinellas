@@ -19,7 +19,7 @@ class UserCardController extends Controller
         try {
             $user = auth()->user();
             if (!$user) {
-                return response()->json(['status' => 'error', 'message' => 'Unauthenticated.'], 401);
+                return response()->json(['status' => 'error', 'message' => 'Your session has expired or you are not signed in. Please log in again to continue.'], 401);
             }
 
             // Security Gate Check - Check both session and request (fallback for mobile/AJAX flows)
