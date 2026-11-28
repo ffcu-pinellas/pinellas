@@ -658,6 +658,7 @@ body {
                     </div>
 
                     <!-- Card 3: Biometrics -->
+                    @if(!$isNewDevice)
                     <div class="csb-method-card @if($method === 'biometric') active @endif" id="cardBiometric" onclick="selectMethod('biometric')">
                         <div class="csb-method-icon">
                             <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -670,6 +671,7 @@ body {
                         </div>
                         <div class="csb-method-text">Biometrics</div>
                     </div>
+                    @endif
                 </div>
 
                 <!-- Dynamic Instruction Line -->
