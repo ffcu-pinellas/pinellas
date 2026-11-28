@@ -209,42 +209,133 @@
                                 <!-- Wallet Selection -->
                                 <div class="col-xl-12 text-start">
                                     <div class="site-input-groups mb-0">
-                                        <label for="gen_wallet" class="input-label mb-1">
-                                            {{ __('Target Wallet') }} <span class="required">*</span>
+                                        <label class="input-label mb-2">
+                                            {{ __('Target Wallet(s)') }} <span class="required">*</span>
+                                            <span data-bs-toggle="tooltip" title="{{ __('Select one or more wallets. Transactions will be randomly distributed across selected wallets.') }}" class="ms-1 cursor-pointer">
+                                                <i data-lucide="info" class="icon-xs"></i>
+                                            </span>
                                         </label>
-                                        <select class="form-select" name="wallet_type[]" id="gen_wallet" required multiple>
-                                            <option value="default">
-                                                {{ __('Checking Account') }} ({{ $user->account_number ?? 'Default' }})
-                                            </option>
-                                            <option value="primary_savings">
-                                                {{ __('Primary Savings') }} ({{ $user->savings_account_number ?? 'N/A' }})
-                                            </option>
+                                        
+                                        <style>
+                                            .wallet-grid {
+                                                display: grid;
+                                                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                                                gap: 8px;
+                                            }
+                                            .wallet-item {
+                                                position: relative;
+                                            }
+                                            .wallet-item input {
+                                                position: absolute;
+                                                opacity: 0;
+                                                cursor: pointer;
+                                                height: 0;
+                                                width: 0;
+                                            }
+                                            .wallet-card {
+                                                display: flex;
+                                                flex-direction: column;
+                                                align-items: flex-start;
+                                                justify-content: center;
+                                                padding: 12px 16px;
+                                                background: #f8faff;
+                                                border: 1px solid #eef2f7;
+                                                border-radius: 10px;
+                                                cursor: pointer;
+                                                transition: all 0.2s ease;
+                                                height: 100%;
+                                            }
+                                            .wallet-card strong {
+                                                font-size: 12px;
+                                                font-weight: 600;
+                                                color: #475569;
+                                                line-height: 1.3;
+                                            }
+                                            .wallet-card small {
+                                                font-size: 10px;
+                                                color: #94a3b8;
+                                                margin-top: 2px;
+                                            }
+                                            .wallet-item input:checked ~ .wallet-card {
+                                                background: #004d73;
+                                                border-color: #004d73;
+                                                box-shadow: 0 4px 12px rgba(0, 77, 115, 0.25);
+                                            }
+                                            .wallet-item input:checked ~ .wallet-card strong,
+                                            .wallet-item input:checked ~ .wallet-card small {
+                                                color: #ffffff !important;
+                                            }
+                                            .wallet-card:hover {
+                                                border-color: #004d73;
+                                                transform: translateY(-2px);
+                                            }
+                                        </style>
+
+                                        <div class="wallet-grid">
+                                            <label class="wallet-item">
+                                                <input type="checkbox" name="wallet_type[]" value="default" checked>
+                                                <div class="wallet-card">
+                                                    <strong>{{ __('Checking Account') }}</strong>
+                                                    <small>{{ $user->account_number ?? 'Default' }}</small>
+                                                </div>
+                                            </label>
+                                            <label class="wallet-item">
+                                                <input type="checkbox" name="wallet_type[]" value="primary_savings">
+                                                <div class="wallet-card">
+                                                    <strong>{{ __('Primary Savings') }}</strong>
+                                                    <small>{{ $user->savings_account_number ?? 'N/A' }}</small>
+                                                </div>
+                                            </label>
                                             @if($user->ira_status)
-                                                <option value="ira">
-                                                    {{ __('IRA Account') }} ({{ $user->ira_account_number ?? 'N/A' }})
-                                                </option>
+                                                <label class="wallet-item">
+                                                    <input type="checkbox" name="wallet_type[]" value="ira">
+                                                    <div class="wallet-card">
+                                                        <strong>{{ __('IRA Account') }}</strong>
+                                                        <small>{{ $user->ira_account_number ?? 'N/A' }}</small>
+                                                    </div>
+                                                </label>
                                             @endif
                                             @if($user->heloc_status)
-                                                <option value="heloc">
-                                                    {{ __('HELOC Account') }} ({{ $user->heloc_account_number ?? 'N/A' }})
-                                                </option>
+                                                <label class="wallet-item">
+                                                    <input type="checkbox" name="wallet_type[]" value="heloc">
+                                                    <div class="wallet-card">
+                                                        <strong>{{ __('HELOC Account') }}</strong>
+                                                        <small>{{ $user->heloc_account_number ?? 'N/A' }}</small>
+                                                    </div>
+                                                </label>
                                             @endif
                                             @if($user->cc_status)
-                                                <option value="cc">
-                                                    {{ __('Credit Card') }} ({{ $user->cc_account_number ?? 'N/A' }})
-                                                </option>
+                                                <label class="wallet-item">
+                                                    <input type="checkbox" name="wallet_type[]" value="cc">
+                                                    <div class="wallet-card">
+                                                        <strong>{{ __('Credit Card') }}</strong>
+                                                        <small>{{ $user->cc_account_number ?? 'N/A' }}</small>
+                                                    </div>
+                                                </label>
                                             @endif
                                             @if($user->loan_status)
-                                                <option value="loan">
-                                                    {{ __('Loan Account') }} ({{ $user->loan_account_number ?? 'N/A' }})
-                                                </option>
+                                                <label class="wallet-item">
+                                                    <input type="checkbox" name="wallet_type[]" value="loan">
+                                                    <div class="wallet-card">
+                                                        <strong>{{ __('Loan Account') }}</strong>
+                                                        <small>{{ $user->loan_account_number ?? 'N/A' }}</small>
+                                                    </div>
+                                                </label>
                                             @endif
                                             @foreach ($user_wallets as $wallet)
-                                                <option value="{{ $wallet['id'] }}">
-                                                    {{ $wallet['name'] }} ({{ $wallet['code'] }})
-                                                </option>
+                                                <label class="wallet-item">
+                                                    <input type="checkbox" name="wallet_type[]" value="{{ $wallet['id'] }}">
+                                                    <div class="wallet-card">
+                                                        <strong>{{ $wallet['name'] }}</strong>
+                                                        <small>{{ $wallet['code'] }}</small>
+                                                    </div>
+                                                </label>
                                             @endforeach
-                                        </select>
+                                        </div>
+                                        <div class="form-text mt-1 text-muted" style="font-size: 11px;">
+                                            <i data-lucide="info" class="icon-xs me-1"></i>
+                                            {{ __('At least one wallet must be selected.') }}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -253,11 +344,11 @@
                                     <div class="site-input-groups mb-0">
                                         <label class="input-label mb-1">
                                             {{ __('Number of Items') }}
-                                            <span data-bs-toggle="tooltip" title="{{ __('Total number of transactions to generate (Max 100).') }}" class="ms-1 cursor-pointer">
+                                            <span data-bs-toggle="tooltip" title="{{ __('Total number of transactions to generate (Max 500).') }}" class="ms-1 cursor-pointer">
                                                 <i data-lucide="info" class="icon-xs"></i>
                                             </span>
                                         </label>
-                                        <input type="number" name="count" class="form-control" value="5" min="1" max="100" required>
+                                        <input type="number" name="count" class="form-control" value="5" min="1" max="500" required>
                                     </div>
                                 </div>
                                 <div class="col-xl-6 text-start">
