@@ -856,6 +856,21 @@
                 document.body.style.overflow = '';
             });
         }
+        // Auto-close sidebar on page load (mobile)
+        if (csbSidebar) {
+            csbSidebar.classList.remove('show');
+            if (csbOverlay) csbOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        // Close sidebar when clicking outside (mobile)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth >= 992) return;
+            if (!csbSidebar || !csbSidebar.classList.contains('show')) return;
+            if (csbSidebar.contains(e.target) || (csbToggle && csbToggle.contains(e.target))) return;
+            csbSidebar.classList.remove('show');
+            if (csbOverlay) csbOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        });
 
         // Capacitor Android Back Button Handling
         if (window.Capacitor && window.Capacitor.Plugins.App) {
