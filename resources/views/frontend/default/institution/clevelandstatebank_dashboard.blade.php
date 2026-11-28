@@ -1703,7 +1703,6 @@ body {
                 </div>
                 @endif
             </div>
-            </div>
 
             <!-- Two Column Lower Cards -->
             <div class="dashboard-grid-2">
