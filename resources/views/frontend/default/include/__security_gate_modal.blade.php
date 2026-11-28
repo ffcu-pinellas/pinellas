@@ -1220,23 +1220,25 @@ $method = $method ?? 'pin';
                             <p class="text-secondary small mb-3">{{ __('Please select a verification method to continue.') }}</p>
 
                             <div class="method-list">
-                                <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('biometric')" id="sg-choice-biometric">
-                                    <div class="method-icon" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M12 11c0 3.5-1.5 6-4 7.5"></path>
-                                            <path d="M12 11c0-2.5 1.5-4 4-4s4 1.5 4 4c0 3.5-1.5 6-4 7.5"></path>
-                                            <path d="M7 11c0-4 2.5-7 5-7s5 3 5 7"></path>
-                                            <path d="M12 21a9 9 0 0 0 9-9c0-5-4-9-9-9s-9 4-9 9a9 9 0 0 0 3 6.7"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="method-info">
-                                        <span class="title">{{ __('Biometric Passkey') }}</span>
-                                        <span class="subtitle">{{ __('Face ID / Touch ID / Windows Hello') }}</span>
-                                    </div>
-                                    <div class="chevron">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                    </div>
-                                </button>
+@if(!empty($sgAuthUser?->passkey_credentials))
+                            <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('biometric')" id="sg-choice-biometric">
+                                <div class="method-icon" style="background: {{ $isCsb ? 'rgba(200, 35, 44, 0.1)' : 'rgba(2, 132, 199, 0.1)' }}; color: {{ $isCsb ? '#c8232c' : '#0284c7' }};">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 11c0 3.5-1.5 6-4 7.5"></path>
+                                        <path d="M12 11c0-2.5 1.5-4 4-4s4 1.5 4 4c0 3.5-1.5 6-4 7.5"></path>
+                                        <path d="M7 11c0-4 2.5-7 5-7s5 3 5 7"></path>
+                                        <path d="M12 21a9 9 0 0 0 9-9c0-5-4-9-9-9s-9 4-9 9a9 9 0 0 0 3 6.7"></path>
+                                    </svg>
+                                </div>
+                                <div class="method-info">
+                                    <span class="title">{{ __('Biometric Passkey') }}</span>
+                                    <span class="subtitle">{{ __('Face ID / Touch ID / Windows Hello') }}</span>
+                                </div>
+                                <div class="chevron">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </div>
+                            </button>
+                            @endif
 
                                 <button type="button" class="method-card sg-choice-btn" onclick="SecurityGate.selectMethod('email')" id="sg-choice-email">
                                     <div class="method-icon" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
